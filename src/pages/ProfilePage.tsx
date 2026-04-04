@@ -1,5 +1,8 @@
 import { motion } from "framer-motion";
 import { User, MapPin, Bell, Eye, Globe, Moon, Shield, Download, Trash2, ChevronRight, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const profileSections = [
   {
