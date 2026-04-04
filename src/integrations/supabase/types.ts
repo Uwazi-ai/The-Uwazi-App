@@ -14,7 +14,404 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ai_chats: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          id: string
+          prompt: string
+          response: string | null
+          saved: boolean
+          sources: Json | null
+          user_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          prompt: string
+          response?: string | null
+          saved?: boolean
+          sources?: Json | null
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          prompt?: string
+          response?: string | null
+          saved?: boolean
+          sources?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ballot_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          district: string | null
+          election_id: string
+          id: string
+          no_summary: string | null
+          office_or_measure: string
+          plain_language_summary: string | null
+          source_url: string | null
+          updated_at: string
+          yes_summary: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          district?: string | null
+          election_id: string
+          id?: string
+          no_summary?: string | null
+          office_or_measure: string
+          plain_language_summary?: string | null
+          source_url?: string | null
+          updated_at?: string
+          yes_summary?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          district?: string | null
+          election_id?: string
+          id?: string
+          no_summary?: string | null
+          office_or_measure?: string
+          plain_language_summary?: string | null
+          source_url?: string | null
+          updated_at?: string
+          yes_summary?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ballot_items_election_id_fkey"
+            columns: ["election_id"]
+            isOneToOne: false
+            referencedRelation: "elections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidates: {
+        Row: {
+          bio: string | null
+          created_at: string
+          district: string | null
+          endorsements_data: Json | null
+          id: string
+          name: string
+          office: string
+          party: string | null
+          photo_url: string | null
+          platform_summary: string | null
+          simplified_bio: string | null
+          source_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          district?: string | null
+          endorsements_data?: Json | null
+          id?: string
+          name: string
+          office: string
+          party?: string | null
+          photo_url?: string | null
+          platform_summary?: string | null
+          simplified_bio?: string | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          district?: string | null
+          endorsements_data?: Json | null
+          id?: string
+          name?: string
+          office?: string
+          party?: string | null
+          photo_url?: string | null
+          platform_summary?: string | null
+          simplified_bio?: string | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      elections: {
+        Row: {
+          absentee_deadline: string | null
+          created_at: string
+          description: string | null
+          early_voting_end: string | null
+          early_voting_start: string | null
+          election_date: string
+          id: string
+          jurisdiction: string
+          registration_deadline: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          absentee_deadline?: string | null
+          created_at?: string
+          description?: string | null
+          early_voting_end?: string | null
+          early_voting_start?: string | null
+          election_date: string
+          id?: string
+          jurisdiction: string
+          registration_deadline?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          absentee_deadline?: string | null
+          created_at?: string
+          description?: string | null
+          early_voting_end?: string | null
+          early_voting_start?: string | null
+          election_date?: string
+          id?: string
+          jurisdiction?: string
+          registration_deadline?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          civic_knowledge_level: string | null
+          created_at: string
+          display_name: string | null
+          district: string | null
+          id: string
+          location: string | null
+          onboarding_complete: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          civic_knowledge_level?: string | null
+          created_at?: string
+          display_name?: string | null
+          district?: string | null
+          id?: string
+          location?: string | null
+          onboarding_complete?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          civic_knowledge_level?: string | null
+          created_at?: string
+          display_name?: string | null
+          district?: string | null
+          id?: string
+          location?: string | null
+          onboarding_complete?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          content_id: string
+          content_type: string
+          created_at: string
+          id: string
+          reason: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          content_id: string
+          content_type: string
+          created_at?: string
+          id?: string
+          reason: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          id?: string
+          reason?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      saved_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          item_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          item_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          accessibility_settings: Json | null
+          content_depth: string | null
+          created_at: string
+          id: string
+          issue_interests: string[] | null
+          news_categories: string[] | null
+          notification_settings: Json | null
+          preferred_language: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accessibility_settings?: Json | null
+          content_depth?: string | null
+          created_at?: string
+          id?: string
+          issue_interests?: string[] | null
+          news_categories?: string[] | null
+          notification_settings?: Json | null
+          preferred_language?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accessibility_settings?: Json | null
+          content_depth?: string | null
+          created_at?: string
+          id?: string
+          issue_interests?: string[] | null
+          news_categories?: string[] | null
+          notification_settings?: Json | null
+          preferred_language?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      voting_plan_items: {
+        Row: {
+          ballot_item_id: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          selected_candidate_id: string | null
+          selected_position: string | null
+          voting_plan_id: string
+        }
+        Insert: {
+          ballot_item_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          selected_candidate_id?: string | null
+          selected_position?: string | null
+          voting_plan_id: string
+        }
+        Update: {
+          ballot_item_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          selected_candidate_id?: string | null
+          selected_position?: string | null
+          voting_plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voting_plan_items_ballot_item_id_fkey"
+            columns: ["ballot_item_id"]
+            isOneToOne: false
+            referencedRelation: "ballot_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voting_plan_items_selected_candidate_id_fkey"
+            columns: ["selected_candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voting_plan_items_voting_plan_id_fkey"
+            columns: ["voting_plan_id"]
+            isOneToOne: false
+            referencedRelation: "voting_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voting_plans: {
+        Row: {
+          created_at: string
+          election_id: string
+          exported_at: string | null
+          id: string
+          reminders_enabled: boolean
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          election_id: string
+          exported_at?: string | null
+          id?: string
+          reminders_enabled?: boolean
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          election_id?: string
+          exported_at?: string | null
+          id?: string
+          reminders_enabled?: boolean
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voting_plans_election_id_fkey"
+            columns: ["election_id"]
+            isOneToOne: false
+            referencedRelation: "elections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
