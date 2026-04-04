@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
   Calendar, Clock, MapPin, FileText, CheckCircle2, 
-  ChevronRight, Vote, Shield, AlertCircle, CreditCard
+  ChevronRight, Vote, Shield, AlertCircle, CreditCard, Search, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useBillSearch } from "@/hooks/useLegiScan";
 
 const electionDate = new Date("2026-11-03");
 const getDaysUntil = () => Math.max(0, Math.ceil((electionDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
@@ -30,8 +33,27 @@ const votingChecklist = [
   { task: "Set election day reminder", done: false },
 ];
 
+const US_STATES = [
+  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",
+  "KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
+  "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT",
+  "VA","WA","WV","WI","WY"
+];
+
 export default function VotingHubPage() {
   const daysLeft = getDaysUntil();
+  const [billState, setBillState] = useState("CA");
+  const [billQuery, setBillQuery] = useState("");
+  const [searchTrigger, setSearchTrigger] = useState("");
+  const { data: billResults, isLoading: billsLoading, error: billsError } = useBillSearch(billState, searchTrigger);
+
+  const handleBillSearch = () => {
+    if (billQuery.trim()) setSearchTrigger(billQuery.trim());
+  };
+
+  const bills = billResults?.searchresult
+    ? Object.values(billResults.searchresult).filter((b: any) => typeof b === "object" && b.bill_id)
+    : [];
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 md:py-8 space-y-6">
@@ -54,6 +76,65 @@ export default function VotingHubPage() {
           <span className="text-base opacity-80">days until Election Day</span>
         </div>
         <p className="text-sm opacity-60">November 3, 2026</p>
+      </motion.div>
+
+      {/* Bill Search */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
+        <h2 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
+          <Search className="h-4 w-4 text-primary" /> Search Legislation
+        </h2>
+        <div className="bg-card rounded-xl shadow-card p-4 space-y-3">
+          <div className="flex gap-2">
+            <select
+              value={billState}
+              onChange={(e) => setBillState(e.target.value)}
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              {US_STATES.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+            <Input
+              placeholder="Search bills (e.g. education, housing)..."
+              value={billQuery}
+              onChange={(e) => setBillQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleBillSearch()}
+              className="flex-1"
+            />
+            <Button onClick={handleBillSearch} disabled={billsLoading || !billQuery.trim()}>
+              {billsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+            </Button>
+          </div>
+
+          {billsError && (
+            <p className="text-sm text-destructive">Error: {(billsError as Error).message}</p>
+          )}
+
+          {bills.length > 0 && (
+            <div className="divide-y divide-border">
+              {(bills as any[]).slice(0, 10).map((bill: any) => (
+                <div key={bill.bill_id} className="py-3 first:pt-0 last:pb-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground">{bill.bill_number}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{bill.title}</p>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-primary/10 text-primary shrink-0">
+                      {bill.state}
+                    </span>
+                  </div>
+                  {bill.last_action && (
+                    <p className="text-[11px] text-muted-foreground mt-1">Last action: {bill.last_action}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {searchTrigger && !billsLoading && bills.length === 0 && !billsError && (
+            <p className="text-sm text-muted-foreground text-center py-4">No bills found for "{searchTrigger}" in {billState}</p>
+          )}
+        </div>
       </motion.div>
 
       {/* Quick Actions */}
