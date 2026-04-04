@@ -1,5 +1,7 @@
-import { Home, MessageCircle, Vote, Newspaper, BookmarkCheck, User, Settings, Shield } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { Home, MessageCircle, Vote, Newspaper, BookmarkCheck, User, Settings, LogOut } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import uwaziIcon from "@/assets/uwazi-icon.png";
 
 const mainNav = [
@@ -16,6 +18,15 @@ const bottomNav = [
 ];
 
 export function DesktopSidebar() {
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Signed out");
+    navigate("/login");
+  };
+
   return (
     <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card h-screen sticky top-0">
       <div className="flex items-center gap-2.5 px-5 py-5">
@@ -60,6 +71,13 @@ export function DesktopSidebar() {
             {item.label}
           </NavLink>
         ))}
+        <button
+          onClick={handleSignOut}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-civic-coral hover:bg-civic-coral/5 transition-all"
+        >
+          <LogOut className="h-[18px] w-[18px]" strokeWidth={1.8} />
+          Sign Out
+        </button>
       </div>
     </aside>
   );

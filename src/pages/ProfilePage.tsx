@@ -1,5 +1,8 @@
 import { motion } from "framer-motion";
 import { User, MapPin, Bell, Eye, Globe, Moon, Shield, Download, Trash2, ChevronRight, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const profileSections = [
   {
@@ -35,6 +38,15 @@ const profileSections = [
 ];
 
 export default function ProfilePage() {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Signed out");
+    navigate("/login");
+  };
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 md:py-8 space-y-6">
       {/* Profile Header */}
@@ -87,7 +99,7 @@ export default function ProfilePage() {
 
       {/* Sign Out */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
-        <button className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-civic-coral hover:bg-civic-coral/5 transition-colors">
+        <button onClick={handleSignOut} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-civic-coral hover:bg-civic-coral/5 transition-colors">
           <LogOut className="h-4 w-4" />
           Sign Out
         </button>
