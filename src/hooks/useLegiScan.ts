@@ -10,15 +10,15 @@ async function callLegiScan(op: string, params: Record<string, string> = {}) {
   return data;
 }
 
-export function useBillSearch(query: string, state?: string) {
+export function useBillSearch(state: string, query: string) {
   return useQuery({
-    queryKey: ["legiscan", "search", query, state],
+    queryKey: ["legiscan", "search", state, query],
     queryFn: () =>
       callLegiScan("search", {
         query,
-        ...(state ? { state } : {}),
+        state,
       }),
-    enabled: !!query,
+    enabled: !!query && !!state,
     staleTime: 1000 * 60 * 15,
     retry: 1,
   });
@@ -34,7 +34,7 @@ export function useBillDetail(billId: string) {
   });
 }
 
-export function useSessionList(state: string) {
+export function useStateSessions(state: string) {
   return useQuery({
     queryKey: ["legiscan", "getSessionList", state],
     queryFn: () => callLegiScan("getSessionList", { state }),
