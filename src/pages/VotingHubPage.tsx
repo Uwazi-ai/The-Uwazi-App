@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
   Calendar, Clock, MapPin, FileText, CheckCircle2, 
-  ChevronRight, Vote, Shield, AlertCircle, CreditCard
+  ChevronRight, Vote, Shield, AlertCircle, CreditCard, Search, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useBillSearch } from "@/hooks/useLegiScan";
 
 const electionDate = new Date("2026-11-03");
 const getDaysUntil = () => Math.max(0, Math.ceil((electionDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
