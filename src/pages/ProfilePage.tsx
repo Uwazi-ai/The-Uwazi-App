@@ -38,6 +38,15 @@ const profileSections = [
 ];
 
 export default function ProfilePage() {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Signed out");
+    navigate("/login");
+  };
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 md:py-8 space-y-6">
       {/* Profile Header */}
