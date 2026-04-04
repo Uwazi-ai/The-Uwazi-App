@@ -19,7 +19,7 @@ export function DesktopSidebar() {
   return (
     <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card h-screen sticky top-0">
       <div className="flex items-center gap-2.5 px-5 py-5">
-        <img src={uwaziLogo} alt="UWAZI.AI" className="h-8 w-8" />
+        <img src={uwaziIcon} alt="UWAZI.AI" className="h-8 w-8" />
         <span className="text-lg font-bold text-foreground tracking-tight">UWAZI.AI</span>
       </div>
 
