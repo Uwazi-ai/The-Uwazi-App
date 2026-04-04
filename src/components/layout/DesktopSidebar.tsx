@@ -1,6 +1,6 @@
 import { Home, MessageCircle, Vote, Newspaper, BookmarkCheck, User, Settings, Shield } from "lucide-react";
 import { NavLink } from "react-router-dom";
-import uwaziLogo from "@/assets/uwazi-logo.png";
+import uwaziIcon from "@/assets/uwazi-icon.png";
 
 const mainNav = [
   { to: "/", icon: Home, label: "Dashboard" },
