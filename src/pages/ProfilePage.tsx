@@ -99,7 +99,7 @@ export default function ProfilePage() {
 
       {/* Sign Out */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
-        <button className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-civic-coral hover:bg-civic-coral/5 transition-colors">
+        <button onClick={handleSignOut} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-civic-coral hover:bg-civic-coral/5 transition-colors">
           <LogOut className="h-4 w-4" />
           Sign Out
         </button>

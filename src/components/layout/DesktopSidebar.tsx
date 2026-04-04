@@ -69,6 +69,13 @@ export function DesktopSidebar() {
             {item.label}
           </NavLink>
         ))}
+        <button
+          onClick={handleSignOut}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-civic-coral hover:bg-civic-coral/5 transition-all"
+        >
+          <LogOut className="h-[18px] w-[18px]" strokeWidth={1.8} />
+          Sign Out
+        </button>
       </div>
     </aside>
   );
