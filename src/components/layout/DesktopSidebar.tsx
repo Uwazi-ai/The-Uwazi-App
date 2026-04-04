@@ -16,6 +16,15 @@ const bottomNav = [
 ];
 
 export function DesktopSidebar() {
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Signed out");
+    navigate("/login");
+  };
+
   return (
     <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card h-screen sticky top-0">
       <div className="flex items-center gap-2.5 px-5 py-5">
