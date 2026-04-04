@@ -1,5 +1,7 @@
-import { Home, MessageCircle, Vote, Newspaper, BookmarkCheck, User, Settings, Shield } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { Home, MessageCircle, Vote, Newspaper, BookmarkCheck, User, Settings, LogOut } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import uwaziIcon from "@/assets/uwazi-icon.png";
 
 const mainNav = [
