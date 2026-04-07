@@ -172,6 +172,36 @@ export type Database = {
         }
         Relationships: []
       }
+      civic_scores: {
+        Row: {
+          civic_literacy_score: number | null
+          id: string
+          lessons_completed: number | null
+          quizzes_passed: number | null
+          total_xp: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          civic_literacy_score?: number | null
+          id?: string
+          lessons_completed?: number | null
+          quizzes_passed?: number | null
+          total_xp?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          civic_literacy_score?: number | null
+          id?: string
+          lessons_completed?: number | null
+          quizzes_passed?: number | null
+          total_xp?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       elections: {
         Row: {
           absentee_deadline: string | null
