@@ -146,30 +146,10 @@ export function useAskUwaziSession() {
     }
   }, [user]);
 
-  // Restore latest session from today on mount
+  // Load history on mount but NEVER auto-restore a session (ChatGPT pattern)
   useEffect(() => {
     if (!user) { setSessionLoading(false); return; }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    Promise.all([
-      supabase
-        .from("ask_uwazi_sessions")
-        .select("id, messages, created_at")
-        .eq("user_id", user.id)
-        .gte("updated_at", today.toISOString())
-        .order("updated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-      loadHistory(),
-    ]).then(([{ data }]) => {
-      if (data && Array.isArray(data.messages) && (data.messages as any[]).length > 0) {
-        setSessionId(data.id);
-        setRestoredMessages(data.messages as unknown as StoredMessage[]);
-      }
-      setSessionLoading(false);
-    });
+    loadHistory().then(() => setSessionLoading(false));
   }, [user, loadHistory]);
 
   const saveMessages = useCallback(async (msgs: StoredMessage[], zipCode: string | null) => {
