@@ -61,10 +61,15 @@ export default function VotingHubPage() {
   const { data: electionsData, isLoading: electionsLoading, error: electionsError } = useElections();
   const { data: voterData, isLoading: voterLoading } = useVoterInfo(address);
 
-  const isDemo = !!electionsError || (!electionsLoading && !electionsData?.elections);
-  const elections = isDemo ? demoElections : (electionsData?.elections || []).filter((e: any) => e.id !== "2000");
+  const liveElections = (electionsData?.elections || []).filter((e: any) => e.id !== "2000");
+  const noLiveVoterData = voterData?.status === "no_election";
+  const isDemo = !!electionsError || (!electionsLoading && liveElections.length === 0) || (!!address && noLiveVoterData);
+  const elections = isDemo ? demoElections : liveElections;
   const pollingLocations = isDemo ? [demoPolling] : (voterData?.pollingLocations || []);
   const contests = isDemo ? demoContests : (voterData?.contests || []);
+  const demoBannerMessage = noLiveVoterData
+    ? "No active election data is available for your address right now. Showing sample data below."
+    : "Live election data requires a Google Civic API key. Showing sample data below.";
 
   // Voting plan state
   const [planElectionDate, setPlanElectionDate] = useState<Date | undefined>();
@@ -167,7 +172,7 @@ export default function VotingHubPage() {
         <div className="bg-card border border-primary/30 rounded-card p-3 flex items-center gap-2">
           <AlertCircle className="h-4 w-4 text-primary shrink-0" />
           <p className="text-xs text-muted-foreground">
-            Live election data requires a Google Civic API key. Showing sample data below.
+            {demoBannerMessage}
           </p>
         </div>
       )}

@@ -11,8 +11,12 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const apiKey = Deno.env.get("VITE_NEWS_API_KEY") || Deno.env.get("NEWS_API_KEY");
-    if (!apiKey) {
+    const apiKeys = Array.from(new Set([
+      Deno.env.get("NEWS_API_KEY"),
+      Deno.env.get("VITE_NEWS_API_KEY"),
+    ].filter((value): value is string => Boolean(value))));
+
+    if (!apiKeys.length) {
       return new Response(
         JSON.stringify({ error: "News API key not configured" }),
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -23,23 +27,38 @@ Deno.serve(async (req) => {
     const { endpoint, params } = body;
 
     const ep = endpoint || "/everything";
-    const url = new URL(`${BASE_URL}${ep}`);
-    url.searchParams.set("apiKey", apiKey);
-    url.searchParams.set("language", "en");
-    if (params && typeof params === "object") {
-      Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, String(v)));
+    let lastStatus = 500;
+    let lastData: unknown = { error: "News API request failed" };
+
+    for (const apiKey of apiKeys) {
+      const url = new URL(`${BASE_URL}${ep}`);
+      url.searchParams.set("apiKey", apiKey);
+      url.searchParams.set("language", "en");
+      if (params && typeof params === "object") {
+        Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, String(v)));
+      }
+
+      const response = await fetch(url.toString());
+      const data = await response.json();
+
+      if (response.ok || data?.code !== "apiKeyInvalid") {
+        return new Response(JSON.stringify(data), {
+          status: response.status,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      lastStatus = response.status;
+      lastData = data;
     }
 
-    const response = await fetch(url.toString());
-    const data = await response.json();
-
-    return new Response(JSON.stringify(data), {
-      status: response.status,
+    return new Response(JSON.stringify(lastData), {
+      status: lastStatus,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
