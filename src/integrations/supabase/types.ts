@@ -205,6 +205,56 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_recipients: {
+        Row: {
+          campaign_id: string | null
+          clicked_at: string | null
+          created_at: string | null
+          email: string | null
+          failed_reason: string | null
+          id: string
+          opened_at: string | null
+          phone_number: string | null
+          sent_at: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          clicked_at?: string | null
+          created_at?: string | null
+          email?: string | null
+          failed_reason?: string | null
+          id?: string
+          opened_at?: string | null
+          phone_number?: string | null
+          sent_at?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          clicked_at?: string | null
+          created_at?: string | null
+          email?: string | null
+          failed_reason?: string | null
+          id?: string
+          opened_at?: string | null
+          phone_number?: string | null
+          sent_at?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_recipients_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "outreach_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidates: {
         Row: {
           bio: string | null
@@ -462,6 +512,108 @@ export type Database = {
         }
         Relationships: []
       }
+      outreach_campaigns: {
+        Row: {
+          campaign_type: string
+          clicked_count: number | null
+          created_at: string | null
+          created_by: string | null
+          delivered_count: number | null
+          email_body: string | null
+          failed_count: number | null
+          id: string
+          name: string
+          opened_count: number | null
+          preview_text: string | null
+          push_body: string | null
+          push_icon: string | null
+          push_title: string | null
+          push_url: string | null
+          recipient_count: number | null
+          scheduled_at: string | null
+          sent_at: string | null
+          sms_body: string | null
+          status: string | null
+          subject: string | null
+          target_civic_score_max: number | null
+          target_civic_score_min: number | null
+          target_has_voting_plan: boolean | null
+          target_lessons_completed_min: number | null
+          target_states: Json | null
+          target_tags: Json | null
+          target_type: string | null
+          target_zip_codes: Json | null
+          unsubscribed_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          campaign_type: string
+          clicked_count?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          delivered_count?: number | null
+          email_body?: string | null
+          failed_count?: number | null
+          id?: string
+          name: string
+          opened_count?: number | null
+          preview_text?: string | null
+          push_body?: string | null
+          push_icon?: string | null
+          push_title?: string | null
+          push_url?: string | null
+          recipient_count?: number | null
+          scheduled_at?: string | null
+          sent_at?: string | null
+          sms_body?: string | null
+          status?: string | null
+          subject?: string | null
+          target_civic_score_max?: number | null
+          target_civic_score_min?: number | null
+          target_has_voting_plan?: boolean | null
+          target_lessons_completed_min?: number | null
+          target_states?: Json | null
+          target_tags?: Json | null
+          target_type?: string | null
+          target_zip_codes?: Json | null
+          unsubscribed_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          campaign_type?: string
+          clicked_count?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          delivered_count?: number | null
+          email_body?: string | null
+          failed_count?: number | null
+          id?: string
+          name?: string
+          opened_count?: number | null
+          preview_text?: string | null
+          push_body?: string | null
+          push_icon?: string | null
+          push_title?: string | null
+          push_url?: string | null
+          recipient_count?: number | null
+          scheduled_at?: string | null
+          sent_at?: string | null
+          sms_body?: string | null
+          status?: string | null
+          subject?: string | null
+          target_civic_score_max?: number | null
+          target_civic_score_min?: number | null
+          target_has_voting_plan?: boolean | null
+          target_lessons_completed_min?: number | null
+          target_states?: Json | null
+          target_tags?: Json | null
+          target_type?: string | null
+          target_zip_codes?: Json | null
+          unsubscribed_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       platform_settings: {
         Row: {
           key: string
@@ -484,19 +636,29 @@ export type Database = {
         Row: {
           avatar_url: string | null
           civic_knowledge_level: string | null
+          contact_score: number | null
+          contact_tags: Json | null
           created_at: string
+          crm_notes: string | null
           display_name: string | null
           district: string | null
+          email_opt_in: boolean | null
           id: string
           is_admin: boolean | null
           is_suspended: boolean | null
           last_active: string | null
+          last_contacted_at: string | null
           location: string | null
           notify_civic_alerts: boolean
           notify_elections: boolean
           notify_new_lessons: boolean
           notify_streak_reminders: boolean
           onboarding_complete: boolean
+          phone_number: string | null
+          phone_verified: boolean | null
+          push_opt_in: boolean | null
+          push_token: string | null
+          sms_opt_in: boolean | null
           street_address: string | null
           updated_at: string
           user_id: string
@@ -505,19 +667,29 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           civic_knowledge_level?: string | null
+          contact_score?: number | null
+          contact_tags?: Json | null
           created_at?: string
+          crm_notes?: string | null
           display_name?: string | null
           district?: string | null
+          email_opt_in?: boolean | null
           id?: string
           is_admin?: boolean | null
           is_suspended?: boolean | null
           last_active?: string | null
+          last_contacted_at?: string | null
           location?: string | null
           notify_civic_alerts?: boolean
           notify_elections?: boolean
           notify_new_lessons?: boolean
           notify_streak_reminders?: boolean
           onboarding_complete?: boolean
+          phone_number?: string | null
+          phone_verified?: boolean | null
+          push_opt_in?: boolean | null
+          push_token?: string | null
+          sms_opt_in?: boolean | null
           street_address?: string | null
           updated_at?: string
           user_id: string
@@ -526,23 +698,69 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           civic_knowledge_level?: string | null
+          contact_score?: number | null
+          contact_tags?: Json | null
           created_at?: string
+          crm_notes?: string | null
           display_name?: string | null
           district?: string | null
+          email_opt_in?: boolean | null
           id?: string
           is_admin?: boolean | null
           is_suspended?: boolean | null
           last_active?: string | null
+          last_contacted_at?: string | null
           location?: string | null
           notify_civic_alerts?: boolean
           notify_elections?: boolean
           notify_new_lessons?: boolean
           notify_streak_reminders?: boolean
           onboarding_complete?: boolean
+          phone_number?: string | null
+          phone_verified?: boolean | null
+          push_opt_in?: boolean | null
+          push_token?: string | null
+          sms_opt_in?: boolean | null
           street_address?: string | null
           updated_at?: string
           user_id?: string
           zip_code?: string | null
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth_key: string
+          browser: string | null
+          created_at: string | null
+          endpoint: string
+          id: string
+          last_used_at: string | null
+          p256dh: string
+          platform: string | null
+          user_id: string | null
+        }
+        Insert: {
+          auth_key: string
+          browser?: string | null
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          last_used_at?: string | null
+          p256dh: string
+          platform?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          auth_key?: string
+          browser?: string | null
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          last_used_at?: string | null
+          p256dh?: string
+          platform?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -771,6 +989,116 @@ export type Database = {
           longest_streak?: number | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      survey_responses: {
+        Row: {
+          answers: Json
+          completed_at: string | null
+          id: string
+          is_anonymous: boolean | null
+          state_code: string | null
+          survey_id: string | null
+          user_id: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          answers?: Json
+          completed_at?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          state_code?: string | null
+          survey_id?: string | null
+          user_id?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          answers?: Json
+          completed_at?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          state_code?: string | null
+          survey_id?: string | null
+          user_id?: string | null
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_responses_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "surveys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      surveys: {
+        Row: {
+          completion_rate: number | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          ends_at: string | null
+          id: string
+          questions: Json | null
+          response_count: number | null
+          send_via_email: boolean | null
+          send_via_push: boolean | null
+          sent_count: number | null
+          show_in_app: boolean | null
+          starts_at: string | null
+          status: string | null
+          target_states: Json | null
+          target_tags: Json | null
+          target_type: string | null
+          target_zip_codes: Json | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          completion_rate?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          questions?: Json | null
+          response_count?: number | null
+          send_via_email?: boolean | null
+          send_via_push?: boolean | null
+          sent_count?: number | null
+          show_in_app?: boolean | null
+          starts_at?: string | null
+          status?: string | null
+          target_states?: Json | null
+          target_tags?: Json | null
+          target_type?: string | null
+          target_zip_codes?: Json | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          completion_rate?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          questions?: Json | null
+          response_count?: number | null
+          send_via_email?: boolean | null
+          send_via_push?: boolean | null
+          sent_count?: number | null
+          show_in_app?: boolean | null
+          starts_at?: string | null
+          status?: string | null
+          target_states?: Json | null
+          target_tags?: Json | null
+          target_type?: string | null
+          target_zip_codes?: Json | null
+          title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
