@@ -12,6 +12,7 @@ export default function HomePage() {
   const { user } = useAuth();
   const { civicScore, streak, earnedBadges, loading: gamLoading } = useGamification();
   const { zipCode } = useCivicLocation();
+  const { data: newsData, isLoading: newsLoading } = useCivicNews("All", 1, "publishedAt");
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Citizen";
   const hour = new Date().getHours();
