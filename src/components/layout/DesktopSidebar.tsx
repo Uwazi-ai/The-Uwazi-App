@@ -7,7 +7,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/contexts/ProfileContext";
 import { toast } from "sonner";
-import uwaziLogo from "@/assets/uwazi-logo.png";
+import uwaziLogo from "@/assets/uwazi-app-logo.png";
 
 const mainNav = [
   { to: "/", icon: Home, label: "Home" },
@@ -57,7 +57,7 @@ export function DesktopSidebar() {
   return (
     <aside className="hidden md:flex flex-col w-[230px] border-r border-border bg-sidebar h-screen sticky top-0">
       <div className="flex items-center gap-2.5 px-5 py-5">
-        <img src={uwaziLogo} alt="UWAZI.AI" className="h-8" />
+        <img src={uwaziLogo} alt="UWAZI.APP" className="h-14" />
       </div>
 
       <nav className="flex-1 flex flex-col px-3 py-2 gap-0.5 overflow-y-auto">
