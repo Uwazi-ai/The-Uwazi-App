@@ -197,8 +197,10 @@ export type Database = {
           id: string
           location: string | null
           onboarding_complete: boolean
+          street_address: string | null
           updated_at: string
           user_id: string
+          zip_code: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -209,8 +211,10 @@ export type Database = {
           id?: string
           location?: string | null
           onboarding_complete?: boolean
+          street_address?: string | null
           updated_at?: string
           user_id: string
+          zip_code?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -221,8 +225,10 @@ export type Database = {
           id?: string
           location?: string | null
           onboarding_complete?: boolean
+          street_address?: string | null
           updated_at?: string
           user_id?: string
+          zip_code?: string | null
         }
         Relationships: []
       }

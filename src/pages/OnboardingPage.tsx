@@ -7,39 +7,13 @@ import { toast } from "sonner";
 import uwaziIcon from "@/assets/uwazi-icon.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, BookOpen, Heart, Layers, Check, ChevronRight, ChevronLeft } from "lucide-react";
+import LocationStep from "@/components/onboarding/LocationStep";
 
 const STEPS = [
+  { id: "welcome", title: "Welcome to UWAZI.AI", subtitle: "Your personal civic intelligence companion. Let's personalize your experience.", icon: null },
+  { id: "location", title: "Let's find your civic home", subtitle: "Your ZIP code helps us show you relevant local information.", icon: MapPin },
   {
-    id: "welcome",
-    title: "Welcome to UWAZI.AI",
-    subtitle: "Your personal civic intelligence companion. Let's personalize your experience.",
-    icon: null,
-  },
-  {
-    id: "location",
-    title: "Where are you located?",
-    subtitle: "This helps us show you relevant local information.",
-    icon: MapPin,
-    field: "location",
-    options: [
-      "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
-      "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho",
-      "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana",
-      "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota",
-      "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada",
-      "New Hampshire", "New Jersey", "New Mexico", "New York",
-      "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon",
-      "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
-      "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington",
-      "West Virginia", "Wisconsin", "Wyoming", "Washington D.C.",
-    ],
-    type: "select" as const,
-  },
-  {
-    id: "knowledge",
-    title: "How would you describe your civic knowledge?",
-    subtitle: "No wrong answers — we'll meet you where you are.",
-    icon: BookOpen,
+    id: "knowledge", title: "How would you describe your civic knowledge?", subtitle: "No wrong answers — we'll meet you where you are.", icon: BookOpen,
     field: "civic_knowledge_level",
     options: [
       { value: "beginner", label: "Just getting started", desc: "New to politics and civic life" },
@@ -49,10 +23,7 @@ const STEPS = [
     type: "choice" as const,
   },
   {
-    id: "interests",
-    title: "What issues matter most to you?",
-    subtitle: "Select all that apply. You can change these later.",
-    icon: Heart,
+    id: "interests", title: "What issues matter most to you?", subtitle: "Select all that apply. You can change these later.", icon: Heart,
     field: "issue_interests",
     options: [
       "Elections & Voting", "Education", "Healthcare", "Economy & Jobs",
@@ -63,10 +34,7 @@ const STEPS = [
     type: "multi" as const,
   },
   {
-    id: "depth",
-    title: "How deep do you like to go?",
-    subtitle: "Choose your preferred reading depth for civic content.",
-    icon: Layers,
+    id: "depth", title: "How deep do you like to go?", subtitle: "Choose your preferred reading depth for civic content.", icon: Layers,
     field: "content_depth",
     options: [
       { value: "brief", label: "Quick bites", desc: "Headlines and key takeaways" },
@@ -84,6 +52,8 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
   const [answers, setAnswers] = useState<Record<string, any>>({
     location: "",
+    street_address: "",
+    zip_code: "",
     civic_knowledge_level: "",
     issue_interests: [] as string[],
     content_depth: "standard",
@@ -102,6 +72,15 @@ export default function OnboardingPage() {
 
   const handleBack = () => setStep((s) => Math.max(0, s - 1));
 
+  const handleLocationSubmit = async (data: { street_address: string; zip_code: string }) => {
+    setAnswers((prev) => ({ ...prev, ...data }));
+    setStep((s) => s + 1);
+  };
+
+  const handleLocationSkip = () => {
+    setStep((s) => s + 1);
+  };
+
   const handleComplete = async () => {
     if (!user) return;
     setLoading(true);
@@ -111,6 +90,8 @@ export default function OnboardingPage() {
         .update({
           location: answers.location,
           civic_knowledge_level: answers.civic_knowledge_level,
+          street_address: answers.street_address || null,
+          zip_code: answers.zip_code || null,
           onboarding_complete: true,
         })
         .eq("user_id", user.id);
@@ -123,7 +104,7 @@ export default function OnboardingPage() {
         })
         .eq("user_id", user.id);
 
-      toast.success("You're all set! Welcome to UWAZI.AI");
+      toast.success("You're all set! Welcome to UWAZI.AI 🗳️");
       navigate("/");
     } catch {
       toast.error("Something went wrong. Please try again.");
@@ -149,7 +130,7 @@ export default function OnboardingPage() {
           {STEPS.map((_, i) => (
             <div
               key={i}
-              className={`h-1.5 flex-1 rounded-full transition-colors ${
+              className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
                 i <= step ? "bg-primary" : "bg-muted"
               }`}
             />
@@ -163,7 +144,7 @@ export default function OnboardingPage() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.25 }}
-            className="bg-card rounded-2xl p-6 md:p-8 shadow-card border border-border"
+            className="bg-card rounded-2xl p-6 md:p-8 shadow-card border border-border relative overflow-hidden"
           >
             {/* Welcome step */}
             {currentStep.id === "welcome" && (
@@ -176,32 +157,13 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {/* Select step (location) */}
-            {currentStep.type === "select" && (
-              <div className="space-y-5">
-                <div className="flex items-center gap-3">
-                  {currentStep.icon && <currentStep.icon className="h-6 w-6 text-primary" />}
-                  <div>
-                    <h2 className="text-lg font-bold text-foreground">{currentStep.title}</h2>
-                    <p className="text-sm text-muted-foreground">{currentStep.subtitle}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
-                  {(currentStep.options as string[]).map((opt) => (
-                    <button
-                      key={opt}
-                      onClick={() => setAnswers((p) => ({ ...p, [currentStep.field!]: opt }))}
-                      className={`text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-all border ${
-                        answers[currentStep.field!] === opt
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-background border-border text-foreground hover:border-primary/50"
-                      }`}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-              </div>
+            {/* Location step */}
+            {currentStep.id === "location" && (
+              <LocationStep
+                onSubmit={handleLocationSubmit}
+                onSkip={handleLocationSkip}
+                loading={false}
+              />
             )}
 
             {/* Choice step */}
@@ -274,23 +236,25 @@ export default function OnboardingPage() {
           </motion.div>
         </AnimatePresence>
 
-        {/* Navigation */}
-        <div className="flex items-center justify-between">
-          {step > 0 ? (
-            <Button variant="ghost" onClick={handleBack} className="gap-1.5">
-              <ChevronLeft className="h-4 w-4" /> Back
+        {/* Navigation — hide for location step (has its own buttons) */}
+        {currentStep.id !== "location" && (
+          <div className="flex items-center justify-between">
+            {step > 0 ? (
+              <Button variant="ghost" onClick={handleBack} className="gap-1.5">
+                <ChevronLeft className="h-4 w-4" /> Back
+              </Button>
+            ) : (
+              <div />
+            )}
+            <Button onClick={handleNext} disabled={loading} className="gap-1.5 min-w-[120px]">
+              {loading ? "Saving…" : isLast ? "Get Started" : "Continue"}
+              {!isLast && <ChevronRight className="h-4 w-4" />}
             </Button>
-          ) : (
-            <div />
-          )}
-          <Button onClick={handleNext} disabled={loading} className="gap-1.5 min-w-[120px]">
-            {loading ? "Saving…" : isLast ? "Get Started" : "Continue"}
-            {!isLast && <ChevronRight className="h-4 w-4" />}
-          </Button>
-        </div>
+          </div>
+        )}
 
-        {/* Skip */}
-        {step > 0 && !isLast && (
+        {/* Skip — hide for welcome and location steps */}
+        {step > 1 && !isLast && currentStep.id !== "location" && (
           <button
             onClick={() => setStep((s) => s + 1)}
             className="block mx-auto text-xs text-muted-foreground hover:text-foreground transition-colors"
