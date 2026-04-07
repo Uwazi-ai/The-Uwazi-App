@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User, MapPin, Bell, Camera, Save, LogOut, Lock, Trash2,
-  Check, X, Loader2, Eye, EyeOff, AlertTriangle, ChevronLeft,
+  Check, X, Loader2, Eye, EyeOff, AlertTriangle, ChevronLeft, Download, Monitor,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/contexts/ProfileContext";
