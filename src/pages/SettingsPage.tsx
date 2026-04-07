@@ -34,6 +34,7 @@ interface ProfileData {
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
+  const { refreshProfile } = useProfile();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
