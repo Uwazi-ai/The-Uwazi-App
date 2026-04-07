@@ -1,14 +1,18 @@
 import { motion } from "framer-motion";
-import { ArrowRight, MapPin, Flame, BookOpen, Target, Zap, Trophy, Calendar, FileText, Vote, Award } from "lucide-react";
+import { ArrowRight, MapPin, Flame, BookOpen, Target, Zap, Trophy, Calendar, FileText, Vote, Award, Newspaper } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useGamification } from "@/hooks/useGamification";
 import { useCivicLocation } from "@/hooks/useCivicLocation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCivicNews, hasNewsApiKey } from "@/hooks/useNewsApi";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatDistanceToNow } from "date-fns";
 
 export default function HomePage() {
   const { user } = useAuth();
   const { civicScore, streak, earnedBadges, loading: gamLoading } = useGamification();
   const { zipCode } = useCivicLocation();
+  const { data: newsData, isLoading: newsLoading } = useCivicNews("All", 1, "publishedAt");
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Citizen";
   const hour = new Date().getHours();
@@ -116,6 +120,58 @@ export default function HomePage() {
           </div>
         </Link>
       </motion.div>
+
+      {/* Latest Civic News */}
+      {hasNewsApiKey() && (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+          className="space-y-4"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="font-heading text-2xl text-foreground flex items-center gap-2">
+              <Newspaper className="h-5 w-5 text-primary" /> LATEST CIVIC NEWS
+            </h2>
+            <Link to="/civic-feed" className="text-sm text-primary hover:underline">View All →</Link>
+          </div>
+          {newsLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-card rounded-card p-4 border border-border space-y-2">
+                  <Skeleton className="h-28 w-full rounded-card" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-3 w-2/3" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {(newsData?.articles || []).slice(0, 3).map((article: any, i: number) => (
+                <a
+                  key={article.url + i}
+                  href={article.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-card rounded-card border border-border hover:border-primary/30 transition-all overflow-hidden block"
+                >
+                  {article.urlToImage ? (
+                    <img src={article.urlToImage} alt="" className="w-full h-28 object-cover" />
+                  ) : (
+                    <div className="w-full h-28 bg-muted flex items-center justify-center">
+                      <span className="text-lg font-heading text-muted-foreground/30">UWAZI</span>
+                    </div>
+                  )}
+                  <div className="p-3">
+                    <p className="text-xs text-muted-foreground mb-1">{article.source?.name}</p>
+                    <h3 className="text-sm font-bold text-foreground line-clamp-2 mb-1">{article.title}</h3>
+                    <p className="text-xs text-muted-foreground">
+                      {article.publishedAt ? formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true }) : ""}
+                    </p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+        </motion.div>
+      )}
     </div>
   );
 }

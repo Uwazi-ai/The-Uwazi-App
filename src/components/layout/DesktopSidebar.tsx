@@ -11,7 +11,7 @@ import uwaziLogo from "@/assets/uwazi-logo.png";
 
 const mainNav = [
   { to: "/", icon: Home, label: "Home" },
-  { to: "/news", icon: Newspaper, label: "Civic Feed" },
+  { to: "/civic-feed", icon: Newspaper, label: "Civic Feed" },
   { to: "/ask", icon: MessageCircle, label: "Ask Uwazi" },
   { to: "/learn", icon: BookOpen, label: "Learn" },
   { to: "/vote", icon: Vote, label: "Voting Hub" },

@@ -11,6 +11,7 @@ import HomePage from "./pages/HomePage";
 import AskUwaziPage from "./pages/AskUwaziPage";
 import VotingHubPage from "./pages/VotingHubPage";
 import NewsPage from "./pages/NewsPage";
+import CivicFeedPage from "./pages/CivicFeedPage";
 import SavedPage from "./pages/SavedPage";
 import ProfilePage from "./pages/ProfilePage";
 import LoginPage from "./pages/LoginPage";
@@ -56,6 +57,7 @@ const App = () => (
               <Route path="/ask" element={<AskUwaziPage />} />
               <Route path="/vote" element={<VotingHubPage />} />
               <Route path="/news" element={<NewsPage />} />
+              <Route path="/civic-feed" element={<CivicFeedPage />} />
               <Route path="/saved" element={<SavedPage />} />
               <Route path="/learn" element={<LearnPage />} />
               <Route path="/legislation" element={<LegislationPage />} />
