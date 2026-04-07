@@ -1,4 +1,7 @@
-import { corsHeaders } from "@supabase/supabase-js/cors";
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const GOOGLE_CIVIC_BASE = "https://www.googleapis.com/civicinfo/v2";
