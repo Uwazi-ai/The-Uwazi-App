@@ -4,6 +4,7 @@ import {
   Send, BookmarkPlus, BookmarkCheck, Share2, RotateCcw, MapPin,
   Plus, PanelLeftClose, PanelLeftOpen, MessageCircle, Trash2,
   ArrowLeft, Copy, Check, Vote, FileText, Landmark, CalendarDays,
+  Globe, ExternalLink, AlertCircle, Search,
 } from "lucide-react";
 import uwaziLogo from "@/assets/uwazi-logo.png";
 import { Button } from "@/components/ui/button";
@@ -18,20 +19,45 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/contexts/ProfileContext";
 import { formatDistanceToNow, isToday, isYesterday, differenceInDays } from "date-fns";
 
+interface Source {
+  title: string;
+  url: string;
+}
+
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
   saved?: boolean;
+  sources?: Source[];
+  didSearch?: boolean;
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ask-uwazi`;
+
+// ─── Search trigger detection ───
+const SEARCH_TRIGGERS = [
+  'who is', 'candidate', 'running for', 'voting record',
+  'campaign', 'donated', 'endorsed', 'stance on',
+  'bill', 'hr ', 'sb ', 'hb ', 'senate bill', 'house bill',
+  'passed', 'signed', 'vetoed', 'status of',
+  'latest', 'recent', 'today', 'this week', 'just happened',
+  'current', 'now', 'update', 'news',
+  'city council', 'mayor', 'school board', 'election results',
+  'won', 'lost', 'primary', 'general election',
+  'tell me about', 'research', 'find out', 'look up',
+  'search for', 'what happened',
+];
+
+function willLikelySearch(message: string): boolean {
+  const lower = message.toLowerCase();
+  return SEARCH_TRIGGERS.some(t => lower.includes(t));
+}
 
 // ─── Group chats by date ───
 function groupChatsByDate(chats: ChatSession[]): { label: string; chats: ChatSession[] }[] {
   const groups: Record<string, ChatSession[]> = {};
   const order: string[] = [];
-
   for (const chat of chats) {
     const d = new Date(chat.updatedAt);
     let label: string;
@@ -39,21 +65,20 @@ function groupChatsByDate(chats: ChatSession[]): { label: string; chats: ChatSes
     else if (isYesterday(d)) label = "Yesterday";
     else if (differenceInDays(new Date(), d) <= 7) label = "This Week";
     else label = "Older";
-
     if (!groups[label]) { groups[label] = []; order.push(label); }
     groups[label].push(chat);
   }
-
   return order.map((label) => ({ label, chats: groups[label] }));
 }
 
-// ─── Stream helper ───
-async function streamChat({ messages, token, onDelta, onDone, onError }: {
+// ─── Stream helper (with search metadata support) ───
+async function streamChat({ messages, token, onDelta, onDone, onError, onSearchMeta }: {
   messages: { role: string; content: string }[];
   token: string;
   onDelta: (text: string) => void;
   onDone: () => void;
   onError: (msg: string) => void;
+  onSearchMeta?: (meta: { sources: Source[]; queries: string[]; didSearch: boolean }) => void;
 }) {
   const resp = await fetch(CHAT_URL, {
     method: "POST",
@@ -88,6 +113,11 @@ async function streamChat({ messages, token, onDelta, onDone, onError }: {
       if (json === "[DONE]") { onDone(); return; }
       try {
         const parsed = JSON.parse(json);
+        // Check for search metadata event
+        if (parsed.type === "search_meta" && onSearchMeta) {
+          onSearchMeta(parsed);
+          continue;
+        }
         const content = parsed.choices?.[0]?.delta?.content;
         if (content) onDelta(content);
       } catch {
@@ -99,12 +129,11 @@ async function streamChat({ messages, token, onDelta, onDone, onError }: {
   onDone();
 }
 
-// ─── Follow-up pills based on last conversation topic ───
+// ─── Follow-up pills ───
 function getFollowUpPills(messages: Message[]): string[] {
   const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
   if (!lastAssistant) return [];
   const text = lastAssistant.content.toLowerCase();
-
   if (text.includes("ballot") || text.includes("election") || text.includes("vote") || text.includes("polling")) {
     return ["Where's my polling place?", "Register to vote", "Vote by mail"];
   }
@@ -120,7 +149,7 @@ function getFollowUpPills(messages: Message[]): string[] {
   return ["Tell me more", "What else should I know?", "How does this affect me?"];
 }
 
-// ─── State map for ZIP → state name ───
+// ─── State names ───
 const STATE_NAMES: Record<string, string> = {
   AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
   CO: "Colorado", CT: "Connecticut", DE: "Delaware", DC: "District of Columbia",
@@ -133,6 +162,98 @@ const STATE_NAMES: Record<string, string> = {
   OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
   SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah", VA: "Virginia",
   VT: "Vermont", WA: "Washington", WI: "Wisconsin", WV: "West Virginia", WY: "Wyoming",
+};
+
+// ─── Searching Indicator ───
+const SearchingIndicator = ({ query }: { query?: string }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 8 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -4 }}
+    className="flex items-center gap-2.5 py-2.5 px-4 rounded-xl max-w-fit my-2"
+    style={{
+      background: "rgba(155, 211, 75, 0.06)",
+      border: "1px solid rgba(155, 211, 75, 0.2)",
+    }}
+  >
+    <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>
+      <Globe className="w-4 h-4 text-primary" />
+    </motion.div>
+    <div className="flex flex-col">
+      <span className="text-[13px] text-primary font-medium">Searching the web</span>
+      {query && <span className="text-[11px] text-muted-foreground italic truncate max-w-[200px]">{query}</span>}
+    </div>
+    <div className="flex gap-0.5 ml-1">
+      {[0, 1, 2].map(i => (
+        <motion.span key={i} className="h-1 w-1 rounded-full bg-primary"
+          animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8] }}
+          transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.2 }} />
+      ))}
+    </div>
+  </motion.div>
+);
+
+// ─── Sources Panel ───
+const SourcesPanel = ({ sources }: { sources: Source[] }) => {
+  if (!sources?.length) return null;
+  return (
+    <div className="mt-3 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+      <div className="flex items-center gap-1.5 mb-2">
+        <Globe className="w-3 h-3 text-muted-foreground" />
+        <span className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Sources</span>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {sources.map((source, i) => (
+          <a
+            key={i}
+            href={source.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[12px] text-primary no-underline transition-all duration-150 max-w-[220px]"
+            style={{
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.1)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(155,211,75,0.08)";
+              e.currentTarget.style.borderColor = "rgba(155,211,75,0.3)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+            }}
+          >
+            <span className="flex-shrink-0 h-[18px] w-[18px] rounded-full flex items-center justify-center text-[10px] font-semibold"
+              style={{ background: "rgba(155,211,75,0.15)", color: "#9bd34b" }}>
+              {i + 1}
+            </span>
+            <span className="truncate">{source.title.length > 40 ? source.title.slice(0, 40) + '...' : source.title}</span>
+            <ExternalLink className="w-3 h-3 opacity-60 flex-shrink-0" />
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ─── Nonpartisan Notice ───
+const NonpartisanNotice = ({ message }: { message: Message }) => {
+  if (!message.didSearch) return null;
+  const lower = message.content.toLowerCase();
+  if (!lower.includes('candidate') && !lower.includes('running for') && !lower.includes('campaign')) return null;
+  return (
+    <div className="flex items-start gap-2 px-3.5 py-2.5 rounded-lg mt-3"
+      style={{
+        background: "rgba(255, 200, 0, 0.05)",
+        border: "1px solid rgba(255, 200, 0, 0.15)",
+      }}
+    >
+      <AlertCircle className="w-3 h-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+      <span className="text-[11px] text-muted-foreground leading-relaxed">
+        UWAZI provides factual candidate information from public sources. We do not endorse any candidate or party. Always verify with official campaign sources.
+      </span>
+    </div>
+  );
 };
 
 export default function AskUwaziPage() {
@@ -148,6 +269,9 @@ export default function AskUwaziPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchStatus, setSearchStatus] = useState("");
+  const [currentSources, setCurrentSources] = useState<Source[]>([]);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -157,7 +281,6 @@ export default function AskUwaziPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const restoredRef = useRef(false);
 
-  // Fetch civic score
   useEffect(() => {
     if (!session?.user?.id) return;
     supabase.from("civic_scores").select("civic_literacy_score").eq("user_id", session.user.id).maybeSingle()
@@ -215,14 +338,24 @@ export default function AskUwaziPage() {
     setInput("");
     setIsStreaming(true);
 
+    // Show searching indicator if likely to search
+    const likelySearching = willLikelySearch(msg);
+    if (likelySearching) {
+      setIsSearching(true);
+      setSearchStatus(msg.length > 50 ? msg.substring(0, 50) + '...' : msg);
+    }
+
     let assistantContent = "";
+    let searchSources: Source[] = [];
+    let didSearch = false;
+
     const upsertAssistant = (chunk: string) => {
       assistantContent += chunk;
       setMessages((prev) => {
         const last = prev[prev.length - 1];
         if (last?.role === "assistant" && last.id === "streaming")
           return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantContent } : m);
-        return [...prev, { id: "streaming", role: "assistant", content: assistantContent }];
+        return [...prev, { id: "streaming", role: "assistant", content: assistantContent, sources: searchSources, didSearch }];
       });
     };
 
@@ -230,16 +363,32 @@ export default function AskUwaziPage() {
     await streamChat({
       messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
       token,
-      onDelta: upsertAssistant,
+      onSearchMeta: (meta) => {
+        searchSources = meta.sources || [];
+        didSearch = meta.didSearch || false;
+        setCurrentSources(searchSources);
+        setIsSearching(false); // Search done, now streaming response
+      },
+      onDelta: (chunk) => {
+        // Once we get first delta, searching is done
+        if (isSearching) setIsSearching(false);
+        upsertAssistant(chunk);
+      },
       onDone: () => {
         setMessages((prev) => {
-          const final = prev.map((m) => (m.id === "streaming" ? { ...m, id: Date.now().toString() } : m));
+          const final = prev.map((m) =>
+            m.id === "streaming"
+              ? { ...m, id: Date.now().toString(), sources: searchSources, didSearch }
+              : m
+          );
           saveMessages(final.map((m) => ({ role: m.role, content: m.content })), ctx.zipCode);
           return final;
         });
         setIsStreaming(false);
+        setIsSearching(false);
+        setCurrentSources([]);
       },
-      onError: (err) => { toast.error(err); setIsStreaming(false); },
+      onError: (err) => { toast.error(err); setIsStreaming(false); setIsSearching(false); },
     });
   }, [input, isStreaming, messages, session, saveMessages, ctx.zipCode]);
 
@@ -290,6 +439,14 @@ export default function AskUwaziPage() {
 
   const stateName = ctx.state ? (STATE_NAMES[ctx.state] || ctx.state) : null;
 
+  // Web search suggestion cards for empty state
+  const webSearchSuggestions = [
+    "Who is running for mayor in my area?",
+    "What's the latest on immigration legislation?",
+    "Research candidates on my ballot",
+    "Current voting record of my senator",
+  ];
+
   return (
     <div className="flex h-[100dvh] md:h-screen relative overflow-hidden bg-background">
 
@@ -320,7 +477,6 @@ export default function AskUwaziPage() {
                 borderRight: "1px solid rgba(155, 211, 75, 0.1)",
               }}
             >
-              {/* Sidebar header */}
               <div className="flex items-center justify-between px-4 py-4"
                 style={{ borderBottom: "1px solid rgba(155, 211, 75, 0.1)" }}>
                 <div className="flex items-center gap-2">
@@ -333,7 +489,6 @@ export default function AskUwaziPage() {
                 </button>
               </div>
 
-              {/* New chat button */}
               <div className="px-3 pt-3">
                 <button onClick={handleNewChat}
                   className="w-full flex items-center gap-2.5 px-4 py-3 rounded-xl border border-dashed border-primary/30 text-primary text-sm font-medium hover:bg-primary/10 hover:border-primary/50 transition-all group">
@@ -342,7 +497,6 @@ export default function AskUwaziPage() {
                 </button>
               </div>
 
-              {/* Chat list — grouped by date */}
               <ScrollArea className="flex-1 px-2 py-2">
                 {groupedHistory.length > 0 ? (
                   groupedHistory.map((group) => (
@@ -393,7 +547,6 @@ export default function AskUwaziPage() {
                 )}
               </ScrollArea>
 
-              {/* Sidebar footer — ZIP badge + civic score */}
               <div className="px-3 py-3 space-y-3" style={{ borderTop: "1px solid rgba(155, 211, 75, 0.1)" }}>
                 {ctx.zipCode && (
                   <div className="flex items-center gap-2 px-2">
@@ -452,8 +605,19 @@ export default function AskUwaziPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Web Search Badge */}
+            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium"
+              style={{
+                background: "rgba(155,211,75,0.1)",
+                border: "1px solid rgba(155,211,75,0.25)",
+                color: "#9bd34b",
+              }}>
+              <Globe className="w-3 h-3" />
+              <span className="hidden sm:inline">Web Search On</span>
+            </div>
+
             {ctx.zipCode && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
                 <MapPin className="h-3 w-3 text-primary" />
                 <span className="text-[11px] font-semibold text-primary">{ctx.zipCode}</span>
                 {ctx.state && <span className="text-[10px] text-primary/60">· {ctx.state}</span>}
@@ -492,8 +656,9 @@ export default function AskUwaziPage() {
                 <p className="text-xs text-muted-foreground/50">Nonpartisan · Location-aware · Powered by Raia G1.0</p>
               </motion.div>
 
+              {/* Standard suggestion cards */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.5 }} className="mt-10 w-full max-w-2xl px-4">
+                transition={{ delay: 0.3, duration: 0.5 }} className="mt-8 w-full max-w-2xl px-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[
                     { icon: Vote, title: "What's on my ballot?", sub: "See your local races", prompt: suggestedPrompts[0] || "What's on my ballot?" },
@@ -525,6 +690,38 @@ export default function AskUwaziPage() {
                       <p className="text-sm font-medium text-foreground">{card.title}</p>
                       <p className="text-[11px] text-muted-foreground mt-0.5">{card.sub}</p>
                     </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Web Search suggestion row */}
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.5 }} className="mt-5 w-full max-w-2xl px-4">
+                <div className="flex items-center gap-2 mb-2.5 px-1">
+                  <Globe className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-[11px] text-primary font-medium tracking-wide">RESEARCH WITH LIVE WEB SEARCH</span>
+                </div>
+                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                  {webSearchSuggestions.map((s, i) => (
+                    <button key={i} onClick={() => handleSend(s)}
+                      className="whitespace-nowrap text-[12px] px-3.5 py-2 rounded-lg shrink-0 transition-all duration-200"
+                      style={{
+                        background: "rgba(255,255,255,0.03)",
+                        border: "1px solid rgba(100,180,255,0.15)",
+                        color: "#9bd34b",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "rgba(155,211,75,0.06)";
+                        e.currentTarget.style.borderColor = "rgba(155,211,75,0.3)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+                        e.currentTarget.style.borderColor = "rgba(100,180,255,0.15)";
+                      }}
+                    >
+                      <Globe className="w-3 h-3 inline mr-1.5 opacity-60" />
+                      {s}
+                    </button>
                   ))}
                 </div>
               </motion.div>
@@ -570,6 +767,11 @@ export default function AskUwaziPage() {
                           <div className="flex items-center gap-2 mb-2">
                             <img src={uwaziLogo} alt="UWAZI" className="h-3 w-3" />
                             <span className="text-[10px] font-heading tracking-wide text-primary/70">UWAZI</span>
+                            {msg.didSearch && (
+                              <span className="flex items-center gap-1 text-[10px] text-primary/50 ml-1">
+                                <Globe className="w-2.5 h-2.5" /> web search
+                              </span>
+                            )}
                           </div>
                           <div className="prose prose-sm prose-invert max-w-none [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_strong]:text-primary/90 [&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm [&_h1]:font-heading [&_h2]:font-heading [&_h3]:font-heading [&_h1]:tracking-wide [&_h2]:tracking-wide [&_ul]:space-y-1.5 [&_ol]:space-y-1.5 [&_li]:text-sm [&_p]:text-sm [&_p]:leading-relaxed [&_blockquote]:border-l-2 [&_blockquote]:border-primary/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs">
                             <ReactMarkdown>{msg.content}</ReactMarkdown>
@@ -577,7 +779,16 @@ export default function AskUwaziPage() {
                           {msg.id === "streaming" && (
                             <span className="inline-block w-2 h-5 bg-primary/60 animate-pulse ml-0.5 rounded-sm" />
                           )}
+
+                          {/* Sources Panel */}
+                          {msg.id !== "streaming" && msg.sources && msg.sources.length > 0 && (
+                            <SourcesPanel sources={msg.sources} />
+                          )}
                         </div>
+
+                        {/* Nonpartisan Notice */}
+                        {msg.id !== "streaming" && <NonpartisanNotice message={msg} />}
+
                         {msg.id !== "streaming" && (
                           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
                             className="flex items-center gap-0.5 pl-1">
@@ -604,7 +815,13 @@ export default function AskUwaziPage() {
                 ))}
               </AnimatePresence>
 
-              {isStreaming && messages[messages.length - 1]?.role !== "assistant" && (
+              {/* Searching indicator */}
+              <AnimatePresence>
+                {isSearching && <SearchingIndicator query={searchStatus} />}
+              </AnimatePresence>
+
+              {/* Typing indicator (when streaming but no assistant message yet and not searching) */}
+              {isStreaming && !isSearching && messages[messages.length - 1]?.role !== "assistant" && (
                 <motion.div
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -639,7 +856,7 @@ export default function AskUwaziPage() {
           )}
         </div>
 
-        {/* ─── Follow-up pills (when chat has messages) ─── */}
+        {/* ─── Follow-up pills ─── */}
         {!isEmpty && !isStreaming && (
           <div className="shrink-0 px-3 sm:px-4 md:px-6 pt-2">
             <div className="max-w-3xl mx-auto flex gap-2 overflow-x-auto no-scrollbar">
