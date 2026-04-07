@@ -1,17 +1,19 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, BookmarkPlus, Share2, RotateCcw, MapPin, Plus } from "lucide-react";
+import { Send, BookmarkPlus, BookmarkCheck, Share2, RotateCcw, MapPin, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { Link } from "react-router-dom";
 import { useAskUwaziContext, getSuggestedPrompts, useAskUwaziSession } from "@/hooks/useAskUwazi";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
+  saved?: boolean;
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ask-uwazi`;
@@ -80,8 +82,33 @@ export default function AskUwaziPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  const [savingId, setSavingId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const restoredRef = useRef(false);
+
+  const handleSaveChat = useCallback(async (assistantMsg: Message) => {
+    if (!session?.user?.id || assistantMsg.saved) return;
+    // Find the user message that preceded this assistant message
+    const msgIndex = messages.findIndex((m) => m.id === assistantMsg.id);
+    const userMsg = messages.slice(0, msgIndex).reverse().find((m) => m.role === "user");
+    if (!userMsg) return;
+
+    setSavingId(assistantMsg.id);
+    const { error } = await supabase.from("ai_chats").insert({
+      user_id: session.user.id,
+      prompt: userMsg.content,
+      response: assistantMsg.content,
+      saved: true,
+    });
+    setSavingId(null);
+
+    if (error) {
+      toast.error("Failed to save chat");
+      return;
+    }
+    setMessages((prev) => prev.map((m) => m.id === assistantMsg.id ? { ...m, saved: true } : m));
+    toast.success("Chat saved!");
+  }, [messages, session]);
 
   // Restore session messages once
   useEffect(() => {
@@ -230,7 +257,9 @@ export default function AskUwaziPage() {
                   </div>
                   {msg.id !== "streaming" && (
                     <div className="flex items-center gap-2">
-                      <button className="text-[11px] text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors flex items-center gap-1"><BookmarkPlus className="h-3 w-3" /> Save</button>
+                      <button onClick={() => handleSaveChat(msg)} disabled={msg.saved || savingId === msg.id} className={`text-[11px] px-2 py-1 rounded hover:bg-muted transition-colors flex items-center gap-1 ${msg.saved ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                        {msg.saved ? <><BookmarkCheck className="h-3 w-3" /> Saved</> : <><BookmarkPlus className="h-3 w-3" /> {savingId === msg.id ? "Saving..." : "Save"}</>}
+                      </button>
                       <button className="text-[11px] text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors flex items-center gap-1"><Share2 className="h-3 w-3" /> Share</button>
                       <button className="text-[11px] text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors flex items-center gap-1"><RotateCcw className="h-3 w-3" /> Simplify</button>
                     </div>
