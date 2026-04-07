@@ -260,14 +260,20 @@ export default function AskUwaziPage() {
               onClick={() => setSidebarOpen(false)}
             />
             <motion.aside
-              initial={{ x: -300 }}
+              initial={{ x: -260 }}
               animate={{ x: 0 }}
-              exit={{ x: -300 }}
+              exit={{ x: -260 }}
               transition={{ type: "spring", damping: 28, stiffness: 320 }}
-              className="fixed md:relative z-40 w-[300px] h-full flex flex-col shrink-0 border-r border-border bg-sidebar"
+              className="fixed md:relative z-40 w-[260px] h-full flex flex-col shrink-0"
+              style={{
+                background: "rgba(10, 10, 10, 0.8)",
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
+                borderRight: "1px solid rgba(155, 211, 75, 0.1)",
+              }}
             >
               {/* Sidebar header */}
-              <div className="flex items-center justify-between px-4 py-4 border-b border-border">
+              <div className="flex items-center justify-between px-4 py-4" style={{ borderBottom: "1px solid rgba(155, 211, 75, 0.1)" }}>
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
                   <h2 className="text-sm font-heading tracking-wide text-foreground">HISTORY</h2>
@@ -329,7 +335,7 @@ export default function AskUwaziPage() {
               </ScrollArea>
 
               {/* Sidebar footer */}
-              <div className="px-3 py-3 border-t border-border">
+              <div className="px-3 py-3" style={{ borderTop: "1px solid rgba(155, 211, 75, 0.1)" }}>
                 <div className="flex items-center gap-3 px-2">
                   <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold shrink-0 overflow-hidden">
                     {avatarUrl ? (
