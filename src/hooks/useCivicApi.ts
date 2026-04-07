@@ -6,7 +6,10 @@ async function callGoogleCivic(endpoint: string, params: Record<string, string> 
     body: { endpoint, params },
   });
   if (error) throw new Error(error.message);
-  if (data?.error) throw new Error(data.error);
+  if (data?.error) {
+    const msg = typeof data.error === 'object' ? data.error.message || JSON.stringify(data.error) : data.error;
+    throw new Error(msg);
+  }
   return data;
 }
 
