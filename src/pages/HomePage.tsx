@@ -22,7 +22,7 @@ export default function HomePage() {
         <h1 className="font-heading text-5xl md:text-6xl text-foreground leading-none">
           {greeting}, {displayName.toUpperCase()}.
         </h1>
-        <p className="text-lg text-muted-foreground mt-1">Know Your Power.</p>
+        <p className="text-lg text-muted-foreground mt-1">Build your Civic Freedom</p>
       </motion.div>
 
       {/* Stats Grid - Row 1 */}
