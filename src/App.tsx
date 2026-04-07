@@ -20,6 +20,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import LearnPage from "./pages/LearnPage";
 import LegislationPage from "./pages/LegislationPage";
+import BillDetailPage from "./pages/BillDetailPage";
 import ProgressPage from "./pages/ProgressPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="/saved" element={<SavedPage />} />
               <Route path="/learn" element={<LearnPage />} />
               <Route path="/legislation" element={<LegislationPage />} />
+              <Route path="/legislation/:congress/:type/:number" element={<BillDetailPage />} />
               <Route path="/progress" element={<ProgressPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/settings" element={<SettingsPage />} />
