@@ -448,7 +448,7 @@ export default function AskUwaziPage() {
   ];
 
   return (
-    <div className="flex h-[100dvh] md:h-screen relative overflow-hidden bg-background">
+    <div className="flex h-[100dvh] md:h-screen relative overflow-hidden bg-background" style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}>
 
       {/* ═══ Animated gradient mesh background ═══ */}
       <div className="fixed inset-0 pointer-events-none z-0" style={{
