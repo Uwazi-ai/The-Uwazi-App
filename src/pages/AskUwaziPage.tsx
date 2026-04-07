@@ -488,7 +488,7 @@ export default function AskUwaziPage() {
                 <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl text-foreground leading-none mb-3 tracking-tight">
                   ASK UWAZI
                 </h1>
-                <p className="text-base text-muted-foreground mb-1">Your Civic Intelligence Co-Pilot</p>
+                <p className="text-base text-muted-foreground mb-1">Your Political Co-Pilot</p>
                 <p className="text-xs text-muted-foreground/50">Nonpartisan · Location-aware · Powered by Raia G1.0</p>
               </motion.div>
 
