@@ -33,6 +33,8 @@ import AdminLessonsPage from "./pages/admin/AdminLessonsPage";
 import AdminContentPage from "./pages/admin/AdminContentPage";
 import AdminAlertsPage from "./pages/admin/AdminAlertsPage";
 import AdminPlatformPage from "./pages/admin/AdminPlatformPage";
+import AdminCRMPage from "./pages/admin/AdminCRMPage";
+import AdminSurveysPage from "./pages/admin/AdminSurveysPage";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +77,8 @@ const App = () => (
               <Route path="/admin/content" element={<AdminRoute><AdminContentPage /></AdminRoute>} />
               <Route path="/admin/alerts" element={<AdminRoute><AdminAlertsPage /></AdminRoute>} />
               <Route path="/admin/platform" element={<AdminRoute><AdminPlatformPage /></AdminRoute>} />
+              <Route path="/admin/crm" element={<AdminRoute><AdminCRMPage /></AdminRoute>} />
+              <Route path="/admin/surveys" element={<AdminRoute><AdminSurveysPage /></AdminRoute>} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

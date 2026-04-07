@@ -595,8 +595,8 @@ export default function AdminSurveysPage() {
                   })()}
 
                   {q.type === "rating" && (() => {
-                    const avg = questionResponses.length
-                      ? (questionResponses.reduce((a: number, v: number) => a + v, 0) / questionResponses.length).toFixed(1)
+                  const avg = questionResponses.length
+                      ? (questionResponses.reduce((a: number, v: any) => a + Number(v), 0) / questionResponses.length).toFixed(1)
                       : "—";
                     return <p className="text-lg font-bold text-primary">Average: {avg} <span className="text-xs text-muted-foreground font-normal">({questionResponses.length} responses)</span></p>;
                   })()}
