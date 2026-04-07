@@ -1,7 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-
-const API_KEY = import.meta.env.VITE_NEWS_API_KEY;
-const BASE_URL = "https://newsapi.org/v2";
+import { supabase } from "@/integrations/supabase/client";
 
 function cacheKey(key: string) { return `news_cache_${btoa(key).substring(0, 60)}`; }
 
@@ -20,20 +18,16 @@ function setCache(key: string, data: unknown) {
 }
 
 async function fetchNews(params: Record<string, string>) {
-  if (!API_KEY) throw new Error("MISSING_API_KEY");
-  const url = new URL(`${BASE_URL}/everything`);
-  url.searchParams.set("apiKey", API_KEY);
-  url.searchParams.set("language", "en");
-  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-
-  const ck = url.toString();
+  const ck = JSON.stringify(params);
   const cached = getCached(ck);
   if (cached) return cached;
 
-  const res = await fetch(url.toString());
-  if (!res.ok) throw new Error(`NewsAPI error: ${res.status}`);
-  const data = await res.json();
-  if (data.status !== "ok") throw new Error(data.message || "NewsAPI error");
+  const { data, error } = await supabase.functions.invoke("news-proxy", {
+    body: { endpoint: "/everything", params },
+  });
+  if (error) throw new Error(error.message);
+  if (data?.status === "error") throw new Error(data.message || "NewsAPI error");
+  if (data?.error) throw new Error(typeof data.error === 'object' ? JSON.stringify(data.error) : data.error);
 
   setCache(ck, data);
   return data;
@@ -53,7 +47,6 @@ export function useCivicNews(filter: string, page = 1, sortBy = "publishedAt") {
   return useQuery({
     queryKey: ["news", filter, page, sortBy],
     queryFn: () => fetchNews({ q, sortBy, pageSize: "20", page: String(page) }),
-    enabled: !!API_KEY,
     staleTime: 15 * 60 * 1000,
     retry: 1,
   });
@@ -67,13 +60,13 @@ export function useLocalNews(region: string | null) {
       sortBy: "publishedAt",
       pageSize: "5",
     }),
-    enabled: !!API_KEY && !!region,
+    enabled: !!region,
     staleTime: 15 * 60 * 1000,
     retry: 1,
   });
 }
 
-export function hasNewsApiKey() { return !!API_KEY; }
+export function hasNewsApiKey() { return true; } // API key is now server-side
 
 const zipRegions: Record<string, string> = {
   "64": "Kansas City OR Missouri",

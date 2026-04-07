@@ -1,7 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-
-const API_KEY = import.meta.env.VITE_CONGRESS_API_KEY;
-const BASE_URL = "https://api.congress.gov/v3";
+import { supabase } from "@/integrations/supabase/client";
 
 function getCacheKey(key: string): string {
   return `congress_cache_${key}`;
@@ -29,20 +27,15 @@ function setCache(key: string, data: unknown) {
 }
 
 async function fetchCongress(path: string, params: Record<string, string> = {}) {
-  if (!API_KEY) throw new Error("MISSING_API_KEY");
-
-  const url = new URL(`${BASE_URL}${path}`);
-  url.searchParams.set("api_key", API_KEY);
-  url.searchParams.set("format", "json");
-  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-
-  const cacheKey = url.toString();
+  const cacheKey = `${path}_${JSON.stringify(params)}`;
   const cached = getCached(cacheKey);
   if (cached) return cached;
 
-  const res = await fetch(url.toString());
-  if (!res.ok) throw new Error(`Congress API error: ${res.status}`);
-  const data = await res.json();
+  const { data, error } = await supabase.functions.invoke("congress-proxy", {
+    body: { path, params },
+  });
+  if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(typeof data.error === 'object' ? JSON.stringify(data.error) : data.error);
 
   setCache(cacheKey, data);
   return data;
@@ -56,7 +49,6 @@ export function useRecentBills(congress = "119", limit = 20) {
       sort: "updateDate+desc",
       limit: String(limit),
     }),
-    enabled: !!API_KEY,
     staleTime: 5 * 60 * 1000,
     retry: 1,
   });
@@ -70,7 +62,7 @@ export function useBillSearchCongress(query: string, congress = "119", limit = 2
       query,
       limit: String(limit),
     }),
-    enabled: !!query && !!API_KEY,
+    enabled: !!query,
     staleTime: 5 * 60 * 1000,
     retry: 1,
   });
@@ -80,7 +72,7 @@ export function useBillDetailCongress(congress: string, type: string, number: st
   return useQuery({
     queryKey: ["congress", "bill", congress, type, number],
     queryFn: () => fetchCongress(`/bill/${congress}/${type.toLowerCase()}/${number}`),
-    enabled: !!congress && !!type && !!number && !!API_KEY,
+    enabled: !!congress && !!type && !!number,
     staleTime: 10 * 60 * 1000,
     retry: 1,
   });
@@ -90,14 +82,14 @@ export function useBillSummaries(congress: string, type: string, number: string)
   return useQuery({
     queryKey: ["congress", "summaries", congress, type, number],
     queryFn: () => fetchCongress(`/bill/${congress}/${type.toLowerCase()}/${number}/summaries`),
-    enabled: !!congress && !!type && !!number && !!API_KEY,
+    enabled: !!congress && !!type && !!number,
     staleTime: 10 * 60 * 1000,
     retry: 1,
   });
 }
 
 export function hasCongressApiKey() {
-  return !!API_KEY;
+  return true; // API key is now server-side
 }
 
 export function detectCategory(title: string): string | null {
