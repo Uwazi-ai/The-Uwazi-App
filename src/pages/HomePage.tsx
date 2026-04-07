@@ -8,6 +8,9 @@ import { useCivicNews, hasNewsApiKey } from "@/hooks/useNewsApi";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 
+const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
+const fadeUp = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
+
 export default function HomePage() {
   const { user } = useAuth();
   const { civicScore, streak, earnedBadges, loading: gamLoading } = useGamification();
@@ -19,20 +22,18 @@ export default function HomePage() {
   const greeting = hour < 12 ? "GOOD MORNING" : hour < 18 ? "GOOD AFTERNOON" : "GOOD EVENING";
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-8">
+    <motion.div variants={stagger} initial="hidden" animate="show" className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8 space-y-6 md:space-y-8">
       {/* Hero */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+      <motion.div variants={fadeUp}>
         <p className="eyebrow mb-2">YOUR CIVIC DASHBOARD</p>
-        <h1 className="font-heading text-5xl md:text-6xl text-foreground leading-none">
+        <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl text-foreground leading-none">
           {greeting}, {displayName.toUpperCase()}.
         </h1>
-        <p className="text-lg text-muted-foreground mt-1">Build your Civic Freedom</p>
+        <p className="text-base md:text-lg text-muted-foreground mt-1">Build your Civic Freedom</p>
       </motion.div>
 
       {/* Stats Grid - Row 1 */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-        className="grid grid-cols-2 md:grid-cols-4 gap-4"
-      >
+      <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <StatCard label="Civic Literacy Score" value={civicScore?.civic_literacy_score ?? 0} accent />
         <StatCard label="Current Streak" value={`${streak?.current_streak ?? 0}`} sub={`+${streak?.current_streak ?? 0} days`} icon={<Flame className="h-4 w-4 text-orange-400" />} />
         <StatCard label="Lessons Completed" value={civicScore?.lessons_completed ?? 0} />
@@ -40,9 +41,7 @@ export default function HomePage() {
       </motion.div>
 
       {/* Stats Grid - Row 2 */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-        className="grid grid-cols-2 md:grid-cols-4 gap-4"
-      >
+      <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <StatCard label="Local Elections" value={zipCode ? "3" : "—"} sub={zipCode ? `ZIP ${zipCode}` : "Set ZIP"} />
         <StatCard label="Bills Tracked" value="0" />
         <StatCard label="Voting Plan" value={false ? "✓ Ready" : "Set up"} link="/vote" />
@@ -50,21 +49,19 @@ export default function HomePage() {
       </motion.div>
 
       {/* Two columns */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         {/* Civic Loop */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-          className="bg-card rounded-card p-6 border border-border"
-        >
-          <h2 className="font-heading text-2xl text-foreground mb-5">YOUR CIVIC LOOP</h2>
-          <div className="space-y-4">
+        <motion.div variants={fadeUp} className="bg-card rounded-card p-5 md:p-6 border border-border hover-lift">
+          <h2 className="font-heading text-xl md:text-2xl text-foreground mb-4 md:mb-5">YOUR CIVIC LOOP</h2>
+          <div className="space-y-3 md:space-y-4">
             {[
               { num: "01", label: "LEARN", sub: `${civicScore?.lessons_completed ?? 0} lessons available`, icon: BookOpen },
               { num: "02", label: "PRACTICE", sub: "Daily challenge ready", icon: Target },
               { num: "03", label: "PROGRESS", sub: `Score: ${civicScore?.civic_literacy_score ?? 0}/100`, icon: Zap },
               { num: "04", label: "ACT", sub: "Election in 210 days", icon: Calendar },
             ].map((item) => (
-              <div key={item.num} className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-card bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">
+              <div key={item.num} className="flex items-center gap-3 md:gap-4">
+                <div className="h-9 w-9 md:h-10 md:w-10 rounded-card bg-primary flex items-center justify-center text-primary-foreground font-bold text-xs md:text-sm shrink-0">
                   {item.num}
                 </div>
                 <div className="flex-1">
@@ -77,15 +74,13 @@ export default function HomePage() {
         </motion.div>
 
         {/* Civic Location */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-          className="bg-card rounded-card p-6 border border-border"
-        >
-          <h2 className="font-heading text-2xl text-foreground mb-5">YOUR CIVIC LOCATION</h2>
+        <motion.div variants={fadeUp} className="bg-card rounded-card p-5 md:p-6 border border-border hover-lift">
+          <h2 className="font-heading text-xl md:text-2xl text-foreground mb-4 md:mb-5">YOUR CIVIC LOCATION</h2>
           {zipCode ? (
             <>
               <div className="flex items-center gap-2 mb-4">
                 <MapPin className="h-5 w-5 text-primary" />
-                <span className="text-3xl font-heading text-primary">{zipCode}</span>
+                <span className="text-2xl md:text-3xl font-heading text-primary">{zipCode}</span>
               </div>
               <div className="bg-muted rounded-card p-4 mb-4">
                 <p className="text-sm text-muted-foreground mb-1">Raia Score for {zipCode}</p>
@@ -95,7 +90,7 @@ export default function HomePage() {
               <p className="text-xs text-muted-foreground mt-2">Showing civic data for {zipCode}</p>
             </>
           ) : (
-            <div className="text-center py-8">
+            <div className="text-center py-6 md:py-8">
               <MapPin className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
               <p className="text-sm text-muted-foreground mb-3">Set your ZIP to personalize your civic experience</p>
               <Link to="/settings" className="text-sm font-semibold text-primary hover:underline">Set My Location →</Link>
@@ -105,15 +100,15 @@ export default function HomePage() {
       </div>
 
       {/* Ask UWAZI Banner */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-        <Link to="/ask" className="block bg-card rounded-card p-6 border border-border hover:border-primary/30 transition-colors">
-          <div className="flex items-center justify-between">
+      <motion.div variants={fadeUp}>
+        <Link to="/ask" className="block bg-card rounded-card p-5 md:p-6 border border-border hover:border-primary/30 hover-lift transition-colors">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <h3 className="font-heading text-2xl text-foreground">ASK UWAZI</h3>
+              <h3 className="font-heading text-xl md:text-2xl text-foreground">ASK UWAZI</h3>
               <p className="text-sm text-muted-foreground mt-1">Have a civic question? Get non-partisan, AI-powered answers.</p>
             </div>
             <div className="shrink-0">
-              <div className="px-5 py-2.5 bg-primary text-primary-foreground rounded-card text-sm font-semibold flex items-center gap-2">
+              <div className="px-4 md:px-5 py-2 md:py-2.5 bg-primary text-primary-foreground rounded-card text-sm font-semibold flex items-center gap-2">
                 Ask Now <ArrowRight className="h-4 w-4" />
               </div>
             </div>
@@ -123,17 +118,15 @@ export default function HomePage() {
 
       {/* Latest Civic News */}
       {hasNewsApiKey() && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-          className="space-y-4"
-        >
+        <motion.div variants={fadeUp} className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-heading text-2xl text-foreground flex items-center gap-2">
+            <h2 className="font-heading text-xl md:text-2xl text-foreground flex items-center gap-2">
               <Newspaper className="h-5 w-5 text-primary" /> LATEST CIVIC NEWS
             </h2>
             <Link to="/civic-feed" className="text-sm text-primary hover:underline">View All →</Link>
           </div>
           {newsLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="bg-card rounded-card p-4 border border-border space-y-2">
                   <Skeleton className="h-28 w-full rounded-card" />
@@ -143,14 +136,15 @@ export default function HomePage() {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {(newsData?.articles || []).slice(0, 3).map((article: any, i: number) => (
-                <a
+                <motion.a
                   key={article.url + i}
+                  variants={fadeUp}
                   href={article.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-card rounded-card border border-border hover:border-primary/30 transition-all overflow-hidden block"
+                  className="bg-card rounded-card border border-border hover:border-primary/30 hover-lift transition-all overflow-hidden block"
                 >
                   {article.urlToImage ? (
                     <img src={article.urlToImage} alt="" className="w-full h-28 object-cover" />
@@ -166,13 +160,13 @@ export default function HomePage() {
                       {article.publishedAt ? formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true }) : ""}
                     </p>
                   </div>
-                </a>
+                </motion.a>
               ))}
             </div>
           )}
         </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -185,13 +179,13 @@ function StatCard({ label, value, sub, icon, accent, link }: {
   link?: string;
 }) {
   const inner = (
-    <div className="bg-card rounded-card p-4 border border-border hover:border-primary/20 transition-colors">
-      <div className="flex items-center justify-between mb-2">
-        <p className="text-xs text-muted-foreground">{label}</p>
+    <div className="bg-card rounded-card p-3 md:p-4 border border-border hover:border-primary/20 hover-lift transition-all">
+      <div className="flex items-center justify-between mb-1.5 md:mb-2">
+        <p className="text-[10px] md:text-xs text-muted-foreground">{label}</p>
         {icon}
       </div>
-      <p className={`text-2xl font-bold ${accent ? "text-primary" : "text-foreground"}`}>{value}</p>
-      {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
+      <p className={`text-xl md:text-2xl font-bold ${accent ? "text-primary" : "text-foreground"}`}>{value}</p>
+      {sub && <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5">{sub}</p>}
     </div>
   );
   if (link) return <Link to={link}>{inner}</Link>;
