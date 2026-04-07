@@ -181,7 +181,7 @@ const SearchingIndicator = ({ query }: { query?: string }) => (
     </motion.div>
     <div className="flex flex-col">
       <span className="text-[13px] text-primary font-medium">Searching the web</span>
-      {query && <span className="text-[11px] text-muted-foreground italic truncate max-w-[200px]">{query}</span>}
+      {query && <span className="text-[11px] text-muted-foreground italic truncate max-w-[180px] sm:max-w-[200px]">{query}</span>}
     </div>
     <div className="flex gap-0.5 ml-1">
       {[0, 1, 2].map(i => (
@@ -448,7 +448,7 @@ export default function AskUwaziPage() {
   ];
 
   return (
-    <div className="flex h-[100dvh] md:h-screen relative overflow-hidden bg-background">
+    <div className="flex h-[100dvh] md:h-screen relative overflow-hidden bg-background" style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}>
 
       {/* ═══ Animated gradient mesh background ═══ */}
       <div className="fixed inset-0 pointer-events-none z-0" style={{
@@ -649,7 +649,7 @@ export default function AskUwaziPage() {
                     <img src={uwaziLogo} alt="UWAZI" className="h-10 w-10" />
                   </div>
                 </div>
-                <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl text-foreground leading-none mb-3 tracking-tight">
+                <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-foreground leading-none mb-3 tracking-tight">
                   ASK UWAZI
                 </h1>
                 <p className="text-base text-muted-foreground mb-1">Your Political Co-Pilot</p>
@@ -872,7 +872,7 @@ export default function AskUwaziPage() {
 
         {/* ─── Input Area ─── */}
         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}
-          className="shrink-0 px-4 sm:px-6 py-3 md:py-4">
+          className="shrink-0 px-3 sm:px-6 py-3 md:py-4" style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
           <div className="max-w-3xl mx-auto">
             <div className="uwazi-input-container">
               <form onSubmit={(e) => { e.preventDefault(); handleSend(); }}
