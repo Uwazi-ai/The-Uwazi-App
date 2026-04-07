@@ -583,19 +583,38 @@ export default function AskUwaziPage() {
               </AnimatePresence>
 
               {isStreaming && messages[messages.length - 1]?.role !== "assistant" && (
-                <div className="flex items-center gap-3 py-3">
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-start gap-3 py-3"
+                >
                   <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
                     <Sparkles className="h-3.5 w-3.5 text-primary" />
                   </div>
-                  <div className="flex gap-1.5">
-                    {[0, 1, 2].map((i) => (
-                      <motion.div key={i} className="h-2 w-2 rounded-full bg-primary"
-                        animate={{ scale: [1, 1.4, 1], opacity: [0.3, 1, 0.3] }}
-                        transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }} />
-                    ))}
+                  <div className="p-4 rounded-[4px_18px_18px_18px]"
+                    style={{
+                      background: "rgba(255,255,255,0.05)",
+                      backdropFilter: "blur(10px)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                    }}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkles className="h-3 w-3 text-primary" />
+                      <span className="text-[10px] font-heading tracking-wide text-primary/70">UWAZI</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1">
+                        {[0, 1, 2].map((i) => (
+                          <motion.div key={i}
+                            className="h-2 w-2 rounded-full bg-primary"
+                            animate={{ scale: [1, 1.4, 1], opacity: [0.3, 1, 0.3] }}
+                            transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs text-muted-foreground">Thinking...</span>
+                    </div>
                   </div>
-                  <span className="text-xs text-muted-foreground">Thinking...</span>
-                </div>
+                </motion.div>
               )}
               <div ref={messagesEndRef} />
             </div>
