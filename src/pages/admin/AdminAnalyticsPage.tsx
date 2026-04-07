@@ -129,7 +129,7 @@ export default function AdminAnalyticsPage() {
       const totalQuestions = qs.length;
       const uniqueTopics = new Set(qs.map(q => q.sub_topic).filter(Boolean)).size;
       const lessonGaps = qs.filter(q => !q.has_matching_lesson).length;
-      const uniqueUsers = new Set(qs.map(q => q.user_id).filter(Boolean)).size;
+      const uniqueUsers = new Set(qs.map(q => (q as any).user_id).filter(Boolean)).size;
       const avgPerUser = uniqueUsers > 0 ? (totalQuestions / uniqueUsers).toFixed(1) : "0";
 
       // This week count
