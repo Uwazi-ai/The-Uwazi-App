@@ -1,9 +1,10 @@
 import {
   Home, Newspaper, MessageCircle, BookOpen, Vote, FileText,
-  BarChart3, Settings, LogOut, ChevronRight,
+  BarChart3, Settings, LogOut,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/contexts/ProfileContext";
 import { toast } from "sonner";
 import uwaziLogo from "@/assets/uwazi-logo.png";
 
@@ -23,6 +24,7 @@ const bottomNav = [
 
 export function DesktopSidebar() {
   const { user, signOut } = useAuth();
+  const { displayName, avatarUrl } = useProfile();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -30,8 +32,6 @@ export function DesktopSidebar() {
     toast.success("Signed out");
     navigate("/login");
   };
-
-  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
 
   return (
     <aside className="hidden md:flex flex-col w-[230px] border-r border-border bg-sidebar h-screen sticky top-0">
@@ -89,8 +89,12 @@ export function DesktopSidebar() {
 
         {/* User info */}
         <div className="flex items-center gap-3 px-3 py-3 mt-1 border-t border-border">
-          <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold shrink-0">
-            {displayName[0]?.toUpperCase()}
+          <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold shrink-0 overflow-hidden">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
+            ) : (
+              displayName[0]?.toUpperCase()
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-foreground truncate">{displayName}</p>

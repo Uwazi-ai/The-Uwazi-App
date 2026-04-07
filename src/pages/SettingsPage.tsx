@@ -5,6 +5,7 @@ import {
   Check, X, Loader2, Eye, EyeOff, AlertTriangle, ChevronLeft,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/contexts/ProfileContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +34,7 @@ interface ProfileData {
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
+  const { refreshProfile } = useProfile();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -139,6 +141,7 @@ export default function SettingsPage() {
       setAvatarUrl(freshUrl);
       setAvatarPreview(null);
       toast.success("Profile photo updated ✓");
+      refreshProfile();
     } catch (err: any) {
       toast.error(err.message || "Failed to upload photo");
       setAvatarPreview(null);
@@ -165,6 +168,7 @@ export default function SettingsPage() {
       .eq("user_id", user.id);
     setSavingProfile(false);
     toast.success("Profile updated ✓");
+    refreshProfile();
   };
 
   // Save location
