@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import uwaziIcon from "@/assets/uwazi-icon.png";
+import uwaziLogo from "@/assets/uwazi-logo.png";
 import { Lock, Eye, EyeOff } from "lucide-react";
 
 export default function ResetPasswordPage() {
@@ -48,7 +48,7 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-3">
-          <img src={uwaziIcon} alt="UWAZI.AI" className="h-16 w-16 mx-auto" />
+          <img src={uwaziLogo} alt="UWAZI.AI" className="h-12 mx-auto" />
           <h1 className="text-2xl font-bold text-foreground">Set new password</h1>
           <p className="text-muted-foreground text-sm">Choose a secure password for your account</p>
         </div>
