@@ -124,6 +124,39 @@ export type Database = {
           },
         ]
       }
+      ballot_selections: {
+        Row: {
+          candidate_or_choice: string | null
+          created_at: string | null
+          election_id: string | null
+          id: string
+          race_id: string | null
+          updated_at: string | null
+          user_id: string
+          zip_code: string | null
+        }
+        Insert: {
+          candidate_or_choice?: string | null
+          created_at?: string | null
+          election_id?: string | null
+          id?: string
+          race_id?: string | null
+          updated_at?: string | null
+          user_id: string
+          zip_code?: string | null
+        }
+        Update: {
+          candidate_or_choice?: string | null
+          created_at?: string | null
+          election_id?: string | null
+          id?: string
+          race_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
       candidates: {
         Row: {
           bio: string | null
