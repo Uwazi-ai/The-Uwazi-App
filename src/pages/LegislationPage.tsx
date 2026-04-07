@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useRecentBills, useBillSearchCongress, hasCongressApiKey, detectCategory, formatBillType } from "@/hooks/useCongressApi";
 import { useCivicLocation } from "@/hooks/useCivicLocation";
+import { useLegiScanSearch, useLegiScanMasterList, useLegiScanBill, zipToState, US_STATES } from "@/hooks/useLegiScan";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -14,7 +15,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 
-const categories = ["All", "Federal", "State", "Local", "Housing", "Health", "Education", "Criminal Justice"];
+const categories = ["All", "Federal", "State", "Housing", "Health", "Education", "Criminal Justice"];
 
 const categoryQueryMap: Record<string, string> = {
   Housing: "housing",
@@ -35,6 +36,21 @@ export default function LegislationPage() {
   const [trackInput, setTrackInput] = useState("");
   const [showSaved, setShowSaved] = useState(false);
   const hasKey = hasCongressApiKey();
+  const [selectedState, setSelectedState] = useState(() => zipToState(zipCode));
+  const [stateBillDetailId, setStateBillDetailId] = useState<number | null>(null);
+  const [stateDetailOpen, setStateDetailOpen] = useState(false);
+
+  // Update selected state when ZIP changes
+  useEffect(() => {
+    if (zipCode) setSelectedState(zipToState(zipCode));
+  }, [zipCode]);
+
+  // LegiScan data for State filter
+  const isStateFilter = activeFilter === "State";
+  const stateSearchQuery = isStateFilter ? (debouncedQuery || "") : "";
+  const { data: stateSearchData, isLoading: stateSearchLoading, error: stateSearchError } =
+    useLegiScanSearch(isStateFilter ? selectedState : "", stateSearchQuery || "government");
+  const { data: stateBillDetail } = useLegiScanBill(stateBillDetailId);
 
   // Debounce
   useEffect(() => {
@@ -226,7 +242,7 @@ export default function LegislationPage() {
       {!showSaved && (
         <div className="flex gap-2">
           <Input
-            placeholder="Search bills (e.g. education, housing)..."
+            placeholder={isStateFilter ? `Search ${selectedState} state bills...` : "Search bills (e.g. education, housing)..."}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -257,20 +273,149 @@ export default function LegislationPage() {
         </div>
       )}
 
-      {/* State/Local messages */}
-      {activeFilter === "State" && (
-        <div className="bg-card border border-border rounded-card p-6 text-center">
-          <p className="text-muted-foreground">🏛️ State legislation coming soon via OpenStates API</p>
+      {/* State filter controls */}
+      {isStateFilter && (
+        <div className="flex items-center gap-3 flex-wrap">
+          <select
+            value={selectedState}
+            onChange={(e) => setSelectedState(e.target.value)}
+            className="bg-card border border-border rounded-card px-3 py-2 text-sm text-foreground"
+          >
+            {US_STATES.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+          <span className="text-xs text-muted-foreground">
+            {zipCode ? `Auto-detected from ZIP ${zipCode}` : "Select your state"}
+          </span>
         </div>
       )}
-      {activeFilter === "Local" && (
-        <div className="bg-card border border-border rounded-card p-6 text-center">
-          <p className="text-muted-foreground">🏘️ Local legislation coming soon</p>
+
+      {/* State bills */}
+      {isStateFilter && stateSearchLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="bg-card rounded-card p-5 border border-border space-y-3">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-5 w-full" />
+              <Skeleton className="h-3 w-3/4" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {isStateFilter && stateSearchError && (
+        <div className="bg-card border border-destructive/30 rounded-card p-6 text-center">
+          <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
+          <p className="text-foreground mb-2">Unable to load state legislation.</p>
+          <p className="text-xs text-muted-foreground mb-3">State legislation temporarily unavailable. Try federal bills or search by keyword.</p>
+          <Button variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey: ["legiscan"] })}>
+            Try Again
+          </Button>
+        </div>
+      )}
+
+      {isStateFilter && !stateSearchLoading && !stateSearchError && (stateSearchData?.bills || []).length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {(stateSearchData.bills || []).slice(0, 20).map((bill: any, idx: number) => {
+            const billId = `state-${bill.bill_id}`;
+            const isSaved = savedBillIds.has(billId);
+            return (
+              <motion.div
+                key={billId + idx}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.03 }}
+                className="bg-card rounded-card p-5 border border-border hover:border-primary/30 transition-all"
+              >
+                <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-pill border border-primary text-primary">
+                    {bill.bill_number || bill.bill_id}
+                  </span>
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-pill border border-amber-500/30 text-amber-400">
+                    State · {selectedState}
+                  </span>
+                  {bill.relevance && (
+                    <span className="text-xs px-2 py-0.5 rounded-pill bg-primary/10 text-primary">
+                      {bill.relevance}% match
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-sm font-bold text-foreground mb-1 line-clamp-2">
+                  {(bill.title || "Untitled").substring(0, 120)}
+                  {(bill.title || "").length > 120 ? "..." : ""}
+                </p>
+
+                {bill.last_action_date && (
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Last action: {bill.last_action_date}
+                  </p>
+                )}
+
+                {bill.last_action && (
+                  <p className="text-xs text-muted-foreground line-clamp-1 mb-3">
+                    ⚡ {bill.last_action.substring(0, 80)}
+                  </p>
+                )}
+
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={async () => {
+                        if (!user) return;
+                        if (isSaved) {
+                          await supabase.from("saved_legislation").delete().eq("user_id", user.id).eq("bill_id", billId);
+                          toast.success("Bill removed");
+                        } else {
+                          await supabase.from("saved_legislation").insert({
+                            user_id: user.id,
+                            bill_id: billId,
+                            bill_title: bill.title?.substring(0, 200),
+                            bill_url: bill.url || null,
+                            jurisdiction: "state",
+                            zip_code: zipCode,
+                          });
+                          toast.success("State bill saved! +5 XP 🎓");
+                        }
+                        queryClient.invalidateQueries({ queryKey: ["saved_legislation"] });
+                      }}
+                      className={`text-xs flex items-center gap-1 transition-colors ${
+                        isSaved ? "text-primary" : "text-muted-foreground hover:text-primary"
+                      }`}
+                    >
+                      {isSaved ? <BookmarkCheck className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
+                      {isSaved ? "Saved" : "Save"}
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setStateBillDetailId(bill.bill_id);
+                      setStateDetailOpen(true);
+                    }}
+                    className="text-xs text-primary font-medium hover:underline"
+                  >
+                    View Details →
+                  </button>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+
+      {isStateFilter && !stateSearchLoading && !stateSearchError && (stateSearchData?.bills || []).length === 0 && (
+        <div className="text-center py-12">
+          <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground">
+            No recent bills found for {selectedState}. Try a different state or search term.
+          </p>
         </div>
       )}
 
       {/* Loading */}
-      {isLoading && activeFilter !== "State" && activeFilter !== "Local" && (
+      {isLoading && !isStateFilter && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="bg-card rounded-card p-5 border border-border space-y-3">
@@ -295,7 +440,7 @@ export default function LegislationPage() {
       )}
 
       {/* Bills Grid */}
-      {!isLoading && !error && displayBills.length > 0 && activeFilter !== "State" && activeFilter !== "Local" && (
+      {!isLoading && !error && displayBills.length > 0 && !isStateFilter && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {displayBills.slice(0, 20).map((bill: any, idx: number) => {
             const billId = `${bill.type}-${bill.number}-${bill.congress || "119"}`;
@@ -378,7 +523,7 @@ export default function LegislationPage() {
       )}
 
       {/* Empty search */}
-      {!isLoading && !error && displayBills.length === 0 && !showSaved && activeFilter !== "State" && activeFilter !== "Local" && (
+      {!isLoading && !error && displayBills.length === 0 && !showSaved && !isStateFilter && (
         <div className="text-center py-12">
           <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
           <p className="text-muted-foreground">
@@ -413,6 +558,76 @@ export default function LegislationPage() {
               Add to Tracking
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* State Bill Detail Modal */}
+      <Dialog open={stateDetailOpen} onOpenChange={setStateDetailOpen}>
+        <DialogContent className="bg-card border-border max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-2xl text-foreground">
+              {stateBillDetail?.bill_number || "STATE BILL"}
+            </DialogTitle>
+          </DialogHeader>
+          {stateBillDetail ? (
+            <div className="space-y-4">
+              <p className="text-sm text-foreground font-medium">{stateBillDetail.title}</p>
+              {stateBillDetail.description && (
+                <p className="text-sm text-muted-foreground">{stateBillDetail.description}</p>
+              )}
+              <div className="space-y-2 text-xs">
+                {stateBillDetail.state && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">State</span>
+                    <span className="text-foreground">{stateBillDetail.state}</span>
+                  </div>
+                )}
+                {stateBillDetail.status_desc && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Status</span>
+                    <span className="text-foreground">{stateBillDetail.status_desc}</span>
+                  </div>
+                )}
+                {stateBillDetail.sponsors && stateBillDetail.sponsors.length > 0 && (
+                  <div>
+                    <span className="text-muted-foreground block mb-1">Sponsors</span>
+                    <div className="flex flex-wrap gap-1">
+                      {stateBillDetail.sponsors.map((s: any, i: number) => (
+                        <span key={i} className="text-xs px-2 py-0.5 rounded-pill bg-muted text-foreground">
+                          {s.name} ({s.party || "?"})
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {stateBillDetail.history && stateBillDetail.history.length > 0 && (
+                  <div>
+                    <span className="text-muted-foreground block mb-1">Recent Actions</span>
+                    <div className="space-y-1">
+                      {stateBillDetail.history.slice(-5).reverse().map((h: any, i: number) => (
+                        <p key={i} className="text-xs text-muted-foreground">
+                          <span className="text-foreground">{h.date}</span> — {h.action}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              {stateBillDetail.url && (
+                <a href={stateBillDetail.url} target="_blank" rel="noopener noreferrer">
+                  <Button className="w-full bg-primary text-primary-foreground gap-1.5">
+                    View Full Bill <ExternalLink className="h-3.5 w-3.5" />
+                  </Button>
+                </a>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3 py-4">
+              <Skeleton className="h-5 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
