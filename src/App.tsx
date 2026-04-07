@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { AdminRoute } from "@/components/auth/AdminRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 import HomePage from "./pages/HomePage";
 import AskUwaziPage from "./pages/AskUwaziPage";
@@ -22,6 +23,14 @@ import LegislationPage from "./pages/LegislationPage";
 import ProgressPage from "./pages/ProgressPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
+import AdminOverviewPage from "./pages/admin/AdminOverviewPage";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
+import AdminIntelligencePage from "./pages/admin/AdminIntelligencePage";
+import AdminLessonsPage from "./pages/admin/AdminLessonsPage";
+import AdminContentPage from "./pages/admin/AdminContentPage";
+import AdminAlertsPage from "./pages/admin/AdminAlertsPage";
+import AdminPlatformPage from "./pages/admin/AdminPlatformPage";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +61,16 @@ const App = () => (
               <Route path="/progress" element={<ProgressPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/settings" element={<SettingsPage />} />
+
+              {/* Admin routes */}
+              <Route path="/admin" element={<AdminRoute><AdminOverviewPage /></AdminRoute>} />
+              <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
+              <Route path="/admin/analytics" element={<AdminRoute><AdminAnalyticsPage /></AdminRoute>} />
+              <Route path="/admin/intelligence" element={<AdminRoute><AdminIntelligencePage /></AdminRoute>} />
+              <Route path="/admin/lessons" element={<AdminRoute><AdminLessonsPage /></AdminRoute>} />
+              <Route path="/admin/content" element={<AdminRoute><AdminContentPage /></AdminRoute>} />
+              <Route path="/admin/alerts" element={<AdminRoute><AdminAlertsPage /></AdminRoute>} />
+              <Route path="/admin/platform" element={<AdminRoute><AdminPlatformPage /></AdminRoute>} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

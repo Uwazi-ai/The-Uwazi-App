@@ -1,6 +1,7 @@
 import {
   Home, Newspaper, MessageCircle, BookOpen, Vote, FileText,
-  BarChart3, Settings, LogOut,
+  BarChart3, Settings, LogOut, Shield, Users, TrendingUp,
+  Brain, GraduationCap, Megaphone, Cog,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,13 +19,24 @@ const mainNav = [
   { to: "/progress", icon: BarChart3, label: "Progress" },
 ];
 
+const adminNav = [
+  { to: "/admin", icon: Shield, label: "Admin Overview" },
+  { to: "/admin/users", icon: Users, label: "Users" },
+  { to: "/admin/analytics", icon: TrendingUp, label: "Analytics" },
+  { to: "/admin/intelligence", icon: Brain, label: "Intelligence" },
+  { to: "/admin/lessons", icon: GraduationCap, label: "Lesson Manager" },
+  { to: "/admin/content", icon: FileText, label: "Civic Content" },
+  { to: "/admin/alerts", icon: Megaphone, label: "Alerts" },
+  { to: "/admin/platform", icon: Cog, label: "Platform Settings" },
+];
+
 const bottomNav = [
   { to: "/settings", icon: Settings, label: "Settings" },
 ];
 
 export function DesktopSidebar() {
   const { user, signOut } = useAuth();
-  const { displayName, avatarUrl } = useProfile();
+  const { displayName, avatarUrl, isAdmin } = useProfile();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -33,48 +45,45 @@ export function DesktopSidebar() {
     navigate("/login");
   };
 
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    `flex items-center gap-3 px-3 py-2.5 rounded-card text-sm font-medium transition-all ${
+      isActive
+        ? "bg-primary/15 text-primary border-l-2 border-primary"
+        : "text-muted-foreground hover:bg-muted hover:text-foreground border-l-2 border-transparent"
+    }`;
+
   return (
     <aside className="hidden md:flex flex-col w-[230px] border-r border-border bg-sidebar h-screen sticky top-0">
-      {/* Logo */}
       <div className="flex items-center gap-2.5 px-5 py-5">
         <img src={uwaziLogo} alt="UWAZI.AI" className="h-8" />
       </div>
 
-      {/* Main Nav */}
       <nav className="flex-1 flex flex-col px-3 py-2 gap-0.5 overflow-y-auto">
         {mainNav.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === "/"}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-card text-sm font-medium transition-all ${
-                isActive
-                  ? "bg-primary/15 text-primary border-l-2 border-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground border-l-2 border-transparent"
-              }`
-            }
-          >
+          <NavLink key={item.to} to={item.to} end={item.to === "/"} className={linkClass}>
             <item.icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
             {item.label}
           </NavLink>
         ))}
+
+        {isAdmin && (
+          <>
+            <div className="mt-4 mb-2 px-3">
+              <p className="text-[10px] font-axis tracking-[0.2em] text-primary uppercase">SUPER ADMIN</p>
+            </div>
+            {adminNav.map((item) => (
+              <NavLink key={item.to} to={item.to} end={item.to === "/admin"} className={linkClass}>
+                <item.icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
+                {item.label}
+              </NavLink>
+            ))}
+          </>
+        )}
       </nav>
 
-      {/* Bottom */}
       <div className="px-3 py-3 border-t border-border flex flex-col gap-0.5">
         {bottomNav.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-card text-sm font-medium transition-all ${
-                isActive
-                  ? "bg-primary/15 text-primary border-l-2 border-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground border-l-2 border-transparent"
-              }`
-            }
-          >
+          <NavLink key={item.to} to={item.to} className={linkClass}>
             <item.icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
             {item.label}
           </NavLink>
@@ -87,7 +96,6 @@ export function DesktopSidebar() {
           Sign Out
         </button>
 
-        {/* User info */}
         <div className="flex items-center gap-3 px-3 py-3 mt-1 border-t border-border">
           <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold shrink-0 overflow-hidden">
             {avatarUrl ? (
