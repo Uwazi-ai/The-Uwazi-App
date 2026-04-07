@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Sparkles, BookmarkPlus, Share2, Shield, RotateCcw } from "lucide-react";
+import { Send, Sparkles, BookmarkPlus, Share2, Shield, RotateCcw, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { useCivicLocation } from "@/hooks/useCivicLocation";
+import { Link } from "react-router-dom";
 
 interface Message {
   id: string;
@@ -92,6 +94,7 @@ export default function AskUwaziPage() {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { zipCode, loading: locationLoading } = useCivicLocation();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -153,9 +156,29 @@ export default function AskUwaziPage() {
             <p className="text-[11px] text-muted-foreground">Non-partisan civic AI assistant</p>
           </div>
         </div>
-        <div className="mt-2.5 flex items-center gap-1.5 px-2.5 py-1.5 bg-primary/10 rounded-lg">
-          <Shield className="h-3.5 w-3.5 text-primary" />
-          <span className="text-[11px] font-medium text-primary">Responses are non-partisan and source-cited</span>
+        <div className="mt-2.5 flex items-center gap-3">
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary/10 rounded-lg">
+            <Shield className="h-3.5 w-3.5 text-primary" />
+            <span className="text-[11px] font-medium text-primary">Non-partisan & source-cited</span>
+          </div>
+          {!locationLoading && (
+            zipCode ? (
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary/5 rounded-lg">
+                <MapPin className="h-3.5 w-3.5 text-primary" />
+                <span className="text-[11px] font-medium text-primary">Personalized for {zipCode}</span>
+                <Link to="/profile" className="text-[10px] text-muted-foreground hover:text-foreground underline ml-1">
+                  Change
+                </Link>
+              </div>
+            ) : (
+              <Link to="/profile" className="flex items-center gap-1.5 px-2.5 py-1.5 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
+                <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-[11px] text-muted-foreground">
+                  <span className="font-medium text-foreground underline">Set your ZIP</span> for local answers
+                </span>
+              </Link>
+            )
+          )}
         </div>
       </div>
 

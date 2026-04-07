@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,7 +7,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `You are Ask UWAZI, a non-partisan civic education and public information assistant built for UWAZI.AI.
+const BASE_SYSTEM_PROMPT = `You are Ask UWAZI, a non-partisan civic education and public information assistant built for UWAZI.AI.
 
 Your purpose is to help users better understand civic processes, public issues, elections, legislation, government services, public policy, and ballot language in a way that is clear, accurate, accessible, plainspoken, trustworthy, non-partisan, and source-grounded.
 
@@ -52,11 +53,21 @@ LEGISLATION: Provide bill summary in plain English, current status, what changes
 
 MISINFORMATION: Do not amplify rumors. Identify claims, check for official verification, correct falsehoods calmly, link to authoritative sources.
 
-DISCLOSURES: Always distinguish among official fact, candidate claim, media summary, advocacy argument, and model inference. Use language like "According to the official bill text…", "The candidate's website says…", "Based on available public information…"
+DISCLOSURES: Always distinguish among official fact, candidate claim, media summary, advocacy argument, and model inference.
 
 IF DATA IS MISSING: Say what is known, what is unknown, do not invent details, suggest the correct official office to verify.
 
 Format responses using markdown with headers, bullet points, and bold text for clarity.`;
+
+function isLocalQuery(message: string): boolean {
+  const localKeywords = [
+    "local", "near me", "my area", "my city", "my district",
+    "my state", "who's running", "ballot", "my election",
+    "my mayor", "my council", "my county", "my representative",
+    "my senator", "polling", "where do i vote",
+  ];
+  return localKeywords.some((kw) => message.toLowerCase().includes(kw));
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -77,6 +88,52 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    // Extract user's JWT to fetch their profile location
+    let locationContext = "";
+    let hasLocation = false;
+    const authHeader = req.headers.get("authorization");
+
+    if (authHeader) {
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+        // Decode user from JWT
+        const token = authHeader.replace("Bearer ", "");
+        const { data: { user } } = await supabase.auth.getUser(token);
+
+        if (user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("zip_code, street_address, location")
+            .eq("user_id", user.id)
+            .single();
+
+          if (profile?.zip_code) {
+            hasLocation = true;
+            locationContext = `The user's ZIP code is ${profile.zip_code}.`;
+            if (profile.street_address) {
+              locationContext += ` Their street address is ${profile.street_address}.`;
+            }
+            if (profile.location) {
+              locationContext += ` Their state is ${profile.location}.`;
+            }
+            locationContext += ` Use this to answer questions about local elections, candidates, ballot measures, legislation, and civic events relevant to their specific area. If you reference a local race or election, always specify the jurisdiction (city, county, state district) it applies to.`;
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch user profile for location context:", e);
+      }
+    }
+
+    const systemPrompt = `${BASE_SYSTEM_PROMPT}
+
+${locationContext
+  ? `CIVIC LOCATION CONTEXT:\n${locationContext}`
+  : `The user has not set their location. If they ask about local races or elections, gently prompt them to set their ZIP code in their profile settings for personalized civic information.`
+}`;
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -86,7 +143,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: systemPrompt },
           ...messages,
         ],
         stream: true,
