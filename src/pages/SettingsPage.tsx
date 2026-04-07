@@ -9,6 +9,7 @@ import { useProfile } from "@/contexts/ProfileContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { usePWAInstall } from "@/components/PWAInstallPrompt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -506,6 +507,37 @@ export default function SettingsPage() {
           <Lock className="h-4 w-4" /> Change Password
         </Button>
       </motion.div>
+
+      {/* Install Desktop App */}
+      {(() => {
+        const { isInstalled, install, isSupported } = usePWAInstall();
+        if (!isSupported) return null;
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32 }}
+            className="bg-card rounded-xl p-6 border border-border space-y-3"
+          >
+            <h3 className="font-heading text-xl text-foreground flex items-center gap-2">
+              <Monitor className="h-5 w-5 text-primary" /> DESKTOP APP
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Install UWAZI.AI as a desktop app for quick access and offline support.
+            </p>
+            {isInstalled ? (
+              <div className="flex items-center gap-2 text-sm text-primary">
+                <Check className="h-4 w-4" /> App Installed
+              </div>
+            ) : (
+              <Button
+                onClick={install}
+                className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                <Download className="h-4 w-4" /> Install UWAZI.AI on Desktop
+              </Button>
+            )}
+          </motion.div>
+        );
+      })()}
 
       {/* Sign Out */}
       <Button variant="outline" onClick={handleSignOut} className="w-full border-border gap-1.5">
