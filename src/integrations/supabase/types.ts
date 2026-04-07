@@ -418,6 +418,39 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_legislation: {
+        Row: {
+          bill_id: string
+          bill_title: string | null
+          bill_url: string | null
+          id: string
+          jurisdiction: string | null
+          saved_at: string | null
+          user_id: string
+          zip_code: string | null
+        }
+        Insert: {
+          bill_id: string
+          bill_title?: string | null
+          bill_url?: string | null
+          id?: string
+          jurisdiction?: string | null
+          saved_at?: string | null
+          user_id: string
+          zip_code?: string | null
+        }
+        Update: {
+          bill_id?: string
+          bill_title?: string | null
+          bill_url?: string | null
+          id?: string
+          jurisdiction?: string | null
+          saved_at?: string | null
+          user_id?: string
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
       streaks: {
         Row: {
           current_streak: number | null
