@@ -134,7 +134,7 @@ export function useAskUwaziSession() {
       .then(({ data }) => {
         if (data && Array.isArray(data.messages) && (data.messages as any[]).length > 0) {
           setSessionId(data.id);
-          setRestoredMessages(data.messages as StoredMessage[]);
+          setRestoredMessages(data.messages as unknown as StoredMessage[]);
         }
         setSessionLoading(false);
       });
