@@ -1,12 +1,12 @@
-import { Home, MessageCircle, Vote, BookOpen, User } from "lucide-react";
+import { Home, MessageCircle, Vote, BookOpen, BarChart3 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const navItems = [
   { to: "/", icon: Home, label: "Home" },
-  { to: "/ask", icon: MessageCircle, label: "Ask UWAZI" },
+  { to: "/ask", icon: MessageCircle, label: "Ask" },
   { to: "/vote", icon: Vote, label: "Vote" },
   { to: "/learn", icon: BookOpen, label: "Learn" },
-  { to: "/profile", icon: User, label: "Profile" },
+  { to: "/progress", icon: BarChart3, label: "Progress" },
 ];
 
 export function MobileNav() {
@@ -19,10 +19,8 @@ export function MobileNav() {
             to={item.to}
             end={item.to === "/"}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${
-                isActive
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+              `flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-card text-xs font-medium transition-colors ${
+                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
               }`
             }
           >
