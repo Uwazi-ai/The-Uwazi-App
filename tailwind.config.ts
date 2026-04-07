@@ -13,7 +13,8 @@ export default {
     extend: {
       fontFamily: {
         sans: ["'Inter'", "system-ui", "-apple-system", "sans-serif"],
-        heading: ["'Bebas Neue'", "sans-serif"],
+        heading: ["'Axis'", "sans-serif"],
+        axis: ["'Axis'", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
