@@ -6,7 +6,10 @@ async function callGoogleCivic(endpoint: string, params: Record<string, string> 
     body: { endpoint, params },
   });
   if (error) throw new Error(error.message);
-  if (data?.error) throw new Error(data.error);
+  if (data?.error) {
+    const msg = typeof data.error === 'object' ? data.error.message || JSON.stringify(data.error) : data.error;
+    throw new Error(msg);
+  }
   return data;
 }
 
@@ -22,13 +25,22 @@ export function useElections() {
 export function useVoterInfo(address: string, electionId?: string) {
   return useQuery({
     queryKey: ["voterInfo", address, electionId],
-    queryFn: () =>
-      callGoogleCivic("/voterinfo", {
-        address,
-        ...(electionId ? { electionId } : {}),
-      }),
+    queryFn: async () => {
+      try {
+        return await callGoogleCivic("/voterinfo", {
+          address,
+          ...(electionId ? { electionId } : {}),
+        });
+      } catch (e: any) {
+        // "Election unknown" means no active election for this address — return empty data
+        if (e?.message?.includes("Election unknown") || e?.message?.includes("election unknown")) {
+          return { pollingLocations: [], contests: [], earlyVoteSites: [], dropOffLocations: [] };
+        }
+        throw e;
+      }
+    },
     enabled: !!address,
-    staleTime: 1000 * 60 * 30, // 30 min
+    staleTime: 1000 * 60 * 30,
     retry: 1,
   });
 }
