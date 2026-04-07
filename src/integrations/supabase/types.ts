@@ -844,6 +844,7 @@ export type Database = {
           notes: string | null
           plan_complete: boolean | null
           polling_location: string | null
+          polling_location_name: string | null
           reminder_time: string | null
           reminders_enabled: boolean
           status: string
@@ -861,6 +862,7 @@ export type Database = {
           notes?: string | null
           plan_complete?: boolean | null
           polling_location?: string | null
+          polling_location_name?: string | null
           reminder_time?: string | null
           reminders_enabled?: boolean
           status?: string
@@ -878,6 +880,7 @@ export type Database = {
           notes?: string | null
           plan_complete?: boolean | null
           polling_location?: string | null
+          polling_location_name?: string | null
           reminder_time?: string | null
           reminders_enabled?: boolean
           status?: string
