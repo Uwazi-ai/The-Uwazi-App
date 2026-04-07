@@ -658,7 +658,7 @@ export default function AskUwaziPage() {
 
               {/* Standard suggestion cards */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.5 }} className="mt-8 w-full max-w-2xl px-4">
+                transition={{ delay: 0.3, duration: 0.5 }} className="mt-8 w-full max-w-2xl px-0 sm:px-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[
                     { icon: Vote, title: "What's on my ballot?", sub: "See your local races", prompt: suggestedPrompts[0] || "What's on my ballot?" },
@@ -696,7 +696,7 @@ export default function AskUwaziPage() {
 
               {/* Web Search suggestion row */}
               <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6, duration: 0.5 }} className="mt-5 w-full max-w-2xl px-4">
+                transition={{ delay: 0.6, duration: 0.5 }} className="mt-5 w-full max-w-2xl px-0 sm:px-4">
                 <div className="flex items-center gap-2 mb-2.5 px-1">
                   <Globe className="w-3.5 h-3.5 text-primary" />
                   <span className="text-[11px] text-primary font-medium tracking-wide">RESEARCH WITH LIVE WEB SEARCH</span>
