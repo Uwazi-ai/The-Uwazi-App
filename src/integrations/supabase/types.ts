@@ -184,6 +184,27 @@ export type Database = {
         }
         Relationships: []
       }
+      bill_upvotes: {
+        Row: {
+          bill_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          bill_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          bill_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       candidates: {
         Row: {
           bio: string | null
