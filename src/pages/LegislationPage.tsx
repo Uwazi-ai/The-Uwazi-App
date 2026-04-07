@@ -146,11 +146,11 @@ export default function LegislationPage() {
     }
     const [, type, number] = match;
     try {
-      const url = `https://api.congress.gov/v3/bill/119/${type.toLowerCase()}/${number}?api_key=${import.meta.env.VITE_CONGRESS_API_KEY}&format=json`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Not found");
-      const data = await res.json();
-      const bill = data.bill;
+      const { data, error: fetchError } = await supabase.functions.invoke("congress-proxy", {
+        body: { path: `/bill/119/${type.toLowerCase()}/${number}` },
+      });
+      if (fetchError) throw new Error("Not found");
+      const bill = data?.bill;
       if (bill && user) {
         const billId = `${type.toLowerCase()}-${number}-119`;
         await supabase.from("saved_legislation").insert({
