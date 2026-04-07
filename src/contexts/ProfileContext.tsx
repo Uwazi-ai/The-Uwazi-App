@@ -7,6 +7,7 @@ interface ProfileContextType {
   avatarUrl: string | null;
   zipCode: string | null;
   isAdmin: boolean;
+  profileLoaded: boolean;
   refreshProfile: () => Promise<void>;
 }
 
@@ -15,6 +16,7 @@ const ProfileContext = createContext<ProfileContextType>({
   avatarUrl: null,
   zipCode: null,
   isAdmin: false,
+  profileLoaded: false,
   refreshProfile: async () => {},
 });
 
@@ -26,6 +28,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [zipCode, setZipCode] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   const refreshProfile = useCallback(async () => {
     if (!user) return;
@@ -40,6 +43,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       setZipCode(data.zip_code);
       setIsAdmin(data.is_admin ?? false);
     }
+    setProfileLoaded(true);
   }, [user]);
 
   useEffect(() => {
@@ -47,7 +51,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   }, [refreshProfile]);
 
   return (
-    <ProfileContext.Provider value={{ displayName, avatarUrl, zipCode, isAdmin, refreshProfile }}>
+    <ProfileContext.Provider value={{ displayName, avatarUrl, zipCode, isAdmin, profileLoaded, refreshProfile }}>
       {children}
     </ProfileContext.Provider>
   );
