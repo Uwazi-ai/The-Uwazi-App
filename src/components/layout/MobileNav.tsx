@@ -41,7 +41,7 @@ export function MobileNav() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed bottom-[64px] left-0 right-0 z-[61] md:hidden bg-[hsl(var(--sidebar-background))] border-t border-border rounded-t-2xl p-4 pb-2"
+              className="fixed bottom-[64px] left-0 right-0 z-[61] md:hidden bg-[hsl(var(--sidebar-background))] border-t border-border rounded-t-2xl p-4" style={{ paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom))" }}
             >
               <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mx-auto mb-4" />
               <div className="grid grid-cols-3 gap-2">
