@@ -38,6 +38,7 @@ export default function SettingsPage() {
   const { refreshProfile } = useProfile();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { isInstalled, install, isSupported } = usePWAInstall();
 
   // Loading state
   const [loading, setLoading] = useState(true);
