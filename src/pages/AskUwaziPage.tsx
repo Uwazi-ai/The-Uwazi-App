@@ -523,14 +523,32 @@ export default function AskUwaziPage() {
                       </div>
                     )}
                     {msg.role === "user" ? (
-                      <div className="max-w-[85%] sm:max-w-[75%]">
-                        <div className="px-4 py-3 rounded-2xl rounded-tr-sm bg-primary text-primary-foreground text-sm leading-relaxed">
+                      <div className="max-w-[80%] ml-auto">
+                        <div className="px-4 py-3 text-sm leading-relaxed"
+                          style={{
+                            background: "linear-gradient(135deg, rgba(155,211,75,0.2), rgba(155,211,75,0.1))",
+                            border: "1px solid rgba(155,211,75,0.3)",
+                            borderRadius: "18px 18px 4px 18px",
+                            color: "#F0F6FC",
+                          }}>
                           {msg.content}
                         </div>
                       </div>
                     ) : (
-                      <div className="max-w-[92%] sm:max-w-[85%] space-y-2">
-                        <div className="glass rounded-2xl rounded-tl-sm p-4 md:p-5">
+                      <div className="max-w-[85%] space-y-2">
+                        <div className="p-4 md:px-5 md:py-4"
+                          style={{
+                            background: "rgba(255,255,255,0.05)",
+                            backdropFilter: "blur(10px)",
+                            WebkitBackdropFilter: "blur(10px)",
+                            border: "1px solid rgba(255,255,255,0.08)",
+                            borderRadius: "4px 18px 18px 18px",
+                            color: "#F0F6FC",
+                          }}>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Sparkles className="h-3 w-3 text-primary" />
+                            <span className="text-[10px] font-heading tracking-wide text-primary/70">UWAZI</span>
+                          </div>
                           <div className="prose prose-sm prose-invert max-w-none [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_strong]:text-primary/90 [&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm [&_h1]:font-heading [&_h2]:font-heading [&_h3]:font-heading [&_h1]:tracking-wide [&_h2]:tracking-wide [&_ul]:space-y-1.5 [&_ol]:space-y-1.5 [&_li]:text-sm [&_p]:text-sm [&_p]:leading-relaxed [&_blockquote]:border-l-2 [&_blockquote]:border-primary/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs">
                             <ReactMarkdown>{msg.content}</ReactMarkdown>
                           </div>
