@@ -257,7 +257,9 @@ export default function AskUwaziPage() {
                   </div>
                   {msg.id !== "streaming" && (
                     <div className="flex items-center gap-2">
-                      <button className="text-[11px] text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors flex items-center gap-1"><BookmarkPlus className="h-3 w-3" /> Save</button>
+                      <button onClick={() => handleSaveChat(msg)} disabled={msg.saved || savingId === msg.id} className={`text-[11px] px-2 py-1 rounded hover:bg-muted transition-colors flex items-center gap-1 ${msg.saved ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                        {msg.saved ? <><BookmarkCheck className="h-3 w-3" /> Saved</> : <><BookmarkPlus className="h-3 w-3" /> {savingId === msg.id ? "Saving..." : "Save"}</>}
+                      </button>
                       <button className="text-[11px] text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors flex items-center gap-1"><Share2 className="h-3 w-3" /> Share</button>
                       <button className="text-[11px] text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors flex items-center gap-1"><RotateCcw className="h-3 w-3" /> Simplify</button>
                     </div>
