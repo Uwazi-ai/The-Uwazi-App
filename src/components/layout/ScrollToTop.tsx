@@ -20,7 +20,7 @@ export function ScrollToTop() {
           exit={{ opacity: 0, scale: 0.8 }}
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           className="fixed bottom-24 md:bottom-8 right-4 z-50 h-10 w-10 rounded-full flex items-center justify-center glass-strong text-primary hover:bg-primary/20 transition-colors"
-          style={{ border: "1px solid rgba(155,211,75,0.2)" }}
+          style={{ border: "1px solid rgba(155,211,75,0.2)", marginBottom: "env(safe-area-inset-bottom)" }}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
