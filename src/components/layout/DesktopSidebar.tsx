@@ -1,4 +1,4 @@
-import { Home, MessageCircle, Vote, Newspaper, BookmarkCheck, User, Settings, LogOut } from "lucide-react";
+import { Home, MessageCircle, Vote, Newspaper, BookmarkCheck, User, Settings, LogOut, BookOpen } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ const mainNav = [
   { to: "/vote", icon: Vote, label: "Voting Hub" },
   { to: "/news", icon: Newspaper, label: "News" },
   { to: "/saved", icon: BookmarkCheck, label: "Saved" },
+  { to: "/learn", icon: BookOpen, label: "Learn" },
 ];
 
 const bottomNav = [

@@ -1,11 +1,11 @@
-import { Home, MessageCircle, Vote, Newspaper, User } from "lucide-react";
+import { Home, MessageCircle, Vote, BookOpen, User } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const navItems = [
   { to: "/", icon: Home, label: "Home" },
   { to: "/ask", icon: MessageCircle, label: "Ask UWAZI" },
   { to: "/vote", icon: Vote, label: "Vote" },
-  { to: "/news", icon: Newspaper, label: "News" },
+  { to: "/learn", icon: BookOpen, label: "Learn" },
   { to: "/profile", icon: User, label: "Profile" },
 ];
 
