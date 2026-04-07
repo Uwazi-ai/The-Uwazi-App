@@ -472,18 +472,36 @@ export default function AskUwaziPage() {
 
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.5 }} className="mt-10 w-full max-w-2xl px-4">
-                <p className="text-[10px] font-heading tracking-[0.15em] text-primary/60 uppercase text-center mb-4">
-                  Suggested Questions
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {suggestedPrompts.map((p, i) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    { icon: Vote, title: "What's on my ballot?", sub: "See your local races", prompt: suggestedPrompts[0] || "What's on my ballot?" },
+                    { icon: FileText, title: "Explain a bill", sub: "Plain language breakdown", prompt: suggestedPrompts[2] || "Explain a bill in plain language" },
+                    { icon: Landmark, title: "Who represents me?", sub: "Find your officials", prompt: suggestedPrompts[1] || "Who represents me?" },
+                    { icon: CalendarDays, title: "Next election", sub: "Dates and deadlines", prompt: suggestedPrompts[3] || "When is the next election?" },
+                  ].map((card, i) => (
                     <motion.button key={i}
                       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4 + i * 0.08 }}
-                      whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}
-                      onClick={() => handleSend(p)}
-                      className="glass text-left px-4 py-3.5 rounded-xl text-sm text-foreground/80 hover:text-foreground transition-all group">
-                      <span className="group-hover:text-primary transition-colors">{p}</span>
+                      onClick={() => handleSend(card.prompt)}
+                      className="text-left p-4 rounded-xl cursor-pointer transition-all duration-200 group"
+                      style={{
+                        background: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(155,211,75,0.15)",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "rgba(155,211,75,0.08)";
+                        e.currentTarget.style.borderColor = "rgba(155,211,75,0.4)";
+                        e.currentTarget.style.transform = "translateY(-2px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+                        e.currentTarget.style.borderColor = "rgba(155,211,75,0.15)";
+                        e.currentTarget.style.transform = "translateY(0)";
+                      }}
+                    >
+                      <card.icon className="h-5 w-5 text-primary mb-2" strokeWidth={1.8} />
+                      <p className="text-sm font-medium text-foreground">{card.title}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{card.sub}</p>
                     </motion.button>
                   ))}
                 </div>
