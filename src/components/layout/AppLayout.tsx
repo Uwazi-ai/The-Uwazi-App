@@ -22,6 +22,7 @@ export function AppLayout() {
         </div>
         {!isAskPage && <MobileNav />}
         {!isAskPage && <ScrollToTop />}
+        <PWAInstallPrompt />
       </div>
     </ProfileProvider>
   );
