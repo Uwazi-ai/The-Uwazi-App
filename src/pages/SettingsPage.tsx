@@ -141,6 +141,7 @@ export default function SettingsPage() {
       setAvatarUrl(freshUrl);
       setAvatarPreview(null);
       toast.success("Profile photo updated ✓");
+      refreshProfile();
     } catch (err: any) {
       toast.error(err.message || "Failed to upload photo");
       setAvatarPreview(null);
@@ -167,6 +168,7 @@ export default function SettingsPage() {
       .eq("user_id", user.id);
     setSavingProfile(false);
     toast.success("Profile updated ✓");
+    refreshProfile();
   };
 
   // Save location
