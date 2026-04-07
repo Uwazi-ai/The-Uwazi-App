@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, BookmarkPlus, BookmarkCheck, Share2, RotateCcw, MapPin,
   Plus, MessageCircle, Trash2, Clock,
-  ArrowLeft, Copy, Check, Vote, FileText, Landmark, CalendarDays,
+  Copy, Check, Vote, FileText, Landmark, CalendarDays,
   Globe, ExternalLink, AlertCircle, X,
 } from "lucide-react";
 import uwaziLogo from "@/assets/uwazi-logo.png";
@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
-import { Link } from "react-router-dom";
+import { useAskUwaziContext, getSuggestedPrompts, useAskUwaziSession, type ChatSession } from "@/hooks/useAskUwazi";
 import { useAskUwaziContext, getSuggestedPrompts, useAskUwaziSession, type ChatSession } from "@/hooks/useAskUwazi";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
