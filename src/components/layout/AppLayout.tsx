@@ -3,6 +3,7 @@ import { MobileNav } from "./MobileNav";
 import { DesktopSidebar } from "./DesktopSidebar";
 import { TopBar } from "./TopBar";
 import { ScrollToTop } from "./ScrollToTop";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { ProfileProvider } from "@/contexts/ProfileContext";
 
 export function AppLayout() {
