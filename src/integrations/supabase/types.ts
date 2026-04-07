@@ -562,6 +562,36 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_articles: {
+        Row: {
+          article_image: string | null
+          article_source: string | null
+          article_title: string | null
+          article_url: string
+          id: string
+          saved_at: string | null
+          user_id: string
+        }
+        Insert: {
+          article_image?: string | null
+          article_source?: string | null
+          article_title?: string | null
+          article_url: string
+          id?: string
+          saved_at?: string | null
+          user_id: string
+        }
+        Update: {
+          article_image?: string | null
+          article_source?: string | null
+          article_title?: string | null
+          article_url?: string
+          id?: string
+          saved_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       saved_items: {
         Row: {
           created_at: string
