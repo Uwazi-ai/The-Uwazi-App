@@ -125,9 +125,9 @@ export default function AskUwaziPage() {
       {/* Hero header (only on empty) */}
       {isEmpty && (
         <div className="px-4 md:px-8 pt-8 pb-4">
-          <p className="eyebrow mb-2">AI CIVIC ASSISTANT</p>
-          <h1 className="font-heading text-4xl md:text-5xl text-foreground leading-none">ASK ANYTHING. KNOW YOUR POWER.</h1>
-          <p className="text-sm text-muted-foreground mt-2">Powered by UWAZI.AI · Nonpartisan · Location-aware</p>
+          <p className="eyebrow mb-2">​Your Political Co-Pilot</p>
+          <h1 className="font-heading text-4xl md:text-5xl text-foreground leading-none">ASK UWAZI</h1>
+          <p className="text-sm text-muted-foreground mt-2">Powered by Raia G1.o · Nonpartisan · Location-aware</p>
         </div>
       )}
 
