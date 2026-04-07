@@ -1,21 +1,26 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { MobileNav } from "./MobileNav";
 import { DesktopSidebar } from "./DesktopSidebar";
 import { TopBar } from "./TopBar";
 import { ProfileProvider } from "@/contexts/ProfileContext";
 
 export function AppLayout() {
+  const location = useLocation();
+  const isAskPage = location.pathname === "/ask";
+
   return (
     <ProfileProvider>
       <div className="min-h-screen flex w-full bg-background">
         <DesktopSidebar />
         <div className="flex-1 flex flex-col min-h-screen">
-          <TopBar />
-          <main className="flex-1 pb-20 md:pb-0">
+          {/* Hide top bar on Ask page for full-screen chat */}
+          {!isAskPage && <TopBar />}
+          <main className={`flex-1 ${isAskPage ? "" : "pb-20 md:pb-0"}`}>
             <Outlet />
           </main>
         </div>
-        <MobileNav />
+        {/* Hide bottom nav on Ask page (it has its own mobile header) */}
+        {!isAskPage && <MobileNav />}
       </div>
     </ProfileProvider>
   );
