@@ -391,6 +391,45 @@ export type Database = {
         }
         Relationships: []
       }
+      raia_scores: {
+        Row: {
+          ballot_comprehension_score: number | null
+          calculated_at: string | null
+          data_sources: Json | null
+          health_correlation_score: number | null
+          id: string
+          policy_awareness_score: number | null
+          score: number | null
+          trust_score: number | null
+          voter_turnout_score: number | null
+          zip_code: string
+        }
+        Insert: {
+          ballot_comprehension_score?: number | null
+          calculated_at?: string | null
+          data_sources?: Json | null
+          health_correlation_score?: number | null
+          id?: string
+          policy_awareness_score?: number | null
+          score?: number | null
+          trust_score?: number | null
+          voter_turnout_score?: number | null
+          zip_code: string
+        }
+        Update: {
+          ballot_comprehension_score?: number | null
+          calculated_at?: string | null
+          data_sources?: Json | null
+          health_correlation_score?: number | null
+          id?: string
+          policy_awareness_score?: number | null
+          score?: number | null
+          trust_score?: number | null
+          voter_turnout_score?: number | null
+          zip_code?: string
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
           content_id: string
