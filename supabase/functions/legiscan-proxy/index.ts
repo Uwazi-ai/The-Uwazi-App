@@ -15,7 +15,7 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const { op, state, query, bill_id, session_id } = body;
 
-    const apiKey = Deno.env.get("LEGISCAN_API_KEY");
+    const apiKey = (Deno.env.get("LEGISCAN_API_KEY") || "").trim();
     if (!apiKey) {
       return new Response(
         JSON.stringify({ error: "LegiScan API key not configured" }),
