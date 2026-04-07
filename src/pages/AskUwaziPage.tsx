@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, BookmarkPlus, BookmarkCheck, Share2, RotateCcw, MapPin,
@@ -7,15 +7,15 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { Link } from "react-router-dom";
-import { useAskUwaziContext, getSuggestedPrompts, useAskUwaziSession } from "@/hooks/useAskUwazi";
+import { useAskUwaziContext, getSuggestedPrompts, useAskUwaziSession, type ChatSession } from "@/hooks/useAskUwazi";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/contexts/ProfileContext";
-import uwaziLogo from "@/assets/uwazi-logo.png";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, isToday, isYesterday, differenceInDays } from "date-fns";
 
 interface Message {
   id: string;
@@ -26,6 +26,27 @@ interface Message {
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ask-uwazi`;
 
+// ─── Group chats by date ───
+function groupChatsByDate(chats: ChatSession[]): { label: string; chats: ChatSession[] }[] {
+  const groups: Record<string, ChatSession[]> = {};
+  const order: string[] = [];
+
+  for (const chat of chats) {
+    const d = new Date(chat.updatedAt);
+    let label: string;
+    if (isToday(d)) label = "Today";
+    else if (isYesterday(d)) label = "Yesterday";
+    else if (differenceInDays(new Date(), d) <= 7) label = "This Week";
+    else label = "Older";
+
+    if (!groups[label]) { groups[label] = []; order.push(label); }
+    groups[label].push(chat);
+  }
+
+  return order.map((label) => ({ label, chats: groups[label] }));
+}
+
+// ─── Stream helper ───
 async function streamChat({ messages, token, onDelta, onDone, onError }: {
   messages: { role: string; content: string }[];
   token: string;
@@ -35,10 +56,7 @@ async function streamChat({ messages, token, onDelta, onDone, onError }: {
 }) {
   const resp = await fetch(CHAT_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify({ messages }),
   });
 
@@ -46,8 +64,7 @@ async function streamChat({ messages, token, onDelta, onDone, onError }: {
     const data = await resp.json().catch(() => ({}));
     if (resp.status === 429) { onError("Rate limit exceeded. Please try again in a moment."); return; }
     if (resp.status === 402) { onError("AI credits exhausted. Please add funds in Settings."); return; }
-    onError(data.error || `Error ${resp.status}`);
-    return;
+    onError(data.error || `Error ${resp.status}`); return;
   }
   if (!resp.body) { onError("No response stream"); return; }
 
@@ -81,6 +98,21 @@ async function streamChat({ messages, token, onDelta, onDone, onError }: {
   onDone();
 }
 
+// ─── State map for ZIP → state name ───
+const STATE_NAMES: Record<string, string> = {
+  AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
+  CO: "Colorado", CT: "Connecticut", DE: "Delaware", DC: "District of Columbia",
+  FL: "Florida", GA: "Georgia", HI: "Hawaii", IA: "Iowa", ID: "Idaho",
+  IL: "Illinois", IN: "Indiana", KS: "Kansas", KY: "Kentucky", LA: "Louisiana",
+  MA: "Massachusetts", MD: "Maryland", ME: "Maine", MI: "Michigan", MN: "Minnesota",
+  MO: "Missouri", MS: "Mississippi", MT: "Montana", NC: "North Carolina",
+  ND: "North Dakota", NE: "Nebraska", NH: "New Hampshire", NJ: "New Jersey",
+  NM: "New Mexico", NV: "Nevada", NY: "New York", OH: "Ohio", OK: "Oklahoma",
+  OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
+  SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah", VA: "Virginia",
+  VT: "Vermont", WA: "Washington", WI: "Wisconsin", WV: "West Virginia", WY: "Wyoming",
+};
+
 export default function AskUwaziPage() {
   const { session } = useAuth();
   const { displayName, avatarUrl } = useProfile();
@@ -97,28 +129,32 @@ export default function AskUwaziPage() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [civicScore, setCivicScore] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const restoredRef = useRef(false);
 
+  // Fetch civic score
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    supabase.from("civic_scores").select("civic_literacy_score").eq("user_id", session.user.id).maybeSingle()
+      .then(({ data }) => { if (data) setCivicScore(data.civic_literacy_score); });
+  }, [session?.user?.id]);
+
+  const groupedHistory = useMemo(() => groupChatsByDate(chatHistory), [chatHistory]);
+
   useEffect(() => {
     if (restoredMessages && restoredMessages.length > 0) {
       restoredRef.current = true;
-      setMessages(restoredMessages.map((m, i) => ({
-        id: `restored-${i}`,
-        role: m.role,
-        content: m.content,
-      })));
+      setMessages(restoredMessages.map((m, i) => ({ id: `restored-${i}`, role: m.role, content: m.content })));
     } else if (restoredMessages === null && restoredRef.current) {
       setMessages([]);
     }
   }, [restoredMessages]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
-  // Auto-resize textarea
   useEffect(() => {
     const el = inputRef.current;
     if (!el) return;
@@ -138,16 +174,11 @@ export default function AskUwaziPage() {
     const msgIndex = messages.findIndex((m) => m.id === assistantMsg.id);
     const userMsg = messages.slice(0, msgIndex).reverse().find((m) => m.role === "user");
     if (!userMsg) return;
-
     setSavingId(assistantMsg.id);
     const { error } = await supabase.from("ai_chats").insert({
-      user_id: session.user.id,
-      prompt: userMsg.content,
-      response: assistantMsg.content,
-      saved: true,
+      user_id: session.user.id, prompt: userMsg.content, response: assistantMsg.content, saved: true,
     });
     setSavingId(null);
-
     if (error) { toast.error("Failed to save chat"); return; }
     setMessages((prev) => prev.map((m) => m.id === assistantMsg.id ? { ...m, saved: true } : m));
     toast.success("Chat saved!");
@@ -156,7 +187,6 @@ export default function AskUwaziPage() {
   const handleSend = useCallback(async (text?: string) => {
     const msg = text || input.trim();
     if (!msg || isStreaming) return;
-
     const userMsg: Message = { id: Date.now().toString(), role: "user", content: msg };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
@@ -168,15 +198,13 @@ export default function AskUwaziPage() {
       assistantContent += chunk;
       setMessages((prev) => {
         const last = prev[prev.length - 1];
-        if (last?.role === "assistant" && last.id === "streaming") {
+        if (last?.role === "assistant" && last.id === "streaming")
           return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantContent } : m);
-        }
         return [...prev, { id: "streaming", role: "assistant", content: assistantContent }];
       });
     };
 
     const token = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
     await streamChat({
       messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
       token,
@@ -184,10 +212,7 @@ export default function AskUwaziPage() {
       onDone: () => {
         setMessages((prev) => {
           const final = prev.map((m) => (m.id === "streaming" ? { ...m, id: Date.now().toString() } : m));
-          saveMessages(
-            final.map((m) => ({ role: m.role, content: m.content })),
-            ctx.zipCode
-          );
+          saveMessages(final.map((m) => ({ role: m.role, content: m.content })), ctx.zipCode);
           return final;
         });
         setIsStreaming(false);
@@ -199,6 +224,7 @@ export default function AskUwaziPage() {
   const handleNewChat = useCallback(() => {
     setMessages([]);
     startNewSession();
+    setActiveSessionId(null);
     restoredRef.current = false;
     setSidebarOpen(false);
     inputRef.current?.focus();
@@ -206,14 +232,12 @@ export default function AskUwaziPage() {
 
   const handleLoadSession = useCallback(async (id: string) => {
     await loadSession(id);
+    setActiveSessionId(id);
     setSidebarOpen(false);
   }, [loadSession]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
   }, [handleSend]);
 
   const isEmpty = messages.length === 0;
@@ -226,18 +250,15 @@ export default function AskUwaziPage() {
             <div className="h-12 w-12 rounded-2xl glass flex items-center justify-center">
               <Sparkles className="h-6 w-6 text-primary" />
             </div>
-            <motion.div
-              className="absolute inset-0 rounded-2xl border-2 border-primary/30"
+            <motion.div className="absolute inset-0 rounded-2xl border-2 border-primary/30"
               animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
+              transition={{ duration: 2, repeat: Infinity }} />
           </div>
           <div className="flex items-center gap-1.5">
             {[0, 1, 2].map((i) => (
               <motion.div key={i} className="h-1.5 w-1.5 rounded-full bg-primary"
                 animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
-                transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
-              />
+                transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }} />
             ))}
           </div>
         </div>
@@ -245,24 +266,29 @@ export default function AskUwaziPage() {
     );
   }
 
+  const stateName = ctx.state ? (STATE_NAMES[ctx.state] || ctx.state) : null;
+
   return (
     <div className="flex h-[100dvh] md:h-screen relative overflow-hidden bg-background">
+
+      {/* ═══ Animated gradient mesh background ═══ */}
+      <div className="fixed inset-0 pointer-events-none z-0" style={{
+        background: `
+          radial-gradient(ellipse at 15% 30%, rgba(155,211,75,0.06) 0%, transparent 50%),
+          radial-gradient(ellipse at 85% 70%, rgba(155,211,75,0.04) 0%, transparent 50%),
+          radial-gradient(ellipse at 50% 50%, rgba(155,211,75,0.02) 0%, transparent 60%)`,
+        animation: "meshShift 8s ease-in-out infinite alternate",
+      }} />
 
       {/* ═══ SIDEBAR — Chat History ═══ */}
       <AnimatePresence>
         {sidebarOpen && (
           <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden"
-              onClick={() => setSidebarOpen(false)}
-            />
+              onClick={() => setSidebarOpen(false)} />
             <motion.aside
-              initial={{ x: -260 }}
-              animate={{ x: 0 }}
-              exit={{ x: -260 }}
+              initial={{ x: -260 }} animate={{ x: 0 }} exit={{ x: -260 }}
               transition={{ type: "spring", damping: 28, stiffness: 320 }}
               className="fixed md:relative z-40 w-[260px] h-full flex flex-col shrink-0"
               style={{
@@ -273,81 +299,96 @@ export default function AskUwaziPage() {
               }}
             >
               {/* Sidebar header */}
-              <div className="flex items-center justify-between px-4 py-4" style={{ borderBottom: "1px solid rgba(155, 211, 75, 0.1)" }}>
+              <div className="flex items-center justify-between px-4 py-4"
+                style={{ borderBottom: "1px solid rgba(155, 211, 75, 0.1)" }}>
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
                   <h2 className="text-sm font-heading tracking-wide text-foreground">HISTORY</h2>
                 </div>
-                <button
-                  onClick={() => setSidebarOpen(false)}
-                  className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition-colors"
-                >
+                <button onClick={() => setSidebarOpen(false)}
+                  className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition-colors">
                   <PanelLeftClose className="h-4 w-4" />
                 </button>
               </div>
 
               {/* New chat button */}
               <div className="px-3 pt-3">
-                <button
-                  onClick={handleNewChat}
-                  className="w-full flex items-center gap-2.5 px-4 py-3 rounded-xl border border-dashed border-primary/30 text-primary text-sm font-medium hover:bg-primary/10 hover:border-primary/50 transition-all group"
-                >
+                <button onClick={handleNewChat}
+                  className="w-full flex items-center gap-2.5 px-4 py-3 rounded-xl border border-dashed border-primary/30 text-primary text-sm font-medium hover:bg-primary/10 hover:border-primary/50 transition-all group">
                   <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform duration-300" />
                   New Conversation
                 </button>
               </div>
 
-              {/* Chat list */}
+              {/* Chat list — grouped by date */}
               <ScrollArea className="flex-1 px-2 py-2">
-                <div className="space-y-0.5">
-                  {chatHistory.map((chat, i) => (
-                    <motion.div
-                      key={chat.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.03 }}
-                      className="group flex items-center gap-2 px-3 py-3 rounded-xl hover:bg-muted cursor-pointer transition-all"
-                      onClick={() => handleLoadSession(chat.id)}
-                    >
-                      <MessageCircle className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-foreground truncate">{chat.firstMessage}</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">
-                          {chat.updatedAt ? formatDistanceToNow(new Date(chat.updatedAt), { addSuffix: true }) : ""}
-                        </p>
+                {groupedHistory.length > 0 ? (
+                  groupedHistory.map((group) => (
+                    <div key={group.label} className="mb-3">
+                      <p className="px-3 py-1.5 text-[10px] font-heading tracking-[0.15em] uppercase text-muted-foreground/60">
+                        {group.label}
+                      </p>
+                      <div className="space-y-0.5">
+                        {group.chats.map((chat, i) => {
+                          const isActive = activeSessionId === chat.id;
+                          return (
+                            <motion.div
+                              key={chat.id}
+                              initial={{ opacity: 0, x: -8 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: i * 0.02 }}
+                              className={`group flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
+                                isActive
+                                  ? "bg-primary/[0.12] border-l-2 border-primary"
+                                  : "hover:bg-primary/[0.08] border-l-2 border-transparent"
+                              }`}
+                              onClick={() => handleLoadSession(chat.id)}
+                            >
+                              <MessageCircle className={`h-3.5 w-3.5 shrink-0 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-[13px] truncate ${isActive ? "text-primary font-medium" : "text-foreground"}`}>
+                                  {chat.firstMessage.substring(0, 40)}
+                                </p>
+                              </div>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); deleteSession(chat.id); }}
+                                className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-all"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </motion.div>
+                          );
+                        })}
                       </div>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); deleteSession(chat.id); }}
-                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-all"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </motion.div>
-                  ))}
-                  {chatHistory.length === 0 && (
-                    <div className="flex flex-col items-center py-12 text-center">
-                      <MessageCircle className="h-8 w-8 text-muted-foreground/30 mb-3" />
-                      <p className="text-xs text-muted-foreground">No conversations yet</p>
-                      <p className="text-[10px] text-muted-foreground/60 mt-1">Start a new chat below</p>
                     </div>
-                  )}
-                </div>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center py-12 text-center px-4">
+                    <MessageCircle className="h-8 w-8 text-muted-foreground/20 mb-3" />
+                    <p className="text-xs text-muted-foreground">No previous conversations yet.</p>
+                    <p className="text-[10px] text-muted-foreground/50 mt-1">Start asking about civic topics!</p>
+                  </div>
+                )}
               </ScrollArea>
 
-              {/* Sidebar footer */}
-              <div className="px-3 py-3" style={{ borderTop: "1px solid rgba(155, 211, 75, 0.1)" }}>
-                <div className="flex items-center gap-3 px-2">
-                  <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold shrink-0 overflow-hidden">
-                    {avatarUrl ? (
-                      <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
-                    ) : (
-                      displayName[0]?.toUpperCase()
-                    )}
+              {/* Sidebar footer — ZIP badge + civic score */}
+              <div className="px-3 py-3 space-y-3" style={{ borderTop: "1px solid rgba(155, 211, 75, 0.1)" }}>
+                {ctx.zipCode && (
+                  <div className="flex items-center gap-2 px-2">
+                    <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <span className="text-xs font-semibold text-primary">{ctx.zipCode}</span>
+                    {stateName && <span className="text-[10px] text-primary/50">· {stateName}</span>}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
+                )}
+                {civicScore !== null && (
+                  <div className="px-2 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-muted-foreground">Civic Literacy</span>
+                      <span className="text-[10px] font-semibold text-primary">{civicScore}%</span>
+                    </div>
+                    <Progress value={civicScore} className="h-1.5 bg-muted [&>div]:bg-primary" />
                   </div>
-                </div>
+                )}
               </div>
             </motion.aside>
           </>
@@ -355,22 +396,22 @@ export default function AskUwaziPage() {
       </AnimatePresence>
 
       {/* ═══ MAIN CHAT PANEL ═══ */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative z-10"
+        style={{
+          background: "rgba(13, 13, 13, 0.6)",
+          backdropFilter: "blur(40px)",
+          WebkitBackdropFilter: "blur(40px)",
+        }}>
 
         {/* ─── Top Bar ─── */}
-        <motion.div
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="flex items-center justify-between px-3 md:px-5 py-2.5 border-b border-border bg-background/80 backdrop-blur-xl shrink-0 z-10"
-        >
+        <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+          className="flex items-center justify-between px-3 md:px-5 py-2.5 shrink-0 z-10"
+          style={{ borderBottom: "1px solid rgba(155, 211, 75, 0.08)" }}>
           <div className="flex items-center gap-2">
             {!sidebarOpen && (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                 onClick={() => setSidebarOpen(true)}
-                className="p-2 rounded-xl hover:bg-muted text-muted-foreground transition-colors"
-              >
+                className="p-2 rounded-xl hover:bg-muted text-muted-foreground transition-colors">
                 <PanelLeftOpen className="h-5 w-5" />
               </motion.button>
             )}
@@ -402,13 +443,9 @@ export default function AskUwaziPage() {
                 <span className="text-[11px] text-primary font-medium">Set ZIP</span>
               </Link>
             )}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
               onClick={handleNewChat}
-              className="p-2 rounded-xl hover:bg-muted text-muted-foreground transition-colors"
-              title="New Chat"
-            >
+              className="p-2 rounded-xl hover:bg-muted text-muted-foreground transition-colors" title="New Chat">
               <Plus className="h-5 w-5" />
             </motion.button>
           </div>
@@ -418,20 +455,14 @@ export default function AskUwaziPage() {
         <div className="flex-1 overflow-y-auto">
           {isEmpty ? (
             <div className="flex flex-col items-center justify-center h-full px-4 py-8">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                className="text-center max-w-lg"
-              >
-                {/* Glowing logo */}
+              <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }} className="text-center max-w-lg">
                 <div className="relative mx-auto mb-8 w-20 h-20">
                   <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-2xl" />
                   <div className="relative h-20 w-20 rounded-2xl glass-strong flex items-center justify-center border border-primary/20">
                     <Sparkles className="h-10 w-10 text-primary" />
                   </div>
                 </div>
-
                 <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl text-foreground leading-none mb-3 tracking-tight">
                   ASK UWAZI
                 </h1>
@@ -439,28 +470,19 @@ export default function AskUwaziPage() {
                 <p className="text-xs text-muted-foreground/50">Nonpartisan · Location-aware · Powered by Raia G1.0</p>
               </motion.div>
 
-              {/* Suggested prompts */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-                className="mt-10 w-full max-w-2xl px-4"
-              >
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.5 }} className="mt-10 w-full max-w-2xl px-4">
                 <p className="text-[10px] font-heading tracking-[0.15em] text-primary/60 uppercase text-center mb-4">
                   Suggested Questions
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {suggestedPrompts.map((p, i) => (
-                    <motion.button
-                      key={i}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
+                    <motion.button key={i}
+                      initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4 + i * 0.08 }}
-                      whileHover={{ scale: 1.02, y: -2 }}
-                      whileTap={{ scale: 0.98 }}
+                      whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}
                       onClick={() => handleSend(p)}
-                      className="glass text-left px-4 py-3.5 rounded-xl text-sm text-foreground/80 hover:text-foreground hover:border-primary/20 transition-all group"
-                    >
+                      className="glass text-left px-4 py-3.5 rounded-xl text-sm text-foreground/80 hover:text-foreground transition-all group">
                       <span className="group-hover:text-primary transition-colors">{p}</span>
                     </motion.button>
                   ))}
@@ -468,18 +490,13 @@ export default function AskUwaziPage() {
               </motion.div>
             </div>
           ) : (
-            /* Chat messages */
             <div className="max-w-3xl mx-auto px-3 sm:px-4 md:px-6 py-6 space-y-6">
               <AnimatePresence mode="popLayout">
                 {messages.map((msg) => (
-                  <motion.div
-                    key={msg.id}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
+                  <motion.div key={msg.id}
+                    initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                    className={msg.role === "user" ? "flex justify-end" : "flex justify-start gap-3"}
-                  >
-                    {/* Assistant avatar */}
+                    className={msg.role === "user" ? "flex justify-end" : "flex justify-start gap-3"}>
                     {msg.role === "assistant" && (
                       <div className="shrink-0 mt-1">
                         <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center">
@@ -487,7 +504,6 @@ export default function AskUwaziPage() {
                         </div>
                       </div>
                     )}
-
                     {msg.role === "user" ? (
                       <div className="max-w-[85%] sm:max-w-[75%]">
                         <div className="px-4 py-3 rounded-2xl rounded-tr-sm bg-primary text-primary-foreground text-sm leading-relaxed">
@@ -504,36 +520,19 @@ export default function AskUwaziPage() {
                             <span className="inline-block w-2 h-5 bg-primary/60 animate-pulse ml-0.5 rounded-sm" />
                           )}
                         </div>
-
-                        {/* Action buttons */}
                         {msg.id !== "streaming" && (
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.2 }}
-                            className="flex items-center gap-0.5 pl-1"
-                          >
-                            <button
-                              onClick={() => handleCopy(msg)}
-                              className="text-[11px] px-2 py-1 rounded-lg transition-all flex items-center gap-1 text-muted-foreground hover:text-foreground hover:bg-muted"
-                            >
+                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+                            className="flex items-center gap-0.5 pl-1">
+                            <button onClick={() => handleCopy(msg)}
+                              className="text-[11px] px-2 py-1 rounded-lg transition-all flex items-center gap-1 text-muted-foreground hover:text-foreground hover:bg-muted">
                               {copiedId === msg.id ? <><Check className="h-3 w-3 text-primary" /> Copied</> : <><Copy className="h-3 w-3" /> Copy</>}
                             </button>
-                            <button
-                              onClick={() => handleSaveChat(msg)}
-                              disabled={msg.saved || savingId === msg.id}
-                              className={`text-[11px] px-2 py-1 rounded-lg transition-all flex items-center gap-1 ${
-                                msg.saved ? "text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                              }`}
-                            >
+                            <button onClick={() => handleSaveChat(msg)} disabled={msg.saved || savingId === msg.id}
+                              className={`text-[11px] px-2 py-1 rounded-lg transition-all flex items-center gap-1 ${msg.saved ? "text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}>
                               {msg.saved ? <><BookmarkCheck className="h-3 w-3" /> Saved</> : <><BookmarkPlus className="h-3 w-3" /> {savingId === msg.id ? "..." : "Save"}</>}
                             </button>
-                            <button
-                              onClick={() => {
-                                navigator.share?.({ text: msg.content }) || handleCopy(msg);
-                              }}
-                              className="text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted px-2 py-1 rounded-lg transition-all flex items-center gap-1"
-                            >
+                            <button onClick={() => { navigator.share?.({ text: msg.content }) || handleCopy(msg); }}
+                              className="text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted px-2 py-1 rounded-lg transition-all flex items-center gap-1">
                               <Share2 className="h-3 w-3" /> Share
                             </button>
                             <button className="text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted px-2 py-1 rounded-lg transition-all flex items-center gap-1">
@@ -556,8 +555,7 @@ export default function AskUwaziPage() {
                     {[0, 1, 2].map((i) => (
                       <motion.div key={i} className="h-2 w-2 rounded-full bg-primary"
                         animate={{ scale: [1, 1.4, 1], opacity: [0.3, 1, 0.3] }}
-                        transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }}
-                      />
+                        transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }} />
                     ))}
                   </div>
                   <span className="text-xs text-muted-foreground">Thinking...</span>
@@ -569,33 +567,18 @@ export default function AskUwaziPage() {
         </div>
 
         {/* ─── Input Area ─── */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="shrink-0 px-3 sm:px-4 md:px-6 py-3 md:py-4 bg-background"
-        >
+        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}
+          className="shrink-0 px-3 sm:px-4 md:px-6 py-3 md:py-4">
           <div className="max-w-3xl mx-auto">
-            <form
-              onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-              className="relative glass-input rounded-2xl flex items-end gap-2 px-4 py-3 focus-within:ring-1 focus-within:ring-primary/40 transition-all"
-            >
-              <textarea
-                ref={inputRef}
-                rows={1}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
+            <form onSubmit={(e) => { e.preventDefault(); handleSend(); }}
+              className="relative glass-input rounded-2xl flex items-end gap-2 px-4 py-3 focus-within:ring-1 focus-within:ring-primary/40 transition-all">
+              <textarea ref={inputRef} rows={1} value={input}
+                onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
                 placeholder="Ask about voting, policies, candidates..."
                 className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 outline-none min-w-0 resize-none max-h-40 leading-relaxed"
-                disabled={isStreaming}
-              />
-              <Button
-                type="submit"
-                size="icon"
-                disabled={!input.trim() || isStreaming}
-                className="h-9 w-9 rounded-xl shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 transition-all disabled:opacity-20"
-              >
+                disabled={isStreaming} />
+              <Button type="submit" size="icon" disabled={!input.trim() || isStreaming}
+                className="h-9 w-9 rounded-xl shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 transition-all disabled:opacity-20">
                 <Send className="h-4 w-4" />
               </Button>
             </form>
