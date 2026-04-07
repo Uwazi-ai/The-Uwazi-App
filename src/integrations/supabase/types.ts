@@ -47,6 +47,33 @@ export type Database = {
         }
         Relationships: []
       }
+      badges: {
+        Row: {
+          description: string | null
+          icon_url: string | null
+          id: string
+          name: string
+          slug: string
+          xp_reward: number | null
+        }
+        Insert: {
+          description?: string | null
+          icon_url?: string | null
+          id?: string
+          name: string
+          slug: string
+          xp_reward?: number | null
+        }
+        Update: {
+          description?: string | null
+          icon_url?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          xp_reward?: number | null
+        }
+        Relationships: []
+      }
       ballot_items: {
         Row: {
           created_at: string
@@ -285,6 +312,62 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      streaks: {
+        Row: {
+          current_streak: number | null
+          id: string
+          last_active_date: string | null
+          longest_streak: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          current_streak?: number | null
+          id?: string
+          last_active_date?: string | null
+          longest_streak?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          current_streak?: number | null
+          id?: string
+          last_active_date?: string | null
+          longest_streak?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_badges: {
+        Row: {
+          badge_id: string | null
+          earned_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_id?: string | null
+          earned_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_id?: string | null
+          earned_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_preferences: {
         Row: {
