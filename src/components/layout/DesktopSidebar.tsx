@@ -5,7 +5,7 @@ import {
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import uwaziIcon from "@/assets/uwazi-icon.png";
+import uwaziLogo from "@/assets/uwazi-logo.png";
 
 const mainNav = [
   { to: "/", icon: Home, label: "Home" },
