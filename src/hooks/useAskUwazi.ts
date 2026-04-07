@@ -17,6 +17,12 @@ interface StoredMessage {
   content: string;
 }
 
+export interface ChatSession {
+  id: string;
+  firstMessage: string;
+  updatedAt: string;
+}
+
 function getStateFromZip(zip: string): string | null {
   const prefix = parseInt(zip.substring(0, 3), 10);
   const map: [number, number, string][] = [
@@ -109,12 +115,36 @@ export function getSuggestedPrompts(ctx: AskUwaziContext): string[] {
   ];
 }
 
-// Session persistence
+// Session persistence with history
 export function useAskUwaziSession() {
   const { user } = useAuth();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [restoredMessages, setRestoredMessages] = useState<StoredMessage[] | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
+  const [chatHistory, setChatHistory] = useState<ChatSession[]>([]);
+
+  // Load all sessions for sidebar history
+  const loadHistory = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("ask_uwazi_sessions")
+      .select("id, messages, updated_at")
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false })
+      .limit(20);
+
+    if (data) {
+      setChatHistory(data.map((s) => {
+        const msgs = s.messages as unknown as StoredMessage[];
+        const firstUserMsg = Array.isArray(msgs) ? msgs.find((m) => m.role === "user") : null;
+        return {
+          id: s.id,
+          firstMessage: firstUserMsg?.content?.substring(0, 60) || "New Chat",
+          updatedAt: s.updated_at || "",
+        };
+      }));
+    }
+  }, [user]);
 
   // Restore latest session from today on mount
   useEffect(() => {
@@ -123,22 +153,24 @@ export function useAskUwaziSession() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    supabase
-      .from("ask_uwazi_sessions")
-      .select("id, messages, created_at")
-      .eq("user_id", user.id)
-      .gte("updated_at", today.toISOString())
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data && Array.isArray(data.messages) && (data.messages as any[]).length > 0) {
-          setSessionId(data.id);
-          setRestoredMessages(data.messages as unknown as StoredMessage[]);
-        }
-        setSessionLoading(false);
-      });
-  }, [user]);
+    Promise.all([
+      supabase
+        .from("ask_uwazi_sessions")
+        .select("id, messages, created_at")
+        .eq("user_id", user.id)
+        .gte("updated_at", today.toISOString())
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      loadHistory(),
+    ]).then(([{ data }]) => {
+      if (data && Array.isArray(data.messages) && (data.messages as any[]).length > 0) {
+        setSessionId(data.id);
+        setRestoredMessages(data.messages as unknown as StoredMessage[]);
+      }
+      setSessionLoading(false);
+    });
+  }, [user, loadHistory]);
 
   const saveMessages = useCallback(async (msgs: StoredMessage[], zipCode: string | null) => {
     if (!user) return;
@@ -156,12 +188,36 @@ export function useAskUwaziSession() {
         .single();
       if (data) setSessionId(data.id);
     }
-  }, [user, sessionId]);
+    // Refresh history
+    loadHistory();
+  }, [user, sessionId, loadHistory]);
 
   const startNewSession = useCallback(() => {
     setSessionId(null);
     setRestoredMessages(null);
   }, []);
 
-  return { restoredMessages, sessionLoading, saveMessages, startNewSession };
+  const loadSession = useCallback(async (id: string) => {
+    const { data } = await supabase
+      .from("ask_uwazi_sessions")
+      .select("id, messages")
+      .eq("id", id)
+      .single();
+    if (data) {
+      setSessionId(data.id);
+      setRestoredMessages(data.messages as unknown as StoredMessage[]);
+    }
+  }, []);
+
+  const deleteSession = useCallback(async (id: string) => {
+    if (!user) return;
+    await supabase.from("ask_uwazi_sessions").delete().eq("id", id);
+    if (sessionId === id) {
+      setSessionId(null);
+      setRestoredMessages(null);
+    }
+    loadHistory();
+  }, [user, sessionId, loadHistory]);
+
+  return { restoredMessages, sessionLoading, saveMessages, startNewSession, chatHistory, loadSession, deleteSession };
 }
