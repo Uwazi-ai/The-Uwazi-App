@@ -1,7 +1,7 @@
 import {
   Home, Newspaper, MessageCircle, BookOpen, Vote, FileText,
   BarChart3, Settings, LogOut, Shield, Users, TrendingUp,
-  Brain, GraduationCap, Megaphone, Cog,
+  Brain, GraduationCap, Megaphone, Cog, Contact, ClipboardList,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,6 +27,8 @@ const adminNav = [
   { to: "/admin/lessons", icon: GraduationCap, label: "Lesson Manager" },
   { to: "/admin/content", icon: FileText, label: "Civic Content" },
   { to: "/admin/alerts", icon: Megaphone, label: "Alerts" },
+  { to: "/admin/crm", icon: Contact, label: "CRM" },
+  { to: "/admin/surveys", icon: ClipboardList, label: "Surveys" },
   { to: "/admin/platform", icon: Cog, label: "Platform Settings" },
 ];
 
