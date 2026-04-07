@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Download, X, Share } from "lucide-react";
 
@@ -7,16 +7,75 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
-export function PWAInstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showBanner, setShowBanner] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+// Shared global deferred prompt so Settings page can also use it
+let globalDeferredPrompt: BeforeInstallPromptEvent | null = null;
+
+export function usePWAInstall() {
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(globalDeferredPrompt);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
-    // Don't show if already installed
+    if (window.matchMedia("(display-mode: standalone)").matches) {
+      setIsInstalled(true);
+      return;
+    }
+    const handler = (e: Event) => {
+      e.preventDefault();
+      globalDeferredPrompt = e as BeforeInstallPromptEvent;
+      setDeferredPrompt(globalDeferredPrompt);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+
+    const installed = () => setIsInstalled(true);
+    window.addEventListener("appinstalled", installed);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+      window.removeEventListener("appinstalled", installed);
+    };
+  }, []);
+
+  const install = useCallback(async () => {
+    const prompt = deferredPrompt || globalDeferredPrompt;
+    if (!prompt) return false;
+    await prompt.prompt();
+    const { outcome } = await prompt.userChoice;
+    if (outcome === "accepted") {
+      setIsInstalled(true);
+      globalDeferredPrompt = null;
+      setDeferredPrompt(null);
+      return true;
+    }
+    return false;
+  }, [deferredPrompt]);
+
+  const isSupported = typeof window !== "undefined" &&
+    /Chrome|Edg/.test(navigator.userAgent) &&
+    !/Firefox|OPR/.test(navigator.userAgent);
+
+  return { deferredPrompt, isInstalled, install, isSupported };
+}
+
+export function PWAInstallPrompt() {
+  const { install, isInstalled } = usePWAInstall();
+  const [showBanner, setShowBanner] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+
+  useEffect(() => {
+    if (isInstalled) return;
     if (window.matchMedia("(display-mode: standalone)").matches) return;
-    if (localStorage.getItem("uwazi-pwa-dismissed")) return;
+
+    // Check 7-day dismiss cooldown
+    const dismissedAt = localStorage.getItem("pwa-dismissed");
+    if (dismissedAt) {
+      const elapsed = Date.now() - parseInt(dismissedAt, 10);
+      if (elapsed < 7 * 24 * 60 * 60 * 1000) return;
+      localStorage.removeItem("pwa-dismissed");
+    }
+
+    // Track visits
+    const visits = parseInt(localStorage.getItem("pwa-visits") || "0", 10) + 1;
+    localStorage.setItem("pwa-visits", String(visits));
 
     // Detect iOS Safari
     const ua = navigator.userAgent;
@@ -24,34 +83,27 @@ export function PWAInstallPrompt() {
     const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|Chrome/.test(ua);
     if (isiOS && isSafari) {
       setIsIOS(true);
-      setTimeout(() => setShowBanner(true), 3000);
-      return;
     }
 
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    // Show after 30s OR on 2nd+ visit
+    if (visits >= 2) {
       setTimeout(() => setShowBanner(true), 2000);
-    };
-    window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  }, []);
+    } else {
+      setTimeout(() => setShowBanner(true), 30000);
+    }
+  }, [isInstalled]);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return;
-    await deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === "accepted") setShowBanner(false);
-    setDeferredPrompt(null);
+    const accepted = await install();
+    if (accepted) setShowBanner(false);
   };
 
   const handleDismiss = () => {
-    setDismissed(true);
     setShowBanner(false);
-    localStorage.setItem("uwazi-pwa-dismissed", "true");
+    localStorage.setItem("pwa-dismissed", String(Date.now()));
   };
 
-  if (dismissed || !showBanner) return null;
+  if (!showBanner || isInstalled) return null;
 
   return (
     <AnimatePresence>
@@ -86,11 +138,8 @@ export function PWAInstallPrompt() {
                 </p>
                 <button
                   onClick={handleInstall}
-                  className="mt-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                  style={{
-                    background: "#9bd34b",
-                    color: "#0A0A0A",
-                  }}
+                  className="mt-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all hover:brightness-110"
+                  style={{ background: "#9bd34b", color: "#0A0A0A" }}
                 >
                   Install App
                 </button>
