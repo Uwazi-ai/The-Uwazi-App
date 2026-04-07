@@ -573,33 +573,54 @@ export type Database = {
       voting_plans: {
         Row: {
           created_at: string
+          election_date: string | null
           election_id: string
           exported_at: string | null
           id: string
+          notes: string | null
+          plan_complete: boolean | null
+          polling_location: string | null
+          reminder_time: string | null
           reminders_enabled: boolean
           status: string
+          transport_method: string | null
           updated_at: string
           user_id: string
+          zip_code: string | null
         }
         Insert: {
           created_at?: string
+          election_date?: string | null
           election_id: string
           exported_at?: string | null
           id?: string
+          notes?: string | null
+          plan_complete?: boolean | null
+          polling_location?: string | null
+          reminder_time?: string | null
           reminders_enabled?: boolean
           status?: string
+          transport_method?: string | null
           updated_at?: string
           user_id: string
+          zip_code?: string | null
         }
         Update: {
           created_at?: string
+          election_date?: string | null
           election_id?: string
           exported_at?: string | null
           id?: string
+          notes?: string | null
+          plan_complete?: boolean | null
+          polling_location?: string | null
+          reminder_time?: string | null
           reminders_enabled?: boolean
           status?: string
+          transport_method?: string | null
           updated_at?: string
           user_id?: string
+          zip_code?: string | null
         }
         Relationships: [
           {
