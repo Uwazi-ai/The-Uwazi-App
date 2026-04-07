@@ -633,7 +633,7 @@ export default function AdminSurveysPage() {
                       acc[zip] = (acc[zip] || 0) + 1;
                       return acc;
                     }, {})
-                  ).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([zip, count]) => (
+                  ).sort((a, b) => (b[1] as number) - (a[1] as number)).slice(0, 10).map(([zip, count]) => (
                     <div key={zip} className="flex justify-between bg-muted/30 rounded px-2 py-1">
                       <span className="text-muted-foreground">{zip}</span>
                       <span className="font-medium text-foreground">{count as number}</span>
