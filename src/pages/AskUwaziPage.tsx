@@ -98,6 +98,27 @@ async function streamChat({ messages, token, onDelta, onDone, onError }: {
   onDone();
 }
 
+// ─── Follow-up pills based on last conversation topic ───
+function getFollowUpPills(messages: Message[]): string[] {
+  const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
+  if (!lastAssistant) return [];
+  const text = lastAssistant.content.toLowerCase();
+
+  if (text.includes("ballot") || text.includes("election") || text.includes("vote") || text.includes("polling")) {
+    return ["Where's my polling place?", "Register to vote", "Vote by mail"];
+  }
+  if (text.includes("bill") || text.includes("legislation") || text.includes("law") || text.includes("sponsor")) {
+    return ["Track this bill", "Contact my rep", "Similar bills"];
+  }
+  if (text.includes("council") || text.includes("mayor") || text.includes("local") || text.includes("city")) {
+    return ["Who's on my city council?", "Next city meeting", "Public comment"];
+  }
+  if (text.includes("representative") || text.includes("senator") || text.includes("congress")) {
+    return ["Contact my representative", "Voting record", "Committee assignments"];
+  }
+  return ["Tell me more", "What else should I know?", "How does this affect me?"];
+}
+
 // ─── State map for ZIP → state name ───
 const STATE_NAMES: Record<string, string> = {
   AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
