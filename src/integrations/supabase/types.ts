@@ -47,6 +47,33 @@ export type Database = {
         }
         Relationships: []
       }
+      ask_uwazi_sessions: {
+        Row: {
+          created_at: string | null
+          id: string
+          messages: Json
+          updated_at: string | null
+          user_id: string
+          zip_code: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          messages?: Json
+          updated_at?: string | null
+          user_id: string
+          zip_code?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          messages?: Json
+          updated_at?: string | null
+          user_id?: string
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
       badges: {
         Row: {
           description: string | null
