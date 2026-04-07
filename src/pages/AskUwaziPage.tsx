@@ -608,53 +608,33 @@ export default function AskUwaziPage() {
 
         {/* ─── Top Bar ─── */}
         <div className="flex items-center justify-between px-3 md:px-5 py-2.5 shrink-0 z-10"
-          style={{ borderBottom: "1px solid rgba(155, 211, 75, 0.08)" }}>
+          style={{
+            borderBottom: "1px solid rgba(155, 211, 75, 0.08)",
+            background: "rgba(13,13,13,0.95)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            paddingTop: "max(10px, env(safe-area-inset-top))",
+          }}>
+          {/* Left: History button */}
+          <button onClick={() => setHistoryOpen(true)}
+            className="flex items-center gap-1.5 p-2 rounded-xl hover:bg-muted text-primary transition-colors" title="Chat History">
+            <Clock className="h-5 w-5" />
+            <span className="text-[13px] font-medium md:hidden">Chats</span>
+          </button>
+
+          {/* Center: Logo + title */}
           <div className="flex items-center gap-2">
-            <Link to="/" className="md:hidden p-2 rounded-xl hover:bg-muted text-muted-foreground">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <div className="flex items-center gap-2.5">
-              <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center">
-                <img src={uwaziLogo} alt="UWAZI" className="h-3.5 w-3.5" />
-              </div>
-              <div>
-                <span className="text-sm font-heading tracking-wide text-foreground">ASK UWAZI</span>
-                <span className="text-[10px] text-muted-foreground ml-2 hidden sm:inline">Raia G1.0</span>
-              </div>
+            <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center">
+              <img src={uwaziLogo} alt="UWAZI" className="h-3.5 w-3.5" />
             </div>
+            <span className="text-sm font-heading tracking-wide text-foreground">Ask Uwazi</span>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            {/* Web Search Badge — icon only on mobile */}
-            <div className="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium"
-              style={{
-                background: "rgba(155,211,75,0.1)",
-                border: "1px solid rgba(155,211,75,0.25)",
-                color: "#9bd34b",
-              }}>
-              <Globe className="w-3 h-3" />
-              <span className="hidden sm:inline">Web Search</span>
-            </div>
-
-            {ctx.zipCode && (
-              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-                <MapPin className="h-3 w-3 text-primary" />
-                <span className="text-[11px] font-semibold text-primary">{ctx.zipCode}</span>
-              </div>
-            )}
-
-            {/* History button */}
-            <button onClick={() => setHistoryOpen(true)}
-              className="p-2 rounded-xl hover:bg-muted text-muted-foreground transition-colors" title="Chat History">
-              <Clock className="h-5 w-5" />
-            </button>
-
-            {/* New Chat button */}
-            <button onClick={handleNewChat}
-              className="p-2 rounded-xl hover:bg-muted text-muted-foreground transition-colors" title="New Chat">
-              <Plus className="h-5 w-5" />
-            </button>
-          </div>
+          {/* Right: New Chat */}
+          <button onClick={handleNewChat}
+            className="p-2 rounded-xl hover:bg-muted text-primary transition-colors" title="New Chat">
+            <Plus className="h-5 w-5" />
+          </button>
         </div>
 
         {/* ─── Messages / Empty State ─── */}
