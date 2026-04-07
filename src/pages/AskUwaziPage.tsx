@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, BookmarkPlus, BookmarkCheck, Share2, RotateCcw, MapPin,
   Plus, MessageCircle, Trash2, Clock,
-  ArrowLeft, Copy, Check, Vote, FileText, Landmark, CalendarDays,
+  Copy, Check, Vote, FileText, Landmark, CalendarDays,
   Globe, ExternalLink, AlertCircle, X,
 } from "lucide-react";
 import uwaziLogo from "@/assets/uwazi-logo.png";
@@ -11,7 +11,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
-import { Link } from "react-router-dom";
 import { useAskUwaziContext, getSuggestedPrompts, useAskUwaziSession, type ChatSession } from "@/hooks/useAskUwazi";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -608,78 +607,66 @@ export default function AskUwaziPage() {
 
         {/* ─── Top Bar ─── */}
         <div className="flex items-center justify-between px-3 md:px-5 py-2.5 shrink-0 z-10"
-          style={{ borderBottom: "1px solid rgba(155, 211, 75, 0.08)" }}>
+          style={{
+            borderBottom: "1px solid rgba(155, 211, 75, 0.08)",
+            background: "rgba(13,13,13,0.95)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            paddingTop: "max(10px, env(safe-area-inset-top))",
+          }}>
+          {/* Left: History button */}
+          <button onClick={() => setHistoryOpen(true)}
+            className="flex items-center gap-1.5 p-2 rounded-xl hover:bg-muted text-primary transition-colors" title="Chat History">
+            <Clock className="h-5 w-5" />
+            <span className="text-[13px] font-medium md:hidden">Chats</span>
+          </button>
+
+          {/* Center: Logo + title */}
           <div className="flex items-center gap-2">
-            <Link to="/" className="md:hidden p-2 rounded-xl hover:bg-muted text-muted-foreground">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <div className="flex items-center gap-2.5">
-              <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center">
-                <img src={uwaziLogo} alt="UWAZI" className="h-3.5 w-3.5" />
-              </div>
-              <div>
-                <span className="text-sm font-heading tracking-wide text-foreground">ASK UWAZI</span>
-                <span className="text-[10px] text-muted-foreground ml-2 hidden sm:inline">Raia G1.0</span>
-              </div>
+            <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center">
+              <img src={uwaziLogo} alt="UWAZI" className="h-3.5 w-3.5" />
             </div>
+            <span className="text-sm font-heading tracking-wide text-foreground">Ask Uwazi</span>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            {/* Web Search Badge — icon only on mobile */}
-            <div className="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium"
-              style={{
-                background: "rgba(155,211,75,0.1)",
-                border: "1px solid rgba(155,211,75,0.25)",
-                color: "#9bd34b",
-              }}>
-              <Globe className="w-3 h-3" />
-              <span className="hidden sm:inline">Web Search</span>
-            </div>
-
-            {ctx.zipCode && (
-              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-                <MapPin className="h-3 w-3 text-primary" />
-                <span className="text-[11px] font-semibold text-primary">{ctx.zipCode}</span>
-              </div>
-            )}
-
-            {/* History button */}
-            <button onClick={() => setHistoryOpen(true)}
-              className="p-2 rounded-xl hover:bg-muted text-muted-foreground transition-colors" title="Chat History">
-              <Clock className="h-5 w-5" />
-            </button>
-
-            {/* New Chat button */}
-            <button onClick={handleNewChat}
-              className="p-2 rounded-xl hover:bg-muted text-muted-foreground transition-colors" title="New Chat">
-              <Plus className="h-5 w-5" />
-            </button>
-          </div>
+          {/* Right: New Chat */}
+          <button onClick={handleNewChat}
+            className="p-2 rounded-xl hover:bg-muted text-primary transition-colors" title="New Chat">
+            <Plus className="h-5 w-5" />
+          </button>
         </div>
 
         {/* ─── Messages / Empty State ─── */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: "touch" }}>
           {isEmpty ? (
-            <div className="flex flex-col items-center justify-center h-full px-4 py-8">
+            <div className="flex flex-col items-center justify-center h-full px-4 py-6 pb-[100px] md:pb-6">
               <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }} className="text-center w-full max-w-lg">
-                <div className="relative mx-auto mb-6 w-16 h-16 sm:w-20 sm:h-20">
+                <div className="relative mx-auto mb-4 sm:mb-6 w-16 h-16">
                   <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-2xl" />
-                  <div className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-2xl glass-strong flex items-center justify-center border border-primary/20">
-                    <img src={uwaziLogo} alt="UWAZI" className="h-8 w-8 sm:h-10 sm:w-10" />
+                  <div className="relative h-16 w-16 rounded-2xl glass-strong flex items-center justify-center border border-primary/20">
+                    <img src={uwaziLogo} alt="UWAZI" className="h-8 w-8" />
                   </div>
                 </div>
-                <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl text-foreground leading-none mb-2 tracking-tight">
+                <h1 className="font-heading text-[28px] sm:text-4xl md:text-5xl text-foreground leading-none mb-2 tracking-tight">
                   ASK UWAZI
                 </h1>
-                <p className="text-sm sm:text-base text-muted-foreground mb-1">Your Political Co-Pilot</p>
-                <p className="text-[11px] text-muted-foreground/50">Nonpartisan · Location-aware · Powered by Raia G1.0</p>
+                <p className="text-sm text-muted-foreground mb-1">Your Political Co-Pilot</p>
+
+                {/* Location pill */}
+                {ctx.zipCode && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mt-2">
+                    <MapPin className="h-3 w-3 text-primary" />
+                    <span className="text-[11px] font-semibold text-primary">{ctx.zipCode}</span>
+                    {stateName && <span className="text-[10px] text-primary/50">· {stateName}</span>}
+                  </div>
+                )}
               </motion.div>
 
-              {/* 2x2 Suggestion Cards */}
+              {/* 2x2 Suggestion Cards — always 2 columns */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.5 }} className="mt-6 w-full max-w-lg px-0">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                transition={{ delay: 0.3, duration: 0.5 }} className="mt-5 w-full max-w-lg px-0">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   {[
                     { icon: Vote, title: "What's on my ballot?", sub: "See your local races", prompt: suggestedPrompts[0] || "What's on my ballot?" },
                     { icon: FileText, title: "Explain a bill", sub: "Plain language breakdown", prompt: suggestedPrompts[2] || "Explain a bill in plain language" },
@@ -690,7 +677,7 @@ export default function AskUwaziPage() {
                       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4 + i * 0.08 }}
                       onClick={() => handleSend(card.prompt)}
-                      className="text-left p-3 sm:p-4 rounded-xl cursor-pointer transition-all duration-200 group"
+                      className="text-left p-3 rounded-xl cursor-pointer transition-all duration-200 group min-h-[72px] flex flex-col justify-between"
                       style={{
                         background: "rgba(255,255,255,0.04)",
                         border: "1px solid rgba(155,211,75,0.15)",
@@ -705,8 +692,10 @@ export default function AskUwaziPage() {
                       }}
                     >
                       <card.icon className="h-5 w-5 text-primary mb-1.5" strokeWidth={1.8} />
-                      <p className="text-xs sm:text-sm font-medium text-foreground leading-tight">{card.title}</p>
-                      <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5 leading-tight">{card.sub}</p>
+                      <div>
+                        <p className="text-[12px] sm:text-sm font-semibold text-foreground leading-tight break-words">{card.title}</p>
+                        <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5 leading-tight">{card.sub}</p>
+                      </div>
                     </motion.button>
                   ))}
                 </div>
@@ -736,7 +725,7 @@ export default function AskUwaziPage() {
               </motion.div>
             </div>
           ) : (
-            <div className="max-w-3xl mx-auto px-3 sm:px-4 md:px-6 py-6 space-y-6">
+            <div className="max-w-3xl mx-auto px-3 sm:px-4 md:px-6 py-6 pb-[100px] md:pb-6 space-y-6">
               <AnimatePresence mode="popLayout">
                 {messages.map((msg) => (
                   <motion.div key={msg.id}
@@ -863,7 +852,13 @@ export default function AskUwaziPage() {
 
         {/* ─── Input Area ─── */}
         <div className="shrink-0 px-3 sm:px-6 py-3 md:py-4"
-          style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
+          style={{
+            paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
+            borderTop: "1px solid rgba(155,211,75,0.1)",
+            background: "rgba(13,13,13,0.95)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+          }}>
           <div className="max-w-3xl mx-auto">
             <div className="uwazi-input-container">
               <form onSubmit={(e) => { e.preventDefault(); handleSend(); }}
@@ -871,8 +866,8 @@ export default function AskUwaziPage() {
                 <textarea ref={inputRef} rows={1} value={input}
                   onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
                   placeholder="Ask about elections, legislation, your rights..."
-                  className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 outline-none min-w-0 resize-none leading-relaxed"
-                  style={{ maxHeight: "120px" }}
+                  className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground/50 outline-none min-w-0 resize-none leading-relaxed"
+                  style={{ maxHeight: "120px", fontSize: "16px" }}
                   disabled={isStreaming} />
                 <motion.button type="submit" disabled={!input.trim() || isStreaming}
                   whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
@@ -885,7 +880,7 @@ export default function AskUwaziPage() {
                 </motion.button>
               </form>
             </div>
-            <p className="text-[10px] text-muted-foreground/30 text-center mt-2">
+            <p className="text-[10px] text-muted-foreground/30 text-center mt-2 hidden sm:block">
               Ask Uwazi may make mistakes. Verify important civic information with official sources.
             </p>
           </div>
