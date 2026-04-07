@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import uwaziIcon from "@/assets/uwazi-icon.png";
+import uwaziLogo from "@/assets/uwazi-logo.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, BookOpen, Heart, Layers, Check, ChevronRight, ChevronLeft } from "lucide-react";
 import LocationStep from "@/components/onboarding/LocationStep";
@@ -149,7 +149,7 @@ export default function OnboardingPage() {
             {/* Welcome step */}
             {currentStep.id === "welcome" && (
               <div className="text-center space-y-6 py-8">
-                <img src={uwaziIcon} alt="UWAZI.AI" className="h-20 w-20 mx-auto" />
+                <img src={uwaziLogo} alt="UWAZI.AI" className="h-14 mx-auto" />
                 <div className="space-y-2">
                   <h1 className="text-2xl font-bold text-foreground">{currentStep.title}</h1>
                   <p className="text-muted-foreground">{currentStep.subtitle}</p>
