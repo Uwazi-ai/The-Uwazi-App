@@ -232,6 +232,48 @@ export type Database = {
         }
         Relationships: []
       }
+      civic_alerts: {
+        Row: {
+          alert_type: string | null
+          created_at: string | null
+          created_by: string
+          id: string
+          message: string
+          recipient_count: number | null
+          scheduled_at: string | null
+          sent_at: string | null
+          target_type: string | null
+          target_zips: Json | null
+          title: string
+        }
+        Insert: {
+          alert_type?: string | null
+          created_at?: string | null
+          created_by: string
+          id?: string
+          message: string
+          recipient_count?: number | null
+          scheduled_at?: string | null
+          sent_at?: string | null
+          target_type?: string | null
+          target_zips?: Json | null
+          title: string
+        }
+        Update: {
+          alert_type?: string | null
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          message?: string
+          recipient_count?: number | null
+          scheduled_at?: string | null
+          sent_at?: string | null
+          target_type?: string | null
+          target_zips?: Json | null
+          title?: string
+        }
+        Relationships: []
+      }
       civic_scores: {
         Row: {
           civic_literacy_score: number | null
@@ -346,6 +388,24 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_settings: {
+        Row: {
+          key: string
+          updated_at: string | null
+          value: Json | null
+        }
+        Insert: {
+          key: string
+          updated_at?: string | null
+          value?: Json | null
+        }
+        Update: {
+          key?: string
+          updated_at?: string | null
+          value?: Json | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -354,6 +414,9 @@ export type Database = {
           display_name: string | null
           district: string | null
           id: string
+          is_admin: boolean | null
+          is_suspended: boolean | null
+          last_active: string | null
           location: string | null
           notify_civic_alerts: boolean
           notify_elections: boolean
@@ -372,6 +435,9 @@ export type Database = {
           display_name?: string | null
           district?: string | null
           id?: string
+          is_admin?: boolean | null
+          is_suspended?: boolean | null
+          last_active?: string | null
           location?: string | null
           notify_civic_alerts?: boolean
           notify_elections?: boolean
@@ -390,6 +456,9 @@ export type Database = {
           display_name?: string | null
           district?: string | null
           id?: string
+          is_admin?: boolean | null
+          is_suspended?: boolean | null
+          last_active?: string | null
           location?: string | null
           notify_civic_alerts?: boolean
           notify_elections?: boolean
@@ -781,7 +850,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
