@@ -617,24 +617,46 @@ export default function AskUwaziPage() {
           )}
         </div>
 
+        {/* ─── Follow-up pills (when chat has messages) ─── */}
+        {!isEmpty && !isStreaming && (
+          <div className="shrink-0 px-3 sm:px-4 md:px-6 pt-2">
+            <div className="max-w-3xl mx-auto flex gap-2 overflow-x-auto no-scrollbar">
+              {getFollowUpPills(messages).map((pill, i) => (
+                <button key={i} onClick={() => handleSend(pill)}
+                  className="follow-up-pill whitespace-nowrap text-[13px] shrink-0">
+                  {pill}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* ─── Input Area ─── */}
         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}
-          className="shrink-0 px-3 sm:px-4 md:px-6 py-3 md:py-4">
+          className="shrink-0 px-4 sm:px-6 py-3 md:py-4">
           <div className="max-w-3xl mx-auto">
-            <form onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-              className="relative glass-input rounded-2xl flex items-end gap-2 px-4 py-3 focus-within:ring-1 focus-within:ring-primary/40 transition-all">
-              <textarea ref={inputRef} rows={1} value={input}
-                onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
-                placeholder="Ask about voting, policies, candidates..."
-                className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 outline-none min-w-0 resize-none max-h-40 leading-relaxed"
-                disabled={isStreaming} />
-              <Button type="submit" size="icon" disabled={!input.trim() || isStreaming}
-                className="h-9 w-9 rounded-xl shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 transition-all disabled:opacity-20">
-                <Send className="h-4 w-4" />
-              </Button>
-            </form>
+            <div className="uwazi-input-container">
+              <form onSubmit={(e) => { e.preventDefault(); handleSend(); }}
+                className="flex items-end gap-3 w-full">
+                <textarea ref={inputRef} rows={1} value={input}
+                  onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
+                  placeholder="Ask about elections, legislation, your rights..."
+                  className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 outline-none min-w-0 resize-none leading-relaxed"
+                  style={{ maxHeight: "120px" }}
+                  disabled={isStreaming} />
+                <motion.button type="submit" disabled={!input.trim() || isStreaming}
+                  whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
+                  className="h-10 w-10 rounded-full shrink-0 flex items-center justify-center transition-all disabled:opacity-40"
+                  style={{
+                    background: (!input.trim() || isStreaming) ? "rgba(255,255,255,0.1)" : "#9bd34b",
+                    boxShadow: (!input.trim() || isStreaming) ? "none" : "0 0 12px rgba(155,211,75,0.3)",
+                  }}>
+                  <Send className="h-4 w-4" style={{ color: (!input.trim() || isStreaming) ? "rgba(255,255,255,0.3)" : "#0A0A0A" }} />
+                </motion.button>
+              </form>
+            </div>
             <p className="text-[10px] text-muted-foreground/30 text-center mt-2">
-              Nonpartisan · AI-generated · Verify with official sources
+              Ask Uwazi may make mistakes. Verify important civic information with official sources.
             </p>
           </div>
         </motion.div>
