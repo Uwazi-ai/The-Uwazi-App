@@ -244,6 +244,48 @@ export type Database = {
         }
         Relationships: []
       }
+      lessons: {
+        Row: {
+          category: string | null
+          content: Json | null
+          created_at: string | null
+          description: string | null
+          difficulty: string | null
+          id: string
+          is_published: boolean | null
+          order_index: number | null
+          slug: string
+          title: string
+          xp_reward: number | null
+        }
+        Insert: {
+          category?: string | null
+          content?: Json | null
+          created_at?: string | null
+          description?: string | null
+          difficulty?: string | null
+          id?: string
+          is_published?: boolean | null
+          order_index?: number | null
+          slug: string
+          title: string
+          xp_reward?: number | null
+        }
+        Update: {
+          category?: string | null
+          content?: Json | null
+          created_at?: string | null
+          description?: string | null
+          difficulty?: string | null
+          id?: string
+          is_published?: boolean | null
+          order_index?: number | null
+          slug?: string
+          title?: string
+          xp_reward?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -395,6 +437,44 @@ export type Database = {
             columns: ["badge_id"]
             isOneToOne: false
             referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_lesson_progress: {
+        Row: {
+          completed_at: string | null
+          id: string
+          lesson_id: string | null
+          score: number | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          score?: number | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          score?: number | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_lesson_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
             referencedColumns: ["id"]
           },
         ]
