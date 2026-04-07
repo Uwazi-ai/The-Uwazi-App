@@ -367,6 +367,59 @@ export type Database = {
         }
         Relationships: []
       }
+      lesson_gap_recommendations: {
+        Row: {
+          created_at: string | null
+          created_lesson_id: string | null
+          example_questions: Json | null
+          id: string
+          priority_score: number | null
+          question_count: number | null
+          status: string | null
+          suggested_category: string | null
+          suggested_difficulty: string | null
+          suggested_title: string
+          top_zip_codes: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_lesson_id?: string | null
+          example_questions?: Json | null
+          id?: string
+          priority_score?: number | null
+          question_count?: number | null
+          status?: string | null
+          suggested_category?: string | null
+          suggested_difficulty?: string | null
+          suggested_title: string
+          top_zip_codes?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_lesson_id?: string | null
+          example_questions?: Json | null
+          id?: string
+          priority_score?: number | null
+          question_count?: number | null
+          status?: string | null
+          suggested_category?: string | null
+          suggested_difficulty?: string | null
+          suggested_title?: string
+          top_zip_codes?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_gap_recommendations_created_lesson_id_fkey"
+            columns: ["created_lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           category: string | null
@@ -490,6 +543,51 @@ export type Database = {
           updated_at?: string
           user_id?: string
           zip_code?: string | null
+        }
+        Relationships: []
+      }
+      question_topic_trends: {
+        Row: {
+          avg_complexity: string | null
+          has_lesson: boolean | null
+          id: string
+          lesson_gap_score: number | null
+          month_year: string | null
+          question_count: number | null
+          sub_topic: string | null
+          top_zip_codes: Json | null
+          topic_category: string
+          unique_user_count: number | null
+          updated_at: string | null
+          week_number: number | null
+        }
+        Insert: {
+          avg_complexity?: string | null
+          has_lesson?: boolean | null
+          id?: string
+          lesson_gap_score?: number | null
+          month_year?: string | null
+          question_count?: number | null
+          sub_topic?: string | null
+          top_zip_codes?: Json | null
+          topic_category: string
+          unique_user_count?: number | null
+          updated_at?: string | null
+          week_number?: number | null
+        }
+        Update: {
+          avg_complexity?: string | null
+          has_lesson?: boolean | null
+          id?: string
+          lesson_gap_score?: number | null
+          month_year?: string | null
+          question_count?: number | null
+          sub_topic?: string | null
+          top_zip_codes?: Json | null
+          topic_category?: string
+          unique_user_count?: number | null
+          updated_at?: string | null
+          week_number?: number | null
         }
         Relationships: []
       }
@@ -781,6 +879,86 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      uwazi_question_log: {
+        Row: {
+          complexity_level: string | null
+          created_at: string | null
+          follow_up_count: number | null
+          has_matching_lesson: boolean | null
+          id: string
+          intent_type: string | null
+          is_local_question: boolean | null
+          lesson_gap_priority: string | null
+          month_year: string | null
+          question_length: number | null
+          question_text: string
+          required_web_search: boolean | null
+          response_helpful: boolean | null
+          session_id: string | null
+          state_code: string | null
+          sub_topic: string | null
+          suggested_lesson_title: string | null
+          topic_category: string | null
+          user_id: string | null
+          week_number: number | null
+          zip_code: string | null
+        }
+        Insert: {
+          complexity_level?: string | null
+          created_at?: string | null
+          follow_up_count?: number | null
+          has_matching_lesson?: boolean | null
+          id?: string
+          intent_type?: string | null
+          is_local_question?: boolean | null
+          lesson_gap_priority?: string | null
+          month_year?: string | null
+          question_length?: number | null
+          question_text: string
+          required_web_search?: boolean | null
+          response_helpful?: boolean | null
+          session_id?: string | null
+          state_code?: string | null
+          sub_topic?: string | null
+          suggested_lesson_title?: string | null
+          topic_category?: string | null
+          user_id?: string | null
+          week_number?: number | null
+          zip_code?: string | null
+        }
+        Update: {
+          complexity_level?: string | null
+          created_at?: string | null
+          follow_up_count?: number | null
+          has_matching_lesson?: boolean | null
+          id?: string
+          intent_type?: string | null
+          is_local_question?: boolean | null
+          lesson_gap_priority?: string | null
+          month_year?: string | null
+          question_length?: number | null
+          question_text?: string
+          required_web_search?: boolean | null
+          response_helpful?: boolean | null
+          session_id?: string | null
+          state_code?: string | null
+          sub_topic?: string | null
+          suggested_lesson_title?: string | null
+          topic_category?: string | null
+          user_id?: string | null
+          week_number?: number | null
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "uwazi_question_log_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ask_uwazi_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       voting_plan_items: {
         Row: {
