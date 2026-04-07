@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, BookmarkPlus, BookmarkCheck, Share2, RotateCcw, MapPin,
   Plus, PanelLeftClose, PanelLeftOpen, MessageCircle, Trash2,
-  ArrowLeft, Sparkles, Copy, Check,
+  ArrowLeft, Sparkles, Copy, Check, Vote, FileText, Landmark, CalendarDays,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -472,18 +472,36 @@ export default function AskUwaziPage() {
 
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.5 }} className="mt-10 w-full max-w-2xl px-4">
-                <p className="text-[10px] font-heading tracking-[0.15em] text-primary/60 uppercase text-center mb-4">
-                  Suggested Questions
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {suggestedPrompts.map((p, i) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    { icon: Vote, title: "What's on my ballot?", sub: "See your local races", prompt: suggestedPrompts[0] || "What's on my ballot?" },
+                    { icon: FileText, title: "Explain a bill", sub: "Plain language breakdown", prompt: suggestedPrompts[2] || "Explain a bill in plain language" },
+                    { icon: Landmark, title: "Who represents me?", sub: "Find your officials", prompt: suggestedPrompts[1] || "Who represents me?" },
+                    { icon: CalendarDays, title: "Next election", sub: "Dates and deadlines", prompt: suggestedPrompts[3] || "When is the next election?" },
+                  ].map((card, i) => (
                     <motion.button key={i}
                       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4 + i * 0.08 }}
-                      whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}
-                      onClick={() => handleSend(p)}
-                      className="glass text-left px-4 py-3.5 rounded-xl text-sm text-foreground/80 hover:text-foreground transition-all group">
-                      <span className="group-hover:text-primary transition-colors">{p}</span>
+                      onClick={() => handleSend(card.prompt)}
+                      className="text-left p-4 rounded-xl cursor-pointer transition-all duration-200 group"
+                      style={{
+                        background: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(155,211,75,0.15)",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "rgba(155,211,75,0.08)";
+                        e.currentTarget.style.borderColor = "rgba(155,211,75,0.4)";
+                        e.currentTarget.style.transform = "translateY(-2px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+                        e.currentTarget.style.borderColor = "rgba(155,211,75,0.15)";
+                        e.currentTarget.style.transform = "translateY(0)";
+                      }}
+                    >
+                      <card.icon className="h-5 w-5 text-primary mb-2" strokeWidth={1.8} />
+                      <p className="text-sm font-medium text-foreground">{card.title}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{card.sub}</p>
                     </motion.button>
                   ))}
                 </div>
@@ -505,14 +523,32 @@ export default function AskUwaziPage() {
                       </div>
                     )}
                     {msg.role === "user" ? (
-                      <div className="max-w-[85%] sm:max-w-[75%]">
-                        <div className="px-4 py-3 rounded-2xl rounded-tr-sm bg-primary text-primary-foreground text-sm leading-relaxed">
+                      <div className="max-w-[80%] ml-auto">
+                        <div className="px-4 py-3 text-sm leading-relaxed"
+                          style={{
+                            background: "linear-gradient(135deg, rgba(155,211,75,0.2), rgba(155,211,75,0.1))",
+                            border: "1px solid rgba(155,211,75,0.3)",
+                            borderRadius: "18px 18px 4px 18px",
+                            color: "#F0F6FC",
+                          }}>
                           {msg.content}
                         </div>
                       </div>
                     ) : (
-                      <div className="max-w-[92%] sm:max-w-[85%] space-y-2">
-                        <div className="glass rounded-2xl rounded-tl-sm p-4 md:p-5">
+                      <div className="max-w-[85%] space-y-2">
+                        <div className="p-4 md:px-5 md:py-4"
+                          style={{
+                            background: "rgba(255,255,255,0.05)",
+                            backdropFilter: "blur(10px)",
+                            WebkitBackdropFilter: "blur(10px)",
+                            border: "1px solid rgba(255,255,255,0.08)",
+                            borderRadius: "4px 18px 18px 18px",
+                            color: "#F0F6FC",
+                          }}>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Sparkles className="h-3 w-3 text-primary" />
+                            <span className="text-[10px] font-heading tracking-wide text-primary/70">UWAZI</span>
+                          </div>
                           <div className="prose prose-sm prose-invert max-w-none [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_strong]:text-primary/90 [&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm [&_h1]:font-heading [&_h2]:font-heading [&_h3]:font-heading [&_h1]:tracking-wide [&_h2]:tracking-wide [&_ul]:space-y-1.5 [&_ol]:space-y-1.5 [&_li]:text-sm [&_p]:text-sm [&_p]:leading-relaxed [&_blockquote]:border-l-2 [&_blockquote]:border-primary/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs">
                             <ReactMarkdown>{msg.content}</ReactMarkdown>
                           </div>
