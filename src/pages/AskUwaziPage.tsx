@@ -273,7 +273,7 @@ export default function AskUwaziPage() {
               }}
             >
               {/* Sidebar header */}
-              <div className="flex items-center justify-between px-4 py-4 border-b border-border">
+              <div className="flex items-center justify-between px-4 py-4" style={{ borderBottom: "1px solid rgba(155, 211, 75, 0.1)" }}>
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
                   <h2 className="text-sm font-heading tracking-wide text-foreground">HISTORY</h2>
