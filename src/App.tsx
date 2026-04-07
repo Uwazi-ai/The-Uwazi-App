@@ -18,6 +18,9 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import LearnPage from "./pages/LearnPage";
+import LegislationPage from "./pages/LegislationPage";
+import ProgressPage from "./pages/ProgressPage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,8 +48,10 @@ const App = () => (
               <Route path="/news" element={<NewsPage />} />
               <Route path="/saved" element={<SavedPage />} />
               <Route path="/learn" element={<LearnPage />} />
+              <Route path="/legislation" element={<LegislationPage />} />
+              <Route path="/progress" element={<ProgressPage />} />
               <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/settings" element={<ProfilePage />} />
+              <Route path="/settings" element={<SettingsPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

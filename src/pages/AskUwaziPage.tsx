@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Sparkles, BookmarkPlus, Share2, Shield, RotateCcw, MapPin } from "lucide-react";
+import { Send, Sparkles, BookmarkPlus, Share2, RotateCcw, MapPin, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
@@ -15,21 +15,7 @@ interface Message {
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ask-uwazi`;
 
-const starterPrompts = [
-  "What does this ballot measure mean?",
-  "Explain a bill in simple language",
-  "Who is on my ballot?",
-  "How do I register to vote?",
-  "What are the voting deadlines?",
-  "Compare candidates for me",
-];
-
-async function streamChat({
-  messages,
-  onDelta,
-  onDone,
-  onError,
-}: {
+async function streamChat({ messages, onDelta, onDone, onError }: {
   messages: { role: string; content: string }[];
   onDelta: (text: string) => void;
   onDone: () => void;
@@ -46,14 +32,12 @@ async function streamChat({
 
   if (!resp.ok) {
     const data = await resp.json().catch(() => ({}));
+    if (resp.status === 429) { onError("Rate limit exceeded. Please try again in a moment."); return; }
+    if (resp.status === 402) { onError("AI credits exhausted. Please add funds in Settings."); return; }
     onError(data.error || `Error ${resp.status}`);
     return;
   }
-
-  if (!resp.body) {
-    onError("No response stream");
-    return;
-  }
+  if (!resp.body) { onError("No response stream"); return; }
 
   const reader = resp.body.getReader();
   const decoder = new TextDecoder();
@@ -63,7 +47,6 @@ async function streamChat({
     const { done, value } = await reader.read();
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
-
     let idx: number;
     while ((idx = buffer.indexOf("\n")) !== -1) {
       let line = buffer.slice(0, idx);
@@ -72,10 +55,7 @@ async function streamChat({
       if (line.startsWith(":") || line.trim() === "") continue;
       if (!line.startsWith("data: ")) continue;
       const json = line.slice(6).trim();
-      if (json === "[DONE]") {
-        onDone();
-        return;
-      }
+      if (json === "[DONE]") { onDone(); return; }
       try {
         const parsed = JSON.parse(json);
         const content = parsed.choices?.[0]?.delta?.content;
@@ -98,7 +78,7 @@ export default function AskUwaziPage() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isStreaming]);
+  }, [messages]);
 
   const handleSend = async (text?: string) => {
     const msg = text || input.trim();
@@ -111,15 +91,12 @@ export default function AskUwaziPage() {
     setIsStreaming(true);
 
     let assistantContent = "";
-
     const upsertAssistant = (chunk: string) => {
       assistantContent += chunk;
       setMessages((prev) => {
         const last = prev[prev.length - 1];
         if (last?.role === "assistant" && last.id === "streaming") {
-          return prev.map((m, i) =>
-            i === prev.length - 1 ? { ...m, content: assistantContent } : m
-          );
+          return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantContent } : m);
         }
         return [...prev, { id: "streaming", role: "assistant", content: assistantContent }];
       });
@@ -129,119 +106,85 @@ export default function AskUwaziPage() {
       messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
       onDelta: upsertAssistant,
       onDone: () => {
-        setMessages((prev) =>
-          prev.map((m) => (m.id === "streaming" ? { ...m, id: Date.now().toString() } : m))
-        );
+        setMessages((prev) => prev.map((m) => (m.id === "streaming" ? { ...m, id: Date.now().toString() } : m)));
         setIsStreaming(false);
       },
-      onError: (err) => {
-        toast.error(err);
-        setIsStreaming(false);
-      },
+      onError: (err) => { toast.error(err); setIsStreaming(false); },
     });
   };
 
+  const handleNewChat = () => { setMessages([]); };
   const isEmpty = messages.length === 0;
 
+  const welcomeMsg = zipCode
+    ? `Hi! I'm Ask Uwazi 👋 I'm your nonpartisan civic AI assistant. Ask me anything about local elections, legislation, your ballot, or how to get involved in ${zipCode}.`
+    : `Hi! I'm Ask Uwazi 👋 I'm your nonpartisan civic AI assistant. Ask me anything about elections, legislation, your ballot, or how to get involved.`;
+
   return (
-    <div className="flex flex-col h-[100dvh] md:h-screen max-w-2xl mx-auto">
-      {/* Header */}
-      <div className="px-4 py-4 border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-10">
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-xl gradient-civic flex items-center justify-center">
-            <Sparkles className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <div>
-            <h1 className="text-base font-bold text-foreground">Ask UWAZI</h1>
-            <p className="text-[11px] text-muted-foreground">Non-partisan civic AI assistant</p>
-          </div>
+    <div className="flex flex-col h-[100dvh] md:h-[calc(100vh-49px)]">
+      {/* Hero header (only on empty) */}
+      {isEmpty && (
+        <div className="px-4 md:px-8 pt-8 pb-4">
+          <p className="eyebrow mb-2">AI CIVIC ASSISTANT</p>
+          <h1 className="font-heading text-4xl md:text-5xl text-foreground leading-none">ASK ANYTHING. KNOW YOUR POWER.</h1>
+          <p className="text-sm text-muted-foreground mt-2">Powered by UWAZI.AI · Nonpartisan · Location-aware</p>
         </div>
-        <div className="mt-2.5 flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary/10 rounded-lg">
-            <Shield className="h-3.5 w-3.5 text-primary" />
-            <span className="text-[11px] font-medium text-primary">Non-partisan & source-cited</span>
-          </div>
-          {!locationLoading && (
-            zipCode ? (
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary/5 rounded-lg">
-                <MapPin className="h-3.5 w-3.5 text-primary" />
-                <span className="text-[11px] font-medium text-primary">Personalized for {zipCode}</span>
-                <Link to="/profile" className="text-[10px] text-muted-foreground hover:text-foreground underline ml-1">
-                  Change
-                </Link>
-              </div>
-            ) : (
-              <Link to="/profile" className="flex items-center gap-1.5 px-2.5 py-1.5 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-                <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-[11px] text-muted-foreground">
-                  <span className="font-medium text-foreground underline">Set your ZIP</span> for local answers
-                </span>
-              </Link>
-            )
+      )}
+
+      {/* Chat header bar */}
+      <div className="px-4 md:px-8 py-3 border-b border-border flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {!locationLoading && zipCode && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/15 rounded-pill">
+              <MapPin className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-medium text-primary">{zipCode}</span>
+              <Link to="/settings" className="text-[10px] text-muted-foreground hover:text-foreground ml-1">Change</Link>
+            </div>
+          )}
+          {!locationLoading && !zipCode && (
+            <Link to="/settings" className="flex items-center gap-1.5 px-3 py-1.5 bg-muted rounded-pill">
+              <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-xs text-primary font-medium">Set ZIP for local answers</span>
+            </Link>
           )}
         </div>
+        {messages.length > 0 && (
+          <button onClick={handleNewChat} className="flex items-center gap-1.5 px-3 py-1.5 border border-primary text-primary rounded-pill text-xs font-medium hover:bg-primary/10 transition-colors">
+            <Plus className="h-3.5 w-3.5" /> New Chat
+          </button>
+        )}
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 md:px-8 py-4 space-y-4">
         {isEmpty && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center h-full text-center px-4">
-            <div className="h-16 w-16 rounded-2xl gradient-civic flex items-center justify-center mb-4">
-              <Sparkles className="h-8 w-8 text-primary-foreground" />
-            </div>
-            <h2 className="text-xl font-bold text-foreground mb-1">Ask me anything civic</h2>
-            <p className="text-sm text-muted-foreground mb-6 max-w-xs">
-              Get plain-language answers about voting, legislation, candidates, and public policy.
-            </p>
-            <div className="flex flex-wrap justify-center gap-2 max-w-md">
-              {starterPrompts.map((prompt, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleSend(prompt)}
-                  className="px-3.5 py-2 rounded-pill bg-card shadow-card border border-border text-sm font-medium text-foreground hover:shadow-elevated hover:border-primary/30 transition-all"
-                >
-                  {prompt}
-                </button>
-              ))}
-            </div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-[#1E1E1E] rounded-card p-4 max-w-[85%] text-sm text-foreground">
+            {welcomeMsg}
           </motion.div>
         )}
 
         <AnimatePresence mode="popLayout">
           {messages.map((msg) => (
-            <motion.div
-              key={msg.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
+            <motion.div key={msg.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
               className={msg.role === "user" ? "flex justify-end" : "flex justify-start"}
             >
               {msg.role === "user" ? (
-                <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-br-md gradient-civic text-primary-foreground text-sm">
+                <div className="max-w-[85%] px-4 py-3 rounded-card bg-primary text-primary-foreground text-sm">
                   {msg.content}
                 </div>
               ) : (
-                <div className="max-w-[95%] space-y-3">
-                  <div className="bg-card rounded-2xl rounded-bl-md p-4 shadow-card border border-border">
-                    <div className="prose prose-sm prose-invert max-w-none text-foreground [&_h1]:text-foreground [&_h2]:text-foreground [&_h3]:text-foreground [&_h4]:text-foreground [&_strong]:text-foreground [&_li]:text-foreground [&_p]:text-foreground [&_a]:text-primary [&_hr]:border-border">
+                <div className="max-w-[90%] space-y-2">
+                  <div className="bg-[#1E1E1E] rounded-card p-4 border border-border">
+                    <div className="prose prose-sm prose-invert max-w-none [&_a]:text-primary">
                       <ReactMarkdown>{msg.content}</ReactMarkdown>
                     </div>
-                    {msg.id === "streaming" && (
-                      <span className="inline-block w-2 h-4 bg-primary/60 animate-pulse ml-0.5" />
-                    )}
+                    {msg.id === "streaming" && <span className="inline-block w-2 h-4 bg-primary/60 animate-pulse ml-0.5" />}
                   </div>
-
                   {msg.id !== "streaming" && (
                     <div className="flex items-center gap-2">
-                      <button className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground px-2.5 py-1.5 rounded-lg hover:bg-muted transition-colors">
-                        <BookmarkPlus className="h-3.5 w-3.5" /> Save
-                      </button>
-                      <button className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground px-2.5 py-1.5 rounded-lg hover:bg-muted transition-colors">
-                        <Share2 className="h-3.5 w-3.5" /> Share
-                      </button>
-                      <button className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground px-2.5 py-1.5 rounded-lg hover:bg-muted transition-colors">
-                        <RotateCcw className="h-3.5 w-3.5" /> Simplify
-                      </button>
+                      <button className="text-[11px] text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors flex items-center gap-1"><BookmarkPlus className="h-3 w-3" /> Save</button>
+                      <button className="text-[11px] text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors flex items-center gap-1"><Share2 className="h-3 w-3" /> Share</button>
+                      <button className="text-[11px] text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors flex items-center gap-1"><RotateCcw className="h-3 w-3" /> Simplify</button>
                     </div>
                   )}
                 </div>
@@ -251,42 +194,35 @@ export default function AskUwaziPage() {
         </AnimatePresence>
 
         {isStreaming && messages[messages.length - 1]?.role !== "assistant" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 px-4 py-3">
+          <div className="flex items-center gap-2 px-4 py-3">
             <div className="flex gap-1">
               {[0, 1, 2].map((i) => (
-                <motion.div
-                  key={i}
-                  className="h-2 w-2 rounded-full bg-primary/40"
-                  animate={{ opacity: [0.3, 1, 0.3] }}
-                  transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }}
-                />
+                <motion.div key={i} className="h-2 w-2 rounded-full bg-primary/40" animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }} />
               ))}
             </div>
             <span className="text-xs text-muted-foreground">UWAZI is thinking...</span>
-          </motion.div>
+          </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Starter prompts */}
+      {isEmpty && (
+        <div className="px-4 md:px-8 pb-2">
+          <div className="flex flex-wrap gap-2">
+            {["What's on my ballot?", "Explain a bill in plain language", "How do I register to vote?", "Who are my local representatives?"].map((p, i) => (
+              <button key={i} onClick={() => handleSend(p)} className="px-3.5 py-2 rounded-pill bg-card border border-border text-sm font-medium text-foreground hover:border-primary/30 transition-all">{p}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Input */}
-      <div className="px-4 py-3 border-t border-border bg-card/80 backdrop-blur-md">
-        <form
-          onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-          className="flex items-center gap-2 bg-muted rounded-2xl px-4 py-2"
-        >
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about voting, policies, candidates..."
-            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
-          />
-          <Button
-            type="submit"
-            size="icon"
-            disabled={!input.trim() || isStreaming}
-            className="h-8 w-8 rounded-xl shrink-0"
-          >
+      <div className="px-4 md:px-8 py-3 border-t border-border">
+        <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex items-center gap-2 bg-card border border-border rounded-card px-4 py-2">
+          <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about voting, policies, candidates..."
+            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none" />
+          <Button type="submit" size="icon" disabled={!input.trim() || isStreaming} className="h-8 w-8 rounded-card shrink-0 bg-primary text-primary-foreground">
             <Send className="h-4 w-4" />
           </Button>
         </form>
