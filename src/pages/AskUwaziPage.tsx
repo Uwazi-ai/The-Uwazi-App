@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, BookmarkPlus, BookmarkCheck, Share2, RotateCcw, MapPin,
   Plus, PanelLeftClose, PanelLeftOpen, MessageCircle, Trash2,
-  ArrowLeft, Sparkles, Copy, Check, Vote, FileText, Landmark, CalendarDays,
+  ArrowLeft, Copy, Check, Vote, FileText, Landmark, CalendarDays,
 } from "lucide-react";
+import uwaziLogo from "@/assets/uwazi-logo.png";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
@@ -269,7 +270,7 @@ export default function AskUwaziPage() {
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
             <div className="h-12 w-12 rounded-2xl glass flex items-center justify-center">
-              <Sparkles className="h-6 w-6 text-primary" />
+              <img src={uwaziLogo} alt="UWAZI" className="h-6 w-6" />
             </div>
             <motion.div className="absolute inset-0 rounded-2xl border-2 border-primary/30"
               animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
@@ -323,7 +324,7 @@ export default function AskUwaziPage() {
               <div className="flex items-center justify-between px-4 py-4"
                 style={{ borderBottom: "1px solid rgba(155, 211, 75, 0.1)" }}>
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
+                  <img src={uwaziLogo} alt="UWAZI" className="h-4 w-4" />
                   <h2 className="text-sm font-heading tracking-wide text-foreground">HISTORY</h2>
                 </div>
                 <button onClick={() => setSidebarOpen(false)}
@@ -441,7 +442,7 @@ export default function AskUwaziPage() {
             </Link>
             <div className="flex items-center gap-2.5">
               <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center">
-                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                <img src={uwaziLogo} alt="UWAZI" className="h-3.5 w-3.5" />
               </div>
               <div className="hidden sm:block">
                 <span className="text-sm font-heading tracking-wide text-foreground">ASK UWAZI</span>
@@ -481,7 +482,7 @@ export default function AskUwaziPage() {
                 <div className="relative mx-auto mb-8 w-20 h-20">
                   <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-2xl" />
                   <div className="relative h-20 w-20 rounded-2xl glass-strong flex items-center justify-center border border-primary/20">
-                    <Sparkles className="h-10 w-10 text-primary" />
+                    <img src={uwaziLogo} alt="UWAZI" className="h-10 w-10" />
                   </div>
                 </div>
                 <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl text-foreground leading-none mb-3 tracking-tight">
@@ -539,7 +540,7 @@ export default function AskUwaziPage() {
                     {msg.role === "assistant" && (
                       <div className="shrink-0 mt-1">
                         <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center">
-                          <Sparkles className="h-3.5 w-3.5 text-primary" />
+                          <img src={uwaziLogo} alt="UWAZI" className="h-3.5 w-3.5" />
                         </div>
                       </div>
                     )}
@@ -567,7 +568,7 @@ export default function AskUwaziPage() {
                             color: "#F0F6FC",
                           }}>
                           <div className="flex items-center gap-2 mb-2">
-                            <Sparkles className="h-3 w-3 text-primary" />
+                            <img src={uwaziLogo} alt="UWAZI" className="h-3 w-3" />
                             <span className="text-[10px] font-heading tracking-wide text-primary/70">UWAZI</span>
                           </div>
                           <div className="prose prose-sm prose-invert max-w-none [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_strong]:text-primary/90 [&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm [&_h1]:font-heading [&_h2]:font-heading [&_h3]:font-heading [&_h1]:tracking-wide [&_h2]:tracking-wide [&_ul]:space-y-1.5 [&_ol]:space-y-1.5 [&_li]:text-sm [&_p]:text-sm [&_p]:leading-relaxed [&_blockquote]:border-l-2 [&_blockquote]:border-primary/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs">
@@ -610,7 +611,7 @@ export default function AskUwaziPage() {
                   className="flex items-start gap-3 py-3"
                 >
                   <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
-                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                    <img src={uwaziLogo} alt="UWAZI" className="h-3.5 w-3.5" />
                   </div>
                   <div className="p-4 rounded-[4px_18px_18px_18px]"
                     style={{
@@ -619,7 +620,7 @@ export default function AskUwaziPage() {
                       border: "1px solid rgba(255,255,255,0.08)",
                     }}>
                     <div className="flex items-center gap-2 mb-2">
-                      <Sparkles className="h-3 w-3 text-primary" />
+                      <img src={uwaziLogo} alt="UWAZI" className="h-3 w-3" />
                       <span className="text-[10px] font-heading tracking-wide text-primary/70">UWAZI</span>
                     </div>
                     <div className="flex items-center gap-2">
