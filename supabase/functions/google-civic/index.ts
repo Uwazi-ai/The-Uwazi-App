@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const apiKey = Deno.env.get("GOOGLE_CIVIC_API_KEY");
+    const apiKey = Deno.env.get("VITE_GOOGLE_CIVIC_API_KEY") || Deno.env.get("GOOGLE_CIVIC_API_KEY");
     if (!apiKey) {
       return new Response(
         JSON.stringify({ error: "Google Civic API key not configured" }),
