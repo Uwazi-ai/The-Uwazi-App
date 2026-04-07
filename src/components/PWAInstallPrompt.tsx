@@ -111,7 +111,7 @@ export function PWAInstallPrompt() {
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
-        className="fixed bottom-20 md:bottom-6 left-4 right-4 z-[60] max-w-md mx-auto"
+        className="fixed bottom-20 md:bottom-6 left-4 right-4 z-[60] max-w-md mx-auto" style={{ marginBottom: "env(safe-area-inset-bottom)" }}
       >
         <div
           className="rounded-2xl p-4 flex items-start gap-3"
