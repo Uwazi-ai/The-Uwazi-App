@@ -2,9 +2,11 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, BookmarkPlus, BookmarkCheck, Share2, RotateCcw, MapPin,
-  Plus, PanelLeftClose, PanelLeftOpen, MessageCircle, Trash2, ArrowLeft, Sparkles,
+  Plus, PanelLeftClose, PanelLeftOpen, MessageCircle, Trash2,
+  ArrowLeft, Sparkles, Copy, Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { Link } from "react-router-dom";
@@ -93,12 +95,12 @@ export default function AskUwaziPage() {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const restoredRef = useRef(false);
 
-  // Restore session messages once
   useEffect(() => {
     if (restoredMessages && restoredMessages.length > 0) {
       restoredRef.current = true;
@@ -108,7 +110,6 @@ export default function AskUwaziPage() {
         content: m.content,
       })));
     } else if (restoredMessages === null && restoredRef.current) {
-      // Session was cleared (new chat)
       setMessages([]);
     }
   }, [restoredMessages]);
@@ -116,6 +117,21 @@ export default function AskUwaziPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 160) + "px";
+  }, [input]);
+
+  const handleCopy = useCallback((msg: Message) => {
+    navigator.clipboard.writeText(msg.content);
+    setCopiedId(msg.id);
+    toast.success("Copied to clipboard");
+    setTimeout(() => setCopiedId(null), 2000);
+  }, []);
 
   const handleSaveChat = useCallback(async (assistantMsg: Message) => {
     if (!session?.user?.id || assistantMsg.saved) return;
@@ -193,169 +209,253 @@ export default function AskUwaziPage() {
     setSidebarOpen(false);
   }, [loadSession]);
 
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  }, [handleSend]);
+
   const isEmpty = messages.length === 0;
 
   if (sessionLoading || ctx.loading) {
     return (
-      <div className="flex items-center justify-center h-[100dvh]">
-        <div className="flex items-center gap-3">
-          {[0, 1, 2].map((i) => (
-            <motion.div key={i} className="h-3 w-3 rounded-full bg-primary/40"
-              animate={{ scale: [1, 1.3, 1], opacity: [0.3, 1, 0.3] }}
-              transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+      <div className="flex items-center justify-center h-[100dvh] bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="h-12 w-12 rounded-2xl glass flex items-center justify-center">
+              <Sparkles className="h-6 w-6 text-primary" />
+            </div>
+            <motion.div
+              className="absolute inset-0 rounded-2xl border-2 border-primary/30"
+              animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
             />
-          ))}
+          </div>
+          <div className="flex items-center gap-1.5">
+            {[0, 1, 2].map((i) => (
+              <motion.div key={i} className="h-1.5 w-1.5 rounded-full bg-primary"
+                animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
+                transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-[100dvh] md:h-screen relative overflow-hidden">
-      {/* ═══ Chat History Sidebar ═══ */}
+    <div className="flex h-[100dvh] md:h-screen relative overflow-hidden bg-background">
+
+      {/* ═══ SIDEBAR — Chat History ═══ */}
       <AnimatePresence>
         {sidebarOpen && (
           <>
-            {/* Mobile overlay */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-30 md:hidden"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden"
               onClick={() => setSidebarOpen(false)}
             />
             <motion.aside
-              initial={{ x: -280 }}
+              initial={{ x: -300 }}
               animate={{ x: 0 }}
-              exit={{ x: -280 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="fixed md:relative z-40 w-[280px] h-full glass-strong flex flex-col shrink-0"
+              exit={{ x: -300 }}
+              transition={{ type: "spring", damping: 28, stiffness: 320 }}
+              className="fixed md:relative z-40 w-[300px] h-full flex flex-col shrink-0 border-r border-border bg-sidebar"
             >
-              <div className="flex items-center justify-between p-4 border-b border-white/5">
-                <h2 className="text-sm font-semibold text-foreground">Chat History</h2>
-                <button onClick={() => setSidebarOpen(false)} className="p-1.5 rounded-lg hover:bg-white/5 text-muted-foreground">
+              {/* Sidebar header */}
+              <div className="flex items-center justify-between px-4 py-4 border-b border-border">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <h2 className="text-sm font-heading tracking-wide text-foreground">HISTORY</h2>
+                </div>
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition-colors"
+                >
                   <PanelLeftClose className="h-4 w-4" />
                 </button>
               </div>
 
-              <button
-                onClick={handleNewChat}
-                className="mx-3 mt-3 flex items-center gap-2 px-3 py-2.5 rounded-xl border border-dashed border-primary/30 text-primary text-sm font-medium hover:bg-primary/10 transition-all"
-              >
-                <Plus className="h-4 w-4" /> New Chat
-              </button>
+              {/* New chat button */}
+              <div className="px-3 pt-3">
+                <button
+                  onClick={handleNewChat}
+                  className="w-full flex items-center gap-2.5 px-4 py-3 rounded-xl border border-dashed border-primary/30 text-primary text-sm font-medium hover:bg-primary/10 hover:border-primary/50 transition-all group"
+                >
+                  <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform duration-300" />
+                  New Conversation
+                </button>
+              </div>
 
-              <div className="flex-1 overflow-y-auto py-2 px-2 space-y-1">
-                {chatHistory.map((chat) => (
-                  <div
-                    key={chat.id}
-                    className="group flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-white/5 cursor-pointer transition-all"
-                    onClick={() => handleLoadSession(chat.id)}
-                  >
-                    <MessageCircle className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-foreground truncate">{chat.firstMessage}</p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {chat.updatedAt ? formatDistanceToNow(new Date(chat.updatedAt), { addSuffix: true }) : ""}
-                      </p>
-                    </div>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); deleteSession(chat.id); }}
-                      className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-all"
+              {/* Chat list */}
+              <ScrollArea className="flex-1 px-2 py-2">
+                <div className="space-y-0.5">
+                  {chatHistory.map((chat, i) => (
+                    <motion.div
+                      key={chat.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.03 }}
+                      className="group flex items-center gap-2 px-3 py-3 rounded-xl hover:bg-muted cursor-pointer transition-all"
+                      onClick={() => handleLoadSession(chat.id)}
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+                      <MessageCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-foreground truncate">{chat.firstMessage}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          {chat.updatedAt ? formatDistanceToNow(new Date(chat.updatedAt), { addSuffix: true }) : ""}
+                        </p>
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteSession(chat.id); }}
+                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-all"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </motion.div>
+                  ))}
+                  {chatHistory.length === 0 && (
+                    <div className="flex flex-col items-center py-12 text-center">
+                      <MessageCircle className="h-8 w-8 text-muted-foreground/30 mb-3" />
+                      <p className="text-xs text-muted-foreground">No conversations yet</p>
+                      <p className="text-[10px] text-muted-foreground/60 mt-1">Start a new chat below</p>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+
+              {/* Sidebar footer */}
+              <div className="px-3 py-3 border-t border-border">
+                <div className="flex items-center gap-3 px-2">
+                  <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold shrink-0 overflow-hidden">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
+                    ) : (
+                      displayName[0]?.toUpperCase()
+                    )}
                   </div>
-                ))}
-                {chatHistory.length === 0 && (
-                  <p className="text-xs text-muted-foreground text-center py-8">No previous chats</p>
-                )}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
+                  </div>
+                </div>
               </div>
             </motion.aside>
           </>
         )}
       </AnimatePresence>
 
-      {/* ═══ Main Chat Area ═══ */}
+      {/* ═══ MAIN CHAT PANEL ═══ */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
-        <div className="flex items-center justify-between px-3 md:px-6 py-2.5 glass border-b border-white/5 shrink-0">
+
+        {/* ─── Top Bar ─── */}
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="flex items-center justify-between px-3 md:px-5 py-2.5 border-b border-border bg-background/80 backdrop-blur-xl shrink-0 z-10"
+        >
           <div className="flex items-center gap-2">
             {!sidebarOpen && (
-              <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl hover:bg-white/5 text-muted-foreground transition-colors">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setSidebarOpen(true)}
+                className="p-2 rounded-xl hover:bg-muted text-muted-foreground transition-colors"
+              >
                 <PanelLeftOpen className="h-5 w-5" />
-              </button>
+              </motion.button>
             )}
-            {/* Mobile back */}
-            <Link to="/" className="md:hidden p-2 rounded-xl hover:bg-white/5 text-muted-foreground">
+            <Link to="/" className="md:hidden p-2 rounded-xl hover:bg-muted text-muted-foreground">
               <ArrowLeft className="h-5 w-5" />
             </Link>
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold text-foreground hidden sm:inline">Ask Uwazi</span>
-              <span className="text-[10px] text-muted-foreground hidden sm:inline">· Raia G1.0</span>
+            <div className="flex items-center gap-2.5">
+              <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+              </div>
+              <div className="hidden sm:block">
+                <span className="text-sm font-heading tracking-wide text-foreground">ASK UWAZI</span>
+                <span className="text-[10px] text-muted-foreground ml-2">Raia G1.0</span>
+              </div>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             {ctx.zipCode && (
-              <div className="flex items-center gap-1 px-2.5 py-1 glass rounded-full">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
                 <MapPin className="h-3 w-3 text-primary" />
-                <span className="text-[11px] font-medium text-primary">{ctx.zipCode}</span>
-                {ctx.state && <span className="text-[10px] text-primary/60">({ctx.state})</span>}
+                <span className="text-[11px] font-semibold text-primary">{ctx.zipCode}</span>
+                {ctx.state && <span className="text-[10px] text-primary/60">· {ctx.state}</span>}
               </div>
             )}
             {!ctx.zipCode && (
-              <Link to="/settings" className="flex items-center gap-1 px-2.5 py-1 glass rounded-full">
+              <Link to="/settings" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted border border-border hover:border-primary/30 transition-colors">
                 <MapPin className="h-3 w-3 text-muted-foreground" />
                 <span className="text-[11px] text-primary font-medium">Set ZIP</span>
               </Link>
             )}
-            <button onClick={handleNewChat} className="p-2 rounded-xl hover:bg-white/5 text-muted-foreground transition-colors" title="New Chat">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleNewChat}
+              className="p-2 rounded-xl hover:bg-muted text-muted-foreground transition-colors"
+              title="New Chat"
+            >
               <Plus className="h-5 w-5" />
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
 
-        {/* ═══ Messages / Empty State ═══ */}
+        {/* ─── Messages / Empty State ─── */}
         <div className="flex-1 overflow-y-auto">
           {isEmpty ? (
-            /* Empty state — centered hero */
             <div className="flex flex-col items-center justify-center h-full px-4 py-8">
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                 className="text-center max-w-lg"
               >
-                <div className="h-16 w-16 rounded-2xl glass flex items-center justify-center mx-auto mb-6">
-                  <Sparkles className="h-8 w-8 text-primary" />
+                {/* Glowing logo */}
+                <div className="relative mx-auto mb-8 w-20 h-20">
+                  <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-2xl" />
+                  <div className="relative h-20 w-20 rounded-2xl glass-strong flex items-center justify-center border border-primary/20">
+                    <Sparkles className="h-10 w-10 text-primary" />
+                  </div>
                 </div>
-                <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl text-foreground leading-none mb-3">
+
+                <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl text-foreground leading-none mb-3 tracking-tight">
                   ASK UWAZI
                 </h1>
-                <p className="text-sm text-muted-foreground mb-1">Your Political Co-Pilot</p>
-                <p className="text-xs text-muted-foreground/60">Powered by Raia G1.0 · Nonpartisan · Location-aware</p>
+                <p className="text-base text-muted-foreground mb-1">Your Civic Intelligence Co-Pilot</p>
+                <p className="text-xs text-muted-foreground/50">Nonpartisan · Location-aware · Powered by Raia G1.0</p>
               </motion.div>
 
               {/* Suggested prompts */}
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.4 }}
-                className="mt-8 w-full max-w-2xl px-4"
+                transition={{ delay: 0.3, duration: 0.5 }}
+                className="mt-10 w-full max-w-2xl px-4"
               >
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <p className="text-[10px] font-heading tracking-[0.15em] text-primary/60 uppercase text-center mb-4">
+                  Suggested Questions
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {suggestedPrompts.map((p, i) => (
                     <motion.button
                       key={i}
-                      initial={{ opacity: 0, y: 8 }}
+                      initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 + i * 0.07 }}
+                      transition={{ delay: 0.4 + i * 0.08 }}
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => handleSend(p)}
-                      className="glass hover-lift text-left px-4 py-3 rounded-xl text-sm text-foreground/90 hover:text-foreground transition-all"
+                      className="glass text-left px-4 py-3.5 rounded-xl text-sm text-foreground/80 hover:text-foreground hover:border-primary/20 transition-all group"
                     >
-                      {p}
+                      <span className="group-hover:text-primary transition-colors">{p}</span>
                     </motion.button>
                   ))}
                 </div>
@@ -363,50 +463,77 @@ export default function AskUwaziPage() {
             </div>
           ) : (
             /* Chat messages */
-            <div className="max-w-3xl mx-auto px-3 sm:px-4 md:px-6 py-4 space-y-5">
+            <div className="max-w-3xl mx-auto px-3 sm:px-4 md:px-6 py-6 space-y-6">
               <AnimatePresence mode="popLayout">
                 {messages.map((msg) => (
                   <motion.div
                     key={msg.id}
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className={msg.role === "user" ? "flex justify-end" : "flex justify-start"}
+                    transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                    className={msg.role === "user" ? "flex justify-end" : "flex justify-start gap-3"}
                   >
+                    {/* Assistant avatar */}
+                    {msg.role === "assistant" && (
+                      <div className="shrink-0 mt-1">
+                        <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center">
+                          <Sparkles className="h-3.5 w-3.5 text-primary" />
+                        </div>
+                      </div>
+                    )}
+
                     {msg.role === "user" ? (
                       <div className="max-w-[85%] sm:max-w-[75%]">
-                        <div className="px-4 py-3 rounded-2xl rounded-tr-sm bg-primary text-primary-foreground text-sm">
+                        <div className="px-4 py-3 rounded-2xl rounded-tr-sm bg-primary text-primary-foreground text-sm leading-relaxed">
                           {msg.content}
                         </div>
                       </div>
                     ) : (
-                      <div className="max-w-[95%] sm:max-w-[85%] space-y-2">
+                      <div className="max-w-[92%] sm:max-w-[85%] space-y-2">
                         <div className="glass rounded-2xl rounded-tl-sm p-4 md:p-5">
-                          <div className="prose prose-sm prose-invert max-w-none [&_a]:text-primary [&_strong]:text-primary/90 [&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm [&_h1]:font-heading [&_h2]:font-heading [&_h3]:font-heading [&_ul]:space-y-1 [&_ol]:space-y-1 [&_li]:text-sm [&_p]:text-sm [&_p]:leading-relaxed">
+                          <div className="prose prose-sm prose-invert max-w-none [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_strong]:text-primary/90 [&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm [&_h1]:font-heading [&_h2]:font-heading [&_h3]:font-heading [&_h1]:tracking-wide [&_h2]:tracking-wide [&_ul]:space-y-1.5 [&_ol]:space-y-1.5 [&_li]:text-sm [&_p]:text-sm [&_p]:leading-relaxed [&_blockquote]:border-l-2 [&_blockquote]:border-primary/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs">
                             <ReactMarkdown>{msg.content}</ReactMarkdown>
                           </div>
                           {msg.id === "streaming" && (
                             <span className="inline-block w-2 h-5 bg-primary/60 animate-pulse ml-0.5 rounded-sm" />
                           )}
                         </div>
+
+                        {/* Action buttons */}
                         {msg.id !== "streaming" && (
-                          <div className="flex items-center gap-1 pl-1">
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.2 }}
+                            className="flex items-center gap-0.5 pl-1"
+                          >
+                            <button
+                              onClick={() => handleCopy(msg)}
+                              className="text-[11px] px-2 py-1 rounded-lg transition-all flex items-center gap-1 text-muted-foreground hover:text-foreground hover:bg-muted"
+                            >
+                              {copiedId === msg.id ? <><Check className="h-3 w-3 text-primary" /> Copied</> : <><Copy className="h-3 w-3" /> Copy</>}
+                            </button>
                             <button
                               onClick={() => handleSaveChat(msg)}
                               disabled={msg.saved || savingId === msg.id}
                               className={`text-[11px] px-2 py-1 rounded-lg transition-all flex items-center gap-1 ${
-                                msg.saved ? "text-primary" : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                                msg.saved ? "text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"
                               }`}
                             >
-                              {msg.saved ? <><BookmarkCheck className="h-3 w-3" /> Saved</> : <><BookmarkPlus className="h-3 w-3" /> {savingId === msg.id ? "Saving..." : "Save"}</>}
+                              {msg.saved ? <><BookmarkCheck className="h-3 w-3" /> Saved</> : <><BookmarkPlus className="h-3 w-3" /> {savingId === msg.id ? "..." : "Save"}</>}
                             </button>
-                            <button className="text-[11px] text-muted-foreground hover:text-foreground hover:bg-white/5 px-2 py-1 rounded-lg transition-all flex items-center gap-1">
+                            <button
+                              onClick={() => {
+                                navigator.share?.({ text: msg.content }) || handleCopy(msg);
+                              }}
+                              className="text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted px-2 py-1 rounded-lg transition-all flex items-center gap-1"
+                            >
                               <Share2 className="h-3 w-3" /> Share
                             </button>
-                            <button className="text-[11px] text-muted-foreground hover:text-foreground hover:bg-white/5 px-2 py-1 rounded-lg transition-all flex items-center gap-1">
+                            <button className="text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted px-2 py-1 rounded-lg transition-all flex items-center gap-1">
                               <RotateCcw className="h-3 w-3" /> Simplify
                             </button>
-                          </div>
+                          </motion.div>
                         )}
                       </div>
                     )}
@@ -415,8 +542,11 @@ export default function AskUwaziPage() {
               </AnimatePresence>
 
               {isStreaming && messages[messages.length - 1]?.role !== "assistant" && (
-                <div className="flex items-center gap-2.5 py-3">
-                  <div className="flex gap-1">
+                <div className="flex items-center gap-3 py-3">
+                  <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  <div className="flex gap-1.5">
                     {[0, 1, 2].map((i) => (
                       <motion.div key={i} className="h-2 w-2 rounded-full bg-primary"
                         animate={{ scale: [1, 1.4, 1], opacity: [0.3, 1, 0.3] }}
@@ -424,7 +554,7 @@ export default function AskUwaziPage() {
                       />
                     ))}
                   </div>
-                  <span className="text-xs text-muted-foreground">Ask Uwazi is thinking...</span>
+                  <span className="text-xs text-muted-foreground">Thinking...</span>
                 </div>
               )}
               <div ref={messagesEndRef} />
@@ -432,36 +562,42 @@ export default function AskUwaziPage() {
           )}
         </div>
 
-        {/* ═══ Input Area ═══ */}
-        <div className="shrink-0 px-3 sm:px-4 md:px-6 py-3 md:py-4">
+        {/* ─── Input Area ─── */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="shrink-0 px-3 sm:px-4 md:px-6 py-3 md:py-4 bg-background"
+        >
           <div className="max-w-3xl mx-auto">
             <form
               onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-              className="glass-input rounded-2xl flex items-center gap-2 px-4 py-2.5 focus-within:ring-1 focus-within:ring-primary/30 transition-all"
+              className="relative glass-input rounded-2xl flex items-end gap-2 px-4 py-3 focus-within:ring-1 focus-within:ring-primary/40 transition-all"
             >
-              <input
+              <textarea
                 ref={inputRef}
-                type="text"
+                rows={1}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
                 placeholder="Ask about voting, policies, candidates..."
-                className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/60 outline-none min-w-0"
+                className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 outline-none min-w-0 resize-none max-h-40 leading-relaxed"
                 disabled={isStreaming}
               />
               <Button
                 type="submit"
                 size="icon"
                 disabled={!input.trim() || isStreaming}
-                className="h-9 w-9 rounded-xl shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 transition-all disabled:opacity-30"
+                className="h-9 w-9 rounded-xl shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 transition-all disabled:opacity-20"
               >
                 <Send className="h-4 w-4" />
               </Button>
             </form>
-            <p className="text-[10px] text-muted-foreground/40 text-center mt-2">
-              Ask Uwazi is nonpartisan. Responses are AI-generated and should be verified with official sources.
+            <p className="text-[10px] text-muted-foreground/30 text-center mt-2">
+              Nonpartisan · AI-generated · Verify with official sources
             </p>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
