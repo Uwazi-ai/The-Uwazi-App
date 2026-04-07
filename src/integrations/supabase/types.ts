@@ -355,6 +355,10 @@ export type Database = {
           district: string | null
           id: string
           location: string | null
+          notify_civic_alerts: boolean
+          notify_elections: boolean
+          notify_new_lessons: boolean
+          notify_streak_reminders: boolean
           onboarding_complete: boolean
           street_address: string | null
           updated_at: string
@@ -369,6 +373,10 @@ export type Database = {
           district?: string | null
           id?: string
           location?: string | null
+          notify_civic_alerts?: boolean
+          notify_elections?: boolean
+          notify_new_lessons?: boolean
+          notify_streak_reminders?: boolean
           onboarding_complete?: boolean
           street_address?: string | null
           updated_at?: string
@@ -383,6 +391,10 @@ export type Database = {
           district?: string | null
           id?: string
           location?: string | null
+          notify_civic_alerts?: boolean
+          notify_elections?: boolean
+          notify_new_lessons?: boolean
+          notify_streak_reminders?: boolean
           onboarding_complete?: boolean
           street_address?: string | null
           updated_at?: string
