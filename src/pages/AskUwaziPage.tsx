@@ -571,7 +571,7 @@ export default function AskUwaziPage() {
       </AnimatePresence>
 
       {/* ═══ MAIN CHAT PANEL ═══ */}
-      <div className="flex-1 flex flex-col min-w-0 relative z-10"
+      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden relative z-10"
         style={{
           background: "rgba(13, 13, 13, 0.6)",
           backdropFilter: "blur(40px)",
@@ -638,9 +638,9 @@ export default function AskUwaziPage() {
         </motion.div>
 
         {/* ─── Messages / Empty State ─── */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
           {isEmpty ? (
-            <div className="flex flex-col items-center justify-center h-full px-4 py-8">
+            <div className="flex flex-col items-center justify-center h-full px-3 sm:px-4 py-8">
               <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }} className="text-center max-w-lg">
                 <div className="relative mx-auto mb-8 w-20 h-20">
