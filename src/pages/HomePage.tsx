@@ -1,9 +1,12 @@
 import { motion } from "framer-motion";
-import { ArrowRight, MapPin, Flame, BookOpen, Target, Zap, Trophy, Calendar, FileText, Vote, Award } from "lucide-react";
+import { ArrowRight, MapPin, Flame, BookOpen, Target, Zap, Trophy, Calendar, FileText, Vote, Award, Newspaper } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useGamification } from "@/hooks/useGamification";
 import { useCivicLocation } from "@/hooks/useCivicLocation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCivicNews, hasNewsApiKey } from "@/hooks/useNewsApi";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatDistanceToNow } from "date-fns";
 
 export default function HomePage() {
   const { user } = useAuth();
