@@ -2,11 +2,15 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Calendar, Clock, Vote, TrendingUp, ArrowRight, Bookmark, 
-  Sparkles, MapPin, Bell, ChevronRight, Flame, Scale, Building2
+  Sparkles, MapPin, Bell, ChevronRight, Flame, Scale, Building2, BookOpen
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import civicHero from "@/assets/civic-hero.jpg";
+import { useGamification } from "@/hooks/useGamification";
+import CivicScoreCard from "@/components/gamification/CivicScoreCard";
+import StreakTracker from "@/components/gamification/StreakTracker";
+import BadgeGrid from "@/components/gamification/BadgeGrid";
 
 const electionDate = new Date("2026-11-03");
 const getDaysUntil = () => Math.max(0, Math.ceil((electionDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
@@ -57,6 +61,7 @@ const newsItems = [
 
 export default function HomePage() {
   const daysLeft = getDaysUntil();
+  const { civicScore, streak, earnedBadges, allBadges, loading: gamLoading } = useGamification();
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 md:py-8 space-y-6">
@@ -111,6 +116,37 @@ export default function HomePage() {
           ))}
         </div>
       </motion.div>
+
+      {/* Gamification Section */}
+      {!gamLoading && (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }} className="space-y-4">
+          <CivicScoreCard
+            totalXp={civicScore?.total_xp ?? 0}
+            literacyScore={civicScore?.civic_literacy_score ?? 0}
+            lessonsCompleted={civicScore?.lessons_completed ?? 0}
+            quizzesPassed={civicScore?.quizzes_passed ?? 0}
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <StreakTracker
+              currentStreak={streak?.current_streak ?? 0}
+              longestStreak={streak?.longest_streak ?? 0}
+            />
+            <Link to="/learn" className="flex items-center gap-3 bg-card rounded-2xl p-5 shadow-card hover:shadow-elevated transition-shadow">
+              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <BookOpen className="h-6 w-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-foreground">Civic Lessons</p>
+                <p className="text-xs text-muted-foreground">Build your civic literacy</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </Link>
+          </div>
+          {allBadges.length > 0 && (
+            <BadgeGrid allBadges={allBadges} earnedBadges={earnedBadges} />
+          )}
+        </motion.div>
+      )}
 
       {/* Ask UWAZI Prompts */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
