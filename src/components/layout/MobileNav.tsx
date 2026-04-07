@@ -67,7 +67,7 @@ export function MobileNav() {
       </AnimatePresence>
 
       {/* Bottom nav bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[hsl(var(--sidebar-background))]/95 backdrop-blur-lg md:hidden" style={{ borderTop: "1px solid hsl(0 0% 16.5%)" }}>
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[hsl(var(--sidebar-background))]/95 backdrop-blur-lg md:hidden" style={{ borderTop: "1px solid hsl(0 0% 16.5%)", paddingBottom: "env(safe-area-inset-bottom)" }}>
         <div className="flex items-center justify-around px-2 h-16">
           {navItems.map((item) => (
             <NavLink
