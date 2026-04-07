@@ -335,7 +335,7 @@ export default function AskUwaziPage() {
               </ScrollArea>
 
               {/* Sidebar footer */}
-              <div className="px-3 py-3 border-t border-border">
+              <div className="px-3 py-3" style={{ borderTop: "1px solid rgba(155, 211, 75, 0.1)" }}>
                 <div className="flex items-center gap-3 px-2">
                   <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold shrink-0 overflow-hidden">
                     {avatarUrl ? (
