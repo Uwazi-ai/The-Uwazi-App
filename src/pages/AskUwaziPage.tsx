@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, BookmarkPlus, BookmarkCheck, Share2, RotateCcw, MapPin,
   Plus, PanelLeftClose, PanelLeftOpen, MessageCircle, Trash2,
-  ArrowLeft, Sparkles, Copy, Check,
+  ArrowLeft, Sparkles, Copy, Check, Vote, FileText, Landmark, CalendarDays,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
