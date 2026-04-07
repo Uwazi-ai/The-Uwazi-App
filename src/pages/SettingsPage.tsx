@@ -5,6 +5,7 @@ import {
   Check, X, Loader2, Eye, EyeOff, AlertTriangle, ChevronLeft,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/contexts/ProfileContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
