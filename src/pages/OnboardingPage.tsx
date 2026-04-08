@@ -7,11 +7,11 @@ import { toast } from "sonner";
 import uwaziLogo from "@/assets/uwazi-logo.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, BookOpen, Heart, Layers, Check, ChevronRight, ChevronLeft } from "lucide-react";
-import LocationStep from "@/components/onboarding/LocationStep";
+import AddressStep, { type AddressData } from "@/components/onboarding/AddressStep";
 
 const STEPS = [
   { id: "welcome", title: "Welcome to UWAZI.AI", subtitle: "Your personal civic intelligence companion. Let's personalize your experience.", icon: null },
-  { id: "location", title: "Let's find your civic home", subtitle: "Your ZIP code helps us show you relevant local information.", icon: MapPin },
+  { id: "location", title: "Where do you vote?", subtitle: "Your address helps us find your exact polling location.", icon: MapPin },
   {
     id: "knowledge", title: "How would you describe your civic knowledge?", subtitle: "No wrong answers — we'll meet you where you are.", icon: BookOpen,
     field: "civic_knowledge_level",
@@ -51,8 +51,10 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [answers, setAnswers] = useState<Record<string, any>>({
-    location: "",
-    street_address: "",
+    address_line1: "",
+    address_line2: "",
+    city: "",
+    state_code: "",
     zip_code: "",
     civic_knowledge_level: "",
     issue_interests: [] as string[],
@@ -72,12 +74,12 @@ export default function OnboardingPage() {
 
   const handleBack = () => setStep((s) => Math.max(0, s - 1));
 
-  const handleLocationSubmit = async (data: { street_address: string; zip_code: string }) => {
+  const handleAddressSubmit = async (data: AddressData) => {
     setAnswers((prev) => ({ ...prev, ...data }));
     setStep((s) => s + 1);
   };
 
-  const handleLocationSkip = () => {
+  const handleAddressSkip = () => {
     setStep((s) => s + 1);
   };
 
@@ -85,13 +87,21 @@ export default function OnboardingPage() {
     if (!user) return;
     setLoading(true);
     try {
+      const fullAddress = answers.address_line1
+        ? `${answers.address_line1}${answers.address_line2 ? " " + answers.address_line2 : ""}, ${answers.city}, ${answers.state_code} ${answers.zip_code}`
+        : null;
+
       await supabase
         .from("profiles")
         .update({
-          location: answers.location,
-          civic_knowledge_level: answers.civic_knowledge_level,
-          street_address: answers.street_address || null,
+          address_line1: answers.address_line1 || null,
+          address_line2: answers.address_line2 || null,
+          city: answers.city || null,
+          state_code: answers.state_code || null,
           zip_code: answers.zip_code || null,
+          full_address: fullAddress,
+          street_address: answers.address_line1 || null,
+          civic_knowledge_level: answers.civic_knowledge_level,
           onboarding_complete: true,
         })
         .eq("user_id", user.id);
@@ -157,11 +167,11 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {/* Location step */}
+            {/* Location/Address step */}
             {currentStep.id === "location" && (
-              <LocationStep
-                onSubmit={handleLocationSubmit}
-                onSkip={handleLocationSkip}
+              <AddressStep
+                onSubmit={handleAddressSubmit}
+                onSkip={handleAddressSkip}
                 loading={false}
               />
             )}
