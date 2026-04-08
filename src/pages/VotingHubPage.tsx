@@ -54,7 +54,9 @@ export default function VotingHubPage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const address = fullAddress || (zipCode ? `${zipCode} USA` : "");
+  // Build a parseable address for Google Civic — ZIP alone causes "Failed to parse address"
+  const address = fullAddress
+    || (city && stateCode && zipCode ? `${city}, ${stateCode} ${zipCode}` : "");
   const { data: electionsData, isLoading: electionsLoading, error: electionsError } = useElections();
   const { data: voterData, isLoading: voterLoading } = useVoterInfo(address);
 
