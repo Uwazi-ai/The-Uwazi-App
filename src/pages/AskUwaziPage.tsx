@@ -331,6 +331,7 @@ export default function AskUwaziPage() {
   const { displayName } = useProfile();
   const ctx = useAskUwaziContext();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const {
     restoredMessages, sessionLoading, saveMessages, startNewSession,
     chatHistory, loadSession, deleteSession,
