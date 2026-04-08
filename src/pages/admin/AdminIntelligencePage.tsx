@@ -187,6 +187,43 @@ export default function AdminIntelligencePage() {
     toast.success("Copied to clipboard");
   };
 
+  // ─── Ballotpedia Scraper ───
+  const { data: scraperLogs } = useQuery({
+    queryKey: ["admin-scraper-logs"],
+    queryFn: async () => {
+      const { data } = await supabase.from("ballotpedia_scraper_log").select("*").order("started_at", { ascending: false }).limit(10);
+      return data || [];
+    },
+  });
+
+  const { data: scrapedCandidates } = useQuery({
+    queryKey: ["admin-scraped-candidates", scrapeState],
+    queryFn: async () => {
+      const { data } = await supabase.from("ballotpedia_candidates").select("*").eq("state_code", scrapeState).order("office").limit(50);
+      return data || [];
+    },
+  });
+
+  const triggerScraper = async () => {
+    setIsRunning(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ballotpedia-scraper", {
+        body: { state_code: scrapeState, city: scrapeCity, scrape_type: scrapeType, year: new Date().getFullYear() },
+      });
+      if (error) throw error;
+      if (data?.success) {
+        const r = data.results;
+        toast.success(`Scraped: ${r.candidates} candidates, ${r.measures} measures, ${r.officials} officials, ${r.elections} elections`);
+        queryClient.invalidateQueries({ queryKey: ["admin-scraper-logs"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-scraped-candidates"] });
+      }
+    } catch (err: any) {
+      toast.error(`Scraper error: ${err.message}`);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   return (
     <div className="p-4 md:p-8 space-y-8 max-w-[1400px] mx-auto">
       <div>
