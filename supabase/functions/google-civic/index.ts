@@ -6,15 +6,20 @@ import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const GOOGLE_CIVIC_BASE = "https://www.googleapis.com/civicinfo/v2";
 
-function emptyVoterInfoResponse(message?: string) {
+function emptyVoterInfoResponse(status: "no_election" | "invalid_address" = "no_election", message?: string) {
   return {
-    status: "no_election",
+    status,
     message,
     pollingLocations: [],
     contests: [],
     earlyVoteSites: [],
     dropOffLocations: [],
   };
+}
+
+function isZipOnlyAddress(value?: string) {
+  if (!value) return false;
+  return /^\d{5}(?:-\d{4})?(?:\s+USA)?$/i.test(value.trim());
 }
 
 const RequestSchema = z.object({
@@ -46,22 +51,50 @@ Deno.serve(async (req) => {
     }
 
     const { endpoint, params } = parsed.data;
-    const searchParams = new URLSearchParams({ ...params, key: apiKey });
+    const normalizedParams = { ...params };
+
+    if (endpoint === "/voterinfo") {
+      const address = normalizedParams.address?.trim();
+
+      if (!address || isZipOnlyAddress(address)) {
+        return new Response(
+          JSON.stringify(
+            emptyVoterInfoResponse("invalid_address", "A full street address is required to find voter information.")
+          ),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      normalizedParams.address = address;
+    }
+
+    const searchParams = new URLSearchParams({ ...normalizedParams, key: apiKey });
     const url = `${GOOGLE_CIVIC_BASE}${endpoint}?${searchParams.toString()}`;
 
     const response = await fetch(url);
     const data = await response.json();
 
-    if (
-      !response.ok &&
-      endpoint === "/voterinfo" &&
-      typeof data?.error?.message === "string" &&
-      data.error.message.toLowerCase().includes("election unknown")
-    ) {
-      return new Response(JSON.stringify(emptyVoterInfoResponse(data.error.message)), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (!response.ok && endpoint === "/voterinfo" && typeof data?.error?.message === "string") {
+      const message = data.error.message.toLowerCase();
+
+      if (message.includes("election unknown")) {
+        return new Response(JSON.stringify(emptyVoterInfoResponse("no_election", data.error.message)), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (message.includes("failed to parse address")) {
+        return new Response(
+          JSON.stringify(
+            emptyVoterInfoResponse("invalid_address", "A full street address is required to find voter information.")
+          ),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
     }
 
     return new Response(JSON.stringify(data), {
