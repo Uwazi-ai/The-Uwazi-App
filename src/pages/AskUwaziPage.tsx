@@ -709,23 +709,23 @@ export default function AskUwaziPage() {
                 </div>
               </motion.div>
 
-              {/* Web Search row */}
+              {/* Web Search grid — 2x2 */}
               <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6, duration: 0.5 }} className="mt-4 w-full max-w-lg px-4 overflow-hidden">
+                transition={{ delay: 0.6, duration: 0.5 }} className="mt-4 w-full max-w-lg px-4">
                 <div className="flex items-center gap-2 mb-2 px-1">
                   <Globe className="w-3.5 h-3.5 text-primary" />
                   <span className="text-[10px] sm:text-[11px] text-primary font-medium tracking-wide">RESEARCH WITH LIVE WEB SEARCH</span>
                 </div>
-                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                <div className="grid grid-cols-2 gap-2">
                   {webSearchSuggestions.map((s, i) => (
                     <button key={i} onClick={() => handleSend(s)}
-                      className="whitespace-nowrap text-[11px] sm:text-[12px] px-3 py-2 rounded-lg shrink-0 transition-all duration-200"
+                      className="text-left text-[10px] sm:text-[11px] px-2.5 py-2 rounded-lg transition-all duration-200 leading-tight"
                       style={{
                         background: "rgba(255,255,255,0.03)",
                         border: "1px solid rgba(100,180,255,0.15)",
                         color: "#9bd34b",
                       }}>
-                      <Globe className="w-3 h-3 inline mr-1 opacity-60" />
+                      <Globe className="w-3 h-3 inline mr-1 opacity-60 shrink-0" />
                       {s}
                     </button>
                   ))}
