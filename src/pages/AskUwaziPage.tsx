@@ -527,7 +527,7 @@ export default function AskUwaziPage() {
   );
 
   return (
-    <div className="flex relative bg-background overflow-hidden"
+    <div className="flex relative bg-background overflow-hidden w-full max-w-[100vw]"
       style={{
         height: "100dvh",
         paddingTop: "env(safe-area-inset-top)",
