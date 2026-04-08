@@ -184,6 +184,267 @@ export type Database = {
         }
         Relationships: []
       }
+      ballotpedia_ballot_measures: {
+        Row: {
+          ballotpedia_url: string | null
+          city: string | null
+          county: string | null
+          election_date: string | null
+          election_year: number | null
+          expires_at: string | null
+          full_text_url: string | null
+          id: string
+          jurisdiction_level: string | null
+          measure_number: string | null
+          measure_type: string | null
+          no_pct: number | null
+          no_votes: number | null
+          result: string | null
+          scraped_at: string | null
+          state_code: string | null
+          summary: string | null
+          title: string
+          yes_pct: number | null
+          yes_votes: number | null
+        }
+        Insert: {
+          ballotpedia_url?: string | null
+          city?: string | null
+          county?: string | null
+          election_date?: string | null
+          election_year?: number | null
+          expires_at?: string | null
+          full_text_url?: string | null
+          id?: string
+          jurisdiction_level?: string | null
+          measure_number?: string | null
+          measure_type?: string | null
+          no_pct?: number | null
+          no_votes?: number | null
+          result?: string | null
+          scraped_at?: string | null
+          state_code?: string | null
+          summary?: string | null
+          title: string
+          yes_pct?: number | null
+          yes_votes?: number | null
+        }
+        Update: {
+          ballotpedia_url?: string | null
+          city?: string | null
+          county?: string | null
+          election_date?: string | null
+          election_year?: number | null
+          expires_at?: string | null
+          full_text_url?: string | null
+          id?: string
+          jurisdiction_level?: string | null
+          measure_number?: string | null
+          measure_type?: string | null
+          no_pct?: number | null
+          no_votes?: number | null
+          result?: string | null
+          scraped_at?: string | null
+          state_code?: string | null
+          summary?: string | null
+          title?: string
+          yes_pct?: number | null
+          yes_votes?: number | null
+        }
+        Relationships: []
+      }
+      ballotpedia_candidates: {
+        Row: {
+          ballotpedia_url: string | null
+          campaign_website: string | null
+          city: string | null
+          district: string | null
+          election_date: string | null
+          election_name: string | null
+          election_type: string | null
+          election_year: number | null
+          expires_at: string | null
+          id: string
+          incumbent: boolean | null
+          name: string
+          office: string
+          office_level: string | null
+          party: string | null
+          party_color: string | null
+          scraped_at: string | null
+          state_code: string | null
+          withdrew: boolean | null
+        }
+        Insert: {
+          ballotpedia_url?: string | null
+          campaign_website?: string | null
+          city?: string | null
+          district?: string | null
+          election_date?: string | null
+          election_name?: string | null
+          election_type?: string | null
+          election_year?: number | null
+          expires_at?: string | null
+          id?: string
+          incumbent?: boolean | null
+          name: string
+          office: string
+          office_level?: string | null
+          party?: string | null
+          party_color?: string | null
+          scraped_at?: string | null
+          state_code?: string | null
+          withdrew?: boolean | null
+        }
+        Update: {
+          ballotpedia_url?: string | null
+          campaign_website?: string | null
+          city?: string | null
+          district?: string | null
+          election_date?: string | null
+          election_name?: string | null
+          election_type?: string | null
+          election_year?: number | null
+          expires_at?: string | null
+          id?: string
+          incumbent?: boolean | null
+          name?: string
+          office?: string
+          office_level?: string | null
+          party?: string | null
+          party_color?: string | null
+          scraped_at?: string | null
+          state_code?: string | null
+          withdrew?: boolean | null
+        }
+        Relationships: []
+      }
+      ballotpedia_elections: {
+        Row: {
+          ballotpedia_url: string | null
+          city: string | null
+          election_date: string
+          election_name: string
+          election_type: string | null
+          election_year: number | null
+          expires_at: string | null
+          id: string
+          is_upcoming: boolean | null
+          scraped_at: string | null
+          state_code: string | null
+        }
+        Insert: {
+          ballotpedia_url?: string | null
+          city?: string | null
+          election_date: string
+          election_name: string
+          election_type?: string | null
+          election_year?: number | null
+          expires_at?: string | null
+          id?: string
+          is_upcoming?: boolean | null
+          scraped_at?: string | null
+          state_code?: string | null
+        }
+        Update: {
+          ballotpedia_url?: string | null
+          city?: string | null
+          election_date?: string
+          election_name?: string
+          election_type?: string | null
+          election_year?: number | null
+          expires_at?: string | null
+          id?: string
+          is_upcoming?: boolean | null
+          scraped_at?: string | null
+          state_code?: string | null
+        }
+        Relationships: []
+      }
+      ballotpedia_officials: {
+        Row: {
+          assumed_office: string | null
+          ballotpedia_url: string | null
+          city: string | null
+          district: string | null
+          expires_at: string | null
+          id: string
+          name: string
+          office: string
+          party: string | null
+          photo_url: string | null
+          scraped_at: string | null
+          state_code: string | null
+          term_ends: string | null
+        }
+        Insert: {
+          assumed_office?: string | null
+          ballotpedia_url?: string | null
+          city?: string | null
+          district?: string | null
+          expires_at?: string | null
+          id?: string
+          name: string
+          office: string
+          party?: string | null
+          photo_url?: string | null
+          scraped_at?: string | null
+          state_code?: string | null
+          term_ends?: string | null
+        }
+        Update: {
+          assumed_office?: string | null
+          ballotpedia_url?: string | null
+          city?: string | null
+          district?: string | null
+          expires_at?: string | null
+          id?: string
+          name?: string
+          office?: string
+          party?: string | null
+          photo_url?: string | null
+          scraped_at?: string | null
+          state_code?: string | null
+          term_ends?: string | null
+        }
+        Relationships: []
+      }
+      ballotpedia_scraper_log: {
+        Row: {
+          city: string | null
+          completed_at: string | null
+          error_message: string | null
+          id: string
+          job_type: string | null
+          records_scraped: number | null
+          started_at: string | null
+          state_code: string | null
+          status: string | null
+        }
+        Insert: {
+          city?: string | null
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          job_type?: string | null
+          records_scraped?: number | null
+          started_at?: string | null
+          state_code?: string | null
+          status?: string | null
+        }
+        Update: {
+          city?: string | null
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          job_type?: string | null
+          records_scraped?: number | null
+          started_at?: string | null
+          state_code?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       bill_upvotes: {
         Row: {
           bill_id: string
