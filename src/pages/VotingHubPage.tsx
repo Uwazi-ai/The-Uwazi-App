@@ -55,14 +55,17 @@ export default function VotingHubPage() {
   const navigate = useNavigate();
 
   // Build a parseable address for Google Civic — ZIP alone causes "Failed to parse address"
-  const address = fullAddress
+  const hasResolvableAddress = Boolean(fullAddress?.trim() || (city && stateCode && zipCode));
+  const address = fullAddress?.trim()
     || (city && stateCode && zipCode ? `${city}, ${stateCode} ${zipCode}` : "");
   const { data: electionsData, isLoading: electionsLoading, error: electionsError } = useElections();
   const { data: voterData, isLoading: voterLoading } = useVoterInfo(address);
 
   const liveElections = (electionsData?.elections || []).filter((e: any) => e.id !== "2000");
   const noLiveVoterData = voterData?.status === "no_election";
-  const isDemo = !!electionsError || (!electionsLoading && liveElections.length === 0) || (!!address && noLiveVoterData);
+  const invalidVoterAddress = voterData?.status === "invalid_address";
+  const needsFullAddress = !hasResolvableAddress || invalidVoterAddress;
+  const isDemo = !!electionsError || (!electionsLoading && liveElections.length === 0) || (hasResolvableAddress && noLiveVoterData);
   const elections = isDemo ? demoElections : liveElections;
   const pollingLocations = isDemo ? [demoPolling] : (voterData?.pollingLocations || []);
   const contests = isDemo ? demoContests : (voterData?.contests || []);
@@ -197,9 +200,9 @@ export default function VotingHubPage() {
         <p className="eyebrow mb-2">YOUR CIVIC ACTION CENTER</p>
         <h1 className="font-heading text-5xl md:text-6xl text-foreground leading-none">YOUR VOTE. YOUR POWER.</h1>
         <p className="text-lg text-muted-foreground mt-1">Everything you need to show up and make it count.</p>
-        {!fullAddress && (
+        {needsFullAddress && (
           <p className="text-xs text-muted-foreground mt-2">
-            <Link to="/settings" className="text-primary hover:underline">Add your full address →</Link> for precise polling location and ballot data.
+            <Link to="/settings" className="text-primary hover:underline">Add or update your full address →</Link> for precise polling location and ballot data.
           </p>
         )}
       </motion.div>
@@ -207,12 +210,12 @@ export default function VotingHubPage() {
       {/* POLLING LOCATION */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-4">
         <h2 className="font-heading text-2xl text-foreground">YOUR POLLING LOCATION</h2>
-        {!fullAddress && !zipCode ? (
+        {needsFullAddress ? (
           <div className="rounded-card p-6 text-center space-y-3" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
             <MapPin className="h-8 w-8 text-primary mx-auto" />
             <h3 className="font-heading text-lg text-foreground">Add your address to find your polling location</h3>
-            <p className="text-sm text-muted-foreground">We need your full street address to find your exact polling place.</p>
-            <Button onClick={() => navigate("/settings")} className="bg-primary text-primary-foreground">Add My Address →</Button>
+            <p className="text-sm text-muted-foreground">{invalidVoterAddress ? "Your saved address could not be matched. Please update it to load your exact polling place and ballot." : "We need your full street address to find your exact polling place."}</p>
+            <Button onClick={() => navigate("/settings")} className="bg-primary text-primary-foreground">{invalidVoterAddress ? "Update My Address →" : "Add My Address →"}</Button>
           </div>
         ) : voterLoading && !isDemo ? (
           <Skeleton className="h-28 rounded-card" />
