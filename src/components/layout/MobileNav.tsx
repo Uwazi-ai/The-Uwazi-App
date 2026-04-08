@@ -1,22 +1,26 @@
 import { useState } from "react";
-import { Home, MessageCircle, Vote, BookOpen, MoreHorizontal, Newspaper, FileText, BarChart3, Settings, Bookmark } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useProfile } from "@/contexts/ProfileContext";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  HomeIcon, LearnIcon, AskUwaziIcon, VotingHubIcon,
+  CivicFeedIcon, LegislationIcon, ProgressIcon,
+  SavedIcon, SettingsIcon, MoreIcon,
+} from "@/components/icons/UwaziIcons";
 
 const navItems = [
-  { to: "/", icon: Home, label: "Home" },
-  { to: "/learn", icon: BookOpen, label: "Learn" },
-  { to: "/ask", icon: MessageCircle, label: "Ask" },
-  { to: "/vote", icon: Vote, label: "Vote" },
+  { to: "/", icon: HomeIcon, label: "Home" },
+  { to: "/learn", icon: LearnIcon, label: "Learn" },
+  { to: "/ask", icon: AskUwaziIcon, label: "Ask" },
+  { to: "/vote", icon: VotingHubIcon, label: "Vote" },
 ];
 
 const moreItems = [
-  { to: "/civic-feed", icon: Newspaper, label: "Civic Feed" },
-  { to: "/legislation", icon: FileText, label: "Legislation" },
-  { to: "/progress", icon: BarChart3, label: "Progress" },
-  { to: "/saved", icon: Bookmark, label: "Saved" },
-  { to: "/settings", icon: Settings, label: "Settings" },
+  { to: "/civic-feed", icon: CivicFeedIcon, label: "Civic Feed" },
+  { to: "/legislation", icon: LegislationIcon, label: "Legislation" },
+  { to: "/progress", icon: ProgressIcon, label: "Progress" },
+  { to: "/saved", icon: SavedIcon, label: "Saved" },
+  { to: "/settings", icon: SettingsIcon, label: "Settings" },
 ];
 
 export function MobileNav() {
@@ -63,7 +67,7 @@ export function MobileNav() {
                       }`
                     }
                   >
-                    <item.icon className="h-5 w-5" strokeWidth={1.8} />
+                    <item.icon size={22} />
                     <span>{item.label}</span>
                   </NavLink>
                 ))}
@@ -89,15 +93,15 @@ export function MobileNav() {
               to={item.to}
               end={item.to === "/"}
               className={({ isActive }) =>
-                `flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-medium tracking-[0.02em] transition-all duration-150 ${
-                  isActive ? "text-primary" : "text-muted-foreground"
+                `bottom-nav-item flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-medium tracking-[0.02em] transition-all duration-150 ${
+                  isActive ? "active text-primary" : "text-muted-foreground"
                 }`
               }
             >
               {({ isActive }) => (
                 <>
                   <div className={`p-1 rounded-lg transition-colors ${isActive ? "bg-primary/[0.12]" : ""}`}>
-                    <item.icon className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.2 : 1.8} />
+                    <item.icon size={22} />
                   </div>
                   <span>{item.label}</span>
                 </>
@@ -106,12 +110,12 @@ export function MobileNav() {
           ))}
           <button
             onClick={() => setMoreOpen(!moreOpen)}
-            className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-medium tracking-[0.02em] transition-all duration-150 ${
-              moreOpen ? "text-primary" : "text-muted-foreground"
+            className={`bottom-nav-item flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-medium tracking-[0.02em] transition-all duration-150 ${
+              moreOpen ? "active text-primary" : "text-muted-foreground"
             }`}
           >
             <div className={`p-1 rounded-lg transition-colors ${moreOpen ? "bg-primary/[0.12]" : ""}`}>
-              <MoreHorizontal className="h-[22px] w-[22px]" strokeWidth={moreOpen ? 2.2 : 1.8} />
+              <MoreIcon size={22} />
             </div>
             <span>More</span>
           </button>

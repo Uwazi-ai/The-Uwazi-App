@@ -1,39 +1,42 @@
-import {
-  Home, Newspaper, MessageCircle, BookOpen, Vote, FileText,
-  BarChart3, Settings, LogOut, Shield, Users, TrendingUp,
-  Brain, GraduationCap, Megaphone, Cog, Contact, ClipboardList,
-} from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/contexts/ProfileContext";
 import { toast } from "sonner";
 import uwaziLogo from "@/assets/uwazi-app-logo.png";
+import {
+  HomeIcon, CivicFeedIcon, AskUwaziIcon, LearnIcon,
+  VotingHubIcon, LegislationIcon, ProgressIcon,
+  SettingsIcon, SignOutIcon, AdminOverviewIcon,
+  UsersIcon, AnalyticsIcon, IntelligenceIcon,
+  LessonManagerIcon, CivicContentIcon, AlertsIcon,
+  CRMIcon, SurveysIcon, PlatformSettingsIcon,
+} from "@/components/icons/UwaziIcons";
 
 const mainNav = [
-  { to: "/", icon: Home, label: "Home" },
-  { to: "/civic-feed", icon: Newspaper, label: "Civic Feed" },
-  { to: "/ask", icon: MessageCircle, label: "Ask Uwazi" },
-  { to: "/learn", icon: BookOpen, label: "Learn" },
-  { to: "/vote", icon: Vote, label: "Voting Hub" },
-  { to: "/legislation", icon: FileText, label: "Legislation" },
-  { to: "/progress", icon: BarChart3, label: "Progress" },
+  { to: "/", icon: HomeIcon, label: "Home" },
+  { to: "/civic-feed", icon: CivicFeedIcon, label: "Civic Feed" },
+  { to: "/ask", icon: AskUwaziIcon, label: "Ask Uwazi" },
+  { to: "/learn", icon: LearnIcon, label: "Learn" },
+  { to: "/vote", icon: VotingHubIcon, label: "Voting Hub" },
+  { to: "/legislation", icon: LegislationIcon, label: "Legislation" },
+  { to: "/progress", icon: ProgressIcon, label: "Progress" },
 ];
 
 const adminNav = [
-  { to: "/admin", icon: Shield, label: "Admin Overview" },
-  { to: "/admin/users", icon: Users, label: "Users" },
-  { to: "/admin/analytics", icon: TrendingUp, label: "Analytics" },
-  { to: "/admin/intelligence", icon: Brain, label: "Intelligence" },
-  { to: "/admin/lessons", icon: GraduationCap, label: "Lesson Manager" },
-  { to: "/admin/content", icon: FileText, label: "Civic Content" },
-  { to: "/admin/alerts", icon: Megaphone, label: "Alerts" },
-  { to: "/admin/crm", icon: Contact, label: "CRM" },
-  { to: "/admin/surveys", icon: ClipboardList, label: "Surveys" },
-  { to: "/admin/platform", icon: Cog, label: "Platform Settings" },
+  { to: "/admin", icon: AdminOverviewIcon, label: "Admin Overview" },
+  { to: "/admin/users", icon: UsersIcon, label: "Users" },
+  { to: "/admin/analytics", icon: AnalyticsIcon, label: "Analytics" },
+  { to: "/admin/intelligence", icon: IntelligenceIcon, label: "Intelligence" },
+  { to: "/admin/lessons", icon: LessonManagerIcon, label: "Lesson Manager" },
+  { to: "/admin/content", icon: CivicContentIcon, label: "Civic Content" },
+  { to: "/admin/alerts", icon: AlertsIcon, label: "Alerts" },
+  { to: "/admin/crm", icon: CRMIcon, label: "CRM" },
+  { to: "/admin/surveys", icon: SurveysIcon, label: "Surveys" },
+  { to: "/admin/platform", icon: PlatformSettingsIcon, label: "Platform Settings" },
 ];
 
 const bottomNav = [
-  { to: "/settings", icon: Settings, label: "Settings" },
+  { to: "/settings", icon: SettingsIcon, label: "Settings" },
 ];
 
 export function DesktopSidebar() {
@@ -48,9 +51,9 @@ export function DesktopSidebar() {
   };
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-[10px] px-[14px] py-[9px] rounded-lg mx-2 my-[1px] text-[13.5px] tracking-[-0.01em] cursor-pointer transition-all duration-150 ${
+    `nav-item flex items-center gap-[10px] px-[14px] py-[9px] rounded-lg mx-2 my-[1px] text-[13.5px] tracking-[-0.01em] cursor-pointer transition-all duration-150 ${
       isActive
-        ? "bg-primary/[0.12] text-primary font-medium border border-primary/[0.15]"
+        ? "active bg-primary/[0.12] text-primary font-medium border border-primary/[0.15]"
         : "text-muted-foreground hover:bg-muted hover:text-foreground font-[450] border border-transparent"
     }`;
 
@@ -67,7 +70,9 @@ export function DesktopSidebar() {
       <nav className="flex-1 flex flex-col py-2 gap-0 overflow-y-auto">
         {mainNav.map((item) => (
           <NavLink key={item.to} to={item.to} end={item.to === "/"} className={linkClass}>
-            <item.icon className="h-4 w-4 opacity-70 shrink-0" strokeWidth={1.8} />
+            <div className="nav-icon-wrap">
+              <item.icon size={18} />
+            </div>
             {item.label}
           </NavLink>
         ))}
@@ -81,7 +86,9 @@ export function DesktopSidebar() {
             </div>
             {adminNav.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.to === "/admin"} className={linkClass}>
-                <item.icon className="h-4 w-4 opacity-70 shrink-0" strokeWidth={1.8} />
+                <div className="nav-icon-wrap">
+                  <item.icon size={18} />
+                </div>
                 {item.label}
               </NavLink>
             ))}
@@ -92,15 +99,19 @@ export function DesktopSidebar() {
       <div className="py-3 flex flex-col gap-0" style={{ borderTop: "1px solid var(--border-subtle)" }}>
         {bottomNav.map((item) => (
           <NavLink key={item.to} to={item.to} className={linkClass}>
-            <item.icon className="h-4 w-4 opacity-70 shrink-0" strokeWidth={1.8} />
+            <div className="nav-icon-wrap">
+              <item.icon size={18} />
+            </div>
             {item.label}
           </NavLink>
         ))}
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-[10px] px-[14px] py-[9px] rounded-lg mx-2 my-[1px] text-[13.5px] font-[450] text-destructive hover:bg-destructive/10 transition-all duration-150 border border-transparent"
+          className="nav-item flex items-center gap-[10px] px-[14px] py-[9px] rounded-lg mx-2 my-[1px] text-[13.5px] font-[450] text-destructive hover:bg-destructive/10 transition-all duration-150 border border-transparent"
         >
-          <LogOut className="h-4 w-4 opacity-70 shrink-0" strokeWidth={1.8} />
+          <div className="nav-icon-wrap">
+            <SignOutIcon size={18} />
+          </div>
           Sign Out
         </button>
 

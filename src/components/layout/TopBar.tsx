@@ -1,7 +1,7 @@
-import { Search, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useProfile } from "@/contexts/ProfileContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SearchIcon, NotificationIcon } from "@/components/icons/UwaziIcons";
 import uwaziLogo from "@/assets/uwazi-logo.png";
 
 export function TopBar() {
@@ -27,7 +27,7 @@ export function TopBar() {
       <div className="flex items-center gap-3">
         {/* Mobile search icon */}
         <button className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors">
-          <Search className="h-5 w-5 text-muted-foreground" />
+          <SearchIcon size={20} className="text-muted-foreground" />
         </button>
 
         {/* Desktop search bar */}
@@ -36,7 +36,7 @@ export function TopBar() {
             background: "var(--input-bg)",
             border: "1px solid var(--border-subtle)",
           }}>
-          <Search className="h-4 w-4 text-muted-foreground" />
+          <SearchIcon size={16} className="text-muted-foreground" />
           <input
             type="text"
             placeholder="Search..."
@@ -47,7 +47,7 @@ export function TopBar() {
         <ThemeToggle />
 
         <button className="relative p-2 rounded-lg hover:bg-muted transition-colors">
-          <Bell className="h-5 w-5 text-muted-foreground" />
+          <NotificationIcon size={20} className="text-muted-foreground" />
         </button>
 
         <Link to="/settings" className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold overflow-hidden shrink-0">
