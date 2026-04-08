@@ -423,6 +423,113 @@ export default function AdminIntelligencePage() {
         </Card>
       </div>
 
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* ═══ BALLOTPEDIA SCRAPER ═══ */}
+      {/* ═══════════════════════════════════════════════════════ */}
+      <div className="border-b border-border pb-8">
+        <div className="flex items-center gap-2 mb-6">
+          <Bug className="h-5 w-5 text-primary" />
+          <h2 className="text-xl md:text-2xl font-axis uppercase text-foreground">BALLOTPEDIA SCRAPER</h2>
+          {scraperLogs?.[0] && (
+            <span className="text-xs text-muted-foreground ml-auto">
+              Last run: {new Date(scraperLogs[0].started_at || "").toLocaleDateString()} — {scraperLogs[0].status} ({scraperLogs[0].records_scraped} records)
+            </span>
+          )}
+        </div>
+
+        <Card className="bg-card border-border p-5 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
+            <Select value={scrapeState} onValueChange={setScrapeState}>
+              <SelectTrigger><SelectValue placeholder="State" /></SelectTrigger>
+              <SelectContent>
+                {ALL_STATES.map((s) => (
+                  <SelectItem key={s.code} value={s.code}>{s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input placeholder="City (optional)" value={scrapeCity} onChange={(e) => setScrapeCity(e.target.value)} className="bg-background border-border" />
+            <Select value={scrapeType} onValueChange={setScrapeType}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Data</SelectItem>
+                <SelectItem value="candidates">Candidates Only</SelectItem>
+                <SelectItem value="measures">Measures Only</SelectItem>
+                <SelectItem value="officials">Officials Only</SelectItem>
+                <SelectItem value="elections">Elections Only</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={triggerScraper} disabled={isRunning} className="bg-primary text-primary-foreground gap-2">
+              {isRunning ? <><Loader2 className="h-4 w-4 animate-spin" /> Scraping...</> : "🕷️ Run Scraper"}
+            </Button>
+          </div>
+        </Card>
+
+        {/* Scraped candidates preview */}
+        {scrapedCandidates && scrapedCandidates.length > 0 && (
+          <Card className="bg-card border-border p-4">
+            <h3 className="text-sm font-axis uppercase text-foreground mb-3">SCRAPED CANDIDATES ({scrapeState})</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-muted-foreground">
+                    <th className="p-2 font-medium">Name</th>
+                    <th className="p-2 font-medium">Party</th>
+                    <th className="p-2 font-medium">Office</th>
+                    <th className="p-2 font-medium">Level</th>
+                    <th className="p-2 font-medium">Link</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {scrapedCandidates.map((c) => (
+                    <tr key={c.id} className="border-b border-border hover:bg-primary/5">
+                      <td className="p-2 text-foreground font-medium">{c.name}</td>
+                      <td className="p-2">
+                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: `${c.party_color || "#6b7280"}20`, color: c.party_color || "#6b7280" }}>
+                          {c.party}
+                        </span>
+                      </td>
+                      <td className="p-2 text-muted-foreground text-xs">{c.office}</td>
+                      <td className="p-2 text-muted-foreground text-xs capitalize">{c.office_level}</td>
+                      <td className="p-2">
+                        {c.ballotpedia_url && (
+                          <a href={c.ballotpedia_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                            View ↗
+                          </a>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
+
+        {/* Scraper log */}
+        {scraperLogs && scraperLogs.length > 0 && (
+          <Card className="bg-card border-border p-4 mt-4">
+            <h3 className="text-sm font-axis uppercase text-foreground mb-3">SCRAPER LOG</h3>
+            <div className="space-y-2">
+              {scraperLogs.map((log) => (
+                <div key={log.id} className="flex items-center justify-between text-xs py-1.5 border-b border-border last:border-0">
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline" className={`text-[10px] ${log.status === "success" ? "border-primary text-primary" : log.status === "error" ? "border-destructive text-destructive" : "border-amber-400 text-amber-400"}`}>
+                      {log.status}
+                    </Badge>
+                    <span className="text-muted-foreground">{log.job_type}</span>
+                    <span className="text-foreground">{log.state_code}{log.city ? ` / ${log.city}` : ""}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-muted-foreground">
+                    <span>{log.records_scraped} records</span>
+                    <span>{log.started_at ? new Date(log.started_at).toLocaleString() : "—"}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+      </div>
+
       {/* ═══ Existing sections ═══ */}
       {/* RAIA Scores */}
       <Card className="bg-card border-border p-4">
