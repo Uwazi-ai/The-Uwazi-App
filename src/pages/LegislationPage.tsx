@@ -215,7 +215,7 @@ export default function LegislationPage() {
       {/* Hero */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <p className="eyebrow mb-2">LEGISLATION TRACKER</p>
-        <h1 className="font-heading text-2xl sm:text-4xl md:text-6xl text-foreground leading-none">KNOW WHAT'S BEING DECIDED.</h1>
+        <h1 className="font-heading text-[22px] sm:text-3xl md:text-6xl text-foreground leading-tight">KNOW WHAT'S BEING DECIDED.</h1>
         <div className="flex gap-3 mt-4 flex-wrap">
           <span className="px-3 py-1.5 bg-card border border-border rounded-pill text-xs font-medium text-foreground">
             {isLoading ? "..." : `${bills.length} Bills Found`}
