@@ -103,10 +103,7 @@ export default function HomePage() {
         {/* Civic Loop */}
         <motion.div variants={itemVariants}
           className="rounded-2xl p-5 md:p-7 card-highlight hover-lift"
-          style={{
-            background: "rgba(255,255,255,0.02)",
-            border: "1px solid rgba(255,255,255,0.06)",
-          }}>
+          style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
           <h2 className="font-heading text-xl md:text-2xl text-foreground mb-5">YOUR CIVIC LOOP</h2>
           <div className="space-y-0">
             {[
@@ -117,9 +114,7 @@ export default function HomePage() {
             ].map((item, idx) => (
               <div key={item.num}
                 className="flex items-center gap-[14px] py-[14px] transition-all duration-150 hover:translate-x-1"
-                style={{
-                  borderBottom: idx < 3 ? "1px solid rgba(255,255,255,0.06)" : "none",
-                }}>
+                style={{ borderBottom: idx < 3 ? "1px solid var(--border-subtle)" : "none" }}>
                 <div className="w-8 h-8 rounded-lg bg-primary/[0.12] border border-primary/20 flex items-center justify-center text-[12px] font-bold text-primary shrink-0">
                   {item.num}
                 </div>
@@ -135,10 +130,7 @@ export default function HomePage() {
         {/* Civic Location */}
         <motion.div variants={itemVariants}
           className="rounded-2xl p-5 md:p-7 card-highlight hover-lift"
-          style={{
-            background: "rgba(255,255,255,0.02)",
-            border: "1px solid rgba(255,255,255,0.06)",
-          }}>
+          style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
           <h2 className="font-heading text-xl md:text-2xl text-foreground mb-5">YOUR CIVIC LOCATION</h2>
           {zipCode ? (
             <>
@@ -146,7 +138,7 @@ export default function HomePage() {
                 <MapPin className="h-5 w-5 text-primary" />
                 <span className="text-2xl md:text-3xl font-heading text-primary">{zipCode}</span>
               </div>
-              <div className="rounded-card p-4 mb-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <div className="rounded-card p-4 mb-4" style={{ background: "var(--input-bg)", border: "1px solid var(--border-subtle)" }}>
                 <p className="text-[11px] text-muted-foreground uppercase tracking-[0.06em] font-medium mb-1">Raia Score for {zipCode}</p>
                 <p className="text-lg font-bold text-foreground">Calculating...</p>
               </div>
@@ -167,17 +159,14 @@ export default function HomePage() {
       <motion.div variants={itemVariants}>
         <Link to="/ask"
           className="block rounded-2xl p-5 md:p-7 card-highlight hover-lift transition-all"
-          style={{
-            background: "rgba(255,255,255,0.02)",
-            border: "1px solid rgba(255,255,255,0.06)",
-          }}>
+          style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
               <h3 className="font-heading text-xl md:text-2xl text-foreground">ASK UWAZI</h3>
               <p className="text-sm text-muted-foreground mt-1">Have a civic question? Get non-partisan, AI-powered answers.</p>
             </div>
             <div className="shrink-0">
-              <div className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold flex items-center gap-2 transition-all hover:scale-[1.02] hover:shadow-[0_4px_16px_rgba(155,211,75,0.25)]">
+              <div className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold flex items-center gap-2 transition-all hover:scale-[1.02]">
                 Ask Now <ArrowRight className="h-4 w-4" />
               </div>
             </div>
@@ -197,7 +186,7 @@ export default function HomePage() {
           {newsLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="rounded-card p-4 space-y-2" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div key={i} className="rounded-card p-4 space-y-2" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
                   <Skeleton className="h-28 w-full rounded-card" />
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-3 w-2/3" />
@@ -207,22 +196,14 @@ export default function HomePage() {
           ) : (
             <motion.div variants={containerVariants} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {(newsData?.articles || []).slice(0, 3).map((article: any, i: number) => (
-                <motion.a
-                  key={article.url + i}
-                  variants={itemVariants}
-                  href={article.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <motion.a key={article.url + i} variants={itemVariants}
+                  href={article.url} target="_blank" rel="noopener noreferrer"
                   className="rounded-card card-highlight hover-lift transition-all overflow-hidden block"
-                  style={{
-                    background: "rgba(255,255,255,0.03)",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                  }}
-                >
+                  style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
                   {article.urlToImage ? (
                     <img src={article.urlToImage} alt="" className="w-full h-28 object-cover" />
                   ) : (
-                    <div className="w-full h-28 flex items-center justify-center" style={{ background: "rgba(255,255,255,0.02)" }}>
+                    <div className="w-full h-28 flex items-center justify-center" style={{ background: "var(--input-bg)" }}>
                       <span className="text-lg font-heading text-muted-foreground/30">UWAZI</span>
                     </div>
                   )}
@@ -258,10 +239,7 @@ function StatCard({ label, value, sub, icon, accent, link, animate }: {
 
   const inner = (
     <div className="rounded-card p-4 md:p-5 card-highlight hover-lift transition-all"
-      style={{
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(255,255,255,0.06)",
-      }}>
+      style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
       <div className="flex items-center justify-between mb-2">
         <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">{label}</p>
         {icon}
