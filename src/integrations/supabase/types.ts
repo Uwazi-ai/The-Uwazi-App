@@ -721,7 +721,10 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address_line1: string | null
+          address_line2: string | null
           avatar_url: string | null
+          city: string | null
           civic_knowledge_level: string | null
           contact_score: number | null
           contact_tags: Json | null
@@ -730,6 +733,7 @@ export type Database = {
           display_name: string | null
           district: string | null
           email_opt_in: boolean | null
+          full_address: string | null
           id: string
           is_admin: boolean | null
           is_suspended: boolean | null
@@ -746,13 +750,17 @@ export type Database = {
           push_opt_in: boolean | null
           push_token: string | null
           sms_opt_in: boolean | null
+          state_code: string | null
           street_address: string | null
           updated_at: string
           user_id: string
           zip_code: string | null
         }
         Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
           avatar_url?: string | null
+          city?: string | null
           civic_knowledge_level?: string | null
           contact_score?: number | null
           contact_tags?: Json | null
@@ -761,6 +769,7 @@ export type Database = {
           display_name?: string | null
           district?: string | null
           email_opt_in?: boolean | null
+          full_address?: string | null
           id?: string
           is_admin?: boolean | null
           is_suspended?: boolean | null
@@ -777,13 +786,17 @@ export type Database = {
           push_opt_in?: boolean | null
           push_token?: string | null
           sms_opt_in?: boolean | null
+          state_code?: string | null
           street_address?: string | null
           updated_at?: string
           user_id: string
           zip_code?: string | null
         }
         Update: {
+          address_line1?: string | null
+          address_line2?: string | null
           avatar_url?: string | null
+          city?: string | null
           civic_knowledge_level?: string | null
           contact_score?: number | null
           contact_tags?: Json | null
@@ -792,6 +805,7 @@ export type Database = {
           display_name?: string | null
           district?: string | null
           email_opt_in?: boolean | null
+          full_address?: string | null
           id?: string
           is_admin?: boolean | null
           is_suspended?: boolean | null
@@ -808,6 +822,7 @@ export type Database = {
           push_opt_in?: boolean | null
           push_token?: string | null
           sms_opt_in?: boolean | null
+          state_code?: string | null
           street_address?: string | null
           updated_at?: string
           user_id?: string
@@ -1529,6 +1544,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_state_from_zip: { Args: { zip: string }; Returns: string }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       move_to_dlq: {
         Args: {
