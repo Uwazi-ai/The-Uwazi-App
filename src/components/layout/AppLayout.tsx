@@ -1,10 +1,25 @@
 import { Outlet, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { MobileNav } from "./MobileNav";
 import { DesktopSidebar } from "./DesktopSidebar";
 import { TopBar } from "./TopBar";
 import { ScrollToTop } from "./ScrollToTop";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { ProfileProvider } from "@/contexts/ProfileContext";
+
+const pageVariants = {
+  initial: { opacity: 0, y: 8 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] },
+  },
+  exit: {
+    opacity: 0,
+    y: -4,
+    transition: { duration: 0.15 },
+  },
+};
 
 export function AppLayout() {
   const location = useLocation();
@@ -17,7 +32,18 @@ export function AppLayout() {
         <div className="flex-1 flex flex-col min-h-screen">
           {!isAskPage && <TopBar />}
           <main className={`flex-1 ${isAskPage ? "" : "pb-20 md:pb-0"}`}>
-            <Outlet />
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="h-full"
+              >
+                <Outlet />
+              </motion.div>
+            </AnimatePresence>
           </main>
         </div>
         {!isAskPage && <MobileNav />}

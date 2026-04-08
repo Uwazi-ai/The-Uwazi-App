@@ -48,34 +48,40 @@ export function DesktopSidebar() {
   };
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-3 py-2.5 rounded-card text-sm font-medium transition-all ${
+    `flex items-center gap-[10px] px-[14px] py-[9px] rounded-lg mx-2 my-[1px] text-[13.5px] tracking-[-0.01em] cursor-pointer transition-all duration-150 ${
       isActive
-        ? "bg-primary/15 text-primary border-l-2 border-primary"
-        : "text-muted-foreground hover:bg-muted hover:text-foreground border-l-2 border-transparent"
+        ? "bg-primary/[0.12] text-primary font-medium border border-primary/[0.15]"
+        : "text-muted-foreground hover:bg-[rgba(255,255,255,0.05)] hover:text-foreground font-[450] border border-transparent"
     }`;
 
   return (
-    <aside className="hidden md:flex flex-col w-[230px] border-r border-border bg-sidebar h-screen sticky top-0">
+    <aside className="hidden md:flex flex-col w-[192px] h-screen sticky top-0 glass-strong"
+      style={{
+        borderRight: "1px solid rgba(255,255,255,0.06)",
+        boxShadow: "1px 0 0 rgba(255,255,255,0.03)",
+      }}>
       <div className="flex items-center gap-2.5 px-5 py-5">
         <img src={uwaziLogo} alt="UWAZI.APP" className="h-14" />
       </div>
 
-      <nav className="flex-1 flex flex-col px-3 py-2 gap-0.5 overflow-y-auto">
+      <nav className="flex-1 flex flex-col py-2 gap-0 overflow-y-auto">
         {mainNav.map((item) => (
           <NavLink key={item.to} to={item.to} end={item.to === "/"} className={linkClass}>
-            <item.icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
+            <item.icon className="h-4 w-4 opacity-70 shrink-0" strokeWidth={1.8} />
             {item.label}
           </NavLink>
         ))}
 
         {isAdmin && (
           <>
-            <div className="mt-4 mb-2 px-3">
-              <p className="text-[10px] font-axis tracking-[0.2em] text-primary uppercase">SUPER ADMIN</p>
+            <div className="mt-4 mb-2 px-[22px]">
+              <p className="text-[10px] font-semibold tracking-[0.06em] uppercase" style={{ color: "hsl(var(--text-tertiary))" }}>
+                SUPER ADMIN
+              </p>
             </div>
             {adminNav.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.to === "/admin"} className={linkClass}>
-                <item.icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
+                <item.icon className="h-4 w-4 opacity-70 shrink-0" strokeWidth={1.8} />
                 {item.label}
               </NavLink>
             ))}
@@ -83,22 +89,24 @@ export function DesktopSidebar() {
         )}
       </nav>
 
-      <div className="px-3 py-3 border-t border-border flex flex-col gap-0.5">
+      <div className="py-3 flex flex-col gap-0" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
         {bottomNav.map((item) => (
           <NavLink key={item.to} to={item.to} className={linkClass}>
-            <item.icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
+            <item.icon className="h-4 w-4 opacity-70 shrink-0" strokeWidth={1.8} />
             {item.label}
           </NavLink>
         ))}
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-card text-sm font-medium text-destructive hover:bg-destructive/10 transition-all border-l-2 border-transparent"
+          className="flex items-center gap-[10px] px-[14px] py-[9px] rounded-lg mx-2 my-[1px] text-[13.5px] font-[450] text-destructive hover:bg-destructive/10 transition-all duration-150 border border-transparent"
         >
-          <LogOut className="h-[18px] w-[18px]" strokeWidth={1.8} />
+          <LogOut className="h-4 w-4 opacity-70 shrink-0" strokeWidth={1.8} />
           Sign Out
         </button>
 
-        <div className="flex items-center gap-3 px-3 py-3 mt-1 border-t border-border">
+        {/* User card */}
+        <div className="flex items-center gap-[10px] mx-2 mt-2 p-3 rounded-card border border-[rgba(255,255,255,0.06)]"
+          style={{ background: "rgba(255,255,255,0.03)" }}>
           <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold shrink-0 overflow-hidden">
             {avatarUrl ? (
               <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
@@ -107,7 +115,7 @@ export function DesktopSidebar() {
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
+            <p className="text-[13px] font-medium text-foreground truncate">{displayName}</p>
             <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
           </div>
         </div>
