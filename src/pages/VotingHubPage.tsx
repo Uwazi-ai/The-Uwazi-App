@@ -180,7 +180,7 @@ export default function VotingHubPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-8">
+    <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 space-y-6 md:space-y-8">
       {/* Demo banner */}
       {isDemo && (
         <div className="bg-card border border-primary/30 rounded-card p-3 flex items-center gap-2">
@@ -201,8 +201,8 @@ export default function VotingHubPage() {
       {/* Hero text */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <p className="eyebrow mb-2">YOUR CIVIC ACTION CENTER</p>
-        <h1 className="font-heading text-5xl md:text-6xl text-foreground leading-none">YOUR VOTE. YOUR POWER.</h1>
-        <p className="text-lg text-muted-foreground mt-1">Everything you need to show up and make it count.</p>
+        <h1 className="font-heading text-3xl sm:text-4xl md:text-6xl text-foreground leading-none">YOUR VOTE. YOUR POWER.</h1>
+        <p className="text-sm md:text-lg text-muted-foreground mt-1">Everything you need to show up and make it count.</p>
         {needsFullAddress && (
           <p className="text-xs text-muted-foreground mt-2">
             <Link to="/settings" className="text-primary hover:underline">Add or update your full address →</Link> for precise polling location and ballot data.

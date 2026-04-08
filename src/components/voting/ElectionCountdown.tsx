@@ -73,17 +73,17 @@ export default function ElectionCountdown({
       />
 
       <p className="eyebrow text-muted-foreground mb-1">🗳️ NEXT ELECTION</p>
-      <h2 className="font-heading text-2xl md:text-3xl text-foreground">{electionName}</h2>
+      <h2 className="font-heading text-xl sm:text-2xl md:text-3xl text-foreground">{electionName}</h2>
       <p className="text-sm text-muted-foreground mt-1">
         {new Date(electionDate).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
       </p>
 
       {/* Countdown grid */}
-      <div className="grid grid-cols-4 md:flex gap-3 mt-5">
+      <div className="grid grid-cols-4 gap-2 sm:gap-3 mt-5">
         {units.map((unit) => (
           <div
             key={unit.label}
-            className="flex flex-col items-center rounded-2xl py-3 px-2 md:px-5 md:min-w-[72px]"
+            className="flex flex-col items-center rounded-xl sm:rounded-2xl py-2 sm:py-3 px-1 sm:px-2 md:px-5"
             style={{
               background: "var(--card-bg, rgba(0,0,0,0.3))",
               border: "1px solid rgba(155,211,75,0.15)",
@@ -93,12 +93,12 @@ export default function ElectionCountdown({
               key={unit.value}
               initial={{ opacity: 0.6, y: -2 }}
               animate={{ opacity: 1, y: 0 }}
-              className="font-heading text-3xl md:text-4xl font-extrabold text-primary leading-none"
+              className="font-heading text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary leading-none"
               style={{ letterSpacing: "-0.02em" }}
             >
               {String(unit.value).padStart(unit.label === "DAYS" ? 1 : 2, "0")}
             </motion.span>
-            <span className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground mt-1.5">
+            <span className="text-[9px] sm:text-[10px] font-semibold tracking-widest uppercase text-muted-foreground mt-1 sm:mt-1.5">
               {unit.label}
             </span>
           </div>

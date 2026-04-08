@@ -81,7 +81,7 @@ export default function BillDetailPage() {
   const latestAction = bill.latestAction;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 md:px-8 py-8 space-y-6">
+    <div className="max-w-4xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 space-y-6">
       <button onClick={() => navigate("/legislation")} className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1">
         <ArrowLeft className="h-4 w-4" /> Back to Legislation
       </button>

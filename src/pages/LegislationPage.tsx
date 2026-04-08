@@ -211,11 +211,11 @@ export default function LegislationPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-8">
+    <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 space-y-6 md:space-y-8">
       {/* Hero */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <p className="eyebrow mb-2">LEGISLATION TRACKER</p>
-        <h1 className="font-heading text-5xl md:text-6xl text-foreground leading-none">KNOW WHAT'S BEING DECIDED.</h1>
+        <h1 className="font-heading text-2xl sm:text-4xl md:text-6xl text-foreground leading-none">KNOW WHAT'S BEING DECIDED.</h1>
         <div className="flex gap-3 mt-4 flex-wrap">
           <span className="px-3 py-1.5 bg-card border border-border rounded-pill text-xs font-medium text-foreground">
             {isLoading ? "..." : `${bills.length} Bills Found`}

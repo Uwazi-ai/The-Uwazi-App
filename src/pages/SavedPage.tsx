@@ -111,7 +111,7 @@ export default function SavedPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 md:py-8 space-y-5">
+    <div className="max-w-2xl mx-auto px-4 py-6 md:py-8 pb-24 md:pb-8 space-y-5">
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <BookmarkCheck className="h-6 w-6 text-primary" /> Saved Items

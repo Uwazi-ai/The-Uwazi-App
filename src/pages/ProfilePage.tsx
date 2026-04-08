@@ -67,7 +67,7 @@ export default function ProfilePage() {
   const locationText = [profile?.zip_code, profile?.location].filter(Boolean).join(" · ") || "No location set";
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 md:py-8 space-y-6">
+    <div className="max-w-2xl mx-auto px-4 py-6 md:py-8 pb-24 md:pb-8 space-y-6">
       {/* Profile Header */}
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-4">
         <div className="h-16 w-16 rounded-2xl gradient-civic flex items-center justify-center text-primary-foreground text-xl font-bold shadow-elevated">
