@@ -401,3 +401,42 @@ button, a, .hover-lift, .follow-up-pill, [class*="animate-"] {
 body {
   line-height: 1.6;
 }
+
+/* ═══ Nav icon containers ═══ */
+.nav-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.nav-item:hover .nav-icon-wrap {
+  background: hsl(var(--primary) / 0.08);
+}
+
+.nav-item.active .nav-icon-wrap {
+  background: hsl(var(--primary) / 0.15);
+  box-shadow: 0 0 12px hsl(var(--primary) / 0.1);
+}
+
+.nav-item.active .nav-icon-wrap svg {
+  color: hsl(var(--primary));
+}
+
+.nav-item:not(.active) .nav-icon-wrap svg {
+  color: var(--text-secondary, hsl(var(--muted-foreground)));
+}
+
+.nav-item:hover:not(.active) .nav-icon-wrap svg {
+  color: hsl(var(--primary) / 0.6);
+}
+
+/* ═══ Bottom nav active icon glow ═══ */
+.bottom-nav-item.active svg {
+  filter: drop-shadow(0 0 6px hsl(var(--primary) / 0.35));
+}
