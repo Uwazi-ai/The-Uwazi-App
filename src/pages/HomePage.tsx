@@ -253,7 +253,8 @@ function StatCard({ label, value, sub, icon, accent, link, animate }: {
   animate?: boolean;
 }) {
   const numericValue = typeof value === "number" ? value : 0;
-  const displayValue = animate && typeof value === "number" ? useCountUp(numericValue) : value;
+  const countedValue = useCountUp(numericValue);
+  const displayValue = animate && typeof value === "number" ? countedValue : value;
 
   const inner = (
     <div className="rounded-card p-4 md:p-5 card-highlight hover-lift transition-all"
