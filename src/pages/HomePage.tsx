@@ -56,11 +56,11 @@ export default function HomePage() {
   const greeting = hour < 12 ? "GOOD MORNING" : hour < 18 ? "GOOD AFTERNOON" : "GOOD EVENING";
 
   return (
-    <motion.div variants={containerVariants} initial="hidden" animate="show" className="max-w-6xl mx-auto px-4 md:px-10 py-6 md:py-8 space-y-5 md:space-y-6">
+    <motion.div variants={containerVariants} initial="hidden" animate="show" className="max-w-6xl mx-auto px-4 md:px-10 py-6 md:py-8 pb-24 md:pb-8 space-y-5 md:space-y-6">
       {/* Hero */}
       <motion.div variants={itemVariants} className="pt-2 md:pt-4">
         <p className="eyebrow mb-2">YOUR CIVIC DASHBOARD</p>
-        <h1 className="font-heading text-4xl sm:text-5xl md:text-[52px] text-foreground leading-[1.05]">
+        <h1 className="font-heading text-3xl sm:text-4xl md:text-[52px] text-foreground leading-[1.05]">
           {greeting}, {displayName.toUpperCase()}.
         </h1>
         <p className="text-[15px] text-muted-foreground mt-1">Build your Civic Freedom</p>

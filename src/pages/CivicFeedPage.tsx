@@ -110,7 +110,7 @@ export default function CivicFeedPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-6">
+    <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 space-y-6">
       {/* Nonpartisan banner */}
       {!bannerDismissed && (
         <div className="bg-card border border-border rounded-card p-3 flex items-center justify-between">
@@ -126,8 +126,8 @@ export default function CivicFeedPage() {
       {/* Hero */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <p className="eyebrow mb-2">CIVIC FEED</p>
-        <h1 className="font-heading text-5xl md:text-6xl text-foreground leading-none">STAY INFORMED.</h1>
-        <p className="text-lg text-muted-foreground mt-1">Nonpartisan civic news curated for your community.</p>
+        <h1 className="font-heading text-3xl sm:text-4xl md:text-6xl text-foreground leading-none">STAY INFORMED.</h1>
+        <p className="text-sm md:text-lg text-muted-foreground mt-1">Nonpartisan civic news curated for your community.</p>
         {zipCode && (
           <span className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 bg-card border border-border rounded-pill text-xs font-medium text-foreground">
             <MapPin className="h-3 w-3 text-primary" /> {zipCode} · Personalized for your area

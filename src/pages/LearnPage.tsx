@@ -104,7 +104,7 @@ export default function LearnPage() {
     const progressPct = ((currentBlock + 1) / blocks.length) * 100;
 
     return (
-      <div className="max-w-3xl mx-auto px-4 md:px-8 py-8">
+      <div className="max-w-3xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8">
         {/* Progress bar */}
         <div className="h-1.5 rounded-full bg-muted mb-6 overflow-hidden">
           <motion.div className="h-full rounded-full bg-primary" animate={{ width: `${progressPct}%` }} />
@@ -185,12 +185,12 @@ export default function LearnPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-8">
+    <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 space-y-6 md:space-y-8">
       {/* Hero */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <p className="eyebrow mb-2">CIVIC EDUCATION</p>
-        <h1 className="font-heading text-5xl md:text-6xl text-foreground leading-none">KNOW MORE. DO MORE.</h1>
-        <p className="text-base text-muted-foreground mt-2">Nonpartisan lessons built for your community.</p>
+        <h1 className="font-heading text-3xl sm:text-4xl md:text-6xl text-foreground leading-none">KNOW MORE. DO MORE.</h1>
+        <p className="text-sm md:text-base text-muted-foreground mt-2">Nonpartisan lessons built for your community.</p>
         <div className="flex gap-3 mt-4">
           <span className="px-3 py-1.5 bg-card border border-border rounded-pill text-xs font-medium text-foreground">{lessons.length} Total Lessons</span>
           <span className="px-3 py-1.5 bg-card border border-border rounded-pill text-xs font-medium text-foreground">{completedCount} Completed</span>
