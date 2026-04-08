@@ -104,7 +104,7 @@ export default function LearnPage() {
     const progressPct = ((currentBlock + 1) / blocks.length) * 100;
 
     return (
-      <div className="max-w-3xl mx-auto px-4 md:px-8 py-8">
+      <div className="max-w-3xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8">
         {/* Progress bar */}
         <div className="h-1.5 rounded-full bg-muted mb-6 overflow-hidden">
           <motion.div className="h-full rounded-full bg-primary" animate={{ width: `${progressPct}%` }} />
