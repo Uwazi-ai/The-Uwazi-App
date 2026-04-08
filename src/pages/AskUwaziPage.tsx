@@ -665,7 +665,7 @@ export default function AskUwaziPage() {
 
               {/* 2x2 Suggestion Cards — always 2 columns */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.5 }} className="mt-5 w-full max-w-lg px-0">
+                transition={{ delay: 0.3, duration: 0.5 }} className="mt-5 w-full max-w-lg px-4">
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   {[
                     { icon: Vote, title: "What's on my ballot?", sub: "See your local races", prompt: suggestedPrompts[0] || "What's on my ballot?" },
