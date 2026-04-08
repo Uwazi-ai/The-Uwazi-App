@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, BookmarkPlus, BookmarkCheck, Share2, RotateCcw, MapPin,
-  Plus, MessageCircle, Trash2, Clock,
+  Plus, MessageCircle, Trash2, Clock, ArrowLeft,
   Copy, Check, Vote, FileText, Landmark, CalendarDays,
   Globe, ExternalLink, AlertCircle, X,
 } from "lucide-react";
