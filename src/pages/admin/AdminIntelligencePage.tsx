@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Download, Lightbulb, BookOpen, TrendingUp, AlertCircle, ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
+import { Shield, Download, Lightbulb, BookOpen, TrendingUp, AlertCircle, ChevronDown, ChevronRight, ExternalLink, Bug, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
@@ -23,10 +24,34 @@ function PriorityBadge({ score }: { score: number }) {
   return <span className="text-primary font-medium">🟢 Low</span>;
 }
 
+const ALL_STATES = [
+  { code: "AL", name: "Alabama" }, { code: "AK", name: "Alaska" }, { code: "AZ", name: "Arizona" },
+  { code: "AR", name: "Arkansas" }, { code: "CA", name: "California" }, { code: "CO", name: "Colorado" },
+  { code: "CT", name: "Connecticut" }, { code: "DE", name: "Delaware" }, { code: "FL", name: "Florida" },
+  { code: "GA", name: "Georgia" }, { code: "HI", name: "Hawaii" }, { code: "ID", name: "Idaho" },
+  { code: "IL", name: "Illinois" }, { code: "IN", name: "Indiana" }, { code: "IA", name: "Iowa" },
+  { code: "KS", name: "Kansas" }, { code: "KY", name: "Kentucky" }, { code: "LA", name: "Louisiana" },
+  { code: "ME", name: "Maine" }, { code: "MD", name: "Maryland" }, { code: "MA", name: "Massachusetts" },
+  { code: "MI", name: "Michigan" }, { code: "MN", name: "Minnesota" }, { code: "MS", name: "Mississippi" },
+  { code: "MO", name: "Missouri" }, { code: "MT", name: "Montana" }, { code: "NE", name: "Nebraska" },
+  { code: "NV", name: "Nevada" }, { code: "NH", name: "New Hampshire" }, { code: "NJ", name: "New Jersey" },
+  { code: "NM", name: "New Mexico" }, { code: "NY", name: "New York" }, { code: "NC", name: "North Carolina" },
+  { code: "ND", name: "North Dakota" }, { code: "OH", name: "Ohio" }, { code: "OK", name: "Oklahoma" },
+  { code: "OR", name: "Oregon" }, { code: "PA", name: "Pennsylvania" }, { code: "RI", name: "Rhode Island" },
+  { code: "SC", name: "South Carolina" }, { code: "SD", name: "South Dakota" }, { code: "TN", name: "Tennessee" },
+  { code: "TX", name: "Texas" }, { code: "UT", name: "Utah" }, { code: "VT", name: "Vermont" },
+  { code: "VA", name: "Virginia" }, { code: "WA", name: "Washington" }, { code: "WV", name: "West Virginia" },
+  { code: "WI", name: "Wisconsin" }, { code: "WY", name: "Wyoming" }, { code: "DC", name: "Washington DC" },
+];
+
 export default function AdminIntelligencePage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [openTopics, setOpenTopics] = useState<Record<string, boolean>>({});
+  const [scrapeState, setScrapeState] = useState("MO");
+  const [scrapeCity, setScrapeCity] = useState("Kansas City");
+  const [scrapeType, setScrapeType] = useState("all");
+  const [isRunning, setIsRunning] = useState(false);
 
   // ─── Existing data ───
   const { data: raiaData, isLoading: raiaLoading } = useQuery({
@@ -160,6 +185,43 @@ export default function AdminIntelligencePage() {
     const text = `UWAZI.AI Impact Report\n\n• Civic education hours: ${impact.estHours}\n• Communities reached: ${impact.uniqueZips} ZIP codes\n• Voters with plans: ${impact.votersWithPlans}\n• Users from underrepresented areas: ${impact.underrepPct}%\n• Total users: ${impact.totalUsers}`;
     navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard");
+  };
+
+  // ─── Ballotpedia Scraper ───
+  const { data: scraperLogs } = useQuery({
+    queryKey: ["admin-scraper-logs"],
+    queryFn: async () => {
+      const { data } = await supabase.from("ballotpedia_scraper_log").select("*").order("started_at", { ascending: false }).limit(10);
+      return data || [];
+    },
+  });
+
+  const { data: scrapedCandidates } = useQuery({
+    queryKey: ["admin-scraped-candidates", scrapeState],
+    queryFn: async () => {
+      const { data } = await supabase.from("ballotpedia_candidates").select("*").eq("state_code", scrapeState).order("office").limit(50);
+      return data || [];
+    },
+  });
+
+  const triggerScraper = async () => {
+    setIsRunning(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ballotpedia-scraper", {
+        body: { state_code: scrapeState, city: scrapeCity, scrape_type: scrapeType, year: new Date().getFullYear() },
+      });
+      if (error) throw error;
+      if (data?.success) {
+        const r = data.results;
+        toast.success(`Scraped: ${r.candidates} candidates, ${r.measures} measures, ${r.officials} officials, ${r.elections} elections`);
+        queryClient.invalidateQueries({ queryKey: ["admin-scraper-logs"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-scraped-candidates"] });
+      }
+    } catch (err: any) {
+      toast.error(`Scraper error: ${err.message}`);
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   return (
@@ -359,6 +421,113 @@ export default function AdminIntelligencePage() {
             )}
           </div>
         </Card>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* ═══ BALLOTPEDIA SCRAPER ═══ */}
+      {/* ═══════════════════════════════════════════════════════ */}
+      <div className="border-b border-border pb-8">
+        <div className="flex items-center gap-2 mb-6">
+          <Bug className="h-5 w-5 text-primary" />
+          <h2 className="text-xl md:text-2xl font-axis uppercase text-foreground">BALLOTPEDIA SCRAPER</h2>
+          {scraperLogs?.[0] && (
+            <span className="text-xs text-muted-foreground ml-auto">
+              Last run: {new Date(scraperLogs[0].started_at || "").toLocaleDateString()} — {scraperLogs[0].status} ({scraperLogs[0].records_scraped} records)
+            </span>
+          )}
+        </div>
+
+        <Card className="bg-card border-border p-5 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
+            <Select value={scrapeState} onValueChange={setScrapeState}>
+              <SelectTrigger><SelectValue placeholder="State" /></SelectTrigger>
+              <SelectContent>
+                {ALL_STATES.map((s) => (
+                  <SelectItem key={s.code} value={s.code}>{s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input placeholder="City (optional)" value={scrapeCity} onChange={(e) => setScrapeCity(e.target.value)} className="bg-background border-border" />
+            <Select value={scrapeType} onValueChange={setScrapeType}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Data</SelectItem>
+                <SelectItem value="candidates">Candidates Only</SelectItem>
+                <SelectItem value="measures">Measures Only</SelectItem>
+                <SelectItem value="officials">Officials Only</SelectItem>
+                <SelectItem value="elections">Elections Only</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={triggerScraper} disabled={isRunning} className="bg-primary text-primary-foreground gap-2">
+              {isRunning ? <><Loader2 className="h-4 w-4 animate-spin" /> Scraping...</> : "🕷️ Run Scraper"}
+            </Button>
+          </div>
+        </Card>
+
+        {/* Scraped candidates preview */}
+        {scrapedCandidates && scrapedCandidates.length > 0 && (
+          <Card className="bg-card border-border p-4">
+            <h3 className="text-sm font-axis uppercase text-foreground mb-3">SCRAPED CANDIDATES ({scrapeState})</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-muted-foreground">
+                    <th className="p-2 font-medium">Name</th>
+                    <th className="p-2 font-medium">Party</th>
+                    <th className="p-2 font-medium">Office</th>
+                    <th className="p-2 font-medium">Level</th>
+                    <th className="p-2 font-medium">Link</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {scrapedCandidates.map((c) => (
+                    <tr key={c.id} className="border-b border-border hover:bg-primary/5">
+                      <td className="p-2 text-foreground font-medium">{c.name}</td>
+                      <td className="p-2">
+                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: `${c.party_color || "#6b7280"}20`, color: c.party_color || "#6b7280" }}>
+                          {c.party}
+                        </span>
+                      </td>
+                      <td className="p-2 text-muted-foreground text-xs">{c.office}</td>
+                      <td className="p-2 text-muted-foreground text-xs capitalize">{c.office_level}</td>
+                      <td className="p-2">
+                        {c.ballotpedia_url && (
+                          <a href={c.ballotpedia_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                            View ↗
+                          </a>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
+
+        {/* Scraper log */}
+        {scraperLogs && scraperLogs.length > 0 && (
+          <Card className="bg-card border-border p-4 mt-4">
+            <h3 className="text-sm font-axis uppercase text-foreground mb-3">SCRAPER LOG</h3>
+            <div className="space-y-2">
+              {scraperLogs.map((log) => (
+                <div key={log.id} className="flex items-center justify-between text-xs py-1.5 border-b border-border last:border-0">
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline" className={`text-[10px] ${log.status === "success" ? "border-primary text-primary" : log.status === "error" ? "border-destructive text-destructive" : "border-amber-400 text-amber-400"}`}>
+                      {log.status}
+                    </Badge>
+                    <span className="text-muted-foreground">{log.job_type}</span>
+                    <span className="text-foreground">{log.state_code}{log.city ? ` / ${log.city}` : ""}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-muted-foreground">
+                    <span>{log.records_scraped} records</span>
+                    <span>{log.started_at ? new Date(log.started_at).toLocaleString() : "—"}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
       </div>
 
       {/* ═══ Existing sections ═══ */}

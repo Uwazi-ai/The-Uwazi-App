@@ -23,6 +23,8 @@ import { format, differenceInDays } from "date-fns";
 import ElectionCountdown from "@/components/voting/ElectionCountdown";
 import RegistrationCheck from "@/components/voting/RegistrationCheck";
 import BallotSection from "@/components/voting/BallotSection";
+import BallotpediaSection from "@/components/voting/BallotpediaSection";
+import { useBallotpediaData } from "@/hooks/useBallotpediaData";
 
 // Demo data
 const demoElections = [
@@ -61,6 +63,7 @@ export default function VotingHubPage() {
   const { data: electionsData, isLoading: electionsLoading, error: electionsError } = useElections();
   const { data: voterData, isLoading: voterLoading } = useVoterInfo(address);
 
+  const { candidates: bpCandidates, measures: bpMeasures, loading: bpLoading } = useBallotpediaData(stateCode || undefined, city || undefined);
   const liveElections = (electionsData?.elections || []).filter((e: any) => e.id !== "2000");
   const noLiveVoterData = voterData?.status === "no_election";
   const invalidVoterAddress = voterData?.status === "invalid_address";
@@ -365,6 +368,11 @@ export default function VotingHubPage() {
         isDemo={isDemo}
         electionDate={nextElectionDate}
       />
+
+      {/* BALLOTPEDIA ENRICHED DATA */}
+      {(bpCandidates.length > 0 || bpMeasures.length > 0) && (
+        <BallotpediaSection candidates={bpCandidates} measures={bpMeasures} />
+      )}
 
       {/* Review Ballot Modal */}
       <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>

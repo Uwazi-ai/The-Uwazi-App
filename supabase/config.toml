@@ -5,3 +5,5 @@ project_id = "zigemhmhbzegwbgvvmpc"
     verify_jwt = false
   [functions.process-email-queue]
     verify_jwt = true
+  [functions.ballotpedia-scraper]
+    verify_jwt = false
