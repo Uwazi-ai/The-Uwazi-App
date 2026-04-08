@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   User, MapPin, Bell, Camera, Save, LogOut, Lock, Trash2,
   Check, X, Loader2, Eye, EyeOff, AlertTriangle, ChevronLeft, Download, Monitor,
-  Sun, Moon, Laptop,
+  Sun, Moon, Laptop, Pencil,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -15,6 +15,7 @@ import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
@@ -23,6 +24,7 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
+import { US_STATES, getStateFromZip } from "@/utils/stateFromZip";
 
 interface ProfileData {
   display_name: string | null;
@@ -33,6 +35,11 @@ interface ProfileData {
   notify_new_lessons: boolean;
   notify_streak_reminders: boolean;
   notify_civic_alerts: boolean;
+  address_line1: string | null;
+  address_line2: string | null;
+  city: string | null;
+  state_code: string | null;
+  full_address: string | null;
 }
 
 function ThemePreview({ mode }: { mode: "dark" | "light" | "system" }) {
@@ -81,7 +88,6 @@ export default function SettingsPage() {
 
   useEffect(() => setThemeMounted(true), []);
 
-  // Loading state
   const [loading, setLoading] = useState(true);
 
   // Profile fields
@@ -94,11 +100,15 @@ export default function SettingsPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
-  // Location
-  const [zipCode, setZipCode] = useState("");
-  const [streetAddress, setStreetAddress] = useState("");
-  const [zipTouched, setZipTouched] = useState(false);
-  const [savingLocation, setSavingLocation] = useState(false);
+  // Address fields
+  const [addressLine1, setAddressLine1] = useState("");
+  const [addressLine2, setAddressLine2] = useState("");
+  const [addressCity, setAddressCity] = useState("");
+  const [addressState, setAddressState] = useState("");
+  const [addressZip, setAddressZip] = useState("");
+  const [editingAddress, setEditingAddress] = useState(false);
+  const [savingAddress, setSavingAddress] = useState(false);
+  const [currentFullAddress, setCurrentFullAddress] = useState<string | null>(null);
 
   // Notifications
   const [notifyElections, setNotifyElections] = useState(true);
@@ -118,8 +128,14 @@ export default function SettingsPage() {
   // Delete account
   const [deletingAccount, setDeletingAccount] = useState(false);
 
-  const isZipValid = /^\d{5}$/.test(zipCode);
-  const showZipError = zipTouched && zipCode.length > 0 && !isZipValid;
+  const isZipValid = /^\d{5}$/.test(addressZip);
+
+  // Auto-fill state from ZIP
+  useEffect(() => {
+    if (isZipValid && editingAddress) {
+      setAddressState(getStateFromZip(addressZip));
+    }
+  }, [addressZip, isZipValid, editingAddress]);
 
   // Load profile data
   useEffect(() => {
@@ -128,19 +144,23 @@ export default function SettingsPage() {
       setLoading(true);
       const { data } = await supabase
         .from("profiles")
-        .select("display_name, zip_code, street_address, avatar_url, notify_elections, notify_new_lessons, notify_streak_reminders, notify_civic_alerts")
+        .select("display_name, zip_code, street_address, avatar_url, notify_elections, notify_new_lessons, notify_streak_reminders, notify_civic_alerts, address_line1, address_line2, city, state_code, full_address")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (data) {
         setDisplayName(data.display_name || "");
-        setZipCode(data.zip_code || "");
-        setStreetAddress(data.street_address || "");
         setAvatarUrl(data.avatar_url);
         setNotifyElections(data.notify_elections ?? true);
         setNotifyNewLessons(data.notify_new_lessons ?? true);
         setNotifyStreakReminders(data.notify_streak_reminders ?? true);
         setNotifyCivicAlerts(data.notify_civic_alerts ?? true);
+        setAddressLine1((data as any).address_line1 || data.street_address || "");
+        setAddressLine2((data as any).address_line2 || "");
+        setAddressCity((data as any).city || "");
+        setAddressState((data as any).state_code || "");
+        setAddressZip(data.zip_code || "");
+        setCurrentFullAddress((data as any).full_address || null);
       }
       setLoading(false);
     };
@@ -188,14 +208,24 @@ export default function SettingsPage() {
     refreshProfile();
   };
 
-  const handleSaveLocation = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-    if (!isZipValid) { setZipTouched(true); return; }
-    setSavingLocation(true);
-    await supabase.from("profiles").update({ zip_code: zipCode.trim(), street_address: streetAddress.trim() || null }).eq("user_id", user.id);
-    setSavingLocation(false);
-    toast.success("Civic location updated ✓");
+  const handleSaveAddress = async () => {
+    if (!user || !isZipValid || !addressLine1.trim() || !addressCity.trim() || !addressState) return;
+    setSavingAddress(true);
+    const fullAddr = `${addressLine1.trim()}${addressLine2.trim() ? " " + addressLine2.trim() : ""}, ${addressCity.trim()}, ${addressState} ${addressZip.trim()}`;
+    await supabase.from("profiles").update({
+      address_line1: addressLine1.trim(),
+      address_line2: addressLine2.trim() || null,
+      city: addressCity.trim(),
+      state_code: addressState,
+      zip_code: addressZip.trim(),
+      full_address: fullAddr,
+      street_address: addressLine1.trim(),
+    }).eq("user_id", user.id);
+    setCurrentFullAddress(fullAddr);
+    setSavingAddress(false);
+    setEditingAddress(false);
+    toast.success("Voting address updated ✓");
+    refreshProfile();
   };
 
   const handleToggle = useCallback(async (key: string, value: boolean) => {
@@ -250,6 +280,8 @@ export default function SettingsPage() {
     { value: "system" as const, label: "System", icon: Laptop },
   ];
 
+  const addressIsValid = addressLine1.trim().length >= 5 && addressCity.trim().length >= 2 && addressState && isZipValid;
+
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto px-4 md:px-8 py-8 space-y-8">
@@ -298,7 +330,7 @@ export default function SettingsPage() {
         </div>
       </motion.div>
 
-      {/* ═══ APPEARANCE ═══ */}
+      {/* APPEARANCE */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
         className="rounded-xl p-6 space-y-4" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
         <h3 className="font-heading text-xl text-foreground flex items-center gap-2">
@@ -351,37 +383,93 @@ export default function SettingsPage() {
         </Button>
       </motion.form>
 
-      {/* Civic Location */}
-      <motion.form onSubmit={handleSaveLocation} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+      {/* YOUR VOTING ADDRESS */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
         className="rounded-xl p-6 space-y-4" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
-        <h3 className="font-heading text-xl text-foreground">YOUR CIVIC LOCATION</h3>
-        {zipCode && isZipValid && (
-          <div className="flex items-center gap-2 px-3 py-2 bg-primary/15 rounded-full w-fit">
-            <MapPin className="h-4 w-4 text-primary" />
-            <span className="text-sm font-semibold text-primary">📍 {zipCode}</span>
+        <h3 className="font-heading text-xl text-foreground">YOUR VOTING ADDRESS</h3>
+        <p className="text-xs text-muted-foreground">
+          We use your address to find your exact polling location and personalize your ballot information.
+        </p>
+
+        {!editingAddress ? (
+          <div className="flex items-start justify-between gap-3">
+            {currentFullAddress ? (
+              <div className="flex items-start gap-2">
+                <MapPin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                <div className="text-sm text-foreground leading-relaxed">
+                  {addressLine1 && <p>{addressLine1}</p>}
+                  {addressLine2 && <p>{addressLine2}</p>}
+                  <p>{[addressCity, addressState, addressZip].filter(Boolean).join(", ").replace(", ", ", ").replace(addressState + ", " + addressZip, addressState + " " + addressZip)}</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">No voting address set</p>
+            )}
+            <Button variant="ghost" size="sm" onClick={() => setEditingAddress(true)} className="gap-1.5 text-xs shrink-0">
+              <Pencil className="h-3.5 w-3.5" /> Edit
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                Street Address <span className="text-destructive">*</span>
+              </label>
+              <Input value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} placeholder="123 Main Street"
+                className="bg-background border-border text-base" maxLength={100} />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Apt / Suite (optional)</label>
+              <Input value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} placeholder="Apt 4B, Suite 200..."
+                className="bg-background border-border text-base" maxLength={50} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_40%] gap-3">
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                  City <span className="text-destructive">*</span>
+                </label>
+                <Input value={addressCity} onChange={(e) => setAddressCity(e.target.value)} placeholder="Kansas City"
+                  className="bg-background border-border text-base" maxLength={50} />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                  State <span className="text-destructive">*</span>
+                </label>
+                <Select value={addressState} onValueChange={setAddressState}>
+                  <SelectTrigger className="bg-background border-border text-base">
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {US_STATES.map((s) => (
+                      <SelectItem key={s.code} value={s.code}>{s.code} — {s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="md:w-[40%]">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                ZIP Code <span className="text-destructive">*</span>
+              </label>
+              <div className="relative">
+                <Input value={addressZip} onChange={(e) => setAddressZip(e.target.value.replace(/\D/g, "").slice(0, 5))}
+                  inputMode="numeric" maxLength={5} placeholder="64139"
+                  className={`bg-background pr-10 text-base ${isZipValid ? "border-primary/50" : "border-border"}`} />
+                {isZipValid && <Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />}
+              </div>
+            </div>
+            <div className="flex items-center gap-3 pt-1">
+              <Button onClick={handleSaveAddress} disabled={!addressIsValid || savingAddress} size="sm" className="gap-1.5">
+                {savingAddress ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                Save Address
+              </Button>
+              <button onClick={() => setEditingAddress(false)} className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                <X className="h-3.5 w-3.5" /> Cancel
+              </button>
+            </div>
           </div>
         )}
-        <div>
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
-            ZIP Code <span className="text-destructive">*</span>
-          </label>
-          <div className="relative">
-            <Input value={zipCode} onChange={(e) => setZipCode(e.target.value.replace(/\D/g, "").slice(0, 5))}
-              onBlur={() => setZipTouched(true)} inputMode="numeric" maxLength={5} placeholder="e.g. 64110"
-              className={`bg-background pr-10 ${showZipError ? "border-destructive" : isZipValid ? "border-primary/50" : "border-border"}`} />
-            {isZipValid && <Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />}
-          </div>
-          {showZipError && <p className="text-xs text-destructive mt-1">Please enter a valid 5-digit ZIP code</p>}
-        </div>
-        <div>
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Street Address (optional)</label>
-          <Input value={streetAddress} onChange={(e) => setStreetAddress(e.target.value)} placeholder="123 Main St" className="bg-background border-border" />
-        </div>
-        <Button type="submit" disabled={savingLocation || !isZipValid} className="bg-primary text-primary-foreground gap-1.5">
-          {savingLocation ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
-          {savingLocation ? "Saving..." : "Save Location"}
-        </Button>
-      </motion.form>
+      </motion.div>
 
       {/* Notifications */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
