@@ -527,7 +527,7 @@ export default function AskUwaziPage() {
   );
 
   return (
-    <div className="flex relative bg-background overflow-hidden"
+    <div className="flex relative bg-background overflow-hidden w-full max-w-[100vw]"
       style={{
         height: "100dvh",
         paddingTop: "env(safe-area-inset-top)",
@@ -665,7 +665,7 @@ export default function AskUwaziPage() {
 
               {/* 2x2 Suggestion Cards — always 2 columns */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.5 }} className="mt-5 w-full max-w-lg px-0">
+                transition={{ delay: 0.3, duration: 0.5 }} className="mt-5 w-full max-w-lg px-4">
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   {[
                     { icon: Vote, title: "What's on my ballot?", sub: "See your local races", prompt: suggestedPrompts[0] || "What's on my ballot?" },
@@ -703,7 +703,7 @@ export default function AskUwaziPage() {
 
               {/* Web Search row */}
               <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6, duration: 0.5 }} className="mt-4 w-full max-w-lg px-0">
+                transition={{ delay: 0.6, duration: 0.5 }} className="mt-4 w-full max-w-lg px-4 overflow-hidden">
                 <div className="flex items-center gap-2 mb-2 px-1">
                   <Globe className="w-3.5 h-3.5 text-primary" />
                   <span className="text-[10px] sm:text-[11px] text-primary font-medium tracking-wide">RESEARCH WITH LIVE WEB SEARCH</span>
