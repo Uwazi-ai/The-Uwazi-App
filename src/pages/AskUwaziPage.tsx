@@ -608,13 +608,12 @@ export default function AskUwaziPage() {
         }}>
 
         {/* ─── Top Bar ─── */}
-        <div className="flex items-center justify-between px-3 md:px-5 py-2.5 shrink-0 z-10"
+        <div className="flex items-center justify-between px-3 md:px-5 py-2.5 shrink-0 z-10 topbar-safe"
           style={{
             borderBottom: "1px solid rgba(155, 211, 75, 0.08)",
             background: "rgba(13,13,13,0.95)",
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
-            paddingTop: "max(10px, env(safe-area-inset-top))",
           }}>
           {/* Left: Back + History */}
           <div className="flex items-center gap-1">

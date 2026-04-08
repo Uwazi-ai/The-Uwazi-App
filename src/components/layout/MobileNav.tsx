@@ -78,13 +78,13 @@ export function MobileNav() {
       </AnimatePresence>
 
       {/* Bottom nav bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bottom-nav-safe"
         style={{
           background: "var(--sidebar-bg)",
           backdropFilter: "blur(30px) saturate(200%)",
           WebkitBackdropFilter: "blur(30px) saturate(200%)",
           borderTop: "1px solid var(--border-subtle)",
-          paddingBottom: "env(safe-area-inset-bottom)",
+          paddingBottom: "max(8px, env(safe-area-inset-bottom))",
         }}>
         <div className="flex items-center justify-around px-2 h-16">
           {navItems.map((item) => (

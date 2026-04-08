@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══ Safe area insets ═══ */
+:root {
+  --sat: env(safe-area-inset-top);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+  --sar: env(safe-area-inset-right);
+}
+
+html {
+  height: 100%;
+  height: -webkit-fill-available;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
 @font-face {
   font-family: 'Axis';
   src: url('/fonts/Axis_Extrabold.otf') format('opentype');
@@ -400,6 +420,35 @@ button, a, .hover-lift, .follow-up-pill, [class*="animate-"] {
 
 body {
   line-height: 1.6;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* ═══ Mobile safe area — TopBar ═══ */
+@media (max-width: 767px) {
+  .topbar-safe {
+    padding-top: max(14px, env(safe-area-inset-top));
+    height: calc(52px + env(safe-area-inset-top));
+  }
+}
+
+/* ═══ PWA standalone mode overrides ═══ */
+@media (display-mode: standalone) {
+  .topbar-safe {
+    padding-top: max(16px, env(safe-area-inset-top));
+    height: calc(56px + env(safe-area-inset-top));
+  }
+  .bottom-nav-safe {
+    padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  .topbar-safe {
+    padding-top: max(14px, env(safe-area-inset-top));
+  }
 }
 
 /* ═══ Nav icon containers ═══ */

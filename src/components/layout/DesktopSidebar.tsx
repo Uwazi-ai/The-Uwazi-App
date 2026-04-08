@@ -62,6 +62,7 @@ export function DesktopSidebar() {
       style={{
         borderRight: "1px solid var(--border-subtle)",
         boxShadow: "1px 0 0 var(--border-subtle)",
+        paddingTop: "max(0px, env(safe-area-inset-top))",
       }}>
       <div className="flex items-center gap-2.5 px-5 py-5">
         <img src={uwaziLogo} alt="UWAZI.APP" className="h-14" />
