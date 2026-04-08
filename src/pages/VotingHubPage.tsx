@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   MapPin, Calendar, Car, Footprints, Bus, CarTaxiFront,
-  Bell, CheckCircle, ExternalLink, ChevronRight, AlertCircle, Loader2, X,
+  Bell, CheckCircle, ExternalLink, ChevronRight, AlertCircle, Loader2, X, Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,13 +13,16 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { useElections, useVoterInfo } from "@/hooks/useCivicApi";
-import { useCivicLocation } from "@/hooks/useCivicLocation";
+import { useProfile } from "@/contexts/ProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
-import { format, formatDistanceToNow, differenceInDays } from "date-fns";
+import { Link, useNavigate } from "react-router-dom";
+import { format, differenceInDays } from "date-fns";
+import ElectionCountdown from "@/components/voting/ElectionCountdown";
+import RegistrationCheck from "@/components/voting/RegistrationCheck";
+import BallotSection from "@/components/voting/BallotSection";
 
 // Demo data
 const demoElections = [
@@ -45,19 +48,13 @@ const transportOptions = [
   { value: "rideshare", icon: CarTaxiFront, label: "Ride Share" },
 ];
 
-function partyColor(party: string) {
-  const p = (party || "").toLowerCase();
-  if (p.includes("dem")) return "bg-blue-500/20 text-blue-400 border-blue-500/30";
-  if (p.includes("rep")) return "bg-red-500/20 text-red-400 border-red-500/30";
-  return "bg-muted text-muted-foreground border-border";
-}
-
 export default function VotingHubPage() {
   const { user } = useAuth();
-  const { zipCode, streetAddress } = useCivicLocation();
+  const { zipCode, fullAddress, city, stateCode } = useProfile();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
-  const address = streetAddress ? `${streetAddress}, ${zipCode}` : zipCode ? `${zipCode} USA` : "";
+  const address = fullAddress || (zipCode ? `${zipCode} USA` : "");
   const { data: electionsData, isLoading: electionsLoading, error: electionsError } = useElections();
   const { data: voterData, isLoading: voterLoading } = useVoterInfo(address);
 
@@ -70,6 +67,11 @@ export default function VotingHubPage() {
   const demoBannerMessage = noLiveVoterData
     ? "No active election data is available for your address right now. Showing sample data below."
     : "Live election data requires a Google Civic API key. Showing sample data below.";
+
+  // Next election for countdown
+  const nextElection = elections[0];
+  const nextElectionDate = nextElection?.electionDay || "2026-11-03";
+  const nextElectionName = nextElection?.name || "2026 General Election";
 
   // Voting plan state
   const [planElectionDate, setPlanElectionDate] = useState<Date | undefined>();
@@ -107,7 +109,6 @@ export default function VotingHubPage() {
     }
   }, [existingPlan]);
 
-  // Pre-fill from API
   useEffect(() => {
     if (pollingLocations.length > 0 && !planPollingAddress) {
       const loc = pollingLocations[0];
@@ -165,77 +166,53 @@ export default function VotingHubPage() {
     setReviewOpen(false);
   };
 
+  const copyAddress = (addr: string) => {
+    navigator.clipboard.writeText(addr);
+    toast.success("Address copied!");
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-8">
       {/* Demo banner */}
       {isDemo && (
         <div className="bg-card border border-primary/30 rounded-card p-3 flex items-center gap-2">
           <AlertCircle className="h-4 w-4 text-primary shrink-0" />
-          <p className="text-xs text-muted-foreground">
-            {demoBannerMessage}
-          </p>
+          <p className="text-xs text-muted-foreground">{demoBannerMessage}</p>
         </div>
       )}
 
-      {/* Hero */}
+      {/* ELECTION COUNTDOWN HERO */}
+      <ElectionCountdown
+        electionName={nextElectionName}
+        electionDate={nextElectionDate}
+        city={city}
+        stateCode={stateCode}
+        zipCode={zipCode}
+      />
+
+      {/* Hero text */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <p className="eyebrow mb-2">YOUR CIVIC ACTION CENTER</p>
         <h1 className="font-heading text-5xl md:text-6xl text-foreground leading-none">YOUR VOTE. YOUR POWER.</h1>
         <p className="text-lg text-muted-foreground mt-1">Everything you need to show up and make it count.</p>
-        {zipCode && (
-          <div className="flex items-center gap-2 mt-3">
-            <MapPin className="h-4 w-4 text-primary" />
-            <span className="text-sm text-muted-foreground">
-              Showing election data for <span className="text-primary font-semibold">{zipCode}</span>
-            </span>
-            <Link to="/settings" className="text-xs text-primary hover:underline ml-1">Change Location →</Link>
-          </div>
-        )}
-        {!streetAddress && zipCode && (
-          <p className="text-xs text-muted-foreground mt-1">
-            <Link to="/settings" className="text-primary hover:underline">Add your street address →</Link> for more precise polling location data.
+        {!fullAddress && (
+          <p className="text-xs text-muted-foreground mt-2">
+            <Link to="/settings" className="text-primary hover:underline">Add your full address →</Link> for precise polling location and ballot data.
           </p>
         )}
       </motion.div>
 
-      {/* SECTION 1: UPCOMING ELECTIONS */}
+      {/* POLLING LOCATION */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-4">
-        <h2 className="font-heading text-2xl text-foreground">UPCOMING ELECTIONS</h2>
-        {electionsLoading && !isDemo ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2].map((i) => <Skeleton key={i} className="h-32 rounded-card" />)}
-          </div>
-        ) : elections.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {elections.map((election: any) => {
-              const elDate = new Date(election.electionDay);
-              const daysUntil = differenceInDays(elDate, new Date());
-              return (
-                <div key={election.id} className="bg-card rounded-card p-5 border border-border hover:border-primary/30 transition-all">
-                  <p className="text-sm font-bold text-foreground mb-2">{election.name}</p>
-                  <p className="text-2xl font-heading text-primary">{format(elDate, "MMM d, yyyy")}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {daysUntil > 0 ? `in ${daysUntil} days` : daysUntil === 0 ? "Today!" : "Past"}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="bg-card rounded-card p-6 border border-border text-center">
-            <Calendar className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-            <p className="text-muted-foreground text-sm mb-2">No upcoming elections found for your area.</p>
-            <a href="https://vote.gov" target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
-              Check vote.gov →
-            </a>
-          </div>
-        )}
-      </motion.div>
-
-      {/* SECTION 2: POLLING LOCATION */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="space-y-4">
         <h2 className="font-heading text-2xl text-foreground">YOUR POLLING LOCATION</h2>
-        {voterLoading && !isDemo ? (
+        {!fullAddress && !zipCode ? (
+          <div className="rounded-card p-6 text-center space-y-3" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
+            <MapPin className="h-8 w-8 text-primary mx-auto" />
+            <h3 className="font-heading text-lg text-foreground">Add your address to find your polling location</h3>
+            <p className="text-sm text-muted-foreground">We need your full street address to find your exact polling place.</p>
+            <Button onClick={() => navigate("/settings")} className="bg-primary text-primary-foreground">Add My Address →</Button>
+          </div>
+        ) : voterLoading && !isDemo ? (
           <Skeleton className="h-28 rounded-card" />
         ) : pollingLocations.length > 0 ? (
           <div className="space-y-3">
@@ -243,33 +220,33 @@ export default function VotingHubPage() {
               const addr = loc.address;
               const fullAddr = addr ? [addr.line1, addr.city, addr.state, addr.zip].filter(Boolean).join(", ") : "";
               return (
-                <div key={i} className="bg-card rounded-card p-5 border-l-4 border-l-primary border border-border">
-                  <div className="flex items-start justify-between">
-                    <div>
+                <div key={i} className="rounded-card p-5 border-l-4 border-l-primary" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1">
                       <p className="text-sm font-bold text-foreground flex items-center gap-1.5">
                         <MapPin className="h-4 w-4 text-primary" />
                         {loc.locationName || loc.address?.locationName || "Polling Location"}
                       </p>
-                      {fullAddr && <p className="text-xs text-muted-foreground mt-1">{fullAddr}</p>}
-                      {loc.pollingHours && <p className="text-xs text-muted-foreground mt-0.5">Hours: {loc.pollingHours}</p>}
+                      {fullAddr && <p className="text-xs text-muted-foreground">{fullAddr}</p>}
+                      {loc.pollingHours && <p className="text-xs text-muted-foreground">🕐 Hours: {loc.pollingHours}</p>}
                     </div>
-                    <a
-                      href={`https://maps.google.com/?q=${encodeURIComponent(fullAddr)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0"
-                    >
-                      <Button size="sm" className="bg-primary text-primary-foreground text-xs gap-1">
-                        <ExternalLink className="h-3 w-3" /> Directions
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2 mt-3">
+                    <a href={`https://maps.google.com/?q=${encodeURIComponent(fullAddr)}`} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none">
+                      <Button size="sm" className="w-full sm:w-auto bg-primary text-primary-foreground text-xs gap-1">
+                        <ExternalLink className="h-3 w-3" /> Get Directions
                       </Button>
                     </a>
+                    <Button size="sm" variant="outline" className="text-xs gap-1 border-border" onClick={() => copyAddress(fullAddr)}>
+                      <Copy className="h-3 w-3" /> Copy Address
+                    </Button>
                   </div>
                 </div>
               );
             })}
           </div>
         ) : (
-          <div className="bg-card rounded-card p-6 border border-border text-center">
+          <div className="rounded-card p-6 text-center" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
             <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
             <p className="text-muted-foreground text-sm mb-2">Polling location not yet available for this election.</p>
             <a href="https://vote.gov" target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
@@ -279,13 +256,16 @@ export default function VotingHubPage() {
         )}
       </motion.div>
 
-      {/* SECTION 3: VOTING PLAN BUILDER */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-        className="bg-card rounded-card p-6 border border-border"
+      {/* VOTER REGISTRATION CHECK */}
+      <RegistrationCheck stateCode={stateCode} />
+
+      {/* VOTING PLAN BUILDER */}
+      <motion.div id="voting-plan-builder" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+        className="rounded-card p-6" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}
       >
         <h2 className="font-heading text-2xl text-foreground mb-6">VOTING PLAN BUILDER</h2>
         <div className="space-y-6">
-          {/* Step 01 - Election Day */}
+          {/* Step 01 */}
           <div className="flex items-start gap-4">
             <div className="h-10 w-10 rounded-card bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">01</div>
             <div className="flex-1">
@@ -305,7 +285,7 @@ export default function VotingHubPage() {
             </div>
           </div>
 
-          {/* Step 02 - Polling Place */}
+          {/* Step 02 */}
           <div className="flex items-start gap-4">
             <div className="h-10 w-10 rounded-card bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">02</div>
             <div className="flex-1 space-y-2">
@@ -315,7 +295,7 @@ export default function VotingHubPage() {
             </div>
           </div>
 
-          {/* Step 03 - Transport */}
+          {/* Step 03 */}
           <div className="flex items-start gap-4">
             <div className="h-10 w-10 rounded-card bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">03</div>
             <div className="flex-1">
@@ -336,7 +316,7 @@ export default function VotingHubPage() {
             </div>
           </div>
 
-          {/* Step 04 - Reminder */}
+          {/* Step 04 */}
           <div className="flex items-start gap-4">
             <div className="h-10 w-10 rounded-card bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">04</div>
             <div className="flex-1">
@@ -374,89 +354,12 @@ export default function VotingHubPage() {
         )}
       </motion.div>
 
-      {/* SECTION 4: BALLOT INFORMATION */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="space-y-4">
-        <h2 className="font-heading text-2xl text-foreground">YOUR BALLOT</h2>
-        {contests.length > 0 ? (
-          <>
-            <div className="space-y-4">
-              {contests.map((contest: any, ci: number) => (
-                <div key={ci} className="bg-card rounded-card p-5 border border-border">
-                  <p className="text-sm font-bold text-foreground mb-1">{contest.office}</p>
-                  {contest.district?.name && (
-                    <p className="text-xs text-muted-foreground mb-3">{contest.district.name}</p>
-                  )}
-                  <div className="space-y-2">
-                    {(contest.candidates || []).map((c: any) => {
-                      const raceKey = contest.office;
-                      const isSelected = selectedCandidates[raceKey] === c.name;
-                      return (
-                        <button key={c.name} onClick={() => setSelectedCandidates((p) => ({ ...p, [raceKey]: c.name }))}
-                          className={`w-full text-left px-4 py-3 rounded-card border transition-all text-sm flex items-center justify-between ${
-                            isSelected ? "border-primary bg-primary/10" : "border-border hover:border-primary/30"
-                          }`}>
-                          <div className="flex items-center gap-3">
-                            <span className="font-medium text-foreground">{c.name}</span>
-                            {c.party && (
-                              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-pill border ${partyColor(c.party)}`}>
-                                {c.party}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {c.candidateUrl && (
-                              <a href={c.candidateUrl} target="_blank" rel="noopener noreferrer"
-                                onClick={(e) => e.stopPropagation()} className="text-xs text-primary hover:underline">
-                                Learn More
-                              </a>
-                            )}
-                            {isSelected && <CheckCircle className="h-4 w-4 text-primary" />}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <Button onClick={() => setReviewOpen(true)} variant="outline" className="w-full border-primary text-primary">
-              REVIEW MY BALLOT
-            </Button>
-          </>
-        ) : (
-          <div className="bg-card rounded-card p-6 border border-border text-center">
-            <p className="text-muted-foreground text-sm">No ballot information available yet.</p>
-          </div>
-        )}
-
-        <p className="text-xs text-muted-foreground text-center">
-          UWAZI does not endorse any candidate or party. This information is sourced from official government data.
-        </p>
-      </motion.div>
-
-      {/* SECTION 5: VOTER REGISTRATION */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-        className="grid grid-cols-1 md:grid-cols-2 gap-4"
-      >
-        <div className="bg-card rounded-card p-6 border border-border">
-          <h3 className="font-heading text-xl text-foreground mb-2">ARE YOU REGISTERED?</h3>
-          <p className="text-sm text-muted-foreground mb-4">Verify your registration before election day.</p>
-          <a href="https://www.vote.org/am-i-registered-to-vote/" target="_blank" rel="noopener noreferrer">
-            <Button className="bg-primary text-primary-foreground gap-1.5">
-              Check My Registration <ExternalLink className="h-3.5 w-3.5" />
-            </Button>
-          </a>
-        </div>
-        <div className="bg-card rounded-card p-6 border border-border">
-          <h3 className="font-heading text-xl text-foreground mb-2">REGISTER TO VOTE</h3>
-          <p className="text-sm text-muted-foreground mb-4">Deadlines vary by state. Don't wait.</p>
-          <a href="https://vote.gov" target="_blank" rel="noopener noreferrer">
-            <Button className="bg-primary text-primary-foreground gap-1.5">
-              Register Now <ExternalLink className="h-3.5 w-3.5" />
-            </Button>
-          </a>
-        </div>
-      </motion.div>
+      {/* BALLOT */}
+      <BallotSection
+        contests={contests}
+        isDemo={isDemo}
+        electionDate={nextElectionDate}
+      />
 
       {/* Review Ballot Modal */}
       <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
