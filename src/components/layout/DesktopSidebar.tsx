@@ -51,14 +51,14 @@ export function DesktopSidebar() {
     `flex items-center gap-[10px] px-[14px] py-[9px] rounded-lg mx-2 my-[1px] text-[13.5px] tracking-[-0.01em] cursor-pointer transition-all duration-150 ${
       isActive
         ? "bg-primary/[0.12] text-primary font-medium border border-primary/[0.15]"
-        : "text-muted-foreground hover:bg-[rgba(255,255,255,0.05)] hover:text-foreground font-[450] border border-transparent"
+        : "text-muted-foreground hover:bg-muted hover:text-foreground font-[450] border border-transparent"
     }`;
 
   return (
     <aside className="hidden md:flex flex-col w-[192px] h-screen sticky top-0 glass-strong"
       style={{
-        borderRight: "1px solid rgba(255,255,255,0.06)",
-        boxShadow: "1px 0 0 rgba(255,255,255,0.03)",
+        borderRight: "1px solid var(--border-subtle)",
+        boxShadow: "1px 0 0 var(--border-subtle)",
       }}>
       <div className="flex items-center gap-2.5 px-5 py-5">
         <img src={uwaziLogo} alt="UWAZI.APP" className="h-14" />
@@ -75,7 +75,7 @@ export function DesktopSidebar() {
         {isAdmin && (
           <>
             <div className="mt-4 mb-2 px-[22px]">
-              <p className="text-[10px] font-semibold tracking-[0.06em] uppercase" style={{ color: "hsl(var(--text-tertiary))" }}>
+              <p className="text-[10px] font-semibold tracking-[0.06em] uppercase text-muted-foreground">
                 SUPER ADMIN
               </p>
             </div>
@@ -89,7 +89,7 @@ export function DesktopSidebar() {
         )}
       </nav>
 
-      <div className="py-3 flex flex-col gap-0" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+      <div className="py-3 flex flex-col gap-0" style={{ borderTop: "1px solid var(--border-subtle)" }}>
         {bottomNav.map((item) => (
           <NavLink key={item.to} to={item.to} className={linkClass}>
             <item.icon className="h-4 w-4 opacity-70 shrink-0" strokeWidth={1.8} />
@@ -105,8 +105,11 @@ export function DesktopSidebar() {
         </button>
 
         {/* User card */}
-        <div className="flex items-center gap-[10px] mx-2 mt-2 p-3 rounded-card border border-[rgba(255,255,255,0.06)]"
-          style={{ background: "rgba(255,255,255,0.03)" }}>
+        <div className="flex items-center gap-[10px] mx-2 mt-2 p-3 rounded-card"
+          style={{
+            background: "var(--card-bg)",
+            border: "1px solid var(--border-subtle)",
+          }}>
           <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold shrink-0 overflow-hidden">
             {avatarUrl ? (
               <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />

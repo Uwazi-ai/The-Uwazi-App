@@ -43,10 +43,10 @@ export function MobileNav() {
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="fixed bottom-[64px] left-0 right-0 z-[61] md:hidden rounded-t-2xl p-4"
               style={{
-                background: "rgba(12,12,12,0.92)",
+                background: "var(--sidebar-bg)",
                 backdropFilter: "blur(30px) saturate(200%)",
                 WebkitBackdropFilter: "blur(30px) saturate(200%)",
-                borderTop: "1px solid rgba(255,255,255,0.06)",
+                borderTop: "1px solid var(--border-subtle)",
                 paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom))",
               }}
             >
@@ -59,7 +59,7 @@ export function MobileNav() {
                     onClick={() => setMoreOpen(false)}
                     className={({ isActive }) =>
                       `flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl text-xs font-medium transition-all duration-150 ${
-                        isActive ? "bg-primary/[0.12] text-primary" : "text-muted-foreground hover:text-foreground hover:bg-[rgba(255,255,255,0.05)]"
+                        isActive ? "bg-primary/[0.12] text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"
                       }`
                     }
                   >
@@ -76,10 +76,10 @@ export function MobileNav() {
       {/* Bottom nav bar */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
         style={{
-          background: "rgba(8,8,8,0.92)",
+          background: "var(--sidebar-bg)",
           backdropFilter: "blur(30px) saturate(200%)",
           WebkitBackdropFilter: "blur(30px) saturate(200%)",
-          borderTop: "1px solid rgba(255,255,255,0.06)",
+          borderTop: "1px solid var(--border-subtle)",
           paddingBottom: "env(safe-area-inset-bottom)",
         }}>
         <div className="flex items-center justify-around px-2 h-16">
@@ -97,8 +97,7 @@ export function MobileNav() {
               {({ isActive }) => (
                 <>
                   <div className={`p-1 rounded-lg transition-colors ${isActive ? "bg-primary/[0.12]" : ""}`}>
-                    <item.icon className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.2 : 1.8}
-                      style={isActive ? { filter: "drop-shadow(0 0 6px rgba(155,211,75,0.4))" } : {}} />
+                    <item.icon className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.2 : 1.8} />
                   </div>
                   <span>{item.label}</span>
                 </>
