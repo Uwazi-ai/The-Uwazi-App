@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, BookmarkPlus, BookmarkCheck, Share2, RotateCcw, MapPin,
-  Plus, MessageCircle, Trash2, Clock,
+  Plus, MessageCircle, Trash2, Clock, ArrowLeft,
   Copy, Check, Vote, FileText, Landmark, CalendarDays,
   Globe, ExternalLink, AlertCircle, X,
 } from "lucide-react";
@@ -14,6 +14,7 @@ import ReactMarkdown from "react-markdown";
 import { useAskUwaziContext, getSuggestedPrompts, useAskUwaziSession, type ChatSession } from "@/hooks/useAskUwazi";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { isToday, isYesterday, differenceInDays } from "date-fns";
@@ -330,6 +331,7 @@ export default function AskUwaziPage() {
   const { displayName } = useProfile();
   const ctx = useAskUwaziContext();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const {
     restoredMessages, sessionLoading, saveMessages, startNewSession,
     chatHistory, loadSession, deleteSession,
@@ -614,12 +616,18 @@ export default function AskUwaziPage() {
             WebkitBackdropFilter: "blur(20px)",
             paddingTop: "max(10px, env(safe-area-inset-top))",
           }}>
-          {/* Left: History button */}
-          <button onClick={() => setHistoryOpen(true)}
-            className="flex items-center gap-1.5 p-2 rounded-xl hover:bg-muted text-primary transition-colors" title="Chat History">
-            <Clock className="h-5 w-5" />
-            <span className="text-[13px] font-medium md:hidden">Chats</span>
-          </button>
+          {/* Left: Back + History */}
+          <div className="flex items-center gap-1">
+            <button onClick={() => navigate(-1)}
+              className="p-2 rounded-xl hover:bg-muted text-muted-foreground transition-colors" title="Go back">
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <button onClick={() => setHistoryOpen(true)}
+              className="flex items-center gap-1.5 p-2 rounded-xl hover:bg-muted text-primary transition-colors" title="Chat History">
+              <Clock className="h-5 w-5" />
+              <span className="text-[13px] font-medium md:hidden">Chats</span>
+            </button>
+          </div>
 
           {/* Center: Logo + title */}
           <div className="flex items-center gap-2">
