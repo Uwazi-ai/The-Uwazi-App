@@ -703,7 +703,7 @@ export default function AskUwaziPage() {
 
               {/* Web Search row */}
               <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6, duration: 0.5 }} className="mt-4 w-full max-w-lg px-0">
+                transition={{ delay: 0.6, duration: 0.5 }} className="mt-4 w-full max-w-lg px-4 overflow-hidden">
                 <div className="flex items-center gap-2 mb-2 px-1">
                   <Globe className="w-3.5 h-3.5 text-primary" />
                   <span className="text-[10px] sm:text-[11px] text-primary font-medium tracking-wide">RESEARCH WITH LIVE WEB SEARCH</span>
