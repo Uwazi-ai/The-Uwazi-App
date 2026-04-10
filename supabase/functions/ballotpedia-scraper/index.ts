@@ -736,6 +736,18 @@ serve(async (req) => {
       }
     }
 
+    // ── 5. ENRICH RACE_CANDIDATES BIOS ────────────────────
+    if (['all', 'candidates', 'enrich'].includes(scrape_type)) {
+      try {
+        console.log('Enriching race_candidates bios for', state_code)
+        const enriched = await enrichRaceCandidates(supabase, state_code)
+        results.enriched_bios = enriched
+        console.log(`Enriched ${enriched} candidate bios`)
+      } catch (e: any) {
+        results.errors.push(`Bio enrichment: ${e.message}`)
+      }
+    }
+
     // Update log
     await supabase
       .from('ballotpedia_scraper_log')
