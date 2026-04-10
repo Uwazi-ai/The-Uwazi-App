@@ -1,257 +1,180 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, CheckCircle, Play, ArrowLeft, Trophy, ChevronRight, Zap } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useLessons } from "@/hooks/useGamification";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { motion } from "framer-motion";
+import {
+  BookOpen, Zap, Trophy, Clock, ChevronRight,
+  CheckCircle, Lock, Play, Flame
+} from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { useLessonTracks } from "@/hooks/useLessonTracks";
+import LessonPlayer from "@/components/learn/LessonPlayer";
+import type { EnrichedLesson } from "@/hooks/useLessonTracks";
 
-const categories = ["All Lessons", "Voting", "Legislation", "Local Gov", "Your Rights", "Civic History"];
-
-const categoryColors: Record<string, string> = {
-  voting: "border-primary text-primary",
-  legislation: "border-blue-400 text-blue-400",
-  "local-gov": "border-yellow-400 text-yellow-400",
-  rights: "border-pink-400 text-pink-400",
+const difficultyBadge: Record<string, string> = {
+  beginner: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  intermediate: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+  advanced: "bg-rose-500/10 text-rose-400 border-rose-500/20",
 };
 
 export default function LearnPage() {
-  const { lessons, progress, loading } = useLessons();
-  const { user } = useAuth();
-  const [activeLesson, setActiveLesson] = useState<any>(null);
-  const [currentBlock, setCurrentBlock] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [showResult, setShowResult] = useState(false);
-  const [showComplete, setShowComplete] = useState(false);
-  const [activeFilter, setActiveFilter] = useState("All Lessons");
+  const { tracks, lessons, progress, loading, getLessonsForTrack, getTrackProgress, totalXp, completedCount } = useLessonTracks();
+  const [activeLesson, setActiveLesson] = useState<EnrichedLesson | null>(null);
+  const [expandedTrack, setExpandedTrack] = useState<string | null>(null);
 
-  const completedCount = Object.values(progress).filter((p: any) => p.status === "completed").length;
-  const totalXp = lessons.reduce((acc: number, l: any) => {
-    const p = progress[l.id];
-    return p?.status === "completed" ? acc + (l.xp_reward || 0) : acc;
-  }, 0);
-
-  const filtered = activeFilter === "All Lessons"
-    ? lessons
-    : lessons.filter((l: any) => l.category?.toLowerCase() === activeFilter.toLowerCase().replace(" ", "-"));
-
-  const handleStartLesson = (lesson: any) => {
-    setActiveLesson(lesson);
-    setCurrentBlock(0);
-    setSelectedAnswer(null);
-    setShowResult(false);
-    setShowComplete(false);
-  };
-
-  const handleAnswer = (index: number) => {
-    if (showResult) return;
-    setSelectedAnswer(index);
-    setShowResult(true);
-  };
-
-  const handleCompleteLesson = async () => {
-    if (!user || !activeLesson) return;
-    const blocks = activeLesson.content?.blocks || [];
-    const quiz = blocks.find((b: any) => b.type === "quiz");
-    const passed = quiz && selectedAnswer === quiz.correct;
-
-    await supabase.from("user_lesson_progress").upsert(
-      { user_id: user.id, lesson_id: activeLesson.id, status: "completed", score: passed ? 100 : 0, completed_at: new Date().toISOString() },
-      { onConflict: "user_id,lesson_id" }
-    );
-
-    const { data: existing } = await supabase.from("civic_scores").select("*").eq("user_id", user.id).maybeSingle();
-    if (existing) {
-      await supabase.from("civic_scores").update({
-        total_xp: existing.total_xp + activeLesson.xp_reward,
-        lessons_completed: existing.lessons_completed + 1,
-        quizzes_passed: existing.quizzes_passed + (passed ? 1 : 0),
-        civic_literacy_score: Math.min(100, existing.civic_literacy_score + 5),
-      }).eq("user_id", user.id);
-    } else {
-      await supabase.from("civic_scores").insert({
-        user_id: user.id, total_xp: activeLesson.xp_reward, lessons_completed: 1,
-        quizzes_passed: passed ? 1 : 0, civic_literacy_score: 5,
-      });
-    }
-
-    setShowComplete(true);
-    toast.success(`+${activeLesson.xp_reward} XP 🎓`);
-  };
-
-  // Completion modal
-  if (showComplete && activeLesson) {
-    return (
-      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-card rounded-card p-8 text-center max-w-sm border border-border">
-          <div className="h-20 w-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="h-10 w-10 text-primary" />
-          </div>
-          <h2 className="font-heading text-3xl text-foreground mb-2">LESSON COMPLETE!</h2>
-          <p className="text-2xl font-bold text-primary mb-4">+{activeLesson.xp_reward} XP</p>
-          <Button onClick={() => { setActiveLesson(null); setShowComplete(false); }} className="w-full">Continue</Button>
-        </motion.div>
-      </div>
-    );
-  }
-
-  // Active lesson view
   if (activeLesson) {
-    const blocks = activeLesson.content?.blocks || [];
-    const block = blocks[currentBlock];
-    const isLastBlock = currentBlock === blocks.length - 1;
-    const progressPct = ((currentBlock + 1) / blocks.length) * 100;
-
     return (
-      <div className="max-w-3xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8">
-        {/* Progress bar */}
-        <div className="h-1.5 rounded-full bg-muted mb-6 overflow-hidden">
-          <motion.div className="h-full rounded-full bg-primary" animate={{ width: `${progressPct}%` }} />
-        </div>
-
-        <button onClick={() => setActiveLesson(null)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
-          <ArrowLeft className="h-4 w-4" /> Back to Lessons
-        </button>
-
-        <h1 className="font-heading text-4xl text-foreground mb-2">{activeLesson.title}</h1>
-        <div className="flex items-center gap-3 mb-6">
-          <span className={`text-xs font-semibold px-2.5 py-1 rounded-pill border ${categoryColors[activeLesson.category] || "border-border text-muted-foreground"}`}>
-            {activeLesson.category}
-          </span>
-          <span className="text-xs text-primary font-semibold">+{activeLesson.xp_reward} XP</span>
-        </div>
-
-        <AnimatePresence mode="wait">
-          <motion.div key={currentBlock} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            {block?.type === "text" && (
-              <div className="py-4">
-                <p className="text-base text-foreground leading-relaxed">{block.content}</p>
-              </div>
-            )}
-            {block?.type === "quiz" && (
-              <div className="bg-card rounded-card p-6 border border-border space-y-4">
-                <p className="text-base font-bold text-foreground">{block.question}</p>
-                {block.options.map((opt: string, i: number) => {
-                  const isCorrect = i === block.correct;
-                  const isSelected = selectedAnswer === i;
-                  return (
-                    <button key={i} onClick={() => handleAnswer(i)} disabled={showResult}
-                      className={`w-full text-left px-4 py-3 rounded-card text-sm font-medium transition-all border ${
-                        showResult
-                          ? isCorrect ? "border-primary bg-primary/10 text-primary"
-                            : isSelected ? "border-destructive bg-destructive/10 text-destructive"
-                            : "border-border text-muted-foreground"
-                          : "border-border hover:border-primary/50 text-foreground"
-                      }`}
-                    >
-                      {opt}
-                      {showResult && isCorrect && <CheckCircle className="h-4 w-4 inline ml-2 text-primary" />}
-                    </button>
-                  );
-                })}
-                {showResult && (
-                  <p className={`text-sm font-medium ${selectedAnswer === block.correct ? "text-primary" : "text-destructive"}`}>
-                    {selectedAnswer === block.correct ? "Correct! 🎉" : "Not quite — correct answer highlighted."}
-                  </p>
-                )}
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
-
-        <div className="flex justify-end mt-6 gap-2">
-          {!isLastBlock && block?.type !== "quiz" && (
-            <Button onClick={() => { setCurrentBlock(currentBlock + 1); setSelectedAnswer(null); setShowResult(false); }}>
-              Next <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          )}
-          {isLastBlock && showResult && (
-            <Button onClick={handleCompleteLesson}>
-              <Trophy className="h-4 w-4 mr-1" /> Complete Lesson
-            </Button>
-          )}
-        </div>
-      </div>
+      <LessonPlayer
+        lesson={activeLesson}
+        onClose={() => setActiveLesson(null)}
+        onComplete={() => setActiveLesson(null)}
+      />
     );
   }
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-4">
-        {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-card bg-card animate-pulse" />)}
+      <div className="max-w-4xl mx-auto px-4 md:px-8 py-8 space-y-4">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="h-24 rounded-xl bg-card animate-pulse" />
+        ))}
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 space-y-6 md:space-y-8">
-      {/* Hero */}
+    <div className="max-w-4xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 space-y-6">
+      {/* Hero stats */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <p className="eyebrow mb-2">CIVIC EDUCATION</p>
-        <h1 className="font-heading text-3xl sm:text-4xl md:text-6xl text-foreground leading-none">KNOW MORE. DO MORE.</h1>
-        <p className="text-sm md:text-base text-muted-foreground mt-2">Nonpartisan lessons built for your community.</p>
-        <div className="flex gap-3 mt-4">
-          <span className="px-3 py-1.5 bg-card border border-border rounded-pill text-xs font-medium text-foreground">{lessons.length} Total Lessons</span>
-          <span className="px-3 py-1.5 bg-card border border-border rounded-pill text-xs font-medium text-foreground">{completedCount} Completed</span>
-          <span className="px-3 py-1.5 bg-card border border-border rounded-pill text-xs font-medium text-primary">{totalXp} XP Earned</span>
+        <p className="text-xs font-bold tracking-widest text-primary uppercase mb-2">Civic Education</p>
+        <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl text-foreground leading-none mb-1">
+          LEARN. QUIZ. LEVEL UP.
+        </h1>
+        <p className="text-sm text-muted-foreground mb-4">
+          {lessons.length} interactive lessons across {tracks.length} tracks. Nonpartisan. Evidence-based.
+        </p>
+
+        <div className="grid grid-cols-3 gap-3">
+          <StatCard icon={<Zap className="h-4 w-4" />} value={`${totalXp}`} label="XP Earned" accent />
+          <StatCard icon={<CheckCircle className="h-4 w-4" />} value={`${completedCount}/${lessons.length}`} label="Completed" />
+          <StatCard icon={<Flame className="h-4 w-4" />} value={`${tracks.length}`} label="Tracks" />
         </div>
       </motion.div>
 
-      {/* Filters */}
-      <div className="flex gap-2 overflow-x-auto no-scrollbar">
-        {categories.map((cat) => (
-          <button key={cat} onClick={() => setActiveFilter(cat)}
-            className={`shrink-0 px-4 py-2 rounded-pill text-sm font-medium transition-all ${
-              activeFilter === cat ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:text-foreground"
-            }`}
-          >{cat}</button>
-        ))}
-      </div>
-
-      {/* Lesson Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((lesson: any, i: number) => {
-          const prog = progress[lesson.id];
-          const isCompleted = prog?.status === "completed";
-          const isInProgress = prog?.status === "in_progress";
+      {/* Tracks */}
+      <div className="space-y-3">
+        {tracks.map((track, idx) => {
+          const trackLessons = getLessonsForTrack(track.id);
+          const { completed, total, pct } = getTrackProgress(track.id);
+          const isExpanded = expandedTrack === track.id;
 
           return (
-            <motion.button key={lesson.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-              onClick={() => handleStartLesson(lesson)}
-              className="text-left bg-card rounded-card p-5 border border-border hover:border-primary/30 transition-all"
+            <motion.div
+              key={track.id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.05 }}
             >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-medium text-muted-foreground capitalize">{lesson.difficulty}</span>
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-pill border ${categoryColors[lesson.category] || "border-border text-muted-foreground"}`}>
-                  {lesson.category}
-                </span>
-              </div>
-              <h3 className="text-base font-bold text-foreground mb-1">{lesson.title}</h3>
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{lesson.description}</p>
-              <div className="flex items-center gap-2 mb-3">
-                <Zap className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-bold text-primary">+{lesson.xp_reward} XP</span>
-              </div>
-              {isInProgress && (
-                <div className="h-1.5 rounded-full bg-muted overflow-hidden mb-3">
-                  <div className="h-full rounded-full bg-primary w-1/2" />
+              {/* Track header */}
+              <button
+                onClick={() => setExpandedTrack(isExpanded ? null : track.id)}
+                className="w-full text-left bg-card rounded-xl border border-border hover:border-primary/30 transition-all p-4"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{track.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <h3 className="font-bold text-foreground text-base truncate">{track.name}</h3>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase ${difficultyBadge[track.difficulty || "beginner"]}`}>
+                        {track.difficulty}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground line-clamp-1">{track.description}</p>
+                    <div className="flex items-center gap-3 mt-2">
+                      <Progress value={pct} className="h-1.5 flex-1" />
+                      <span className="text-xs text-muted-foreground font-medium shrink-0">{completed}/{total}</span>
+                    </div>
+                  </div>
+                  <ChevronRight className={`h-5 w-5 text-muted-foreground transition-transform ${isExpanded ? "rotate-90" : ""}`} />
                 </div>
+              </button>
+
+              {/* Expanded lessons */}
+              {isExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  className="mt-1 space-y-1 pl-4"
+                >
+                  {trackLessons.map((lesson, li) => {
+                    const prog = progress[lesson.id];
+                    const isCompleted = prog?.status === "completed";
+                    const quizCount = Array.isArray(lesson.quiz_questions) ? lesson.quiz_questions.length : 0;
+
+                    return (
+                      <button
+                        key={lesson.id}
+                        onClick={() => setActiveLesson(lesson)}
+                        className="w-full text-left flex items-center gap-3 bg-card/50 hover:bg-card rounded-lg border border-border/50 hover:border-primary/30 transition-all p-3"
+                      >
+                        <div className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 ${
+                          isCompleted
+                            ? "bg-primary/20"
+                            : "bg-muted"
+                        }`}>
+                          {isCompleted
+                            ? <CheckCircle className="h-5 w-5 text-primary" />
+                            : <span className="text-xs font-bold text-muted-foreground">{lesson.lesson_number}</span>
+                          }
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-semibold truncate ${isCompleted ? "text-primary" : "text-foreground"}`}>
+                            {lesson.title}
+                          </p>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {lesson.estimated_minutes}m
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Zap className="h-3 w-3 text-primary" />
+                              +{lesson.xp_reward} XP
+                            </span>
+                            {quizCount > 0 && (
+                              <span>{quizCount} questions</span>
+                            )}
+                          </div>
+                        </div>
+                        {isCompleted ? (
+                          <span className="text-xs font-semibold text-primary">
+                            {prog?.quiz_score ?? prog?.score ?? 0}%
+                          </span>
+                        ) : (
+                          <Play className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </button>
+                    );
+                  })}
+
+                  {trackLessons.length === 0 && (
+                    <p className="text-sm text-muted-foreground px-3 py-4">Lessons coming soon.</p>
+                  )}
+                </motion.div>
               )}
-              <p className="text-sm font-semibold text-primary">
-                {isCompleted ? "✓ Completed" : isInProgress ? "Continue →" : "Start Lesson →"}
-              </p>
-            </motion.button>
+            </motion.div>
           );
         })}
       </div>
+    </div>
+  );
+}
 
-      {filtered.length === 0 && (
-        <div className="text-center py-12">
-          <BookOpen className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-          <p className="text-muted-foreground">No lessons in this category yet.</p>
-        </div>
-      )}
+function StatCard({ icon, value, label, accent }: { icon: React.ReactNode; value: string; label: string; accent?: boolean }) {
+  return (
+    <div className="bg-card rounded-xl border border-border p-3 text-center">
+      <div className={`flex items-center justify-center gap-1.5 mb-1 ${accent ? "text-primary" : "text-foreground"}`}>
+        {icon}
+        <span className="text-xl font-bold">{value}</span>
+      </div>
+      <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">{label}</p>
     </div>
   );
 }
