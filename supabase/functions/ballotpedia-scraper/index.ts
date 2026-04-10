@@ -96,6 +96,150 @@ const getMeasureType = (title: string): string => {
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
 
+// ─── CANDIDATE BIO PARSER ─────────────────────────────────
+// Fetches an individual candidate's Ballotpedia page and extracts:
+// - Bio summary (first paragraph of article body)
+// - Website URL (from infobox sidebar)
+// - Political positions (from "Political positions" or "Key positions" section)
+// - Prior office held
+const parseCandidateBio = (html: string): {
+  bio: string | null
+  website_url: string | null
+  positions: Array<{ topic: string; detail: string }> | null
+  prior_office: string | null
+} => {
+  const result = {
+    bio: null as string | null,
+    website_url: null as string | null,
+    positions: null as Array<{ topic: string; detail: string }> | null,
+    prior_office: null as string | null,
+  }
+
+  // Extract bio: first <p> in mw-parser-output that has substantial text
+  const contentMatch = html.match(
+    /div[^>]*class="[^"]*mw-parser-output[^"]*"[^>]*>([\s\S]*)/
+  )
+  if (contentMatch) {
+    const paragraphs = contentMatch[1].matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)
+    for (const p of paragraphs) {
+      const text = strip(p[1])
+      // Skip short/noise paragraphs, get the first real one
+      if (text.length > 80 && !text.startsWith('This article') && !text.startsWith('Ballotpedia')) {
+        result.bio = text.slice(0, 500)
+        break
+      }
+    }
+  }
+
+  // Extract website from infobox
+  const infoboxMatch = html.match(/<table[^>]*class="[^"]*infobox[^"]*"[^>]*>([\s\S]*?)<\/table>/i)
+  if (infoboxMatch) {
+    const websiteMatch = infoboxMatch[1].match(
+      /(?:website|campaign\s*site|official\s*site)[^<]*<[^>]*href="([^"]+)"/i
+    ) || infoboxMatch[1].match(
+      /<a[^>]*class="[^"]*external[^"]*"[^>]*href="(https?:\/\/(?!ballotpedia|en\.wikipedia)[^"]+)"/i
+    )
+    if (websiteMatch) {
+      result.website_url = websiteMatch[1]
+    }
+  }
+
+  // Extract political positions section
+  const posSection = html.match(
+    /(?:Political\s+positions?|Key\s+positions?|Policy\s+positions?|Issues?\s+and\s+positions?)<\/(?:span|h[234])>([\s\S]*?)(?=<h[23]|<div[^>]*class="[^"]*navbox)/i
+  )
+  if (posSection) {
+    const positions: Array<{ topic: string; detail: string }> = []
+    // Look for bold topic followed by text, or <li> items with structure
+    const items = posSection[1].matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi)
+    for (const item of items) {
+      const text = strip(item[1])
+      if (text.length < 10 || text.length > 300) continue
+      // Try to split on colon or bold tag
+      const boldMatch = item[1].match(/<b>(.*?)<\/b>\s*[:\-–]?\s*([\s\S]*)/)
+      if (boldMatch) {
+        positions.push({ topic: strip(boldMatch[1]), detail: strip(boldMatch[2]).slice(0, 200) })
+      } else if (text.includes(':')) {
+        const [topic, ...rest] = text.split(':')
+        positions.push({ topic: topic.trim(), detail: rest.join(':').trim().slice(0, 200) })
+      }
+      if (positions.length >= 8) break
+    }
+    if (positions.length > 0) result.positions = positions
+  }
+
+  // Extract prior office
+  const priorMatch = html.match(
+    /(?:Previous\s+office|Former\s+office|Prior\s+office|Other\s+offices?\s+held)[^<]*(?:<\/[^>]+>)?\s*(?:<[^>]+>)*([\s\S]*?)(?=<\/(?:li|p|td|tr)>)/i
+  )
+  if (priorMatch) {
+    const prior = strip(priorMatch[1])
+    if (prior.length > 3 && prior.length < 150) {
+      result.prior_office = prior
+    }
+  }
+
+  return result
+}
+
+// ─── ENRICH RACE_CANDIDATES WITH BIOS ─────────────────────
+const enrichRaceCandidates = async (
+  supabase: any,
+  stateCode: string
+) => {
+  // Get all race_candidates for this state that have a ballotpedia_url but no bio
+  const { data: races } = await supabase
+    .from('election_races')
+    .select('id')
+    .eq('state', stateCode)
+
+  if (!races?.length) return 0
+
+  const raceIds = races.map((r: any) => r.id)
+  const { data: candidates } = await supabase
+    .from('race_candidates')
+    .select('id, name, ballotpedia_url, bio')
+    .in('race_id', raceIds)
+    .not('ballotpedia_url', 'is', null)
+
+  if (!candidates?.length) return 0
+
+  let enriched = 0
+  for (const cand of candidates) {
+    // Skip if already has bio
+    if (cand.bio) continue
+    if (!cand.ballotpedia_url) continue
+
+    console.log(`Enriching bio: ${cand.name} — ${cand.ballotpedia_url}`)
+    const html = await fetchPage(cand.ballotpedia_url)
+    if (!html) {
+      await sleep(400)
+      continue
+    }
+
+    const bioData = parseCandidateBio(html)
+    const updates: Record<string, any> = {}
+    if (bioData.bio) updates.bio = bioData.bio
+    if (bioData.website_url) updates.website_url = bioData.website_url
+    if (bioData.positions) updates.positions = bioData.positions
+    if (bioData.prior_office) updates.prior_office = bioData.prior_office
+
+    if (Object.keys(updates).length > 0) {
+      const { error } = await supabase
+        .from('race_candidates')
+        .update(updates)
+        .eq('id', cand.id)
+
+      if (!error) enriched++
+      else console.error(`Failed to update ${cand.name}:`, error.message)
+    }
+
+    await sleep(500) // rate limiting
+  }
+
+  return enriched
+}
+
 // ─── CORE CANDIDATE PARSER ────────────────────────────────
 // Ballotpedia's ACTUAL structure:
 // <h3>District 1</h3>
