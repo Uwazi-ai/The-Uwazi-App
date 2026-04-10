@@ -564,6 +564,7 @@ serve(async (req) => {
       candidates: 0,
       measures: 0,
       officials: 0,
+      enriched_bios: 0,
       errors: [] as string[],
     }
 
