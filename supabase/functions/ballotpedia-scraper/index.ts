@@ -6,6 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// ─── STATE NAME MAP ───────────────────────────────────────
 const STATE_NAMES: Record<string, string> = {
   'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona',
   'AR': 'Arkansas', 'CA': 'California', 'CO': 'Colorado',
@@ -26,6 +27,7 @@ const STATE_NAMES: Record<string, string> = {
   'WI': 'Wisconsin', 'WY': 'Wyoming', 'DC': 'Washington,_D.C.',
 }
 
+// ─── HTML FETCHER ─────────────────────────────────────────
 const fetchPage = async (url: string): Promise<string | null> => {
   try {
     const res = await fetch(url, {
@@ -47,9 +49,11 @@ const fetchPage = async (url: string): Promise<string | null> => {
   }
 }
 
+// ─── STRIP HTML TAGS ──────────────────────────────────────
 const strip = (html: string): string =>
   html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
 
+// ─── PARTY HELPERS ────────────────────────────────────────
 const normalizeParty = (raw: string): string => {
   const p = raw.toLowerCase()
   if (p.includes('democrat')) return 'Democratic'
@@ -73,6 +77,7 @@ const partyColor = (party: string): string => {
   }
 }
 
+// ─── HELPERS ──────────────────────────────────────────────
 const getOfficeLevel = (office: string): string => {
   const o = office.toLowerCase()
   if (o.includes('u.s.') || (o.includes('senate') && o.includes('united')) || o.includes('congress')) return 'federal'
@@ -92,6 +97,15 @@ const getMeasureType = (title: string): string => {
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
 
 // ─── CORE CANDIDATE PARSER ────────────────────────────────
+// Ballotpedia's ACTUAL structure:
+// <h3>District 1</h3>
+// <h4>Democratic primary candidates</h4>
+// <p>Wesley Bell (Incumbent)\nCori Bush\nCarl Harris Sr.</p>
+//   OR as a list:
+// <li>Wesley Bell (Incumbent)</li><li>Cori Bush</li>
+//
+// Key: candidates are in <p> or <li> tags after party headings
+
 const parseCandidatesFromText = (
   html: string,
   baseOffice: string,
@@ -101,12 +115,14 @@ const parseCandidatesFromText = (
 ): any[] => {
   const candidates: any[] = []
 
+  // Extract the main content area
   const contentMatch = html.match(
     /div[^>]*class="[^"]*mw-parser-output[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<div[^>]*class="[^"]*printfooter/
   ) || html.match(/div[^>]*class="[^"]*mw-parser-output[^"]*"[^>]*>([\s\S]*)/)
 
   const content = contentMatch ? contentMatch[1] : html
 
+  // Split into sections by h2/h3/h4 headings
   const sections: Array<{ heading: string; body: string }> = []
   const parts = content.split(/(?=<h[234][^>]*>)/i)
 
@@ -123,11 +139,13 @@ const parseCandidatesFromText = (
   for (const section of sections) {
     const h = section.heading.toLowerCase()
 
+    // Detect district/race heading
     if (h.match(/district\s+\d+/i)) {
       currentDistrict = section.heading.trim()
       continue
     }
 
+    // Detect party heading
     if (h.includes('democratic')) {
       currentParty = 'Democratic'
     } else if (h.includes('republican')) {
@@ -147,6 +165,7 @@ const parseCandidatesFromText = (
       continue
     }
 
+    // Extract candidate names from <li> and <p> tags
     const nameMatches = [
       ...section.body.matchAll(/<li[^>]*>(.*?)<\/li>/gis),
       ...section.body.matchAll(/<p[^>]*>(.*?)<\/p>/gis),
@@ -155,6 +174,7 @@ const parseCandidatesFromText = (
     for (const match of nameMatches) {
       const rawText = strip(match[1])
 
+      // Skip noise
       if (!rawText || rawText.length < 3) continue
       if (rawText.toLowerCase().includes('note:')) continue
       if (rawText.toLowerCase().includes('candidate list')) continue
@@ -202,6 +222,7 @@ const parseCandidatesFromText = (
     }
   }
 
+  // Deduplicate by name + office
   const seen = new Set<string>()
   return candidates.filter(c => {
     const key = `${c.name}|${c.office}`
@@ -330,7 +351,7 @@ const parseOfficials = (
   return officials
 }
 
-// ─── ELECTIONS PARSER ─────────────────────────────────────
+// ─── ELECTIONS EXTRACTOR ──────────────────────────────────
 const parseElections = (
   html: string,
   stateCode: string,
@@ -402,6 +423,7 @@ serve(async (req) => {
       errors: [] as string[],
     }
 
+    // Log job
     await supabase.from('ballotpedia_scraper_log').insert({
       job_type: scrape_type,
       state_code,
@@ -409,7 +431,7 @@ serve(async (req) => {
       status: 'running',
     })
 
-    // ── 1. ELECTIONS ──
+    // ── 1. ELECTIONS ──────────────────────────────────────
     if (['all', 'elections'].includes(scrape_type)) {
       const url = `https://ballotpedia.org/${stateName}_elections,_${year}`
       console.log('Scraping elections:', url)
@@ -417,9 +439,17 @@ serve(async (req) => {
 
       if (html) {
         const elections = parseElections(html, state_code, year)
+
         if (elections.length > 0) {
-          await supabase.from('ballotpedia_elections').delete().eq('state_code', state_code)
-          const { error } = await supabase.from('ballotpedia_elections').insert(elections)
+          await supabase
+            .from('ballotpedia_elections')
+            .delete()
+            .eq('state_code', state_code)
+
+          const { error } = await supabase
+            .from('ballotpedia_elections')
+            .insert(elections)
+
           if (!error) results.elections = elections.length
           else results.errors.push(`Elections: ${error.message}`)
         }
@@ -427,7 +457,7 @@ serve(async (req) => {
       await sleep(600)
     }
 
-    // ── 2. CANDIDATES ──
+    // ── 2. CANDIDATES ─────────────────────────────────────
     if (['all', 'candidates'].includes(scrape_type)) {
       const raceUrls = [
         {
@@ -465,8 +495,15 @@ serve(async (req) => {
       for (const race of raceUrls) {
         console.log('Scraping candidates:', race.url)
         const html = await fetchPage(race.url)
+
         if (html) {
-          const candidates = parseCandidatesFromText(html, race.office, state_code, `${year}-11-03`, year)
+          const candidates = parseCandidatesFromText(
+            html,
+            race.office,
+            state_code,
+            `${year}-11-03`,
+            year
+          )
           console.log(`Found ${candidates.length} candidates for ${race.office}`)
           allCandidates.push(...candidates)
         }
@@ -474,17 +511,25 @@ serve(async (req) => {
       }
 
       if (allCandidates.length > 0) {
-        await supabase.from('ballotpedia_candidates').delete().eq('state_code', state_code).eq('election_year', year)
+        await supabase
+          .from('ballotpedia_candidates')
+          .delete()
+          .eq('state_code', state_code)
+          .eq('election_year', year)
+
         for (let i = 0; i < allCandidates.length; i += 50) {
           const batch = allCandidates.slice(i, i + 50)
-          const { error } = await supabase.from('ballotpedia_candidates').insert(batch)
+          const { error } = await supabase
+            .from('ballotpedia_candidates')
+            .insert(batch)
+
           if (error) results.errors.push(`Candidates batch ${i}: ${error.message}`)
         }
         results.candidates = allCandidates.length
       }
     }
 
-    // ── 3. BALLOT MEASURES ──
+    // ── 3. BALLOT MEASURES ────────────────────────────────
     if (['all', 'measures'].includes(scrape_type)) {
       const measureUrls = [
         `https://ballotpedia.org/${stateName}_${year}_ballot_measures`,
@@ -500,8 +545,16 @@ serve(async (req) => {
         console.log(`Found ${measures.length} ballot measures`)
 
         if (measures.length > 0) {
-          await supabase.from('ballotpedia_ballot_measures').delete().eq('state_code', state_code).eq('election_year', year)
-          const { error } = await supabase.from('ballotpedia_ballot_measures').insert(measures)
+          await supabase
+            .from('ballotpedia_ballot_measures')
+            .delete()
+            .eq('state_code', state_code)
+            .eq('election_year', year)
+
+          const { error } = await supabase
+            .from('ballotpedia_ballot_measures')
+            .insert(measures)
+
           if (!error) results.measures = measures.length
           else results.errors.push(`Measures: ${error.message}`)
           break
@@ -510,7 +563,7 @@ serve(async (req) => {
       }
     }
 
-    // ── 4. OFFICIALS ──
+    // ── 4. OFFICIALS ──────────────────────────────────────
     if (['all', 'officials'].includes(scrape_type) && city) {
       const citySlug = city.replace(/\s+/g, '_')
       const cityUrl = `https://ballotpedia.org/${citySlug},_${stateName}`
@@ -522,21 +575,32 @@ serve(async (req) => {
         console.log(`Found ${officials.length} officials`)
 
         if (officials.length > 0) {
-          await supabase.from('ballotpedia_officials').delete().eq('state_code', state_code).eq('city', city)
-          const { error } = await supabase.from('ballotpedia_officials').insert(officials)
+          await supabase
+            .from('ballotpedia_officials')
+            .delete()
+            .eq('state_code', state_code)
+            .eq('city', city)
+
+          const { error } = await supabase
+            .from('ballotpedia_officials')
+            .insert(officials)
+
           if (!error) results.officials = officials.length
           else results.errors.push(`Officials: ${error.message}`)
         }
       }
     }
 
+    // Update log
     await supabase
       .from('ballotpedia_scraper_log')
       .update({
         status: results.errors.length === 0 ? 'success' : 'partial',
         records_scraped: results.candidates + results.measures + results.officials + results.elections,
         completed_at: new Date().toISOString(),
-        error_message: results.errors.length > 0 ? results.errors.join('; ') : null,
+        error_message: results.errors.length > 0
+          ? results.errors.join('; ')
+          : null,
       })
       .eq('status', 'running')
 
@@ -544,6 +608,7 @@ serve(async (req) => {
       JSON.stringify({ success: true, results }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
+
   } catch (error: any) {
     console.error('Scraper error:', error)
     return new Response(
