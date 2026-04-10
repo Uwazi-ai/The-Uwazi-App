@@ -20,6 +20,16 @@ export default function LearnPage() {
   const [activeLesson, setActiveLesson] = useState<EnrichedLesson | null>(null);
   const [expandedTrack, setExpandedTrack] = useState<string | null>(null);
 
+  // Compute tracks started (at least 1 lesson completed in track)
+  const tracksStarted = tracks.filter(t => {
+    const { completed } = getTrackProgress(t.id);
+    return completed > 0;
+  }).length;
+
+  // Compute literacy score from completed ratio
+  const literacyScore = lessons.length > 0 ? Math.round((completedCount / lessons.length) * 100) : 0;
+  const literacyPct = literacyScore;
+
   if (activeLesson) {
     return (
       <LessonPlayer
