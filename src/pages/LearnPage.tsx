@@ -20,6 +20,16 @@ export default function LearnPage() {
   const [activeLesson, setActiveLesson] = useState<EnrichedLesson | null>(null);
   const [expandedTrack, setExpandedTrack] = useState<string | null>(null);
 
+  // Compute tracks started (at least 1 lesson completed in track)
+  const tracksStarted = tracks.filter(t => {
+    const { completed } = getTrackProgress(t.id);
+    return completed > 0;
+  }).length;
+
+  // Compute literacy score from completed ratio
+  const literacyScore = lessons.length > 0 ? Math.round((completedCount / lessons.length) * 100) : 0;
+  const literacyPct = literacyScore;
+
   if (activeLesson) {
     return (
       <LessonPlayer
@@ -42,20 +52,32 @@ export default function LearnPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 space-y-6">
-      {/* Hero stats */}
+      {/* Hero */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <p className="text-xs font-bold tracking-widest text-primary uppercase mb-2">Civic Education</p>
         <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl text-foreground leading-none mb-1">
-          LEARN. QUIZ. LEVEL UP.
+          KNOW MORE. DO MORE.
         </h1>
         <p className="text-sm text-muted-foreground mb-4">
-          {lessons.length} interactive lessons across {tracks.length} tracks. Nonpartisan. Evidence-based.
+          Nonpartisan lessons built for your community.
         </p>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-3 mb-4">
           <StatCard icon={<Zap className="h-4 w-4" />} value={`${totalXp}`} label="XP Earned" accent />
-          <StatCard icon={<CheckCircle className="h-4 w-4" />} value={`${completedCount}/${lessons.length}`} label="Completed" />
-          <StatCard icon={<Flame className="h-4 w-4" />} value={`${tracks.length}`} label="Tracks" />
+          <StatCard icon={<BookOpen className="h-4 w-4" />} value={`${completedCount}`} label="Lessons" />
+          <StatCard icon={<Flame className="h-4 w-4" />} value={`${tracksStarted}`} label="Tracks Started" />
+        </div>
+
+        {/* Civic Literacy Score bar */}
+        <div className="bg-card rounded-xl border border-border p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-semibold text-foreground">Your Civic Literacy Score</span>
+            <a href="/progress" className="text-xs font-medium text-primary hover:underline">View Progress →</a>
+          </div>
+          <div className="flex items-center gap-3">
+            <Progress value={literacyPct} className="h-2.5 flex-1" />
+            <span className="text-sm font-bold text-foreground shrink-0">{literacyScore}/100</span>
+          </div>
         </div>
       </motion.div>
 
