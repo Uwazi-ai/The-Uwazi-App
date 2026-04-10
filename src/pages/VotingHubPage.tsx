@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import {
   MapPin, Calendar, Car, Footprints, Bus, CarTaxiFront,
   Bell, CheckCircle, ExternalLink, ChevronRight, AlertCircle, Loader2, X, Copy,
+  Users, FileText, Scale, Landmark,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,35 +13,84 @@ import { Switch } from "@/components/ui/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { useElections, useVoterInfo } from "@/hooks/useCivicApi";
+import { useVoterInfo } from "@/hooks/useCivicApi";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
-import { format, differenceInDays } from "date-fns";
+import { format } from "date-fns";
 import ElectionCountdown from "@/components/voting/ElectionCountdown";
 import RegistrationCheck from "@/components/voting/RegistrationCheck";
 import BallotSection from "@/components/voting/BallotSection";
 import BallotpediaSection from "@/components/voting/BallotpediaSection";
 import { useBallotpediaData } from "@/hooks/useBallotpediaData";
 
-// Demo data
-const demoElections = [
-  { id: "demo-1", name: "Kansas City Municipal Election", electionDay: "2025-04-08" },
-  { id: "demo-2", name: "2026 General Election", electionDay: "2026-11-03" },
-];
-const demoPolling = { locationName: "KC Community Center", address: { line1: "123 Main St", city: "Kansas City", state: "MO", zip: "64106" } };
-const demoContests = [
-  { office: "Mayor of Kansas City", district: { name: "City Wide" }, candidates: [
-    { name: "Sarah Johnson", party: "Democratic", candidateUrl: "" },
-    { name: "Marcus Williams", party: "Republican", candidateUrl: "" },
-  ]},
-  { office: "City Council District 3", district: { name: "District 3" }, candidates: [
-    { name: "Alex Rivera", party: "Independent", candidateUrl: "" },
-    { name: "Kim Chen", party: "Democratic", candidateUrl: "" },
-  ]},
+/* ─── 2026 election calendar ─── */
+const STATE_PRIMARY_DATES_2026: Record<string, string> = {
+  IL: "2026-03-17", TX: "2026-03-03", OH: "2026-05-05",
+  NC: "2026-03-17", CA: "2026-06-02", FL: "2026-08-18",
+  GA: "2026-05-19", PA: "2026-05-19", MI: "2026-08-04",
+  MO: "2026-08-04", KS: "2026-08-04", NY: "2026-06-23",
+  VA: "2026-06-09", WA: "2026-08-04", OR: "2026-05-19",
+  CO: "2026-06-23", AZ: "2026-08-04", NV: "2026-06-09",
+  WI: "2026-08-11", MN: "2026-08-11", IA: "2026-06-02",
+  NJ: "2026-06-02", MD: "2026-07-21", MA: "2026-09-15",
+};
+
+const GENERAL_DATE = "2026-11-03";
+
+function getNextElectionForState(stateCode?: string | null) {
+  const now = new Date();
+  if (stateCode) {
+    const primaryStr = STATE_PRIMARY_DATES_2026[stateCode];
+    if (primaryStr) {
+      const primary = new Date(`${primaryStr}T00:00:00`);
+      if (primary > now) {
+        return {
+          name: `${stateCode} Primary Election`,
+          date: primaryStr,
+          type: "primary" as const,
+          description: `Primary elections for all ${stateCode} federal and state offices`,
+        };
+      }
+    }
+  }
+  return {
+    name: "2026 Midterm General Election",
+    date: GENERAL_DATE,
+    type: "general" as const,
+    description: "All 435 House seats + 35 Senate seats + governor races",
+  };
+}
+
+/* ─── Missouri-specific fallback races ─── */
+const MO_2026_RACES = [
+  {
+    office: "U.S. House — District 5 (Kansas City)",
+    incumbent: "Emanuel Cleaver (D)",
+    ballotpedia: "https://ballotpedia.org/Missouri%27s_5th_Congressional_District_election,_2026",
+    primary: "August 4, 2026",
+    general: "November 3, 2026",
+    competitiveness: "Lean Democratic",
+  },
+  {
+    office: "Missouri Governor",
+    incumbent: "Mike Kehoe (R)",
+    ballotpedia: "https://ballotpedia.org/Missouri_gubernatorial_election,_2026",
+    primary: "August 4, 2026",
+    general: "November 3, 2026",
+    competitiveness: "Lean Republican",
+  },
+  {
+    office: "Missouri Attorney General",
+    incumbent: "Andrew Bailey (R)",
+    ballotpedia: "https://ballotpedia.org/Missouri_Attorney_General_election,_2026",
+    primary: "August 4, 2026",
+    general: "November 3, 2026",
+    competitiveness: "Lean Republican",
+  },
 ];
 
 const transportOptions = [
@@ -56,30 +106,36 @@ export default function VotingHubPage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // Build a parseable address for Google Civic — ZIP alone causes "Failed to parse address"
+  const nextElection = useMemo(() => getNextElectionForState(stateCode), [stateCode]);
+
+  // Build address for Google Civic
   const hasResolvableAddress = Boolean(fullAddress?.trim() || (city && stateCode && zipCode));
-  const address = fullAddress?.trim()
-    || (city && stateCode && zipCode ? `${city}, ${stateCode} ${zipCode}` : "");
-  const { data: electionsData, isLoading: electionsLoading, error: electionsError } = useElections();
+  const address = fullAddress?.trim() || (city && stateCode && zipCode ? `${city}, ${stateCode} ${zipCode}` : "");
   const { data: voterData, isLoading: voterLoading } = useVoterInfo(address);
 
-  const { candidates: bpCandidates, measures: bpMeasures, loading: bpLoading } = useBallotpediaData(stateCode || undefined, city || undefined);
-  const liveElections = (electionsData?.elections || []).filter((e: any) => e.id !== "2000");
   const noLiveVoterData = voterData?.status === "no_election";
   const invalidVoterAddress = voterData?.status === "invalid_address";
   const needsFullAddress = !hasResolvableAddress || invalidVoterAddress;
-  const isDemo = !!electionsError || (!electionsLoading && liveElections.length === 0) || (hasResolvableAddress && noLiveVoterData);
-  const elections = isDemo ? demoElections : liveElections;
-  const pollingLocations = isDemo ? [demoPolling] : (voterData?.pollingLocations || []);
-  const contests = isDemo ? demoContests : (voterData?.contests || []);
-  const demoBannerMessage = noLiveVoterData
-    ? "No active election data is available for your address right now. Showing sample data below."
-    : "Live election data requires a Google Civic API key. Showing sample data below.";
 
-  // Next election for countdown
-  const nextElection = elections[0];
-  const nextElectionDate = nextElection?.electionDay || "2026-11-03";
-  const nextElectionName = nextElection?.name || "2026 General Election";
+  const pollingLocations = voterData?.pollingLocations || [];
+  const earlyVoteSites = voterData?.earlyVoteSites || [];
+  const contests = voterData?.contests || [];
+  const hasPollingData = pollingLocations.length > 0 || earlyVoteSites.length > 0;
+  const displayPolling = pollingLocations.length > 0 ? pollingLocations : earlyVoteSites;
+
+  // Ballotpedia data
+  const { candidates: bpCandidates, measures: bpMeasures, loading: bpLoading } = useBallotpediaData(stateCode || undefined, city || undefined);
+
+  // Saved legislation for "Bills to Watch"
+  const { data: savedBills } = useQuery({
+    queryKey: ["saved_legislation", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data } = await supabase.from("saved_legislation").select("*").eq("user_id", user.id).limit(5);
+      return data || [];
+    },
+    enabled: !!user,
+  });
 
   // Voting plan state
   const [planElectionDate, setPlanElectionDate] = useState<Date | undefined>();
@@ -108,7 +164,7 @@ export default function VotingHubPage() {
     if (existingPlan) {
       if (existingPlan.election_date) setPlanElectionDate(new Date(existingPlan.election_date));
       if (existingPlan.polling_location) setPlanPollingAddress(existingPlan.polling_location);
-      if ((existingPlan as any).polling_location_name) setPlanPollingName((existingPlan as any).polling_location_name);
+      if (existingPlan.polling_location_name) setPlanPollingName(existingPlan.polling_location_name);
       if (existingPlan.transport_method) setPlanTransport(existingPlan.transport_method);
       if (existingPlan.reminder_time) {
         setPlanReminder(true);
@@ -118,26 +174,25 @@ export default function VotingHubPage() {
   }, [existingPlan]);
 
   useEffect(() => {
-    if (pollingLocations.length > 0 && !planPollingAddress) {
-      const loc = pollingLocations[0];
+    if (displayPolling.length > 0 && !planPollingAddress) {
+      const loc = displayPolling[0];
       setPlanPollingName(loc.locationName || loc.address?.locationName || "");
       const addr = loc.address;
       if (addr) setPlanPollingAddress([addr.line1, addr.city, addr.state, addr.zip].filter(Boolean).join(", "));
     }
-  }, [pollingLocations, planPollingAddress]);
+  }, [displayPolling, planPollingAddress]);
 
   useEffect(() => {
-    if (elections.length > 0 && !planElectionDate) {
-      const first = elections[0];
-      if (first.electionDay) setPlanElectionDate(new Date(first.electionDay));
+    if (!planElectionDate) {
+      setPlanElectionDate(new Date(`${nextElection.date}T00:00:00`));
     }
-  }, [elections, planElectionDate]);
+  }, [nextElection.date, planElectionDate]);
 
   const handleSavePlan = async () => {
     if (!user) return;
     const planData = {
       user_id: user.id,
-      election_id: elections[0]?.id || "manual",
+      election_id: "midterms-2026",
       election_date: planElectionDate ? format(planElectionDate, "yyyy-MM-dd") : null,
       polling_location: planPollingAddress || null,
       polling_location_name: planPollingName || null,
@@ -166,7 +221,7 @@ export default function VotingHubPage() {
         user_id: user.id,
         race_id: raceId,
         candidate_or_choice: candidate,
-        election_id: elections[0]?.id || "manual",
+        election_id: "midterms-2026",
         zip_code: zipCode,
       }, { onConflict: "user_id,race_id" as any });
     }
@@ -179,20 +234,18 @@ export default function VotingHubPage() {
     toast.success("Address copied!");
   };
 
+  const showMoFallback = stateCode === "MO" && bpCandidates.length === 0;
+
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 space-y-6 md:space-y-8">
-      {/* Demo banner */}
-      {isDemo && (
-        <div className="bg-card border border-primary/30 rounded-card p-3 flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 text-primary shrink-0" />
-          <p className="text-xs text-muted-foreground">{demoBannerMessage}</p>
-        </div>
-      )}
 
-      {/* ELECTION COUNTDOWN HERO */}
+      {/* ═══ MIDTERMS HERO ═══ */}
+      <MidtermsHero stateCode={stateCode} onAskUwazi={() => navigate(`/ask?q=${encodeURIComponent("What are the most important races in the 2026 midterm elections? What issues are at stake?")}`)} />
+
+      {/* ═══ ELECTION COUNTDOWN ═══ */}
       <ElectionCountdown
-        electionName={nextElectionName}
-        electionDate={nextElectionDate}
+        electionName={nextElection.name}
+        electionDate={nextElection.date}
         city={city}
         stateCode={stateCode}
         zipCode={zipCode}
@@ -210,37 +263,41 @@ export default function VotingHubPage() {
         )}
       </motion.div>
 
-      {/* POLLING LOCATION */}
+      {/* ═══ POLLING LOCATION ═══ */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-4">
         <h2 className="font-heading text-2xl text-foreground">YOUR POLLING LOCATION</h2>
         {needsFullAddress ? (
           <div className="rounded-card p-6 text-center space-y-3" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
             <MapPin className="h-8 w-8 text-primary mx-auto" />
             <h3 className="font-heading text-lg text-foreground">Add your address to find your polling location</h3>
-            <p className="text-sm text-muted-foreground">{invalidVoterAddress ? "Your saved address could not be matched. Please update it to load your exact polling place and ballot." : "We need your full street address to find your exact polling place."}</p>
-            <Button onClick={() => navigate("/settings")} className="bg-primary text-primary-foreground">{invalidVoterAddress ? "Update My Address →" : "Add My Address →"}</Button>
+            <p className="text-sm text-muted-foreground">
+              {invalidVoterAddress
+                ? "Your saved address could not be matched. Please update it to load your exact polling place and ballot."
+                : "We need your full street address to find your exact polling place."}
+            </p>
+            <Button onClick={() => navigate("/settings")} className="bg-primary text-primary-foreground">
+              {invalidVoterAddress ? "Update My Address →" : "Add My Address →"}
+            </Button>
           </div>
-        ) : voterLoading && !isDemo ? (
+        ) : voterLoading ? (
           <Skeleton className="h-28 rounded-card" />
-        ) : pollingLocations.length > 0 ? (
+        ) : hasPollingData ? (
           <div className="space-y-3">
-            {pollingLocations.map((loc: any, i: number) => {
+            {displayPolling.map((loc: any, i: number) => {
               const addr = loc.address;
               const fullAddr = addr ? [addr.line1, addr.city, addr.state, addr.zip].filter(Boolean).join(", ") : "";
               return (
                 <div key={i} className="rounded-card p-5 border-l-4 border-l-primary" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <p className="text-sm font-bold text-foreground flex items-center gap-1.5">
-                        <MapPin className="h-4 w-4 text-primary" />
-                        {loc.locationName || loc.address?.locationName || "Polling Location"}
-                      </p>
-                      {fullAddr && <p className="text-xs text-muted-foreground">{fullAddr}</p>}
-                      {loc.pollingHours && <p className="text-xs text-muted-foreground">🕐 Hours: {loc.pollingHours}</p>}
-                    </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                      <MapPin className="h-4 w-4 text-primary" />
+                      {loc.locationName || loc.address?.locationName || "Polling Location"}
+                    </p>
+                    {fullAddr && <p className="text-xs text-muted-foreground">{fullAddr}</p>}
+                    {loc.pollingHours && <p className="text-xs text-muted-foreground">🕐 Hours: {loc.pollingHours}</p>}
                   </div>
                   <div className="flex flex-col sm:flex-row gap-2 mt-3">
-                    <a href={`https://maps.google.com/?q=${encodeURIComponent(fullAddr)}`} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none">
+                    <a href={`https://maps.google.com/?q=${encodeURIComponent(fullAddr)}`} target="_blank" rel="noopener noreferrer">
                       <Button size="sm" className="w-full sm:w-auto bg-primary text-primary-foreground text-xs gap-1">
                         <ExternalLink className="h-3 w-3" /> Get Directions
                       </Button>
@@ -254,20 +311,35 @@ export default function VotingHubPage() {
             })}
           </div>
         ) : (
-          <div className="rounded-card p-6 text-center" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
-            <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-            <p className="text-muted-foreground text-sm mb-2">Polling location not yet available for this election.</p>
-            <a href="https://vote.gov" target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
-              Check vote.gov or your county election office →
-            </a>
+          /* ── Honest "not available yet" ── */
+          <div className="rounded-card p-6 text-center space-y-3" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
+            <MapPin className="h-8 w-8 text-muted-foreground mx-auto" />
+            <h3 className="font-heading text-lg text-foreground">Polling Locations Not Published Yet</h3>
+            <p className="text-sm text-muted-foreground">
+              Polling locations for the {nextElection.name} are typically published 4-6 weeks before Election Day. Check back closer to {new Date(`${nextElection.date}T00:00:00`).toLocaleDateString("en-US", { month: "long", year: "numeric" })}.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2 justify-center">
+              <a href="https://vote.gov" target="_blank" rel="noopener noreferrer">
+                <Button size="sm" variant="outline" className="text-xs gap-1 border-border">
+                  Check vote.gov <ExternalLink className="h-3 w-3" />
+                </Button>
+              </a>
+              {stateCode === "MO" && (
+                <a href="https://www.sos.mo.gov/elections" target="_blank" rel="noopener noreferrer">
+                  <Button size="sm" variant="outline" className="text-xs gap-1 border-border">
+                    Missouri Election Site <ExternalLink className="h-3 w-3" />
+                  </Button>
+                </a>
+              )}
+            </div>
           </div>
         )}
       </motion.div>
 
-      {/* VOTER REGISTRATION CHECK */}
+      {/* ═══ VOTER REGISTRATION CHECK ═══ */}
       <RegistrationCheck stateCode={stateCode} />
 
-      {/* VOTING PLAN BUILDER */}
+      {/* ═══ VOTING PLAN BUILDER ═══ */}
       <motion.div id="voting-plan-builder" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
         className="rounded-card p-6" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}
       >
@@ -286,8 +358,7 @@ export default function VotingHubPage() {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarPicker mode="single" selected={planElectionDate} onSelect={(d) => { setPlanElectionDate(d); setDatePickerOpen(false); }}
-                    className={cn("p-3 pointer-events-auto")} />
+                  <CalendarPicker mode="single" selected={planElectionDate} onSelect={(d) => { setPlanElectionDate(d); setDatePickerOpen(false); }} className={cn("p-3 pointer-events-auto")} />
                 </PopoverContent>
               </Popover>
             </div>
@@ -342,8 +413,7 @@ export default function VotingHubPage() {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarPicker mode="single" selected={planReminderDate} onSelect={(d) => { setPlanReminderDate(d); setReminderPickerOpen(false); }}
-                      className={cn("p-3 pointer-events-auto")} />
+                    <CalendarPicker mode="single" selected={planReminderDate} onSelect={(d) => { setPlanReminderDate(d); setReminderPickerOpen(false); }} className={cn("p-3 pointer-events-auto")} />
                   </PopoverContent>
                 </Popover>
               )}
@@ -362,17 +432,86 @@ export default function VotingHubPage() {
         )}
       </motion.div>
 
-      {/* BALLOT */}
-      <BallotSection
-        contests={contests}
-        isDemo={isDemo}
-        electionDate={nextElectionDate}
-      />
+      {/* ═══ BALLOT — Google Civic contests ═══ */}
+      {contests.length > 0 && (
+        <BallotSection contests={contests} isDemo={false} electionDate={nextElection.date} />
+      )}
 
-      {/* BALLOTPEDIA ENRICHED DATA */}
+      {/* ═══ BALLOTPEDIA CANDIDATES & MEASURES ═══ */}
       {(bpCandidates.length > 0 || bpMeasures.length > 0) && (
         <BallotpediaSection candidates={bpCandidates} measures={bpMeasures} />
       )}
+
+      {/* ═══ MISSOURI FALLBACK RACES ═══ */}
+      {showMoFallback && (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Landmark className="h-5 w-5 text-primary" />
+            <h2 className="font-heading text-2xl text-foreground">YOUR LOCAL RACES</h2>
+          </div>
+          <p className="text-xs text-muted-foreground">Key 2026 races for Missouri. Live candidate data will replace this when available.</p>
+          <div className="space-y-3">
+            {MO_2026_RACES.map((race) => (
+              <div key={race.office} className="rounded-card p-5 border-l-4 border-l-primary" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
+                <p className="text-sm font-bold text-foreground">{race.office}</p>
+                <p className="text-xs text-muted-foreground mt-1">Incumbent: {race.incumbent}</p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">{race.competitiveness}</span>
+                  <span className="text-[10px] text-muted-foreground">Primary: {race.primary}</span>
+                  <span className="text-[10px] text-muted-foreground">General: {race.general}</span>
+                </div>
+                <a href={race.ballotpedia} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline mt-2 inline-block">
+                  View on Ballotpedia ↗
+                </a>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* ═══ BILLS TO WATCH ═══ */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Scale className="h-5 w-5 text-primary" />
+            <h2 className="font-heading text-2xl text-foreground">BILLS TO WATCH</h2>
+          </div>
+          <Button variant="ghost" size="sm" className="text-xs text-primary" onClick={() => navigate("/legislation")}>
+            Track More Bills →
+          </Button>
+        </div>
+        {savedBills && savedBills.length > 0 ? (
+          <div className="space-y-2">
+            {savedBills.map((bill) => (
+              <div key={bill.id} className="rounded-card p-4 flex items-center justify-between" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-primary">{bill.bill_id}</p>
+                  <p className="text-sm text-foreground truncate">{bill.bill_title || "Untitled Bill"}</p>
+                  {bill.jurisdiction && <p className="text-[10px] text-muted-foreground">{bill.jurisdiction}</p>}
+                </div>
+                <div className="flex items-center gap-2 shrink-0 ml-3">
+                  {bill.bill_url && (
+                    <a href={bill.bill_url} target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline" size="sm" className="text-xs h-7 border-border">View ↗</Button>
+                    </a>
+                  )}
+                  <Button variant="ghost" size="sm" className="text-xs text-primary h-7"
+                    onClick={() => navigate(`/ask?q=${encodeURIComponent(`Tell me about ${bill.bill_id}: ${bill.bill_title}. What does it do and where does it stand?`)}`)}>
+                    Ask Uwazi
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-card p-6 text-center" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
+            <p className="text-sm text-muted-foreground mb-2">No bills tracked yet.</p>
+            <Button variant="outline" size="sm" className="text-xs border-border" onClick={() => navigate("/legislation")}>
+              Browse Legislation →
+            </Button>
+          </div>
+        )}
+      </motion.div>
 
       {/* Review Ballot Modal */}
       <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
@@ -401,5 +540,80 @@ export default function VotingHubPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════
+   MIDTERMS HERO COMPONENT
+   ═══════════════════════════════════════════════ */
+
+function MidtermsHero({ stateCode, onAskUwazi }: { stateCode?: string | null; onAskUwazi: () => void }) {
+  const navigate = useNavigate();
+  const stakes = [
+    { number: "435", label: "House Seats", context: "All of them up for election" },
+    { number: "35", label: "Senate Seats", context: "Including 2 special elections" },
+    { number: "39", label: "Governor Races", context: "Across states & territories" },
+    { number: "40K+", label: "Total Offices", context: "From Congress to school board" },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="relative overflow-hidden rounded-3xl p-6 md:p-8"
+      style={{
+        background: "linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--primary) / 0.02) 100%)",
+        border: "1px solid hsl(var(--primary) / 0.2)",
+      }}
+    >
+      <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.4) 30%, hsl(var(--primary) / 0.4) 70%, transparent)" }} />
+
+      <p className="eyebrow text-muted-foreground mb-1">🗳️ 2026 MIDTERM ELECTIONS</p>
+      <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl text-foreground leading-tight">CONGRESS IS ON THE BALLOT.</h2>
+      <p className="text-sm text-muted-foreground mt-1">November 3, 2026 — The most consequential midterms in decades.</p>
+
+      {/* Stakes grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 mt-5">
+        {stakes.map((s) => (
+          <div key={s.label} className="flex flex-col items-center rounded-xl sm:rounded-2xl py-3 px-2"
+            style={{ background: "var(--card-bg, rgba(0,0,0,0.3))", border: "1px solid hsl(var(--primary) / 0.1)" }}>
+            <span className="font-heading text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary leading-none" style={{ letterSpacing: "-0.02em" }}>
+              {s.number}
+            </span>
+            <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-foreground mt-1">{s.label}</span>
+            <span className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 text-center">{s.context}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Congressional control bars */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">HOUSE</p>
+          <div className="flex h-7 rounded-lg overflow-hidden">
+            <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: "49.2%", background: "#1d4ed8" }}>214 D</div>
+            <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: "50.8%", background: "#dc2626" }}>221 R</div>
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1">Republicans hold majority — 4 seats decide control</p>
+        </div>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">SENATE</p>
+          <div className="flex h-7 rounded-lg overflow-hidden">
+            <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: "45.9%", background: "#1d4ed8" }}>45 D</div>
+            <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: "54.1%", background: "#dc2626" }}>53 R</div>
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1">Republicans hold majority — 4 seats decide control</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-2 mt-5">
+        <Button onClick={() => document.getElementById("voting-plan-builder")?.scrollIntoView({ behavior: "smooth" })} className="bg-primary text-primary-foreground gap-1.5">
+          See Candidates in My Area →
+        </Button>
+        <Button variant="outline" className="border-primary/30 text-primary hover:bg-primary/10 gap-1.5" onClick={onAskUwazi}>
+          Ask Uwazi About 2026 →
+        </Button>
+      </div>
+    </motion.div>
   );
 }
