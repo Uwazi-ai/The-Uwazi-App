@@ -24,6 +24,7 @@ import LearnPage from "./pages/LearnPage";
 import LegislationPage from "./pages/LegislationPage";
 import BillDetailPage from "./pages/BillDetailPage";
 import CandidatesPage from "./pages/CandidatesPage";
+import CandidateDetailPage from "./pages/CandidateDetailPage";
 import ProgressPage from "./pages/ProgressPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
