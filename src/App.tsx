@@ -23,6 +23,7 @@ import OnboardingPage from "./pages/OnboardingPage";
 import LearnPage from "./pages/LearnPage";
 import LegislationPage from "./pages/LegislationPage";
 import BillDetailPage from "./pages/BillDetailPage";
+import CandidatesPage from "./pages/CandidatesPage";
 import ProgressPage from "./pages/ProgressPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
@@ -60,6 +61,7 @@ const App = () => (
                 <Route path="/" element={<HomePage />} />
                 <Route path="/ask" element={<AskUwaziPage />} />
                 <Route path="/vote" element={<VotingHubPage />} />
+                <Route path="/vote/candidates" element={<CandidatesPage />} />
                 <Route path="/news" element={<NewsPage />} />
                 <Route path="/civic-feed" element={<CivicFeedPage />} />
                 <Route path="/saved" element={<SavedPage />} />
