@@ -63,6 +63,7 @@ const App = () => (
                 <Route path="/ask" element={<AskUwaziPage />} />
                 <Route path="/vote" element={<VotingHubPage />} />
                 <Route path="/vote/candidates" element={<CandidatesPage />} />
+                <Route path="/vote/candidates/:id" element={<CandidateDetailPage />} />
                 <Route path="/news" element={<NewsPage />} />
                 <Route path="/civic-feed" element={<CivicFeedPage />} />
                 <Route path="/saved" element={<SavedPage />} />
