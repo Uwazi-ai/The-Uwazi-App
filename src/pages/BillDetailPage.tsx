@@ -4,6 +4,7 @@ import { ArrowLeft, Bookmark, BookmarkCheck, ExternalLink, Share2 } from "lucide
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBillDetailCongress, useBillSummaries, formatBillType } from "@/hooks/useCongressApi";
+import { findFeaturedBill } from "@/data/featuredBills";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCivicLocation } from "@/hooks/useCivicLocation";
@@ -18,10 +19,33 @@ export default function BillDetailPage() {
   const { zipCode } = useCivicLocation();
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useBillDetailCongress(congress || "", type || "", number || "");
-  const { data: summaryData } = useBillSummaries(congress || "", type || "", number || "");
+  // Check if this is a featured/curated bill first
+  const featuredBill = findFeaturedBill(congress || "", type || "", number || "");
 
-  const bill = data?.bill;
+  // Only call the API if it's NOT a featured bill
+  const { data, isLoading } = useBillDetailCongress(
+    featuredBill ? "" : (congress || ""),
+    featuredBill ? "" : (type || ""),
+    featuredBill ? "" : (number || "")
+  );
+  const { data: summaryData } = useBillSummaries(
+    featuredBill ? "" : (congress || ""),
+    featuredBill ? "" : (type || ""),
+    featuredBill ? "" : (number || "")
+  );
+
+  // Build a unified bill object — prefer API data, fall back to featured
+  const apiBill = data?.bill;
+  const bill = apiBill || (featuredBill ? {
+    title: featuredBill.title,
+    latestAction: { text: featuredBill.latestAction.text, actionDate: featuredBill.updateDate },
+    sponsors: [],
+    url: null,
+    _status: featuredBill._status,
+    _category: featuredBill._category,
+    _description: featuredBill._description,
+  } : null);
+
   const summaries = summaryData?.summaries || [];
   const billId = `${type}-${number}-${congress}`;
 
@@ -57,7 +81,7 @@ export default function BillDetailPage() {
     toast.success("Link copied to clipboard!");
   };
 
-  if (isLoading) {
+  if (isLoading && !featuredBill) {
     return (
       <div className="max-w-4xl mx-auto px-4 md:px-8 py-8 space-y-6">
         <Skeleton className="h-8 w-32" />
@@ -92,9 +116,18 @@ export default function BillDetailPage() {
             {formatBillType(type || "")} {number}
           </span>
           <span className="text-sm px-3 py-1 rounded-pill border border-border text-muted-foreground">
-            {congress}th Congress
+            119th Congress (2025-2026)
           </span>
-          <span className="text-sm px-3 py-1 rounded-pill border border-border text-muted-foreground">Federal</span>
+          {(bill as any)?._status && (
+            <span className="text-sm px-3 py-1 rounded-pill bg-primary/10 text-primary font-medium">
+              📌 {(bill as any)._status}
+            </span>
+          )}
+          {(bill as any)?._category && (
+            <span className="text-sm px-3 py-1 rounded-pill border border-border text-muted-foreground">
+              {(bill as any)._category}
+            </span>
+          )}
         </div>
 
         <h1 className="font-heading text-3xl md:text-4xl text-foreground leading-tight">{bill.title}</h1>
@@ -105,6 +138,13 @@ export default function BillDetailPage() {
             {sponsor.party && <span> ({sponsor.party})</span>}
             {sponsor.state && <span> — {sponsor.state}</span>}
           </p>
+        )}
+
+        {(bill as any)?._description && (
+          <div className="bg-card border border-border rounded-card p-4">
+            <p className="text-xs text-primary font-semibold mb-1">ABOUT THIS BILL</p>
+            <p className="text-sm text-muted-foreground">{(bill as any)._description}</p>
+          </div>
         )}
 
         {latestAction && (
