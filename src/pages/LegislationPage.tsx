@@ -237,6 +237,9 @@ export default function LegislationPage() {
             {isLoading ? "..." : `${bills.length} Bills Found`}
           </span>
           <span className="px-3 py-1.5 bg-card border border-border rounded-pill text-xs font-medium text-foreground">
+            119th Congress (2025-2026)
+          </span>
+          <span className="px-3 py-1.5 bg-card border border-border rounded-pill text-xs font-medium text-foreground">
             {savedBills?.length || 0} Saved
           </span>
         </div>
