@@ -264,7 +264,7 @@ export default function CandidateDetailPage() {
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Uwazi.ai asks every candidate the same questions — so you can compare answers side by side.
                 </p>
-                <Badge className="text-[10px] px-2 py-0.5 bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+                <Badge className="text-[10px] px-2 py-0.5 bg-accent/30 text-accent-foreground border-accent/40">
                   Coming before Nov 2026
                 </Badge>
               </div>
