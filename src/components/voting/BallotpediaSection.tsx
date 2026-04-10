@@ -56,7 +56,7 @@ export default function BallotpediaSection({ candidates, measures }: Ballotpedia
         <>
           <div className="flex items-center gap-2">
             <Users className="h-5 w-5 text-primary" />
-            <h2 className="font-heading text-2xl text-foreground">BALLOTPEDIA CANDIDATES</h2>
+            <h2 className="font-heading text-2xl text-foreground">Your CANDIDATES</h2>
           </div>
           <div className="space-y-3">
             {Object.entries(byOffice).map(([office, cands]) => (
