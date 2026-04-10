@@ -753,7 +753,7 @@ serve(async (req) => {
       .from('ballotpedia_scraper_log')
       .update({
         status: results.errors.length === 0 ? 'success' : 'partial',
-        records_scraped: results.candidates + results.measures + results.officials + results.elections,
+        records_scraped: results.candidates + results.measures + results.officials + results.elections + results.enriched_bios,
         completed_at: new Date().toISOString(),
         error_message: results.errors.length > 0
           ? results.errors.join('; ')
