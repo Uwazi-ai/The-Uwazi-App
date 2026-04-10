@@ -340,6 +340,9 @@ export default function VotingHubPage() {
       {/* ═══ VOTER REGISTRATION CHECK ═══ */}
       <RegistrationCheck stateCode={stateCode} />
 
+      {/* ═══ YOUR REPRESENTATIVES ═══ */}
+      <RepresentativesSection stateCode={stateCode} zipCode={zipCode} city={city} />
+
       {/* ═══ VOTING PLAN BUILDER ═══ */}
       <motion.div id="voting-plan-builder" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
         className="rounded-card p-6" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}
