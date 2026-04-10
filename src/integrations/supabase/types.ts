@@ -77,27 +77,42 @@ export type Database = {
       badges: {
         Row: {
           description: string | null
+          emoji: string | null
           icon_url: string | null
           id: string
           name: string
+          rarity: string | null
           slug: string
+          track_id: string | null
+          unlock_condition: string | null
           xp_reward: number | null
+          xp_value: number | null
         }
         Insert: {
           description?: string | null
+          emoji?: string | null
           icon_url?: string | null
           id?: string
           name: string
+          rarity?: string | null
           slug: string
+          track_id?: string | null
+          unlock_condition?: string | null
           xp_reward?: number | null
+          xp_value?: number | null
         }
         Update: {
           description?: string | null
+          emoji?: string | null
           icon_url?: string | null
           id?: string
           name?: string
+          rarity?: string | null
           slug?: string
+          track_id?: string | null
+          unlock_condition?: string | null
           xp_reward?: number | null
+          xp_value?: number | null
         }
         Relationships: []
       }
@@ -818,44 +833,113 @@ export type Database = {
           },
         ]
       }
+      lesson_tracks: {
+        Row: {
+          color: string | null
+          description: string | null
+          difficulty: string | null
+          emoji: string | null
+          id: string
+          lesson_count: number | null
+          name: string
+          order_index: number | null
+          total_xp: number | null
+        }
+        Insert: {
+          color?: string | null
+          description?: string | null
+          difficulty?: string | null
+          emoji?: string | null
+          id: string
+          lesson_count?: number | null
+          name: string
+          order_index?: number | null
+          total_xp?: number | null
+        }
+        Update: {
+          color?: string | null
+          description?: string | null
+          difficulty?: string | null
+          emoji?: string | null
+          id?: string
+          lesson_count?: number | null
+          name?: string
+          order_index?: number | null
+          total_xp?: number | null
+        }
+        Relationships: []
+      }
       lessons: {
         Row: {
+          action_items: Json | null
+          badge_awarded: string | null
           category: string | null
           content: Json | null
           created_at: string | null
           description: string | null
           difficulty: string | null
+          estimated_minutes: number | null
           id: string
           is_published: boolean | null
+          key_takeaways: Json | null
+          lesson_number: string | null
           order_index: number | null
+          prerequisites: Json | null
+          quiz_questions: Json | null
           slug: string
           title: string
+          total_slides: number | null
+          track_emoji: string | null
+          track_id: string | null
+          track_name: string | null
           xp_reward: number | null
         }
         Insert: {
+          action_items?: Json | null
+          badge_awarded?: string | null
           category?: string | null
           content?: Json | null
           created_at?: string | null
           description?: string | null
           difficulty?: string | null
+          estimated_minutes?: number | null
           id?: string
           is_published?: boolean | null
+          key_takeaways?: Json | null
+          lesson_number?: string | null
           order_index?: number | null
+          prerequisites?: Json | null
+          quiz_questions?: Json | null
           slug: string
           title: string
+          total_slides?: number | null
+          track_emoji?: string | null
+          track_id?: string | null
+          track_name?: string | null
           xp_reward?: number | null
         }
         Update: {
+          action_items?: Json | null
+          badge_awarded?: string | null
           category?: string | null
           content?: Json | null
           created_at?: string | null
           description?: string | null
           difficulty?: string | null
+          estimated_minutes?: number | null
           id?: string
           is_published?: boolean | null
+          key_takeaways?: Json | null
+          lesson_number?: string | null
           order_index?: number | null
+          prerequisites?: Json | null
+          quiz_questions?: Json | null
           slug?: string
           title?: string
+          total_slides?: number | null
+          track_emoji?: string | null
+          track_id?: string | null
+          track_name?: string | null
           xp_reward?: number | null
         }
         Relationships: []
@@ -1521,28 +1605,43 @@ export type Database = {
       user_lesson_progress: {
         Row: {
           completed_at: string | null
+          current_slide: number | null
           id: string
+          last_slide_seen: number | null
           lesson_id: string | null
+          quiz_attempts: number | null
+          quiz_score: number | null
           score: number | null
           status: string | null
+          time_spent_seconds: number | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           completed_at?: string | null
+          current_slide?: number | null
           id?: string
+          last_slide_seen?: number | null
           lesson_id?: string | null
+          quiz_attempts?: number | null
+          quiz_score?: number | null
           score?: number | null
           status?: string | null
+          time_spent_seconds?: number | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           completed_at?: string | null
+          current_slide?: number | null
           id?: string
+          last_slide_seen?: number | null
           lesson_id?: string | null
+          quiz_attempts?: number | null
+          quiz_score?: number | null
           score?: number | null
           status?: string | null
+          time_spent_seconds?: number | null
           updated_at?: string | null
           user_id?: string
         }
