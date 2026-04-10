@@ -1301,42 +1301,57 @@ export type Database = {
       race_candidates: {
         Row: {
           ballotpedia_url: string | null
+          bio: string | null
           created_at: string
           id: string
           is_incumbent: boolean
+          last_election_pct: number | null
           name: string
           party: string
           photo_url: string | null
+          positions: Json | null
+          prior_office: string | null
           race_id: string
           status: string
           updated_at: string
           vote_pct: number | null
+          website_url: string | null
         }
         Insert: {
           ballotpedia_url?: string | null
+          bio?: string | null
           created_at?: string
           id?: string
           is_incumbent?: boolean
+          last_election_pct?: number | null
           name: string
           party: string
           photo_url?: string | null
+          positions?: Json | null
+          prior_office?: string | null
           race_id: string
           status?: string
           updated_at?: string
           vote_pct?: number | null
+          website_url?: string | null
         }
         Update: {
           ballotpedia_url?: string | null
+          bio?: string | null
           created_at?: string
           id?: string
           is_incumbent?: boolean
+          last_election_pct?: number | null
           name?: string
           party?: string
           photo_url?: string | null
+          positions?: Json | null
+          prior_office?: string | null
           race_id?: string
           status?: string
           updated_at?: string
           vote_pct?: number | null
+          website_url?: string | null
         }
         Relationships: [
           {
