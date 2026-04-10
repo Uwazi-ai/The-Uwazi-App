@@ -286,8 +286,8 @@ function RaceSection({ race }: { race: RaceWithCandidates }) {
 
 /* ─── Main Page ─── */
 export default function CandidatesPage() {
-  const { profile } = useProfile();
-  const stateCode = profile?.state_code || "MO";
+  const { stateCode: profileState } = useProfile();
+  const stateCode = profileState || "MO";
 
   const { data: races, isLoading } = useQuery({
     queryKey: ["election-races", stateCode],
