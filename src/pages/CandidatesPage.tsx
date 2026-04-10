@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { ChevronLeft, ExternalLink, Trophy, Clock, Users } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useProfile } from "@/contexts/ProfileContext";
 import { differenceInDays, format } from "date-fns";
@@ -98,8 +99,13 @@ function CandidateCard({ candidate, phase, isPartisan }: { candidate: Candidate;
   const partyLabel = PARTY_LABEL[candidate.party] || candidate.party;
   const isWinner = candidate.status === "won_general";
 
+  const nav = useNavigate();
+
   return (
-    <Card className="bg-card border-border/40 hover:border-primary/30 transition-colors relative overflow-hidden">
+    <Card
+      className="bg-card border-border/40 hover:border-primary/30 transition-colors relative overflow-hidden cursor-pointer"
+      onClick={() => nav(`/vote/candidates/${candidate.id}`)}
+    >
       {isWinner && phase === "results" && (
         <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: "hsl(var(--primary))" }} />
       )}
