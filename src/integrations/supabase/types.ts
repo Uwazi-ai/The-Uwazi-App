@@ -651,6 +651,48 @@ export type Database = {
         }
         Relationships: []
       }
+      election_races: {
+        Row: {
+          ballotpedia_url: string | null
+          created_at: string
+          district: number | null
+          election_date: string
+          id: string
+          is_partisan: boolean
+          last_scraped_at: string | null
+          office: string
+          phase: string
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          ballotpedia_url?: string | null
+          created_at?: string
+          district?: number | null
+          election_date: string
+          id?: string
+          is_partisan?: boolean
+          last_scraped_at?: string | null
+          office: string
+          phase?: string
+          state: string
+          updated_at?: string
+        }
+        Update: {
+          ballotpedia_url?: string | null
+          created_at?: string
+          district?: number | null
+          election_date?: string
+          id?: string
+          is_partisan?: boolean
+          last_scraped_at?: string | null
+          office?: string
+          phase?: string
+          state?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       elections: {
         Row: {
           absentee_deadline: string | null
@@ -1255,6 +1297,56 @@ export type Database = {
           week_number?: number | null
         }
         Relationships: []
+      }
+      race_candidates: {
+        Row: {
+          ballotpedia_url: string | null
+          created_at: string
+          id: string
+          is_incumbent: boolean
+          name: string
+          party: string
+          photo_url: string | null
+          race_id: string
+          status: string
+          updated_at: string
+          vote_pct: number | null
+        }
+        Insert: {
+          ballotpedia_url?: string | null
+          created_at?: string
+          id?: string
+          is_incumbent?: boolean
+          name: string
+          party: string
+          photo_url?: string | null
+          race_id: string
+          status?: string
+          updated_at?: string
+          vote_pct?: number | null
+        }
+        Update: {
+          ballotpedia_url?: string | null
+          created_at?: string
+          id?: string
+          is_incumbent?: boolean
+          name?: string
+          party?: string
+          photo_url?: string | null
+          race_id?: string
+          status?: string
+          updated_at?: string
+          vote_pct?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "race_candidates_race_id_fkey"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "election_races"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       raia_scores: {
         Row: {
