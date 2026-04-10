@@ -466,10 +466,12 @@ export default function LegislationPage() {
             const isSaved = savedBillIds.has(billId);
             const isUpvoted = myUpvoteSet.has(billId);
             const upvotes = (upvoteCounts || {})[billId] || 0;
-            const category = detectCategory(bill.title || "");
+            const category = bill._category || detectCategory(bill.title || "");
+            const jurisdiction = bill._jurisdiction || "Federal";
             const updated = bill.updateDate
               ? formatDistanceToNow(new Date(bill.updateDate), { addSuffix: true })
               : null;
+            const status = bill._status;
 
             return (
               <motion.div
@@ -484,7 +486,7 @@ export default function LegislationPage() {
                     {formatBillType(bill.type || "")} {bill.number}
                   </span>
                   <span className="text-xs font-medium px-2 py-0.5 rounded-pill border border-border text-muted-foreground">
-                    Federal
+                    {jurisdiction}
                   </span>
                   {category && (
                     <span className="text-xs px-2 py-0.5 rounded-pill bg-primary/10 text-primary">
@@ -497,6 +499,12 @@ export default function LegislationPage() {
                   {(bill.title || "Untitled").substring(0, 80)}
                   {(bill.title || "").length > 80 ? "..." : ""}
                 </p>
+
+                {status && (
+                  <p className="text-xs font-medium text-primary mb-1">
+                    📌 {status}
+                  </p>
+                )}
 
                 {bill.latestAction?.text && (
                   <p className="text-xs text-muted-foreground line-clamp-1 mb-1">
