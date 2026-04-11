@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import policyImage from "@/assets/policy-power-progress.jpg";
 import { Link } from "react-router-dom";
 import {
   ChevronDown, Check, ArrowRight, Calendar, MapPin,
@@ -358,8 +359,8 @@ function PolicySection() {
           </a>
         </div>
 
-        <div className="aspect-video bg-[#111111] border border-white/[0.08] rounded-2xl flex items-center justify-center">
-          <span className="text-white/20 text-sm">Event Photo</span>
+        <div className="aspect-video bg-[#111111] border border-white/[0.08] rounded-2xl overflow-hidden">
+          <img src={policyImage} alt="Policy Power & Progress event flyer" className="w-full h-full object-cover" />
         </div>
       </div>
     </section>
