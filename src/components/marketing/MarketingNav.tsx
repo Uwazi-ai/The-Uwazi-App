@@ -167,7 +167,7 @@ export default function MarketingNav() {
             <a href="https://uwaziapp.uwazi.ai" target="_blank" rel="noopener noreferrer" className="flex-1 text-center px-4 py-2 text-sm font-medium text-white border border-white/20 rounded-full">
               Get Started
             </a>
-            <Link to="/site/contact" className="flex-1 text-center px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-full">
+            <Link to="/contact" className="flex-1 text-center px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-full">
               Book a Demo
             </Link>
           </div>
