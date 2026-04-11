@@ -275,7 +275,7 @@ export default function VotingHubPage() {
         <TabsContent value="elections" className="space-y-6 mt-6">
           <ElectionsTab
             stateCode={stateCode}
-            bpCandidates={bpCandidates}
+            racesWithCandidates={racesWithCandidates}
             bpMeasures={bpMeasures}
             bpLoading={bpLoading}
             showMoFallback={showMoFallback}
@@ -423,10 +423,10 @@ function CountdownBar({ nextElection }: { nextElection: { name: string; date: st
    ═══════════════════════════════════════════════ */
 
 function ElectionsTab({
-  stateCode, bpCandidates, bpMeasures, bpLoading, showMoFallback, contests, nextElection, navigate,
+  stateCode, racesWithCandidates, bpMeasures, bpLoading, showMoFallback, contests, nextElection, navigate,
 }: {
   stateCode?: string | null;
-  bpCandidates: any[];
+  racesWithCandidates: any[];
   bpMeasures: any[];
   bpLoading: boolean;
   showMoFallback: boolean;
@@ -500,8 +500,8 @@ function ElectionsTab({
       )}
 
       {/* Ballotpedia candidates & measures */}
-      {(bpCandidates.length > 0 || bpMeasures.length > 0) && (
-        <BallotpediaSection candidates={bpCandidates} measures={bpMeasures} />
+      {(racesWithCandidates.length > 0 || bpMeasures.length > 0) && (
+        <BallotpediaSection racesWithCandidates={racesWithCandidates} measures={bpMeasures} />
       )}
 
       {/* MO fallback */}
