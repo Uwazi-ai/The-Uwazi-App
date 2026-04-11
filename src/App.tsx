@@ -31,6 +31,9 @@ import NotFound from "./pages/NotFound";
 import MarketingHomePage from "./pages/marketing/MarketingHomePage";
 import ConsultingPage from "./pages/marketing/ConsultingPage";
 import ContactPage from "./pages/marketing/ContactPage";
+import AboutPage from "./pages/marketing/AboutPage";
+import RaiaInstitutePage from "./pages/marketing/RaiaInstitutePage";
+import CareersPage from "./pages/marketing/CareersPage";
 import AdminOverviewPage from "./pages/admin/AdminOverviewPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
@@ -57,6 +60,9 @@ const App = () => (
               <Route path="/" element={<MarketingHomePage />} />
               <Route path="/consulting" element={<ConsultingPage />} />
               <Route path="/contact" element={<ContactPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/raia-institute" element={<RaiaInstitutePage />} />
+              <Route path="/careers" element={<CareersPage />} />
               <Route path="/site" element={<Navigate to="/" replace />} />
 
               {/* Public routes */}
