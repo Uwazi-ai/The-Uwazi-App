@@ -69,7 +69,7 @@ export default function HomePage() {
       {/* Stats Grid - Row 1 */}
       <motion.div variants={containerVariants} className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <motion.div variants={itemVariants}>
-          <StatCard label="Civic Literacy Score" value={civicScore?.civic_literacy_score ?? 0} accent animate />
+          <StatCard label="Civic Score" value={civicScore?.civic_literacy_score ?? 0} accent animate />
         </motion.div>
         <motion.div variants={itemVariants}>
           <StatCard label="Current Streak" value={streak?.current_streak ?? 0} sub={`+${streak?.current_streak ?? 0} days`} icon={<Flame className="h-4 w-4 text-orange-400" />} animate />
