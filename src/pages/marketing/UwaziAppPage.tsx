@@ -73,7 +73,7 @@ export default function UwaziAppPage() {
               Ask Uwazi any civic question, track legislation, prepare for elections, and grow your civic literacy — all in one place. Free for every voter.
             </p>
             <div className="flex flex-wrap justify-center gap-4 mb-6">
-              <a href="https://uwaziapp.uwazi.ai" target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium hover:bg-primary/90 transition-colors">
+              <a href="https://www.uwazi.ai/login" target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium hover:bg-primary/90 transition-colors">
                 Try the App Free →
               </a>
               <a href="#features" className="px-6 py-3 border border-border rounded-full font-medium hover:border-primary/50 transition-colors">
