@@ -32,7 +32,7 @@ export default function MarketingFooter() {
           {/* Brand */}
           <div>
             <p className="font-heading text-xl tracking-tight text-white mb-3">
-              UWAZI<span className="text-[#6bef9a]">.AI</span>
+              UWAZI<span className="text-primary">.AI</span>
             </p>
             <p className="text-sm text-white/50 leading-relaxed">
               Community data-driven intelligence for better public outcomes. Building civic freedom for all.

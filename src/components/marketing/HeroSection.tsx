@@ -6,8 +6,8 @@ export default function HeroSection() {
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
       {/* Glow effects */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#6bef9a]/[0.06] rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 left-1/3 w-[400px] h-[300px] bg-[#2dd4bf]/[0.04] rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/[0.06] rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 left-1/3 w-[400px] h-[300px] bg-primary/[0.04] rounded-full blur-[100px] pointer-events-none" />
 
       <div className="relative max-w-5xl mx-auto px-6 text-center">
         <motion.p
@@ -47,7 +47,7 @@ export default function HeroSection() {
         >
           <Link
             to="/signup"
-            className="inline-flex items-center gap-2 px-7 py-3.5 text-[#0a0a0a] font-semibold text-sm rounded-full transition-colors bg-primary"
+            className="inline-flex items-center gap-2 px-7 py-3.5 bg-primary text-primary-foreground font-semibold text-sm rounded-full hover:bg-primary/90 transition-colors"
           >
             Get Started Free <ArrowRight className="h-4 w-4" />
           </Link>

@@ -19,7 +19,7 @@ export default function ConsultingSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <p className="text-xs uppercase tracking-[0.2em] text-[#6bef9a] mb-3">Services</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-primary mb-3">Services</p>
           <h2 className="font-heading text-3xl md:text-4xl text-white tracking-tight mb-8">
             UWAZI CONSULTING
           </h2>
@@ -27,16 +27,16 @@ export default function ConsultingSection() {
             {services.map((s) => (
               <div
                 key={s}
-                className="flex items-center gap-3 px-5 py-4 rounded-xl border border-white/[0.06] bg-[#111] hover:border-[#6bef9a]/20 transition-colors"
+                className="flex items-center gap-3 px-5 py-4 rounded-xl border border-white/[0.06] bg-[#111] hover:border-primary/20 transition-colors"
               >
-                <span className="w-2 h-2 rounded-full bg-[#6bef9a] shrink-0" />
+                <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
                 <p className="text-sm text-white/70">{s}</p>
               </div>
             ))}
           </div>
           <Link
             to="/site/consulting"
-            className="inline-flex items-center gap-2 text-sm font-medium text-[#6bef9a] hover:underline"
+            className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
           >
             Learn more about consulting <ArrowRight className="h-4 w-4" />
           </Link>
