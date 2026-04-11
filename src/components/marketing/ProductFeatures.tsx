@@ -87,7 +87,7 @@ export default function ProductFeatures() {
             "Gamified civic learning",
           ]}
           ctaLabel="Explore UWAZI App"
-          ctaHref="/site/products/uwazi-app"
+          ctaHref="/products/uwazi-app"
           imageLabel="UWAZI App Screenshot"
         />
 
@@ -102,7 +102,7 @@ export default function ProductFeatures() {
             "Custom research dashboards",
           ]}
           ctaLabel="Learn about Jamii"
-          ctaHref="/site/products/jamii"
+          ctaHref="/products/jamii"
           imageLabel="Jamii Dashboard Screenshot"
           reversed
         />

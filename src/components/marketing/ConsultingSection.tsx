@@ -35,7 +35,7 @@ export default function ConsultingSection() {
             ))}
           </div>
           <Link
-            to="/site/consulting"
+            to="/consulting"
             className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
           >
             Learn more about consulting <ArrowRight className="h-4 w-4" />
