@@ -24,7 +24,7 @@ const navLinks = [
     ],
   },
   { label: "Consulting", href: "/consulting" },
-  { label: "Raia Institute", href: "/raia" },
+  { label: "Raia Institute", href: "/raia-institute" },
   { label: "Contact", href: "/contact" },
 ];
 
