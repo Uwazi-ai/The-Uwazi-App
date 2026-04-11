@@ -176,9 +176,9 @@ function Hero() {
         </p>
 
         <h1 className="font-heading leading-[0.9] mb-8">
-          <span className="block text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black text-white tracking-tight">BUILDING</span>
-          <span className="block text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black text-lime-500 tracking-tight">CIVIC</span>
-          <span className="block text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black text-white tracking-tight">FREEDOM</span>
+          <span className="block text-6xl sm:text-7xl md:text-8xl font-black text-white tracking-tight lg:text-7xl">BUILDING</span>
+          <span className="block text-6xl sm:text-7xl md:text-8xl font-black text-lime-500 tracking-tight lg:text-7xl">CIVIC</span>
+          <span className="block text-6xl sm:text-7xl md:text-8xl font-black text-white tracking-tight lg:text-7xl">FREEDOM</span>
         </h1>
 
         <p className="text-lg sm:text-xl text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed">
