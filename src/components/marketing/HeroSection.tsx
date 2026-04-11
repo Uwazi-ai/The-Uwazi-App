@@ -14,7 +14,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-xs uppercase tracking-[0.2em] text-[#6bef9a] mb-6"
+          className="text-xs uppercase tracking-[0.2em] mb-6 text-primary"
         >
           Civic Intelligence Platform
         </motion.p>
