@@ -54,6 +54,7 @@ const App = () => (
             <Routes>
               {/* Marketing site - now at root */}
               <Route path="/" element={<MarketingHomePage />} />
+              <Route path="/consulting" element={<ConsultingPage />} />
               <Route path="/site" element={<Navigate to="/" replace />} />
 
               {/* Public routes */}
