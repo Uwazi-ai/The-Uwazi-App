@@ -251,7 +251,7 @@ function AppShowcase() {
               Your civic co-pilot is ready
             </h2>
             <p className="text-white/50 leading-relaxed mb-8">
-              Ask Uwazi any civic question, track legislation, find your candidates, and build your voting plan — all in one place. Free for every voter.
+              Ask Uwazi any civic question, track legislation, find your candidates, and build your voting plan.  all in one place.  Join the Beta
             </p>
             <a
               href="https://uwaziapp.uwazi.ai"
