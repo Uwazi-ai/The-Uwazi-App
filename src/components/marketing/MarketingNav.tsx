@@ -3,29 +3,29 @@ import { Link } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 
 const navLinks = [
-  { label: "Home", href: "/site" },
-  { label: "About", href: "/site/about" },
+  { label: "Home", href: "/" },
+  { label: "About", href: "/about" },
   {
     label: "Products",
     children: [
-      { label: "UWAZI App", href: "/site/products/uwazi-app" },
-      { label: "Jamii", href: "/site/products/jamii" },
-      { label: "Ask Uwazi", href: "/site/products/ask-uwazi" },
+      { label: "UWAZI App", href: "/products/uwazi-app" },
+      { label: "Jamii", href: "/products/jamii" },
+      { label: "Ask Uwazi", href: "/products/ask-uwazi" },
     ],
   },
   {
     label: "Impact",
     children: [
-      { label: "Elections", href: "/site/impact/elections" },
-      { label: "Public Health", href: "/site/impact/public-health" },
-      { label: "Housing", href: "/site/impact/housing" },
-      { label: "Public Safety", href: "/site/impact/public-safety" },
-      { label: "Workforce Development", href: "/site/impact/workforce" },
+      { label: "Elections", href: "/impact/elections" },
+      { label: "Public Health", href: "/impact/public-health" },
+      { label: "Housing", href: "/impact/housing" },
+      { label: "Public Safety", href: "/impact/public-safety" },
+      { label: "Workforce Development", href: "/impact/workforce" },
     ],
   },
-  { label: "Consulting", href: "/site/consulting" },
-  { label: "Raia Institute", href: "/site/raia" },
-  { label: "Contact", href: "/site/contact" },
+  { label: "Consulting", href: "/consulting" },
+  { label: "Raia Institute", href: "/raia" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export default function MarketingNav() {
