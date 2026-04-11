@@ -2,26 +2,26 @@ import { Link } from "react-router-dom";
 import { Linkedin, Twitter, Github, Mail } from "lucide-react";
 
 const exploreLinks = [
-  { label: "UWAZI App", href: "/products/uwazi-app" },
-  { label: "Jamii Intelligence", href: "/products/jamii" },
-  { label: "Ask Uwazi", href: "/products/ask-uwazi" },
-  { label: "Impact Areas", href: "/impact/elections" },
-  { label: "Raia Institute", href: "/raia" },
+  { label: "Home", href: "/" },
+  { label: "About", href: "/about" },
+  { label: "Products", href: "/products" },
+  { label: "Raia Institute", href: "/raia-institute" },
+  { label: "Policy Power & Progress", href: "/#policy-power-progress" },
 ];
 
 const companyLinks = [
-  { label: "About Us", href: "/about" },
-  { label: "Consulting", href: "/consulting" },
   { label: "Careers", href: "/careers" },
-  { label: "Press", href: "/press" },
+  { label: "Press", href: "/contact" },
+  { label: "Contact", href: "/contact" },
   { label: "Privacy Policy", href: "/privacy" },
+  { label: "Terms", href: "/terms" },
 ];
 
 const socials = [
   { icon: Linkedin, href: "#", label: "LinkedIn" },
   { icon: Twitter, href: "#", label: "Twitter" },
   { icon: Github, href: "#", label: "GitHub" },
-  { icon: Mail, href: "mailto:hello@uwazi.ai", label: "Email" },
+  { icon: Mail, href: "mailto:myke@uwazi.ai", label: "Email" },
 ];
 
 export default function MarketingFooter() {
@@ -70,7 +70,7 @@ export default function MarketingFooter() {
           {/* Contact */}
           <div>
             <h4 className="text-xs uppercase tracking-[0.15em] text-white/40 mb-4">Contact</h4>
-            <p className="text-sm text-white/60 mb-1">hello@uwazi.ai</p>
+            <a href="mailto:myke@uwazi.ai" className="text-sm text-white/60 hover:text-white transition-colors block mb-1">myke@uwazi.ai</a>
             <p className="text-sm text-white/60 mb-4">Kansas City, MO</p>
             <div className="flex items-center gap-3">
               {socials.map((s) => (

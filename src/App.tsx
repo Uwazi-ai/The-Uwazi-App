@@ -30,6 +30,7 @@ import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import MarketingHomePage from "./pages/marketing/MarketingHomePage";
 import ConsultingPage from "./pages/marketing/ConsultingPage";
+import ContactPage from "./pages/marketing/ContactPage";
 import AdminOverviewPage from "./pages/admin/AdminOverviewPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
@@ -55,6 +56,7 @@ const App = () => (
               {/* Marketing site - now at root */}
               <Route path="/" element={<MarketingHomePage />} />
               <Route path="/consulting" element={<ConsultingPage />} />
+              <Route path="/contact" element={<ContactPage />} />
               <Route path="/site" element={<Navigate to="/" replace />} />
 
               {/* Public routes */}
