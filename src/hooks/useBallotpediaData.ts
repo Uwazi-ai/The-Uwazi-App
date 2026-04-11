@@ -1,32 +1,93 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export function useBallotpediaData(stateCode?: string, city?: string) {
-  const year = new Date().getFullYear();
+export interface RaceWithCandidates {
+  race_id: string;
+  office: string;
+  district: number | null;
+  state: string;
+  phase: string;
+  election_date: string;
+  is_partisan: boolean;
+  candidates: {
+    id: string;
+    name: string;
+    party: string;
+    is_incumbent: boolean;
+    ballotpedia_url: string | null;
+    photo_url: string | null;
+    bio: string | null;
+    website_url: string | null;
+  }[];
+}
 
-  const { data: candidates = [], isLoading: candidatesLoading } = useQuery({
-    queryKey: ["bp-candidates", stateCode, year],
+export function useBallotpediaData(stateCode?: string, city?: string) {
+  // Fetch races + candidates from the structured election_races / race_candidates tables
+  const { data: racesWithCandidates = [], isLoading: racesLoading } = useQuery({
+    queryKey: ["race-candidates", stateCode],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("ballotpedia_candidates")
+      // 1. Get all races for this state
+      const { data: races } = await supabase
+        .from("election_races")
         .select("*")
-        .eq("state_code", stateCode!)
-        .eq("election_year", year)
-        .order("office", { ascending: true });
-      return data || [];
+        .eq("state", stateCode!)
+        .order("office", { ascending: true })
+        .order("district", { ascending: true });
+
+      if (!races || races.length === 0) return [];
+
+      // 2. Get all candidates for those races
+      const raceIds = races.map((r) => r.id);
+      const { data: candidates } = await supabase
+        .from("race_candidates")
+        .select("*")
+        .in("race_id", raceIds)
+        .eq("status", "active")
+        .order("is_incumbent", { ascending: false })
+        .order("party", { ascending: true });
+
+      // 3. Group candidates by race
+      const candidatesByRace: Record<string, typeof candidates> = {};
+      (candidates || []).forEach((c) => {
+        if (!candidatesByRace[c.race_id]) candidatesByRace[c.race_id] = [];
+        candidatesByRace[c.race_id].push(c);
+      });
+
+      // 4. Build combined result
+      const result: RaceWithCandidates[] = races.map((r) => ({
+        race_id: r.id,
+        office: r.office,
+        district: r.district,
+        state: r.state,
+        phase: r.phase,
+        election_date: r.election_date,
+        is_partisan: r.is_partisan,
+        candidates: (candidatesByRace[r.id] || []).map((c) => ({
+          id: c.id,
+          name: c.name,
+          party: c.party,
+          is_incumbent: c.is_incumbent,
+          ballotpedia_url: c.ballotpedia_url,
+          photo_url: c.photo_url,
+          bio: c.bio,
+          website_url: c.website_url,
+        })),
+      }));
+
+      return result;
     },
     enabled: !!stateCode,
     staleTime: 1000 * 60 * 30,
   });
 
   const { data: measures = [], isLoading: measuresLoading } = useQuery({
-    queryKey: ["bp-measures", stateCode, year],
+    queryKey: ["bp-measures", stateCode],
     queryFn: async () => {
       const { data } = await supabase
         .from("ballotpedia_ballot_measures")
         .select("*")
         .eq("state_code", stateCode!)
-        .eq("election_year", year);
+        .gte("election_year", new Date().getFullYear());
       return data || [];
     },
     enabled: !!stateCode,
@@ -60,7 +121,8 @@ export function useBallotpediaData(stateCode?: string, city?: string) {
     staleTime: 1000 * 60 * 30,
   });
 
-  const loading = candidatesLoading || measuresLoading || officialsLoading || electionsLoading;
+  const loading = racesLoading || measuresLoading || officialsLoading || electionsLoading;
 
-  return { candidates, measures, officials, elections, loading };
+  // Keep backward-compat: export candidates as empty (no longer used), add racesWithCandidates
+  return { candidates: [], racesWithCandidates, measures, officials, elections, loading };
 }
