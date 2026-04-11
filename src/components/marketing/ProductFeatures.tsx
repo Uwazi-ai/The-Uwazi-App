@@ -40,12 +40,24 @@ function ProductBlock({
             </li>
           ))}
         </ul>
-        <Link
-          to={ctaHref}
-          className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
-        >
-          {ctaLabel} <ArrowRight className="h-4 w-4" />
-        </Link>
+        <div className="flex flex-wrap items-center gap-4">
+          <Link
+            to={ctaHref}
+            className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+          >
+            {ctaLabel} <ArrowRight className="h-4 w-4" />
+          </Link>
+          {ctaHref === "/site/products/uwazi-app" && (
+            <a
+              href="https://uwaziapp.uwazi.ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-semibold text-sm rounded-full hover:bg-primary/90 transition-colors"
+            >
+              Open App <ArrowRight className="h-4 w-4" />
+            </a>
+          )}
+        </div>
       </motion.div>
 
       <motion.div
