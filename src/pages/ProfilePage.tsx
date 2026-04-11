@@ -60,7 +60,7 @@ export default function ProfilePage() {
   const handleSignOut = async () => {
     await signOut();
     toast.success("Signed out");
-    navigate("/site");
+    navigate("/");
   };
 
   const displayName = profile?.display_name || user?.email?.split("@")[0] || "UWAZI User";
