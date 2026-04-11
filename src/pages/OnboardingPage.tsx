@@ -115,7 +115,7 @@ export default function OnboardingPage() {
         .eq("user_id", user.id);
 
       toast.success("You're all set! Welcome to UWAZI.AI 🗳️");
-      navigate("/");
+      navigate("/app");
     } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
