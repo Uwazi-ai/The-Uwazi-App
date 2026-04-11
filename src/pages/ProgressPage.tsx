@@ -60,7 +60,7 @@ export default function ProgressPage() {
               <span className="text-xs text-muted-foreground">/ 100</span>
             </div>
           </div>
-          <p className="text-sm font-semibold text-foreground">Civic Literacy Score</p>
+          <p className="text-sm font-semibold text-foreground">Civic Score</p>
 
           {/* XP Bar */}
           <div className="w-full mt-6">
