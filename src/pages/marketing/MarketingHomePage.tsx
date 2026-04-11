@@ -411,8 +411,8 @@ function UwaziAppProduct() {
           </div>
         </div>
 
-        <div className="aspect-video bg-[#111111] border border-white/[0.08] rounded-2xl flex items-center justify-center">
-          <span className="text-white/20 text-sm">App Screenshot</span>
+        <div className="aspect-video bg-[#111111] border border-white/[0.08] rounded-2xl overflow-hidden">
+          <img src={civicStudiosImage} alt="Civic Studios" className="w-full h-full object-cover" />
         </div>
       </div>
     </section>
