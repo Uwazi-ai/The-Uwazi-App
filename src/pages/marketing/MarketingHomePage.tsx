@@ -383,11 +383,11 @@ function UwaziAppProduct() {
           <ul className="space-y-4 mb-8">
             <li className="flex items-start gap-3">
               <Check className="h-5 w-5 text-lime-500 mt-0.5 flex-shrink-0" />
-              <span className="text-white/70"><strong className="text-white">Ask Uwazi:</strong> The chatbot that understands the voter</span>
+              <span className="text-white/70"><strong className="text-white">Youth Studio:</strong> Civic education and leadership development for young people.</span>
             </li>
             <li className="flex items-start gap-3">
               <Check className="h-5 w-5 text-lime-500 mt-0.5 flex-shrink-0" />
-              <span className="text-white/70"><strong className="text-white">Legislation Tracker:</strong> Follow bills that impact your community</span>
+              <span className="text-white/70"><strong className="text-white">Advocacy Studio:</strong> Training and support for advocacy and community organizing.</span>
             </li>
           </ul>
 
@@ -403,10 +403,10 @@ function UwaziAppProduct() {
           <div className="flex items-center gap-3 text-sm text-white/50">
             <span>Coming Soon to</span>
             <span className="px-3 py-1 bg-white/[0.05] border border-white/[0.08] rounded-full text-white/60 text-xs">
-               ​
+              Missouri
             </span>
             <span className="px-3 py-1 bg-white/[0.05] border border-white/[0.08] rounded-full text-white/60 text-xs">
-              ▶ Android
+              Kansas 
             </span>
           </div>
         </div>
