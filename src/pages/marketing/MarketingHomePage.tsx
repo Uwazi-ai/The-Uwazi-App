@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import policyImage from "@/assets/policy-power-progress.jpg";
 import { Link } from "react-router-dom";
 import {
   ChevronDown, Check, ArrowRight, Calendar, MapPin,
