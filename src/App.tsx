@@ -29,6 +29,7 @@ import ProgressPage from "./pages/ProgressPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import MarketingHomePage from "./pages/marketing/MarketingHomePage";
+import ConsultingPage from "./pages/marketing/ConsultingPage";
 import AdminOverviewPage from "./pages/admin/AdminOverviewPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
@@ -53,6 +54,7 @@ const App = () => (
             <Routes>
               {/* Marketing site - now at root */}
               <Route path="/" element={<MarketingHomePage />} />
+              <Route path="/consulting" element={<ConsultingPage />} />
               <Route path="/site" element={<Navigate to="/" replace />} />
 
               {/* Public routes */}
