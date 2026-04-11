@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MarketingNav from "@/components/marketing/MarketingNav";
 import MarketingFooter from "@/components/marketing/MarketingFooter";
 
@@ -32,6 +32,10 @@ const values = [
 
 export default function AboutPage() {
   const [activeSector, setActiveSector] = useState("Elections");
+
+  useEffect(() => {
+    document.title = "About UWAZI.AI — Building Civic Intelligence";
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">

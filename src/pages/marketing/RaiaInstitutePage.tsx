@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import MarketingNav from "@/components/marketing/MarketingNav";
 import MarketingFooter from "@/components/marketing/MarketingFooter";
 
@@ -29,6 +30,10 @@ const coLabBullets = [
 ];
 
 export default function RaiaInstitutePage() {
+  useEffect(() => {
+    document.title = "The Raia Institute — Civic Research";
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       <MarketingNav />

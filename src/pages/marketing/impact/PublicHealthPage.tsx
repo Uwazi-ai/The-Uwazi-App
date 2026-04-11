@@ -1,6 +1,11 @@
+import { useEffect } from "react";
 import ImpactPage from "../ImpactPage";
 
 export default function PublicHealthPage() {
+  useEffect(() => {
+    document.title = "Public Health — UWAZI.AI Impact";
+  }, []);
+
   return (
     <ImpactPage
       eyebrow="IMPACT · PUBLIC HEALTH"

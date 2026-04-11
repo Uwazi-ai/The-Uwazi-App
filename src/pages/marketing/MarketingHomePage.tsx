@@ -662,6 +662,10 @@ function Footer() {
 /* ───────────────── PAGE ───────────────── */
 
 export default function MarketingHomePage() {
+  useEffect(() => {
+    document.title = "UWAZI.AI — Civic Intelligence Platform";
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       <Nav />

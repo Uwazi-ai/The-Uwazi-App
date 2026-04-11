@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import MarketingNav from "@/components/marketing/MarketingNav";
 import MarketingFooter from "@/components/marketing/MarketingFooter";
 
@@ -24,6 +25,10 @@ const differentiators = [
 ];
 
 export default function AskUwaziProductPage() {
+  useEffect(() => {
+    document.title = "Ask Uwazi — AI Civic Assistant";
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <MarketingNav />

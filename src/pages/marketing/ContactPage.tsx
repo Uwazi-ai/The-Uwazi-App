@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MarketingNav from "@/components/marketing/MarketingNav";
 import MarketingFooter from "@/components/marketing/MarketingFooter";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,10 @@ export default function ContactPage() {
   const [form, setForm] = useState({
     firstName: "", lastName: "", email: "", organization: "", interest: "", message: "",
   });
+
+  useEffect(() => {
+    document.title = "Contact UWAZI.AI";
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

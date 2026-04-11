@@ -1,6 +1,11 @@
+import { useEffect } from "react";
 import ImpactPage from "../ImpactPage";
 
 export default function WorkforcePage() {
+  useEffect(() => {
+    document.title = "Workforce — UWAZI.AI Impact";
+  }, []);
+
   return (
     <ImpactPage
       eyebrow="IMPACT · WORKFORCE"

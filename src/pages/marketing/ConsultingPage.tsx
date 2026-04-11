@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Check } from "lucide-react";
 import MarketingNav from "@/components/marketing/MarketingNav";
@@ -58,6 +59,10 @@ const differentiators = [
 ];
 
 export default function ConsultingPage() {
+  useEffect(() => {
+    document.title = "UWAZI Consulting — Civic Strategy & Intelligence";
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       <MarketingNav />

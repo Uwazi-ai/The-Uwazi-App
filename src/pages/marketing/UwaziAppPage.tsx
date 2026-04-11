@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import MarketingNav from "@/components/marketing/MarketingNav";
 import MarketingFooter from "@/components/marketing/MarketingFooter";
@@ -55,6 +55,10 @@ const plusPlan = [
 
 export default function UwaziAppPage() {
   const [yearly, setYearly] = useState(false);
+
+  useEffect(() => {
+    document.title = "The UWAZI App — Your Civic Co-Pilot";
+  }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
