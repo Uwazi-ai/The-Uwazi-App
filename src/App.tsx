@@ -51,8 +51,9 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <Routes>
-              {/* Marketing site */}
-              <Route path="/site" element={<MarketingHomePage />} />
+              {/* Marketing site - now at root */}
+              <Route path="/" element={<MarketingHomePage />} />
+              <Route path="/site" element={<Navigate to="/" replace />} />
 
               {/* Public routes */}
               <Route path="/login" element={<LoginPage />} />
@@ -61,9 +62,9 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/onboarding" element={<OnboardingPage />} />
 
-              {/* Protected routes */}
-              <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-                <Route path="/" element={<HomePage />} />
+              {/* App dashboard - moved to /app */}
+              <Route path="/app" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+                <Route index element={<HomePage />} />
                 <Route path="/ask" element={<AskUwaziPage />} />
                 <Route path="/vote" element={<VotingHubPage />} />
                 <Route path="/vote/candidates" element={<CandidatesPage />} />
