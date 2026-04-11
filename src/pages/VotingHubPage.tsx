@@ -500,9 +500,15 @@ function ElectionsTab({
       )}
 
       {/* Ballotpedia candidates & measures */}
-      {(racesWithCandidates.length > 0 || bpMeasures.length > 0) && (
+      {bpLoading ? (
+        <div className="space-y-3">
+          <Skeleton className="h-8 w-48 rounded-lg" />
+          <Skeleton className="h-24 rounded-card" />
+          <Skeleton className="h-24 rounded-card" />
+        </div>
+      ) : (racesWithCandidates.length > 0 || bpMeasures.length > 0) ? (
         <BallotpediaSection racesWithCandidates={racesWithCandidates} measures={bpMeasures} />
-      )}
+      ) : null}
 
       {/* MO fallback */}
       {showMoFallback && (
