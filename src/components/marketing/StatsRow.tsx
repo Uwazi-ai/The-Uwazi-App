@@ -20,7 +20,7 @@ export default function StatsRow() {
               transition={{ delay: i * 0.1 }}
               className="text-center"
             >
-              <p className="font-heading text-3xl sm:text-4xl tracking-tight text-primary md:text-8xl">{s.value}</p>
+              <p className="font-heading text-3xl sm:text-4xl tracking-tight text-primary md:text-6xl">{s.value}</p>
               <p className="text-sm text-white/40 mt-1 uppercase tracking-[0.1em]">{s.label}</p>
             </motion.div>
           ))}
