@@ -23,7 +23,7 @@ const pageVariants = {
 
 export function AppLayout() {
   const location = useLocation();
-  const isAskPage = location.pathname === "/ask";
+  const isAskPage = location.pathname === "/app/ask";
 
   return (
     <ProfileProvider>
