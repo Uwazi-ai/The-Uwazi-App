@@ -34,6 +34,14 @@ import ContactPage from "./pages/marketing/ContactPage";
 import AboutPage from "./pages/marketing/AboutPage";
 import RaiaInstitutePage from "./pages/marketing/RaiaInstitutePage";
 import CareersPage from "./pages/marketing/CareersPage";
+import UwaziAppPage from "./pages/marketing/UwaziAppPage";
+import JamiiPage from "./pages/marketing/JamiiPage";
+import AskUwaziProductPage from "./pages/marketing/AskUwaziProductPage";
+import ElectionsPage from "./pages/marketing/impact/ElectionsPage";
+import PublicHealthPage from "./pages/marketing/impact/PublicHealthPage";
+import HousingPage from "./pages/marketing/impact/HousingPage";
+import PublicSafetyPage from "./pages/marketing/impact/PublicSafetyPage";
+import WorkforcePage from "./pages/marketing/impact/WorkforcePage";
 import AdminOverviewPage from "./pages/admin/AdminOverviewPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
@@ -56,13 +64,21 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <Routes>
-              {/* Marketing site - now at root */}
+              {/* Marketing site */}
               <Route path="/" element={<MarketingHomePage />} />
               <Route path="/consulting" element={<ConsultingPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/raia-institute" element={<RaiaInstitutePage />} />
               <Route path="/careers" element={<CareersPage />} />
+              <Route path="/products/uwazi-app" element={<UwaziAppPage />} />
+              <Route path="/products/jamii" element={<JamiiPage />} />
+              <Route path="/products/ask-uwazi" element={<AskUwaziProductPage />} />
+              <Route path="/impact/elections" element={<ElectionsPage />} />
+              <Route path="/impact/public-health" element={<PublicHealthPage />} />
+              <Route path="/impact/housing" element={<HousingPage />} />
+              <Route path="/impact/public-safety" element={<PublicSafetyPage />} />
+              <Route path="/impact/workforce-development" element={<WorkforcePage />} />
               <Route path="/site" element={<Navigate to="/" replace />} />
 
               {/* Public routes */}
@@ -72,7 +88,7 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/onboarding" element={<OnboardingPage />} />
 
-              {/* App dashboard - moved to /app */}
+              {/* App dashboard */}
               <Route path="/app" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
                 <Route index element={<HomePage />} />
                 <Route path="/app/ask" element={<AskUwaziPage />} />
