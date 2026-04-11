@@ -12,7 +12,7 @@ export default function MarqueeSection() {
               className="font-heading text-4xl sm:text-5xl md:text-6xl text-white/[0.07] uppercase tracking-tight mx-8 shrink-0 select-none"
             >
               {text}
-              <span className="text-[#6bef9a]/20 mx-6">·</span>
+              <span className="text-primary/20 mx-6">·</span>
             </span>
           ))}
         </div>

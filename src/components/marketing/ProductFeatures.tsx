@@ -29,20 +29,20 @@ function ProductBlock({
         viewport={{ once: true }}
         className="md:[direction:ltr]"
       >
-        <p className="text-xs uppercase tracking-[0.2em] text-[#6bef9a] mb-3">{eyebrow}</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-primary mb-3">{eyebrow}</p>
         <h2 className="font-heading text-3xl md:text-4xl text-white tracking-tight mb-4">{title}</h2>
         <p className="text-white/50 text-sm leading-relaxed mb-6">{description}</p>
         <ul className="space-y-2 mb-8">
           {features.map((f) => (
             <li key={f} className="flex items-center gap-2 text-sm text-white/60">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#6bef9a] shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
               {f}
             </li>
           ))}
         </ul>
         <Link
           to={ctaHref}
-          className="inline-flex items-center gap-2 text-sm font-medium text-[#6bef9a] hover:underline"
+          className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
         >
           {ctaLabel} <ArrowRight className="h-4 w-4" />
         </Link>
@@ -52,7 +52,7 @@ function ProductBlock({
         initial={{ opacity: 0, x: reversed ? -30 : 30 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
-        className="md:[direction:ltr] aspect-[4/3] rounded-2xl bg-gradient-to-br from-[#6bef9a]/[0.07] to-transparent border border-white/[0.08] flex items-center justify-center"
+        className="md:[direction:ltr] aspect-[4/3] rounded-2xl bg-gradient-to-br from-primary/[0.07] to-transparent border border-white/[0.08] flex items-center justify-center"
       >
         <p className="text-white/20 text-sm font-medium">{imageLabel}</p>
       </motion.div>

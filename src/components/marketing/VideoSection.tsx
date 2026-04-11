@@ -20,8 +20,8 @@ export default function VideoSection() {
               className="absolute inset-0 flex items-center justify-center group"
             >
               <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a]/60 to-transparent" />
-              <div className="relative w-20 h-20 rounded-full bg-[#6bef9a] flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Play className="h-8 w-8 text-[#0a0a0a] ml-1" />
+              <div className="relative w-20 h-20 rounded-full bg-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Play className="h-8 w-8 text-primary-foreground ml-1" />
               </div>
               <p className="absolute bottom-6 text-sm text-white/50">Watch the UWAZI.AI story</p>
             </button>

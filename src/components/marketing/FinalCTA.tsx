@@ -20,7 +20,7 @@ export default function FinalCTA() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               to="/signup"
-              className="inline-flex items-center gap-2 px-7 py-3.5 bg-[#6bef9a] text-[#0a0a0a] font-semibold text-sm rounded-full hover:bg-[#5de08a] transition-colors"
+              className="inline-flex items-center gap-2 px-7 py-3.5 bg-primary text-primary-foreground font-semibold text-sm rounded-full hover:bg-primary/90 transition-colors"
             >
               Get Started Free <ArrowRight className="h-4 w-4" />
             </Link>
