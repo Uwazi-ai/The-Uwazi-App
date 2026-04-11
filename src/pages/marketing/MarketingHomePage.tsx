@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import policyImage from "@/assets/policy-power-progress.jpg";
 import civicStudiosImage from "@/assets/civic-studios.png";
+import jamiiImage from "@/assets/jamii-dashboard.png";
 import { Link } from "react-router-dom";
 import {
   ChevronDown, Check, ArrowRight, Calendar, MapPin,
@@ -426,8 +427,8 @@ function JamiiProduct() {
   return (
     <section className="py-24 px-6 bg-[#0a0a0a]">
       <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-        <div className="order-2 md:order-1 aspect-video bg-[#111111] border border-white/[0.08] rounded-2xl flex items-center justify-center">
-          <span className="text-white/20 text-sm">Jamii Dashboard</span>
+        <div className="order-2 md:order-1 aspect-video bg-[#111111] border border-white/[0.08] rounded-2xl overflow-hidden">
+          <img src={jamiiImage} alt="Jamii Civic Intelligence dashboard" className="w-full h-full object-cover" />
         </div>
 
         <div className="order-1 md:order-2">
