@@ -1,28 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { motion, useInView } from "framer-motion";
 import {
   ChevronDown, Check, ArrowRight, Calendar, MapPin,
   Mail, Linkedin, Twitter, Github,
 } from "lucide-react";
-
-/* ───────── Scroll-Reveal Wrapper ───────── */
-
-function Reveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 40 }}
-      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-}
 
 /* ───────────────────── NAV ───────────────────── */
 
@@ -683,16 +664,16 @@ export default function MarketingHomePage() {
       <Nav />
       <main>
         <Hero />
-        <Reveal><StatsRow /></Reveal>
-        <Reveal><AppShowcase /></Reveal>
-        <Reveal><Marquee /></Reveal>
-        <Reveal><PolicySection /></Reveal>
-        <Reveal><UwaziAppProduct /></Reveal>
-        <Reveal><JamiiProduct /></Reveal>
-        <Reveal><ImpactGrid /></Reveal>
-        <Reveal><ConsultingSection /></Reveal>
-        <Reveal><PartnersSection /></Reveal>
-        <Reveal><FinalCTA /></Reveal>
+        <StatsRow />
+        <AppShowcase />
+        <Marquee />
+        <PolicySection />
+        <UwaziAppProduct />
+        <JamiiProduct />
+        <ImpactGrid />
+        <ConsultingSection />
+        <PartnersSection />
+        <FinalCTA />
       </main>
       <Footer />
     </div>
