@@ -47,7 +47,7 @@ export function DesktopSidebar() {
   const handleSignOut = async () => {
     await signOut();
     toast.success("Signed out");
-    navigate("/login");
+    navigate("/site");
   };
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
