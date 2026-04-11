@@ -59,7 +59,7 @@ export default function MarketingNav() {
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/site" className="font-heading text-xl tracking-tight text-white">
+        <Link to="/" className="font-heading text-xl tracking-tight text-white">
           UWAZI<span className="text-primary">.AI</span>
         </Link>
 
@@ -114,7 +114,7 @@ export default function MarketingNav() {
             Get Started
           </a>
           <Link
-            to="/site/contact"
+            to="/contact"
             className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors"
           >
             Book a Demo
