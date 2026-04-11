@@ -259,7 +259,7 @@ function AppShowcase() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-7 py-3.5 bg-lime-500 text-black font-semibold text-sm rounded-full hover:bg-lime-400 transition-colors mb-8"
             >
-              Open the App <ArrowRight className="h-4 w-4" />
+              Sign up <ArrowRight className="h-4 w-4" />
             </a>
             <div className="flex flex-wrap gap-2">
               {featurePills.map((f) => (
