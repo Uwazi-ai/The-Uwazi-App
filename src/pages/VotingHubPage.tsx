@@ -118,8 +118,8 @@ export default function VotingHubPage() {
   const displayPolling = pollingLocations.length > 0 ? pollingLocations : earlyVoteSites;
 
   // Ballotpedia data
-  const { candidates: bpCandidates, measures: bpMeasures, loading: bpLoading } = useBallotpediaData(stateCode || undefined, city || undefined);
-  const showMoFallback = stateCode === "MO" && bpCandidates.length === 0;
+  const { racesWithCandidates, measures: bpMeasures, loading: bpLoading } = useBallotpediaData(stateCode || undefined, city || undefined);
+  const showMoFallback = stateCode === "MO" && racesWithCandidates.length === 0;
 
   // Saved legislation
   const { data: savedBills } = useQuery({
