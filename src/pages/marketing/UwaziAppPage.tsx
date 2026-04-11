@@ -56,6 +56,10 @@ const plusPlan = [
 export default function UwaziAppPage() {
   const [yearly, setYearly] = useState(false);
 
+  useEffect(() => {
+    document.title = "The UWAZI App — Your Civic Co-Pilot";
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <MarketingNav />

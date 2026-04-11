@@ -24,6 +24,10 @@ const TEAL_BG = "bg-teal-400";
 const TEAL_BORDER = "border-teal-400";
 
 export default function JamiiPage() {
+  useEffect(() => {
+    document.title = "Jamii Intelligence — Civic Analytics";
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <MarketingNav />

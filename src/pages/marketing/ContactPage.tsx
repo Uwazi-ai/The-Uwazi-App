@@ -19,6 +19,10 @@ export default function ContactPage() {
     firstName: "", lastName: "", email: "", organization: "", interest: "", message: "",
   });
 
+  useEffect(() => {
+    document.title = "Contact UWAZI.AI";
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     toast.success("Message sent! We'll get back to you within 24 hours.");

@@ -59,6 +59,10 @@ const differentiators = [
 ];
 
 export default function ConsultingPage() {
+  useEffect(() => {
+    document.title = "UWAZI Consulting — Civic Strategy & Intelligence";
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       <MarketingNav />

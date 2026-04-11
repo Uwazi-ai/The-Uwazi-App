@@ -40,6 +40,10 @@ export default function CareersPage() {
     linkedin: "", portfolio: "", github: "", whyUwazi: "", proudOf: "", consent: false,
   });
 
+  useEffect(() => {
+    document.title = "Careers at UWAZI.AI";
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!appForm.consent) { toast.error("Please accept the consent checkbox."); return; }

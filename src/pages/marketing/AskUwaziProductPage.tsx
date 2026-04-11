@@ -25,6 +25,10 @@ const differentiators = [
 ];
 
 export default function AskUwaziProductPage() {
+  useEffect(() => {
+    document.title = "Ask Uwazi — AI Civic Assistant";
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <MarketingNav />
