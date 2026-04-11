@@ -378,7 +378,7 @@ function UwaziAppProduct() {
             Products
           </span>
           <h2 className="font-heading text-3xl md:text-4xl font-black text-white mb-6 tracking-tight">
-            THE UWAZI APP
+            Civic Studios
           </h2>
           <ul className="space-y-4 mb-8">
             <li className="flex items-start gap-3">
@@ -397,13 +397,13 @@ function UwaziAppProduct() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-3 bg-lime-500 text-black font-semibold text-sm rounded-full hover:bg-lime-400 transition-colors mb-6"
           >
-            Open App <ArrowRight className="h-4 w-4" />
+            Coming This Summer <ArrowRight className="h-4 w-4" />
           </a>
 
           <div className="flex items-center gap-3 text-sm text-white/50">
             <span>Coming Soon to</span>
             <span className="px-3 py-1 bg-white/[0.05] border border-white/[0.08] rounded-full text-white/60 text-xs">
-               Apple
+               ​
             </span>
             <span className="px-3 py-1 bg-white/[0.05] border border-white/[0.08] rounded-full text-white/60 text-xs">
               ▶ Android
