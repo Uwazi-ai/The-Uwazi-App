@@ -60,6 +60,9 @@ const App = () => (
               <Route path="/" element={<MarketingHomePage />} />
               <Route path="/consulting" element={<ConsultingPage />} />
               <Route path="/contact" element={<ContactPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/raia-institute" element={<RaiaInstitutePage />} />
+              <Route path="/careers" element={<CareersPage />} />
               <Route path="/site" element={<Navigate to="/" replace />} />
 
               {/* Public routes */}
