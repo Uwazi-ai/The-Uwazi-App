@@ -20,7 +20,7 @@ const navLinks = [
       { label: "Public Health", href: "/impact/public-health" },
       { label: "Housing", href: "/impact/housing" },
       { label: "Public Safety", href: "/impact/public-safety" },
-      { label: "Workforce Development", href: "/impact/workforce" },
+      { label: "Workforce Development", href: "/impact/workforce-development" },
     ],
   },
   { label: "Consulting", href: "/consulting" },
