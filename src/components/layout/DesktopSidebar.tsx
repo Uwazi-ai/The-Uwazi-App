@@ -13,30 +13,30 @@ import {
 } from "@/components/icons/UwaziIcons";
 
 const mainNav = [
-  { to: "/", icon: HomeIcon, label: "Home" },
-  { to: "/civic-feed", icon: CivicFeedIcon, label: "Civic Feed" },
-  { to: "/ask", icon: AskUwaziIcon, label: "Ask Uwazi" },
-  { to: "/learn", icon: LearnIcon, label: "Learn" },
-  { to: "/vote", icon: VotingHubIcon, label: "Voting Hub" },
-  { to: "/legislation", icon: LegislationIcon, label: "Legislation" },
-  { to: "/progress", icon: ProgressIcon, label: "Progress" },
+  { to: "/app", icon: HomeIcon, label: "Home" },
+  { to: "/app/civic-feed", icon: CivicFeedIcon, label: "Civic Feed" },
+  { to: "/app/ask", icon: AskUwaziIcon, label: "Ask Uwazi" },
+  { to: "/app/learn", icon: LearnIcon, label: "Learn" },
+  { to: "/app/vote", icon: VotingHubIcon, label: "Voting Hub" },
+  { to: "/app/legislation", icon: LegislationIcon, label: "Legislation" },
+  { to: "/app/progress", icon: ProgressIcon, label: "Progress" },
 ];
 
 const adminNav = [
-  { to: "/admin", icon: AdminOverviewIcon, label: "Admin Overview" },
-  { to: "/admin/users", icon: UsersIcon, label: "Users" },
-  { to: "/admin/analytics", icon: AnalyticsIcon, label: "Analytics" },
-  { to: "/admin/intelligence", icon: IntelligenceIcon, label: "Intelligence" },
-  { to: "/admin/lessons", icon: LessonManagerIcon, label: "Lesson Manager" },
-  { to: "/admin/content", icon: CivicContentIcon, label: "Civic Content" },
-  { to: "/admin/alerts", icon: AlertsIcon, label: "Alerts" },
-  { to: "/admin/crm", icon: CRMIcon, label: "CRM" },
-  { to: "/admin/surveys", icon: SurveysIcon, label: "Surveys" },
-  { to: "/admin/platform", icon: PlatformSettingsIcon, label: "Platform Settings" },
+  { to: "/app/admin", icon: AdminOverviewIcon, label: "Admin Overview" },
+  { to: "/app/admin/users", icon: UsersIcon, label: "Users" },
+  { to: "/app/admin/analytics", icon: AnalyticsIcon, label: "Analytics" },
+  { to: "/app/admin/intelligence", icon: IntelligenceIcon, label: "Intelligence" },
+  { to: "/app/admin/lessons", icon: LessonManagerIcon, label: "Lesson Manager" },
+  { to: "/app/admin/content", icon: CivicContentIcon, label: "Civic Content" },
+  { to: "/app/admin/alerts", icon: AlertsIcon, label: "Alerts" },
+  { to: "/app/admin/crm", icon: CRMIcon, label: "CRM" },
+  { to: "/app/admin/surveys", icon: SurveysIcon, label: "Surveys" },
+  { to: "/app/admin/platform", icon: PlatformSettingsIcon, label: "Platform Settings" },
 ];
 
 const bottomNav = [
-  { to: "/settings", icon: SettingsIcon, label: "Settings" },
+  { to: "/app/settings", icon: SettingsIcon, label: "Settings" },
 ];
 
 export function DesktopSidebar() {
@@ -47,7 +47,7 @@ export function DesktopSidebar() {
   const handleSignOut = async () => {
     await signOut();
     toast.success("Signed out");
-    navigate("/site");
+    navigate("/");
   };
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>

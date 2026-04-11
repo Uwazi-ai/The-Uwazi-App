@@ -2,19 +2,19 @@ import { Link } from "react-router-dom";
 import { Linkedin, Twitter, Github, Mail } from "lucide-react";
 
 const exploreLinks = [
-  { label: "UWAZI App", href: "/site/products/uwazi-app" },
-  { label: "Jamii Intelligence", href: "/site/products/jamii" },
-  { label: "Ask Uwazi", href: "/site/products/ask-uwazi" },
-  { label: "Impact Areas", href: "/site/impact/elections" },
-  { label: "Raia Institute", href: "/site/raia" },
+  { label: "UWAZI App", href: "/products/uwazi-app" },
+  { label: "Jamii Intelligence", href: "/products/jamii" },
+  { label: "Ask Uwazi", href: "/products/ask-uwazi" },
+  { label: "Impact Areas", href: "/impact/elections" },
+  { label: "Raia Institute", href: "/raia" },
 ];
 
 const companyLinks = [
-  { label: "About Us", href: "/site/about" },
-  { label: "Consulting", href: "/site/consulting" },
-  { label: "Careers", href: "/site/careers" },
-  { label: "Press", href: "/site/press" },
-  { label: "Privacy Policy", href: "/site/privacy" },
+  { label: "About Us", href: "/about" },
+  { label: "Consulting", href: "/consulting" },
+  { label: "Careers", href: "/careers" },
+  { label: "Press", href: "/press" },
+  { label: "Privacy Policy", href: "/privacy" },
 ];
 
 const socials = [

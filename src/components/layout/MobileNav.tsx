@@ -9,18 +9,18 @@ import {
 } from "@/components/icons/UwaziIcons";
 
 const navItems = [
-  { to: "/", icon: HomeIcon, label: "Home" },
-  { to: "/learn", icon: LearnIcon, label: "Learn" },
-  { to: "/ask", icon: AskUwaziIcon, label: "Ask" },
-  { to: "/vote", icon: VotingHubIcon, label: "Vote" },
+  { to: "/app", icon: HomeIcon, label: "Home" },
+  { to: "/app/learn", icon: LearnIcon, label: "Learn" },
+  { to: "/app/ask", icon: AskUwaziIcon, label: "Ask" },
+  { to: "/app/vote", icon: VotingHubIcon, label: "Vote" },
 ];
 
 const moreItems = [
-  { to: "/civic-feed", icon: CivicFeedIcon, label: "Civic Feed" },
-  { to: "/legislation", icon: LegislationIcon, label: "Legislation" },
-  { to: "/progress", icon: ProgressIcon, label: "Progress" },
-  { to: "/saved", icon: SavedIcon, label: "Saved" },
-  { to: "/settings", icon: SettingsIcon, label: "Settings" },
+  { to: "/app/civic-feed", icon: CivicFeedIcon, label: "Civic Feed" },
+  { to: "/app/legislation", icon: LegislationIcon, label: "Legislation" },
+  { to: "/app/progress", icon: ProgressIcon, label: "Progress" },
+  { to: "/app/saved", icon: SavedIcon, label: "Saved" },
+  { to: "/app/settings", icon: SettingsIcon, label: "Settings" },
 ];
 
 export function MobileNav() {

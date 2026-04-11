@@ -28,7 +28,7 @@ export default function LoginPage() {
     if (error) {
       toast.error(error.message);
     } else {
-      navigate("/");
+      navigate("/app");
     }
   };
 

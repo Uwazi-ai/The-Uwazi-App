@@ -262,7 +262,7 @@ export default function SettingsPage() {
     finally { setDeletingAccount(false); }
   };
 
-  const handleSignOut = async () => { await signOut(); toast.success("Signed out"); navigate("/site"); };
+  const handleSignOut = async () => { await signOut(); toast.success("Signed out"); navigate("/"); };
 
   const currentAvatar = avatarPreview || avatarUrl;
   const initials = displayName?.[0]?.toUpperCase() || "U";

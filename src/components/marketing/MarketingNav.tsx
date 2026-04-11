@@ -3,29 +3,29 @@ import { Link } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 
 const navLinks = [
-  { label: "Home", href: "/site" },
-  { label: "About", href: "/site/about" },
+  { label: "Home", href: "/" },
+  { label: "About", href: "/about" },
   {
     label: "Products",
     children: [
-      { label: "UWAZI App", href: "/site/products/uwazi-app" },
-      { label: "Jamii", href: "/site/products/jamii" },
-      { label: "Ask Uwazi", href: "/site/products/ask-uwazi" },
+      { label: "UWAZI App", href: "/products/uwazi-app" },
+      { label: "Jamii", href: "/products/jamii" },
+      { label: "Ask Uwazi", href: "/products/ask-uwazi" },
     ],
   },
   {
     label: "Impact",
     children: [
-      { label: "Elections", href: "/site/impact/elections" },
-      { label: "Public Health", href: "/site/impact/public-health" },
-      { label: "Housing", href: "/site/impact/housing" },
-      { label: "Public Safety", href: "/site/impact/public-safety" },
-      { label: "Workforce Development", href: "/site/impact/workforce" },
+      { label: "Elections", href: "/impact/elections" },
+      { label: "Public Health", href: "/impact/public-health" },
+      { label: "Housing", href: "/impact/housing" },
+      { label: "Public Safety", href: "/impact/public-safety" },
+      { label: "Workforce Development", href: "/impact/workforce" },
     ],
   },
-  { label: "Consulting", href: "/site/consulting" },
-  { label: "Raia Institute", href: "/site/raia" },
-  { label: "Contact", href: "/site/contact" },
+  { label: "Consulting", href: "/consulting" },
+  { label: "Raia Institute", href: "/raia" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export default function MarketingNav() {
@@ -59,7 +59,7 @@ export default function MarketingNav() {
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/site" className="font-heading text-xl tracking-tight text-white">
+        <Link to="/" className="font-heading text-xl tracking-tight text-white">
           UWAZI<span className="text-primary">.AI</span>
         </Link>
 
@@ -114,7 +114,7 @@ export default function MarketingNav() {
             Get Started
           </a>
           <Link
-            to="/site/contact"
+            to="/contact"
             className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors"
           >
             Book a Demo
@@ -167,7 +167,7 @@ export default function MarketingNav() {
             <a href="https://uwaziapp.uwazi.ai" target="_blank" rel="noopener noreferrer" className="flex-1 text-center px-4 py-2 text-sm font-medium text-white border border-white/20 rounded-full">
               Get Started
             </a>
-            <Link to="/site/contact" className="flex-1 text-center px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-full">
+            <Link to="/contact" className="flex-1 text-center px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-full">
               Book a Demo
             </Link>
           </div>
