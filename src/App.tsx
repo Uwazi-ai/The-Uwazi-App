@@ -28,6 +28,7 @@ import CandidateDetailPage from "./pages/CandidateDetailPage";
 import ProgressPage from "./pages/ProgressPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
+import MarketingHomePage from "./pages/marketing/MarketingHomePage";
 import AdminOverviewPage from "./pages/admin/AdminOverviewPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
@@ -50,6 +51,9 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <Routes>
+              {/* Marketing site */}
+              <Route path="/site" element={<MarketingHomePage />} />
+
               {/* Public routes */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
