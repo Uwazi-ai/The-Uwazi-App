@@ -47,7 +47,7 @@ function ProductBlock({
           >
             {ctaLabel} <ArrowRight className="h-4 w-4" />
           </Link>
-          {ctaHref === "/site/products/uwazi-app" && (
+          {ctaHref === "/products/uwazi-app" && (
             <a
               href="https://uwaziapp.uwazi.ai"
               target="_blank"
