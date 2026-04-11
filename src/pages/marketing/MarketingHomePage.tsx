@@ -2,6 +2,7 @@ import MarketingNav from "@/components/marketing/MarketingNav";
 import MarketingFooter from "@/components/marketing/MarketingFooter";
 import HeroSection from "@/components/marketing/HeroSection";
 import StatsRow from "@/components/marketing/StatsRow";
+import AppShowcase from "@/components/marketing/AppShowcase";
 import VideoSection from "@/components/marketing/VideoSection";
 import MarqueeSection from "@/components/marketing/MarqueeSection";
 import PolicySection from "@/components/marketing/PolicySection";
@@ -18,6 +19,7 @@ export default function MarketingHomePage() {
       <main>
         <HeroSection />
         <StatsRow />
+        <AppShowcase />
         <VideoSection />
         <MarqueeSection />
         <PolicySection />

@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 
 export default function HeroSection() {
@@ -45,19 +44,30 @@ export default function HeroSection() {
           transition={{ delay: 0.5 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          <Link
-            to="/signup"
+          <a
+            href="https://uwaziapp.uwazi.ai"
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-7 py-3.5 bg-primary text-primary-foreground font-semibold text-sm rounded-full hover:bg-primary/90 transition-colors"
           >
-            Get Started Free <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link
-            to="/site/contact"
+            Try the App Free <ArrowRight className="h-4 w-4" />
+          </a>
+          <a
+            href="/contact?demo=true"
             className="inline-flex items-center gap-2 px-7 py-3.5 border border-white/20 text-white font-medium text-sm rounded-full hover:border-white/40 transition-colors"
           >
             Book a Demo
-          </Link>
+          </a>
         </motion.div>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          className="mt-6 text-xs text-white/30 tracking-wide"
+        >
+          Free to use · Nonpartisan by design · No credit card required
+        </motion.p>
       </div>
     </section>
   );
