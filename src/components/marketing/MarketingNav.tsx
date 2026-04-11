@@ -105,12 +105,14 @@ export default function MarketingNav() {
 
         {/* CTA Buttons */}
         <div className="hidden lg:flex items-center gap-3">
-          <Link
-            to="/signup"
+          <a
+            href="https://uwaziapp.uwazi.ai"
+            target="_blank"
+            rel="noopener noreferrer"
             className="px-4 py-2 text-sm font-medium text-white border border-white/20 rounded-full hover:border-white/40 transition-colors"
           >
             Get Started
-          </Link>
+          </a>
           <Link
             to="/site/contact"
             className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors"
@@ -162,9 +164,9 @@ export default function MarketingNav() {
             )
           )}
           <div className="flex gap-3 pt-4">
-            <Link to="/signup" className="flex-1 text-center px-4 py-2 text-sm font-medium text-white border border-white/20 rounded-full">
+            <a href="https://uwaziapp.uwazi.ai" target="_blank" rel="noopener noreferrer" className="flex-1 text-center px-4 py-2 text-sm font-medium text-white border border-white/20 rounded-full">
               Get Started
-            </Link>
+            </a>
             <Link to="/site/contact" className="flex-1 text-center px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-full">
               Book a Demo
             </Link>
