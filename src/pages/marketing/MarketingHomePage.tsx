@@ -108,12 +108,12 @@ function Nav() {
 
         <div className="hidden lg:flex items-center gap-3">
           <a
-            href="https://uwaziapp.uwazi.ai"
+            href="https://www.uwazi.ai/login"
             target="_blank"
             rel="noopener noreferrer"
             className="px-4 py-2 text-sm font-medium text-white border border-white/20 rounded-full hover:border-white/40 transition-colors"
           >
-            Get Started
+            Join Uwazi
           </a>
           <Link
             to="/contact"
@@ -152,7 +152,7 @@ function Nav() {
             )
           )}
           <div className="flex gap-3 pt-4">
-            <a href="https://uwaziapp.uwazi.ai" target="_blank" rel="noopener noreferrer" className="flex-1 text-center px-4 py-2 text-sm font-medium text-white border border-white/20 rounded-full">Get Started</a>
+            <a href="https://www.uwazi.ai/login" target="_blank" rel="noopener noreferrer" className="flex-1 text-center px-4 py-2 text-sm font-medium text-white border border-white/20 rounded-full">Join Uwazi</a>
             <Link to="/contact" onClick={() => setMobileOpen(false)} className="flex-1 text-center px-4 py-2 text-sm font-medium bg-lime-500 text-black rounded-full">Book a Demo</Link>
           </div>
         </div>
