@@ -35,21 +35,28 @@
       "sizes": "1290x2796",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "UWAZI Home Dashboard"
+      "label": "Ask Uwazi — Your Political Co-Pilot"
     },
     {
       "src": "/screenshots/vote.png",
       "sizes": "1290x2796",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Voting Hub"
+      "label": "Voting Hub — Your Civic Action Center"
     },
     {
       "src": "/screenshots/learn.png",
       "sizes": "1290x2796",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Civic Learning"
+      "label": "Civic Feed — Stay Informed"
+    },
+    {
+      "src": "/screenshots/legislation.png",
+      "sizes": "1290x2796",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Legislation Tracker"
     }
   ]
 }
