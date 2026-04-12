@@ -48,6 +48,9 @@
       "origin": "https://uwazi.ai"
     }
   ],
+  "periodic_sync": {
+    "minimum_interval": 86400
+  },
   "note_taking": {
     "new_note_url": "/ask"
   },
