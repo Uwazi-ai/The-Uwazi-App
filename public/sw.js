@@ -1,12 +1,6 @@
-const CACHE_NAME = 'uwazi-v1';
+const CACHE_NAME = 'uwazi-v2';
 const STATIC_ASSETS = [
   '/',
-  '/ask',
-  '/learn',
-  '/vote',
-  '/legislation',
-  '/progress',
-  '/news',
   '/manifest.json',
 ];
 
@@ -46,7 +40,7 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', (event) => {
   const data = event.data?.json() ?? {};
   event.waitUntil(
-    self.registration.showNotification(data.title || 'UWAZI.AI', {
+    self.registration.showNotification(data.title || 'UWAZI.APP', {
       body: data.body || 'You have a civic update',
       icon: '/icons/icon-192x192.png',
       badge: '/icons/icon-72x72.png',
