@@ -1,6 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingScreen } from "@/components/LoadingScreen";
 
@@ -26,17 +27,20 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
       });
   }, [user]);
 
-  if (loading || checkingOnboarding) {
-    return <LoadingScreen />;
-  }
+  const isLoading = loading || checkingOnboarding;
 
-  if (!user) {
+  if (!isLoading && !user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!onboardingComplete && location.pathname !== "/onboarding") {
+  if (!isLoading && !onboardingComplete && location.pathname !== "/onboarding") {
     return <Navigate to="/onboarding" replace />;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <AnimatePresence>{isLoading && <LoadingScreen />}</AnimatePresence>
+      {!isLoading && <>{children}</>}
+    </>
+  );
 }
