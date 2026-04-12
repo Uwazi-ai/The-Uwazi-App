@@ -3,37 +3,34 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <!-- TODO: Set the document title to the name of your application -->
     <title>UWAZI.AI — Civic Intelligence Platform</title>
     <meta name="description" content="Understand politics, voting, legislation, and civic issues in plain language. AI-powered, non-partisan civic education platform.">
     <meta name="author" content="Lovable" />
 
-    <!-- TODO: Update og:title to match your application name -->
-    
-    
     <meta property="og:type" content="website" />
+    <meta property="og:title" content="Uwazi.app- Your politics buddy">
+    <meta property="og:description" content="Understand politics, voting, legislation, and civic issues in plain language. AI-powered, non-partisan civic education platform.">
     <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/DrPayZ25vecg9CmzvWnvhFWvfW83/social-images/social-1775532877684-APP.webp">
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@Lovable" />
+    <meta name="twitter:title" content="Uwazi.app- Your politics buddy">
+    <meta name="twitter:description" content="Understand politics, voting, legislation, and civic issues in plain language. AI-powered, non-partisan civic education platform.">
     <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/DrPayZ25vecg9CmzvWnvhFWvfW83/social-images/social-1775532877684-APP.webp">
-    
-  
-  
-  
-  <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#84cc16" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-  <meta name="apple-mobile-web-app-title" content="UWAZI" />
-  <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png" />
-  <link rel="apple-touch-startup-image" href="/splash/splash-2732x2732.png" />
-  <meta property="og:title" content="Uwazi.app- Your politics buddy">
-  <meta name="twitter:title" content="Uwazi.app- Your politics buddy">
-  <meta property="og:description" content="Understand politics, voting, legislation, and civic issues in plain language. AI-powered, non-partisan civic education platform.">
-  <meta name="twitter:description" content="Understand politics, voting, legislation, and civic issues in plain language. AI-powered, non-partisan civic education platform.">
-</head>
+
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#84cc16" />
+    <meta name="application-name" content="UWAZI" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="UWAZI" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="msapplication-TileColor" content="#0a0a0a" />
+    <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png" />
+    <link rel="apple-touch-startup-image" href="/splash/splash-2732x2732.png" />
+  </head>
 
   <body>
     <div id="root"></div>
@@ -45,9 +42,9 @@
         var isPreview = location.hostname.includes('id-preview--') || location.hostname.includes('lovableproject.com');
         if (!isInIframe && !isPreview) {
           window.addEventListener('load', function () {
-            navigator.serviceWorker.register('/sw.js')
-              .then(function (reg) { console.log('SW registered'); })
-              .catch(function (err) { console.log('SW failed:', err); });
+            navigator.serviceWorker.register('/sw.js', { scope: '/' })
+              .then(function (reg) { console.log('SW registered:', reg.scope); })
+              .catch(function (err) { console.error('SW failed:', err); });
           });
         } else {
           navigator.serviceWorker.getRegistrations().then(function (regs) {

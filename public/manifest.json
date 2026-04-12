@@ -3,12 +3,19 @@
   "name": "UWAZI.APP",
   "short_name": "UWAZI",
   "description": "Your civic co-pilot",
+  "lang": "en-US",
+  "dir": "ltr",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone"],
   "background_color": "#0a0a0a",
   "theme_color": "#84cc16",
   "orientation": "portrait-primary",
+  "iarc_rating_id": "",
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
   "icons": [
     { "src": "/icons/icon-72x72.png", "sizes": "72x72", "type": "image/png", "purpose": "any" },
     { "src": "/icons/icon-96x96.png", "sizes": "96x96", "type": "image/png", "purpose": "any" },
@@ -16,10 +23,11 @@
     { "src": "/icons/icon-144x144.png", "sizes": "144x144", "type": "image/png", "purpose": "any" },
     { "src": "/icons/icon-152x152.png", "sizes": "152x152", "type": "image/png", "purpose": "any" },
     { "src": "/icons/icon-180x180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/icons/icon-384x384.png", "sizes": "384x384", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/icons/icon-1024x1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" }
+    { "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-1024x1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "categories": ["education", "government", "productivity"],
   "shortcuts": [
@@ -27,36 +35,41 @@
     { "name": "Voting Hub", "short_name": "Vote", "url": "/vote", "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }] },
     { "name": "Legislation", "short_name": "Bills", "url": "/legislation", "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }] }
   ],
-  "related_applications": [],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://uwaziapp.uwazi.ai/manifest.json"
+    }
+  ],
   "prefer_related_applications": false,
   "screenshots": [
     {
-      "src": "/screenshots/home.png",
+      "src": "/screenshots/screenshot-home.png",
       "sizes": "1290x2796",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Ask Uwazi — Your Political Co-Pilot"
+      "label": "UWAZI Home Dashboard"
     },
     {
-      "src": "/screenshots/vote.png",
+      "src": "/screenshots/screenshot-vote.png",
       "sizes": "1290x2796",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Voting Hub — Your Civic Action Center"
+      "label": "Voting Hub — Your Candidates"
     },
     {
-      "src": "/screenshots/learn.png",
+      "src": "/screenshots/screenshot-learn.png",
       "sizes": "1290x2796",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Civic Feed — Stay Informed"
+      "label": "Civic Learning Tracks"
     },
     {
-      "src": "/screenshots/legislation.png",
-      "sizes": "1290x2796",
+      "src": "/screenshots/screenshot-wide.png",
+      "sizes": "2560x1600",
       "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Legislation Tracker"
+      "form_factor": "wide",
+      "label": "UWAZI Desktop View"
     }
   ]
 }
