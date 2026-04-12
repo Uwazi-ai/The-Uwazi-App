@@ -1,12 +1,12 @@
 {
-  "name": "UWAZI.AI",
+  "name": "UWAZI.APP",
   "short_name": "UWAZI",
-  "description": "Your nonpartisan civic AI — Know Your Power",
+  "description": "Your civic co-pilot",
   "start_url": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone"],
-  "background_color": "#0A0A0A",
-  "theme_color": "#9bd34b",
+  "background_color": "#0a0a0a",
+  "theme_color": "#84cc16",
   "orientation": "portrait-primary",
   "icons": [
     { "src": "/icons/icon-72x72.png", "sizes": "72x72", "type": "image/png", "purpose": "maskable any" },
