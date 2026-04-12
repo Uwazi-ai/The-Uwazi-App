@@ -252,11 +252,8 @@ export default function LegislationPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            className="flex-1 bg-card border-border"
+            className="flex-1 bg-card border-border min-w-0"
           />
-          <Button onClick={handleSearch} disabled={isLoading || !query.trim()} className="bg-primary text-primary-foreground">
-            <Search className="h-4 w-4" />
-          </Button>
         </div>
       )}
 
