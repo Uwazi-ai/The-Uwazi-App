@@ -2,6 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -26,11 +27,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   if (loading || checkingOnboarding) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-primary font-semibold text-lg">Loading...</div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!user) {
