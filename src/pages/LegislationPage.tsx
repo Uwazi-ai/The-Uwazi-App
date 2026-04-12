@@ -219,14 +219,14 @@ export default function LegislationPage() {
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <p className="eyebrow mb-2">LEGISLATION TRACKER</p>
         <h1 className="font-heading text-[22px] sm:text-3xl md:text-6xl text-foreground leading-tight">KNOW WHAT'S BEING DECIDED.</h1>
-        <div className="flex gap-3 mt-4 flex-wrap">
-          <span className="px-3 py-1.5 bg-card border border-border rounded-pill text-xs font-medium text-foreground">
+        <div className="flex gap-2 mt-4 overflow-x-auto no-scrollbar pb-1">
+          <span className="shrink-0 px-3 py-1.5 bg-card border border-border rounded-pill text-xs font-medium text-foreground">
             {isLoading ? "..." : `${bills.length} Bills Found`}
           </span>
-          <span className="px-3 py-1.5 bg-card border border-border rounded-pill text-xs font-medium text-foreground">
+          <span className="shrink-0 px-3 py-1.5 bg-card border border-border rounded-pill text-xs font-medium text-foreground">
             119th Congress (2025-2026)
           </span>
-          <span className="px-3 py-1.5 bg-card border border-border rounded-pill text-xs font-medium text-foreground">
+          <span className="shrink-0 px-3 py-1.5 bg-card border border-border rounded-pill text-xs font-medium text-foreground">
             {savedBills?.length || 0} Saved
           </span>
         </div>
