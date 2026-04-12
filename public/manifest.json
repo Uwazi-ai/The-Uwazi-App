@@ -28,5 +28,28 @@
     { "name": "Legislation", "short_name": "Bills", "url": "/legislation", "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }] }
   ],
   "related_applications": [],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "1290x2796",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "UWAZI Home Dashboard"
+    },
+    {
+      "src": "/screenshots/vote.png",
+      "sizes": "1290x2796",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Voting Hub"
+    },
+    {
+      "src": "/screenshots/learn.png",
+      "sizes": "1290x2796",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Civic Learning"
+    }
+  ]
 }
