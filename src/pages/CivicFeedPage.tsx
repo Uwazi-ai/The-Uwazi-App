@@ -110,7 +110,7 @@ export default function CivicFeedPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 space-y-6">
+    <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 space-y-6 overflow-x-hidden">
       {/* Nonpartisan banner */}
       {!bannerDismissed && (
         <div className="bg-card border border-border rounded-card p-3 flex items-center justify-between">
@@ -152,20 +152,20 @@ export default function CivicFeedPage() {
             </button>
           ))}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 min-w-0">
           <Input
             placeholder="Search articles..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 bg-card border-border"
+            className="flex-1 min-w-0 bg-card border-border"
           />
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="bg-card border border-border rounded-card px-3 py-2 text-sm text-foreground"
+            className="shrink-0 bg-card border border-border rounded-card px-2 py-2 text-xs text-foreground max-w-[100px]"
           >
             <option value="publishedAt">Latest</option>
-            <option value="relevancy">Most Relevant</option>
+            <option value="relevancy">Relevant</option>
           </select>
         </div>
       </div>

@@ -214,7 +214,7 @@ export default function LegislationPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 space-y-6 md:space-y-8">
+    <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 space-y-6 md:space-y-8 overflow-x-hidden">
       {/* Hero */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <p className="eyebrow mb-2">LEGISLATION TRACKER</p>
