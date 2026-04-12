@@ -43,9 +43,12 @@
       "url": "/?q=%s"
     }
   ],
-  "scope_extensions": [
+"scope_extensions": [
     {
       "origin": "https://uwazi.ai"
+    },
+    {
+      "origin": "https://uwaziapp.uwazi.ai"
     }
   ],
   "periodic_sync": {
@@ -110,19 +113,19 @@
       "label": "UWAZI Desktop View"
     }
   ],
-  "widgets": [
+"widgets": [
     {
       "name": "UWAZI Civic Widget",
-      "description": "Quick access to your civic dashboard",
+      "description": "Quick access to your civic dashboard and latest civic updates",
       "tag": "uwazi-widget",
-      "ms_ac_template": "widget/ac-template.json",
+      "ms_ac_template": "/widget/ac-template.json",
       "data": "/widget/data.json",
       "type": "application/json",
       "screenshots": [
         {
           "src": "/screenshots/screenshot-home.png",
           "sizes": "1290x2796",
-          "label": "UWAZI Widget"
+          "label": "UWAZI Civic Dashboard Widget"
         }
       ],
       "icons": [
@@ -136,7 +139,9 @@
           "src": "/icons/icon-192x192.png",
           "sizes": "192x192"
         }
-      ]
+      ],
+      "auth": false,
+      "update": 86400
     }
   ]
 }

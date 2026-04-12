@@ -5,14 +5,23 @@
   "body": [
     {
       "type": "TextBlock",
-      "text": "UWAZI",
+      "text": "${title}",
       "weight": "Bolder",
-      "size": "Medium"
+      "size": "Medium",
+      "color": "Good"
     },
     {
       "type": "TextBlock",
-      "text": "Your civic co-pilot",
-      "wrap": true
+      "text": "${description}",
+      "wrap": true,
+      "spacing": "Small"
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.OpenUrl",
+      "title": "Open UWAZI",
+      "url": "https://uwaziapp.uwazi.ai"
     }
   ]
 }
