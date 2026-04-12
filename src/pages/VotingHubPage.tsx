@@ -386,15 +386,15 @@ function CountdownBar({ nextElection }: { nextElection: { name: string; date: st
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xl"
+      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 px-4 py-2.5 rounded-xl"
       style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.15)" }}
     >
-      <div className="flex items-center gap-3 text-sm">
-        <span className="text-muted-foreground font-medium">Next election</span>
-        <span className="text-foreground font-bold">{nextElection.name}</span>
-        <span className="text-muted-foreground">{formatted}</span>
+      <div className="flex items-center gap-2 text-sm flex-wrap min-w-0">
+        <span className="text-muted-foreground font-medium shrink-0">Next election</span>
+        <span className="text-foreground font-bold truncate">{nextElection.name}</span>
+        <span className="text-muted-foreground shrink-0">{formatted}</span>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 shrink-0">
         <div className="flex items-center gap-1.5">
           {[
             { val: timeLeft.days, lbl: "days" },
