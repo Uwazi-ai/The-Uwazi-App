@@ -152,7 +152,7 @@ export default function CivicFeedPage() {
             </button>
           ))}
         </div>
-        <div className="flex gap-2 min-w-0">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Input
             placeholder="Search articles..."
             value={searchQuery}
@@ -162,10 +162,10 @@ export default function CivicFeedPage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="shrink-0 bg-card border border-border rounded-card px-2 py-2 text-xs text-foreground max-w-[100px]"
+            className="shrink-0 bg-card border border-border rounded-card px-3 py-2 text-sm text-foreground w-full sm:w-auto"
           >
             <option value="publishedAt">Latest</option>
-            <option value="relevancy">Relevant</option>
+            <option value="relevancy">Most Relevant</option>
           </select>
         </div>
       </div>
