@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { MobileNav } from "./MobileNav";
 import { DesktopSidebar } from "./DesktopSidebar";
@@ -45,6 +45,13 @@ export function AppLayout() {
               </motion.div>
             </AnimatePresence>
           </main>
+          {!isAskPage && (
+            <footer className="py-4 px-4 text-center text-xs text-muted-foreground border-t border-border mb-16 md:mb-0">
+              <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+              <span className="mx-2">·</span>
+              <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+            </footer>
+          )}
         </div>
         {!isAskPage && <MobileNav />}
         {!isAskPage && <ScrollToTop />}
