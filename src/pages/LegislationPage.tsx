@@ -491,8 +491,8 @@ export default function LegislationPage() {
                 )}
 
                 {bill.latestAction?.text && (
-                  <p className="text-xs text-muted-foreground line-clamp-1 mb-1 break-words overflow-hidden">
-                    ⚡ {bill.latestAction.text.substring(0, 60)}
+                  <p className="text-xs text-muted-foreground truncate mb-1">
+                    ⚡ {bill.latestAction.text}
                   </p>
                 )}
 
