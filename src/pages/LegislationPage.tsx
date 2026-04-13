@@ -444,7 +444,7 @@ export default function LegislationPage() {
 
       {/* Bills Grid */}
       {!isLoading && !error && displayBills.length > 0 && !isStateFilter && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-hidden">
           {displayBills.slice(0, 20).map((bill: any, idx: number) => {
             const billId = `${bill.type}-${bill.number}-${bill.congress || "119"}`;
             const isSaved = savedBillIds.has(billId);
