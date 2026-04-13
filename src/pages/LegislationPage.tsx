@@ -214,7 +214,7 @@ export default function LegislationPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 space-y-6 md:space-y-8 overflow-x-hidden">
+    <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 space-y-6 md:space-y-8 overflow-x-hidden w-full min-w-0">
       {/* Hero */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <p className="eyebrow mb-2">LEGISLATION TRACKER</p>
@@ -330,7 +330,7 @@ export default function LegislationPage() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.03 }}
-                className="bg-card rounded-card p-5 border border-border hover:border-primary/30 transition-all"
+                className="bg-card rounded-card p-5 border border-border hover:border-primary/30 transition-all overflow-hidden min-w-0"
               >
                 <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-pill border border-primary text-primary">
@@ -444,7 +444,7 @@ export default function LegislationPage() {
 
       {/* Bills Grid */}
       {!isLoading && !error && displayBills.length > 0 && !isStateFilter && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-hidden">
           {displayBills.slice(0, 20).map((bill: any, idx: number) => {
             const billId = `${bill.type}-${bill.number}-${bill.congress || "119"}`;
             const isSaved = savedBillIds.has(billId);
@@ -463,7 +463,7 @@ export default function LegislationPage() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.03 }}
-                className="bg-card rounded-card p-5 border border-border hover:border-primary/30 transition-all"
+                className="bg-card rounded-card p-5 border border-border hover:border-primary/30 transition-all overflow-hidden min-w-0"
               >
                 <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-pill border border-primary text-primary">
@@ -491,8 +491,8 @@ export default function LegislationPage() {
                 )}
 
                 {bill.latestAction?.text && (
-                  <p className="text-xs text-muted-foreground line-clamp-1 mb-1">
-                    ⚡ {bill.latestAction.text.substring(0, 60)}
+                  <p className="text-xs text-muted-foreground truncate mb-1">
+                    ⚡ {bill.latestAction.text}
                   </p>
                 )}
 
