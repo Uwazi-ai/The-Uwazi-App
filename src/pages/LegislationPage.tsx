@@ -330,7 +330,7 @@ export default function LegislationPage() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.03 }}
-                className="bg-card rounded-card p-5 border border-border hover:border-primary/30 transition-all"
+                className="bg-card rounded-card p-5 border border-border hover:border-primary/30 transition-all overflow-hidden min-w-0"
               >
                 <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-pill border border-primary text-primary">
@@ -463,7 +463,7 @@ export default function LegislationPage() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.03 }}
-                className="bg-card rounded-card p-5 border border-border hover:border-primary/30 transition-all"
+                className="bg-card rounded-card p-5 border border-border hover:border-primary/30 transition-all overflow-hidden min-w-0"
               >
                 <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-pill border border-primary text-primary">
@@ -491,7 +491,7 @@ export default function LegislationPage() {
                 )}
 
                 {bill.latestAction?.text && (
-                  <p className="text-xs text-muted-foreground line-clamp-1 mb-1">
+                  <p className="text-xs text-muted-foreground line-clamp-1 mb-1 break-words overflow-hidden">
                     ⚡ {bill.latestAction.text.substring(0, 60)}
                   </p>
                 )}
