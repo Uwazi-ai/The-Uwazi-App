@@ -22,6 +22,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import LearnPage from "./pages/LearnPage";
+import WatchPage from "./pages/WatchPage";
 import LegislationPage from "./pages/LegislationPage";
 import BillDetailPage from "./pages/BillDetailPage";
 import CandidatesPage from "./pages/CandidatesPage";
@@ -76,6 +77,7 @@ const App = () => (
                 <Route path="/app/civic-feed" element={<CivicFeedPage />} />
                 <Route path="/app/saved" element={<SavedPage />} />
                 <Route path="/app/learn" element={<LearnPage />} />
+                <Route path="/app/watch" element={<WatchPage />} />
                 <Route path="/app/legislation" element={<LegislationPage />} />
                 <Route path="/app/legislation/:congress/:type/:number" element={<BillDetailPage />} />
                 <Route path="/app/progress" element={<ProgressPage />} />
