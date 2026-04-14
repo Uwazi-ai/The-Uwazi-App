@@ -822,6 +822,51 @@ export type Database = {
         }
         Relationships: []
       }
+      episodes: {
+        Row: {
+          created_at: string
+          date: string | null
+          description: string | null
+          id: string
+          is_free: boolean
+          is_published: boolean
+          sort_order: number
+          title: string
+          topic: string
+          topic_emoji: string | null
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          date?: string | null
+          description?: string | null
+          id?: string
+          is_free?: boolean
+          is_published?: boolean
+          sort_order?: number
+          title: string
+          topic: string
+          topic_emoji?: string | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          date?: string | null
+          description?: string | null
+          id?: string
+          is_free?: boolean
+          is_published?: boolean
+          sort_order?: number
+          title?: string
+          topic?: string
+          topic_emoji?: string | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       lesson_gap_recommendations: {
         Row: {
           created_at: string | null
