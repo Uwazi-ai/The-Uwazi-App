@@ -361,13 +361,13 @@ function EpisodeModal({ open, onClose, episode, onSaved, nextSortOrder }: Episod
     setUrlMode(false);
   }, [episode]);
 
-  // Reset on open
-  useState(() => { resetForm(); });
-
-  // Re-populate when episode changes
-  const [prevEp, setPrevEp] = useState<Episode | null>(null);
-  if (episode !== prevEp) {
-    setPrevEp(episode);
+  // Re-populate when episode or open state changes
+  const prevOpenRef = useState({ open: false, epId: "" })[0];
+  const currentKey = `${open}-${episode?.id || ""}`;
+  const prevKey = `${prevOpenRef.open}-${prevOpenRef.epId}`;
+  if (currentKey !== prevKey) {
+    prevOpenRef.open = open;
+    prevOpenRef.epId = episode?.id || "";
     if (open) resetForm();
   }
 
