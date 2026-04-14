@@ -91,12 +91,11 @@ const App = () => (
                 <Route path="/app/admin/analytics" element={<AdminRoute><AdminAnalyticsPage /></AdminRoute>} />
                 <Route path="/app/admin/intelligence" element={<AdminRoute><AdminIntelligencePage /></AdminRoute>} />
                 <Route path="/app/admin/lessons" element={<AdminRoute><AdminLessonsPage /></AdminRoute>} />
-                <Route path="/app/admin/content" element={<AdminRoute><AdminContentPage /></AdminRoute>} />
+                <Route path="/app/admin/content" element={<AdminRoute><AdminEpisodesPage /></AdminRoute>} />
                 <Route path="/app/admin/alerts" element={<AdminRoute><AdminAlertsPage /></AdminRoute>} />
                 <Route path="/app/admin/platform" element={<AdminRoute><AdminPlatformPage /></AdminRoute>} />
                 <Route path="/app/admin/crm" element={<AdminRoute><AdminCRMPage /></AdminRoute>} />
                 <Route path="/app/admin/surveys" element={<AdminRoute><AdminSurveysPage /></AdminRoute>} />
-                <Route path="/app/admin/episodes" element={<AdminRoute><AdminEpisodesPage /></AdminRoute>} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
