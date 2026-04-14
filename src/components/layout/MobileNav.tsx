@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import { useProfile } from "@/contexts/ProfileContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  HomeIcon, LearnIcon, AskUwaziIcon, VotingHubIcon,
+  HomeIcon, LearnIcon, WatchIcon, AskUwaziIcon, VotingHubIcon,
   CivicFeedIcon, LegislationIcon, ProgressIcon,
   SavedIcon, SettingsIcon, MoreIcon,
 } from "@/components/icons/UwaziIcons";
@@ -11,6 +11,7 @@ import {
 const navItems = [
   { to: "/app", icon: HomeIcon, label: "Home" },
   { to: "/app/learn", icon: LearnIcon, label: "Learn" },
+  { to: "/app/watch", icon: WatchIcon, label: "Watch" },
   { to: "/app/ask", icon: AskUwaziIcon, label: "Ask" },
   { to: "/app/vote", icon: VotingHubIcon, label: "Vote" },
 ];

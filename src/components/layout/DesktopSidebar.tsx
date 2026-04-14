@@ -4,7 +4,7 @@ import { useProfile } from "@/contexts/ProfileContext";
 import { toast } from "sonner";
 import uwaziLogo from "@/assets/uwazi-app-logo.png";
 import {
-  HomeIcon, CivicFeedIcon, AskUwaziIcon, LearnIcon,
+  HomeIcon, CivicFeedIcon, AskUwaziIcon, LearnIcon, WatchIcon,
   VotingHubIcon, LegislationIcon, ProgressIcon,
   SettingsIcon, SignOutIcon, AdminOverviewIcon,
   UsersIcon, AnalyticsIcon, IntelligenceIcon,
@@ -17,6 +17,7 @@ const mainNav = [
   { to: "/app/civic-feed", icon: CivicFeedIcon, label: "Civic Feed" },
   { to: "/app/ask", icon: AskUwaziIcon, label: "Ask Uwazi" },
   { to: "/app/learn", icon: LearnIcon, label: "Learn" },
+  { to: "/app/watch", icon: WatchIcon, label: "Watch" },
   { to: "/app/vote", icon: VotingHubIcon, label: "Voting Hub" },
   { to: "/app/legislation", icon: LegislationIcon, label: "Legislation" },
   { to: "/app/progress", icon: ProgressIcon, label: "Progress" },

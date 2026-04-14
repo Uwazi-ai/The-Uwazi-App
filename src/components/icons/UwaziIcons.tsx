@@ -253,6 +253,13 @@ export const SavedIcon = ({ size = 20, className = "" }: IconProps) => (
   </IconBase>
 );
 
+export const WatchIcon = ({ size = 20, className = "" }: IconProps) => (
+  <IconBase size={size} className={className}>
+    <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="1.5" fill="currentColor" fillOpacity="0.08" />
+    <path d="M10 8L17 12L10 16V8Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="currentColor" fillOpacity="0.3" />
+  </IconBase>
+);
+
 export const MoreIcon = ({ size = 20, className = "" }: IconProps) => (
   <IconBase size={size} className={className}>
     <circle cx="12" cy="5" r="1.5" fill="currentColor" />
