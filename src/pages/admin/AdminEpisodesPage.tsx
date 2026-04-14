@@ -464,7 +464,6 @@ function EpisodeModal({ open, onClose, episode, onSaved, nextSortOrder }: Episod
       <DialogContent className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto p-6"
         style={{ animation: "dialogIn 0.25s ease-out" }}
       >
-            >
               <DialogHeader>
                 <DialogTitle className="text-foreground text-xl">
                   {episode ? "Edit Episode" : "Add Episode"}
@@ -675,10 +674,7 @@ function EpisodeModal({ open, onClose, episode, onSaved, nextSortOrder }: Episod
             </Button>
           </div>
         </div>
-            </motion.div>
-          </DialogContent>
-        </Dialog>
-      )}
-    </AnimatePresence>
+      </DialogContent>
+    </Dialog>
   );
 }
