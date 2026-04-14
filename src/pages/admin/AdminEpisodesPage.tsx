@@ -586,15 +586,30 @@ function EpisodeModal({ open, onClose, episode, onSaved, nextSortOrder }: Episod
           {/* Date */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Date</label>
-            <Input
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              placeholder="e.g. Apr 14, 2026"
-              className="bg-background border-border"
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal bg-background border-border",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date || <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date ? parse(date, "MMM d, yyyy", new Date()) : undefined}
+                  onSelect={(d) => d && setDate(format(d, "MMM d, yyyy"))}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
-
-          {/* Access & Status */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Access</label>
