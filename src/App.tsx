@@ -37,7 +37,7 @@ import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
 import AdminIntelligencePage from "./pages/admin/AdminIntelligencePage";
 import AdminLessonsPage from "./pages/admin/AdminLessonsPage";
-import AdminContentPage from "./pages/admin/AdminContentPage";
+// AdminContentPage removed - replaced by AdminEpisodesPage at /admin/content
 import AdminAlertsPage from "./pages/admin/AdminAlertsPage";
 import AdminPlatformPage from "./pages/admin/AdminPlatformPage";
 import AdminCRMPage from "./pages/admin/AdminCRMPage";
