@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -460,17 +460,10 @@ function EpisodeModal({ open, onClose, episode, onSaved, nextSortOrder }: Episod
   };
 
   return (
-    <AnimatePresence>
-      {open && (
-        <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-          <DialogContent className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto p-0" asChild>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-              className="bg-card border border-border rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-            >
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto p-6"
+        style={{ animation: "dialogIn 0.25s ease-out" }}
+      >
               <DialogHeader>
                 <DialogTitle className="text-foreground text-xl">
                   {episode ? "Edit Episode" : "Add Episode"}
@@ -681,10 +674,7 @@ function EpisodeModal({ open, onClose, episode, onSaved, nextSortOrder }: Episod
             </Button>
           </div>
         </div>
-            </motion.div>
-          </DialogContent>
-        </Dialog>
-      )}
-    </AnimatePresence>
+      </DialogContent>
+    </Dialog>
   );
 }
