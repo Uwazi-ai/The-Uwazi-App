@@ -26,7 +26,7 @@ const mainNav = [
 const adminNav = [
   { to: "/app/admin", icon: AdminOverviewIcon, label: "Admin Overview" },
   { to: "/app/admin/users", icon: UsersIcon, label: "Users" },
-  { to: "/app/admin/content", icon: WatchIcon, label: "Content Manager" },
+  { to: "/app/admin/content", icon: WatchIcon, label: "Content" },
   { to: "/app/admin/analytics", icon: AnalyticsIcon, label: "Analytics" },
   { to: "/app/admin/intelligence", icon: IntelligenceIcon, label: "Intelligence" },
   { to: "/app/admin/lessons", icon: LessonManagerIcon, label: "Lesson Manager" },
