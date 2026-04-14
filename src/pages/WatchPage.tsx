@@ -1,105 +1,45 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { Lock, Volume2, VolumeX, Share2, Info, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-// --- Demo episode data ---
 interface Episode {
   id: string;
   title: string;
-  description: string;
-  date: string;
-  category: "Public Safety" | "Housing";
-  videoUrl: string;
-  thumbnail: string;
+  description: string | null;
+  date: string | null;
+  topic: string;
+  topic_emoji: string | null;
+  video_url: string | null;
+  is_free: boolean;
 }
 
-const EPISODES: Episode[] = [
-  {
-    id: "ps1", title: "Why Police Budgets Are Exploding",
-    description: "Cities across America are allocating record budgets to police departments. We break down where the money goes and what it means for your community.",
-    date: "Apr 10, 2026", category: "Public Safety",
-    videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-    thumbnail: "",
-  },
-  {
-    id: "ps2", title: "The 911 Response Time Crisis",
-    description: "Average 911 response times have increased 40% since 2020. Here's what's driving the delays and how some cities are fixing it.",
-    date: "Apr 8, 2026", category: "Public Safety",
-    videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-    thumbnail: "",
-  },
-  {
-    id: "ps3", title: "Community Policing in Practice",
-    description: "Some departments are shifting to community-first policing models. Are they working? We visit three cities to find out.",
-    date: "Apr 1, 2026", category: "Public Safety",
-    videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
-    thumbnail: "",
-  },
-  {
-    id: "h1", title: "Affordable Housing: Who's Really Building?",
-    description: "A deep dive into which developers are actually delivering on affordable housing promises — and which aren't.",
-    date: "Apr 5, 2026", category: "Housing",
-    videoUrl: "https://res.cloudinary.com/dkxyel9cl/video/upload/policy-power-progress/housing/1st_Clip.mp4",
-    thumbnail: "",
-  },
-  {
-    id: "h2", title: "Rent Control: Does It Actually Work?",
-    description: "Economists and tenants disagree. We look at the data from cities that have tried rent control policies.",
-    date: "Apr 3, 2026", category: "Housing",
-    videoUrl: "https://res.cloudinary.com/dkxyel9cl/video/upload/policy-power-progress/housing/2nd_Clip.mp4",
-    thumbnail: "",
-  },
-  {
-    id: "h3", title: "Eviction Courts: A Broken System",
-    description: "Millions face eviction each year. We investigate how courts are handling the crisis and what reforms are being proposed.",
-    date: "Mar 28, 2026", category: "Housing",
-    videoUrl: "https://res.cloudinary.com/dkxyel9cl/video/upload/policy-power-progress/housing/3rd_Clip.mp4",
-    thumbnail: "",
-  },
-  {
-    id: "h4", title: "The Housing Crisis in California",
-    description: "California's housing shortage affects millions. We explore the policies and politics driving the crisis.",
-    date: "Mar 25, 2026", category: "Housing",
-    videoUrl: "https://res.cloudinary.com/dkxyel9cl/video/upload/policy-power-progress/housing/4th_Clip.mp4",
-    thumbnail: "",
-  },
-  {
-    id: "h5", title: "Zoning Laws: Hidden Barriers",
-    description: "Restrictive zoning prevents affordable housing development. We examine how cities are reforming their approach.",
-    date: "Mar 22, 2026", category: "Housing",
-    videoUrl: "https://res.cloudinary.com/dkxyel9cl/video/upload/policy-power-progress/housing/5th_clip.mp4",
-    thumbnail: "",
-  },
-  {
-    id: "h6", title: "Homelessness and Policy Solutions",
-    description: "Cities are experimenting with new approaches to homelessness. What works and what's politically feasible?",
-    date: "Mar 19, 2026", category: "Housing",
-    videoUrl: "https://res.cloudinary.com/dkxyel9cl/video/upload/policy-power-progress/housing/6th_Clip.mp4",
-    thumbnail: "",
-  },
-  {
-    id: "h7", title: "The Future of Public Housing",
-    description: "Public housing has a complicated history. We look at new models emerging across the country.",
-    date: "Mar 16, 2026", category: "Housing",
-    videoUrl: "https://res.cloudinary.com/dkxyel9cl/video/upload/policy-power-progress/housing/7th_Clip.mp4",
-    thumbnail: "",
-  },
-];
-
-const FREE_LIMIT = 3;
-const CATEGORY_EMOJI: Record<string, string> = { "Public Safety": "🚔", Housing: "🏠" };
-
 export default function WatchPage() {
-  const [activeTab, setActiveTab] = useState<"Public Safety" | "Housing">("Public Safety");
+  const [activeTab, setActiveTab] = useState<string>("Public Safety");
   const [muted, setMuted] = useState(true);
   const [infoOpen, setInfoOpen] = useState<string | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [episodes, setEpisodes] = useState<Episode[]>([]);
+  const [loading, setLoading] = useState(true);
   const feedRef = useRef<HTMLDivElement>(null);
   const isSubscriber = false; // TODO: wire to real subscription status
 
-  const filtered = EPISODES.filter((e) => e.category === activeTab);
+  useEffect(() => {
+    const fetchVideos = async () => {
+      setLoading(true);
+      const { data } = await supabase
+        .from("episodes")
+        .select("id, title, description, date, topic, topic_emoji, video_url, is_free")
+        .eq("is_published", true)
+        .eq("topic", activeTab)
+        .order("sort_order", { ascending: true });
+      setEpisodes((data as Episode[]) || []);
+      setLoading(false);
+    };
+    fetchVideos();
+  }, [activeTab]);
 
-  const handleTabChange = (tab: "Public Safety" | "Housing") => {
+  const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     setInfoOpen(null);
     setShowPaywall(false);
@@ -111,14 +51,17 @@ export default function WatchPage() {
     navigator.clipboard.writeText(url).then(() => toast.success("Link copied!"));
   };
 
+  // Determine which episodes are free vs locked
+  const freeCount = episodes.filter((e) => e.is_free).length;
+
   return (
     <div className="fixed inset-0 z-40 bg-black flex flex-col md:relative md:inset-auto md:z-auto md:rounded-xl md:overflow-hidden" style={{ height: "100dvh" }}>
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-[max(12px,env(safe-area-inset-top))] pb-2"
         style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)" }}>
-        <span className="text-lg font-black tracking-tight" style={{ color: "#84cc16" }}>UWAZI</span>
+        <span className="text-lg font-black tracking-tight text-primary">UWAZI</span>
         <div className="flex gap-1 bg-white/10 rounded-full p-0.5">
-          {(["Public Safety", "Housing"] as const).map((tab) => (
+          {["Public Safety", "Housing"].map((tab) => (
             <button key={tab} onClick={() => handleTabChange(tab)}
               className={`px-3 py-1 text-xs font-semibold rounded-full transition-all ${activeTab === tab ? "bg-white/20 text-white" : "text-white/60"}`}
             >
@@ -133,24 +76,41 @@ export default function WatchPage() {
 
       {/* Feed */}
       <div ref={feedRef} className="flex-1 overflow-y-scroll snap-y snap-mandatory no-scrollbar" style={{ scrollbarWidth: "none" }}>
-        {filtered.map((ep, idx) => (
-          <VideoCard
-            key={ep.id}
-            episode={ep}
-            index={idx}
-            total={filtered.length}
-            muted={muted}
-            setMuted={setMuted}
-            onShare={() => handleShare(ep)}
-            infoOpen={infoOpen === ep.id}
-            toggleInfo={() => setInfoOpen(infoOpen === ep.id ? null : ep.id)}
-            locked={!isSubscriber && idx >= FREE_LIMIT}
-            onPaywall={() => setShowPaywall(true)}
-          />
-        ))}
+        {loading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="relative w-full snap-start flex-shrink-0 bg-black" style={{ height: "100dvh" }}>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-full bg-white/5 animate-pulse" />
+              </div>
+              <div className="absolute bottom-20 left-4 right-16 space-y-3">
+                <div className="h-4 w-24 bg-white/10 rounded-full animate-pulse" />
+                <div className="h-6 w-3/4 bg-white/10 rounded animate-pulse" />
+                <div className="h-4 w-full bg-white/5 rounded animate-pulse" />
+              </div>
+            </div>
+          ))
+        ) : (
+          episodes.map((ep, idx) => {
+            const locked = !isSubscriber && !ep.is_free;
+            return (
+              <VideoCard
+                key={ep.id}
+                episode={ep}
+                index={idx}
+                total={episodes.length}
+                muted={muted}
+                setMuted={setMuted}
+                onShare={() => handleShare(ep)}
+                infoOpen={infoOpen === ep.id}
+                toggleInfo={() => setInfoOpen(infoOpen === ep.id ? null : ep.id)}
+                locked={locked}
+                onPaywall={() => setShowPaywall(true)}
+              />
+            );
+          })
+        )}
       </div>
 
-      {/* Paywall modal */}
       {showPaywall && <PaywallOverlay onClose={() => setShowPaywall(false)} />}
     </div>
   );
@@ -175,7 +135,6 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
   const progressRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // Autoplay / pause via IntersectionObserver
   useEffect(() => {
     const el = cardRef.current;
     const video = videoRef.current;
@@ -191,7 +150,6 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
     return () => obs.disconnect();
   }, [locked]);
 
-  // Progress bar
   useEffect(() => {
     const video = videoRef.current;
     const bar = progressRef.current;
@@ -207,7 +165,6 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  // Trigger paywall on scroll into locked card
   useEffect(() => {
     if (!locked) return;
     const el = cardRef.current;
@@ -223,7 +180,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
     <div ref={cardRef} className="relative w-full snap-start flex-shrink-0" style={{ height: "100dvh" }}>
       <video
         ref={videoRef}
-        src={episode.videoUrl}
+        src={episode.video_url || ""}
         className={`absolute inset-0 w-full h-full object-cover ${locked ? "blur-lg scale-105" : ""}`}
         muted={muted}
         loop
@@ -231,28 +188,23 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
         preload="metadata"
       />
 
-      {/* Gradient overlay */}
       <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: "55%", background: "linear-gradient(transparent, rgba(0,0,0,0.85))" }} />
 
-      {/* Episode counter */}
       <div className="absolute top-16 right-3 z-10 px-2 py-0.5 rounded-full bg-black/50 text-white text-[11px] font-medium">
         {index + 1} / {total}
       </div>
 
       {!locked && (
         <>
-          {/* Bottom left content */}
           <div className="absolute bottom-14 left-4 right-16 z-10">
-            <span className="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold mb-2"
-              style={{ background: "#84cc16", color: "#fff" }}>
-              {CATEGORY_EMOJI[episode.category]} {episode.category}
+            <span className="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold mb-2 bg-primary text-primary-foreground">
+              {episode.topic_emoji} {episode.topic}
             </span>
             <h3 className="text-white font-bold text-lg leading-tight line-clamp-2 mb-1">{episode.title}</h3>
             <p className="text-[#aaa] text-[13px] line-clamp-2 mb-1">{episode.description}</p>
             <p className="text-white/40 text-[11px]">{episode.date}</p>
           </div>
 
-          {/* Right sidebar buttons */}
           <div className="absolute right-3 bottom-28 z-10 flex flex-col items-center gap-5">
             <button onClick={() => setMuted(!muted)} className="p-2 rounded-full bg-black/40 text-white">
               {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
@@ -265,14 +217,12 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
             </button>
           </div>
 
-          {/* Info overlay */}
           {infoOpen && (
             <div className="absolute inset-0 z-20 bg-black/80 flex items-end p-6">
               <div className="w-full">
                 <button onClick={toggleInfo} className="absolute top-20 right-4 text-white/70"><X size={24} /></button>
-                <span className="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold mb-3"
-                  style={{ background: "#84cc16", color: "#fff" }}>
-                  {CATEGORY_EMOJI[episode.category]} {episode.category}
+                <span className="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold mb-3 bg-primary text-primary-foreground">
+                  {episode.topic_emoji} {episode.topic}
                 </span>
                 <h3 className="text-white font-bold text-xl mb-2">{episode.title}</h3>
                 <p className="text-white/70 text-sm leading-relaxed mb-2">{episode.description}</p>
@@ -281,14 +231,12 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
             </div>
           )}
 
-          {/* Progress bar */}
           <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/20 z-10">
-            <div ref={progressRef} className="h-full" style={{ background: "#84cc16", width: "0%", transition: "none" }} />
+            <div ref={progressRef} className="h-full bg-primary" style={{ width: "0%", transition: "none" }} />
           </div>
         </>
       )}
 
-      {/* Locked overlay */}
       {locked && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
           <div className="bg-black/70 backdrop-blur-sm rounded-2xl p-8 mx-6 text-center max-w-sm">
@@ -297,7 +245,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
             </div>
             <h3 className="text-white font-bold text-xl mb-2">Unlock All Episodes</h3>
             <p className="text-white/60 text-sm mb-5">
-              You've watched your 3 free clips. Subscribe to Uwazi+ for unlimited access to Policy Power & Progress.
+              Subscribe to Uwazi+ for unlimited access to Policy Power & Progress.
             </p>
             <button className="w-full py-3 rounded-xl font-bold text-black text-sm"
               style={{ background: "linear-gradient(135deg, #facc15, #eab308)" }}>
@@ -311,11 +259,10 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
   );
 }
 
-// ─── Paywall modal ───
 function PaywallOverlay({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6" onClick={onClose}>
-      <div className="bg-card rounded-2xl p-6 max-w-sm w-full text-center" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-card rounded-2xl p-6 max-w-sm w-full text-center relative" onClick={(e) => e.stopPropagation()}>
         <button onClick={onClose} className="absolute top-4 right-4 text-muted-foreground"><X size={20} /></button>
         <div className="w-14 h-14 rounded-full bg-yellow-500/20 flex items-center justify-center mx-auto mb-4">
           <Lock size={28} className="text-yellow-400" />
