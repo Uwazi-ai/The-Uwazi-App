@@ -30,6 +30,7 @@ const adminNav = [
   { to: "/app/admin/intelligence", icon: IntelligenceIcon, label: "Intelligence" },
   { to: "/app/admin/lessons", icon: LessonManagerIcon, label: "Lesson Manager" },
   { to: "/app/admin/content", icon: CivicContentIcon, label: "Civic Content" },
+  { to: "/app/admin/episodes", icon: WatchIcon, label: "Episodes" },
   { to: "/app/admin/alerts", icon: AlertsIcon, label: "Alerts" },
   { to: "/app/admin/crm", icon: CRMIcon, label: "CRM" },
   { to: "/app/admin/surveys", icon: SurveysIcon, label: "Surveys" },
