@@ -381,41 +381,34 @@ function EpisodeModal({ open, onClose, episode, onSaved, nextSortOrder }: Episod
   const topicEmoji = topicData?.emoji || "📌";
 
   const handleFileUpload = async (file: File) => {
-    if (file.size > 100 * 1024 * 1024) {
-      toast.error("File too large. Max 100MB.");
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("File too large. Max 50MB.");
       return;
     }
 
     setUploading(true);
-    setUploadProgress(10);
+    setUploadProgress(0);
 
-    // TODO: Create 'uwazi_episodes' unsigned upload preset in Cloudinary dashboard:
-    // Settings → Upload → Upload presets → Add preset
-    // Set signing mode: Unsigned
-    // Set folder: policy-power-progress
-    // Restrict to video only
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "uwazi_episodes");
-    formData.append("folder", `policy-power-progress/${topic.toLowerCase().replace(" ", "-")}`);
+    const fileExt = file.name.split(".").pop() || "mp4";
+    const filePath = `${topic.toLowerCase().replace(/\s+/g, "-")}/${crypto.randomUUID()}.${fileExt}`;
 
     try {
-      setUploadProgress(30);
-      const response = await fetch("https://api.cloudinary.com/v1_1/dkxyel9cl/video/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const { data, error } = await supabase.storage
+        .from("episode-videos")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
 
-      setUploadProgress(80);
-      const data = await response.json();
+      if (error) throw error;
 
-      if (data.secure_url) {
-        setVideoUrl(data.secure_url);
-        setUploadProgress(100);
-        toast.success("Upload complete!");
-      } else {
-        throw new Error(data.error?.message || "Upload failed");
-      }
+      const { data: urlData } = supabase.storage
+        .from("episode-videos")
+        .getPublicUrl(data.path);
+
+      setVideoUrl(urlData.publicUrl);
+      setUploadProgress(100);
+      toast.success("Upload complete!");
     } catch (err: any) {
       toast.error(err.message || "Upload failed");
       setUploadProgress(0);
