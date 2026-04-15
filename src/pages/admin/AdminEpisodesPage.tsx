@@ -381,8 +381,8 @@ function EpisodeModal({ open, onClose, episode, onSaved, nextSortOrder }: Episod
   const topicEmoji = topicData?.emoji || "📌";
 
   const handleFileUpload = async (file: File) => {
-    if (file.size > 50 * 1024 * 1024) {
-      toast.error("File too large. Max 50MB.");
+    if (file.size > 150 * 1024 * 1024) {
+      toast.error("File too large. Max 150MB.");
       return;
     }
 
