@@ -240,8 +240,8 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
       {locked && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
           <div className="bg-black/70 backdrop-blur-sm rounded-2xl p-7 mx-6 text-center max-w-sm">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/15 border border-yellow-500/30 mb-3">
-              <span className="text-[10px] font-bold text-yellow-400 tracking-wider">🚀 BETA LAUNCH · ENDS JUL 16, 2026</span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 mb-3">
+              <span className="text-[10px] font-bold text-amber-400 tracking-wider">🚀 BETA PRICE</span>
             </div>
             <div className="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center mx-auto mb-3">
               <Lock size={24} className="text-yellow-400" />
