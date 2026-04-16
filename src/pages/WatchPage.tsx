@@ -239,19 +239,28 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
 
       {locked && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
-          <div className="bg-black/70 backdrop-blur-sm rounded-2xl p-8 mx-6 text-center max-w-sm">
-            <div className="w-14 h-14 rounded-full bg-yellow-500/20 flex items-center justify-center mx-auto mb-4">
-              <Lock size={28} className="text-yellow-400" />
+          <div className="bg-black/70 backdrop-blur-sm rounded-2xl p-7 mx-6 text-center max-w-sm">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-yellow-500/15 border border-yellow-500/30 mb-3">
+              <span className="text-[10px] font-bold text-yellow-400 tracking-wider">BETA LAUNCH · 3 MONTHS ONLY</span>
             </div>
-            <h3 className="text-white font-bold text-xl mb-2">Unlock All Episodes</h3>
-            <p className="text-white/60 text-sm mb-5">
-              Subscribe to Uwazi+ for unlimited access to Policy Power & Progress.
+            <div className="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center mx-auto mb-3">
+              <Lock size={24} className="text-yellow-400" />
+            </div>
+            <h3 className="text-white font-bold text-xl mb-1">Unlock All Episodes</h3>
+            <p className="text-white/60 text-[13px] mb-4">
+              Early adopter pricing — locked for the 3-month beta.
             </p>
+            <div className="flex items-baseline justify-center gap-2 mb-1">
+              <span className="text-white font-black text-3xl">$9.99</span>
+              <span className="text-white/40 text-sm line-through">$19.99</span>
+              <span className="text-white/60 text-sm">/mo</span>
+            </div>
+            <p className="text-yellow-400/80 text-[11px] mb-4">or $79/yr · save 34%</p>
             <button className="w-full py-3 rounded-xl font-bold text-black text-sm"
               style={{ background: "linear-gradient(135deg, #facc15, #eab308)" }}>
-              Get Uwazi+ — $19.99/mo
+              Claim Beta Price
             </button>
-            <p className="text-white/30 text-[11px] mt-3">Cancel anytime • Includes all premium features</p>
+            <p className="text-white/30 text-[10px] mt-3">Price returns to $19.99/mo after beta · Cancel anytime</p>
           </div>
         </div>
       )}
