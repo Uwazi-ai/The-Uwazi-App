@@ -4,6 +4,23 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Shield, Plus, Pencil, Trash2, GripVertical, Film, Eye, EyeOff, Check, X, Upload, Link as LinkIcon } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -138,6 +155,42 @@ export default function AdminEpisodesPage() {
     setModalOpen(true);
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = filtered.findIndex((e) => e.id === active.id);
+    const newIndex = filtered.findIndex((e) => e.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(filtered, oldIndex, newIndex);
+
+    // Optimistic update
+    queryClient.setQueryData(["admin-episodes"], (old: Episode[] = []) => {
+      const map = new Map(reordered.map((ep, i) => [ep.id, i + 1]));
+      return [...old]
+        .map((ep) => (map.has(ep.id) ? { ...ep, sort_order: map.get(ep.id)! } : ep))
+        .sort((a, b) => a.topic.localeCompare(b.topic) || a.sort_order - b.sort_order);
+    });
+
+    // Persist
+    const updates = reordered.map((ep, i) =>
+      supabase.from("episodes").update({ sort_order: i + 1 }).eq("id", ep.id)
+    );
+    const results = await Promise.all(updates);
+    if (results.some((r) => r.error)) {
+      toast.error("Failed to save order");
+      queryClient.invalidateQueries({ queryKey: ["admin-episodes"] });
+    } else {
+      toast.success("Order saved");
+    }
+  };
+
   return (
     <div className="p-4 md:p-8 space-y-6 max-w-[1400px] mx-auto">
       {/* Header */}
@@ -220,69 +273,29 @@ export default function AdminEpisodesPage() {
                 <th className="p-3 font-medium">Actions</th>
               </tr>
             </thead>
-            <tbody>
-              {isLoading && (
-                <tr><td colSpan={8} className="p-4"><Skeleton className="h-8 w-full" /></td></tr>
-              )}
-              {!isLoading && filtered.length === 0 && (
-                <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">No episodes found</td></tr>
-              )}
-              {filtered.map((ep) => (
-                <tr key={ep.id} className="border-b border-border hover:bg-primary/5 transition-colors">
-                  <td className="p-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.has(ep.id)}
-                      onChange={() => toggleSelect(ep.id)}
-                      className="rounded border-border"
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={filtered.map((e) => e.id)} strategy={verticalListSortingStrategy}>
+                <tbody>
+                  {isLoading && (
+                    <tr><td colSpan={8} className="p-4"><Skeleton className="h-8 w-full" /></td></tr>
+                  )}
+                  {!isLoading && filtered.length === 0 && (
+                    <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">No episodes found</td></tr>
+                  )}
+                  {filtered.map((ep) => (
+                    <SortableEpisodeRow
+                      key={ep.id}
+                      ep={ep}
+                      selected={selectedIds.has(ep.id)}
+                      onToggleSelect={() => toggleSelect(ep.id)}
+                      onTogglePublished={() => togglePublished(ep)}
+                      onEdit={() => openEdit(ep)}
+                      onDelete={() => setDeleteTarget(ep)}
                     />
-                  </td>
-                  <td className="p-3 text-muted-foreground cursor-grab">
-                    <GripVertical size={14} />
-                  </td>
-                  <td className="p-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-16 h-9 rounded bg-black/50 flex items-center justify-center shrink-0 overflow-hidden">
-                        {ep.video_url ? (
-                          <video src={ep.video_url} className="w-full h-full object-cover" muted preload="metadata" />
-                        ) : (
-                          <Film size={14} className="text-muted-foreground" />
-                        )}
-                      </div>
-                      <span className="text-foreground font-medium truncate max-w-[200px]">{ep.title}</span>
-                    </div>
-                  </td>
-                  <td className="p-3 hidden md:table-cell">
-                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                      {ep.topic_emoji} {ep.topic}
-                    </span>
-                  </td>
-                  <td className="p-3 text-muted-foreground hidden md:table-cell">{ep.date || "—"}</td>
-                  <td className="p-3">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${ep.is_free ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"}`}>
-                      {ep.is_free ? "FREE" : "PLUS"}
-                    </span>
-                  </td>
-                  <td className="p-3">
-                    <Switch
-                      checked={ep.is_published}
-                      onCheckedChange={() => togglePublished(ep)}
-                      className="data-[state=checked]:bg-primary"
-                    />
-                  </td>
-                  <td className="p-3">
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(ep)} className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground">
-                        <Pencil size={14} />
-                      </button>
-                      <button onClick={() => setDeleteTarget(ep)} className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+                  ))}
+                </tbody>
+              </SortableContext>
+            </DndContext>
           </table>
         </div>
       </Card>
@@ -321,7 +334,88 @@ export default function AdminEpisodesPage() {
   );
 }
 
-// ─── Episode Modal ───
+// ─── Sortable Row ───
+interface SortableEpisodeRowProps {
+  ep: Episode;
+  selected: boolean;
+  onToggleSelect: () => void;
+  onTogglePublished: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+function SortableEpisodeRow({ ep, selected, onToggleSelect, onTogglePublished, onEdit, onDelete }: SortableEpisodeRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: ep.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <tr ref={setNodeRef} style={style} className="border-b border-border hover:bg-primary/5 transition-colors">
+      <td className="p-3">
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={onToggleSelect}
+          className="rounded border-border"
+        />
+      </td>
+      <td className="p-3 text-muted-foreground">
+        <button
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing touch-none p-1 hover:text-foreground"
+          aria-label="Drag to reorder"
+        >
+          <GripVertical size={14} />
+        </button>
+      </td>
+      <td className="p-3">
+        <div className="flex items-center gap-3">
+          <div className="w-16 h-9 rounded bg-black/50 flex items-center justify-center shrink-0 overflow-hidden">
+            {ep.video_url ? (
+              <video src={ep.video_url} className="w-full h-full object-cover" muted preload="metadata" />
+            ) : (
+              <Film size={14} className="text-muted-foreground" />
+            )}
+          </div>
+          <span className="text-foreground font-medium truncate max-w-[200px]">{ep.title}</span>
+        </div>
+      </td>
+      <td className="p-3 hidden md:table-cell">
+        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+          {ep.topic_emoji} {ep.topic}
+        </span>
+      </td>
+      <td className="p-3 text-muted-foreground hidden md:table-cell">{ep.date || "—"}</td>
+      <td className="p-3">
+        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${ep.is_free ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"}`}>
+          {ep.is_free ? "FREE" : "PLUS"}
+        </span>
+      </td>
+      <td className="p-3">
+        <Switch
+          checked={ep.is_published}
+          onCheckedChange={onTogglePublished}
+          className="data-[state=checked]:bg-primary"
+        />
+      </td>
+      <td className="p-3">
+        <div className="flex items-center gap-1">
+          <button onClick={onEdit} className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground">
+            <Pencil size={14} />
+          </button>
+          <button onClick={onDelete} className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
 interface EpisodeModalProps {
   open: boolean;
   onClose: () => void;
