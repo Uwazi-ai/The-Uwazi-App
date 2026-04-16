@@ -269,22 +269,60 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
 }
 
 function PaywallOverlay({ onClose }: { onClose: () => void }) {
+  const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6" onClick={onClose}>
       <div className="bg-card rounded-2xl p-6 max-w-sm w-full text-center relative" onClick={(e) => e.stopPropagation()}>
         <button onClick={onClose} className="absolute top-4 right-4 text-muted-foreground"><X size={20} /></button>
-        <div className="w-14 h-14 rounded-full bg-yellow-500/20 flex items-center justify-center mx-auto mb-4">
-          <Lock size={28} className="text-yellow-400" />
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-yellow-500/15 border border-yellow-500/30 mb-3">
+          <span className="text-[10px] font-bold text-yellow-400 tracking-wider">BETA LAUNCH · 3 MONTHS ONLY</span>
         </div>
-        <h3 className="text-foreground font-bold text-xl mb-2">Upgrade to Uwazi+</h3>
-        <p className="text-muted-foreground text-sm mb-5">
-          Unlimited video episodes, advanced legislation tracking, and unlimited AI questions.
+        <div className="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center mx-auto mb-3">
+          <Lock size={24} className="text-yellow-400" />
+        </div>
+        <h3 className="text-foreground font-bold text-xl mb-1">Upgrade to Uwazi+</h3>
+        <p className="text-muted-foreground text-[13px] mb-4">
+          Unlimited videos, full legislation tracking & unlimited AI questions.
         </p>
+
+        {/* Billing toggle */}
+        <div className="flex gap-1 bg-muted rounded-full p-1 mb-4">
+          <button
+            onClick={() => setBilling("monthly")}
+            className={`flex-1 py-1.5 text-xs font-semibold rounded-full transition-all ${billing === "monthly" ? "bg-background text-foreground shadow" : "text-muted-foreground"}`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setBilling("annual")}
+            className={`flex-1 py-1.5 text-xs font-semibold rounded-full transition-all ${billing === "annual" ? "bg-background text-foreground shadow" : "text-muted-foreground"}`}
+          >
+            Annual <span className="text-yellow-500">−34%</span>
+          </button>
+        </div>
+
+        <div className="flex items-baseline justify-center gap-2 mb-1">
+          <span className="text-foreground font-black text-3xl">
+            ${billing === "monthly" ? "9.99" : "79"}
+          </span>
+          <span className="text-muted-foreground text-sm line-through">
+            ${billing === "monthly" ? "19.99" : "119"}
+          </span>
+          <span className="text-muted-foreground text-sm">
+            /{billing === "monthly" ? "mo" : "yr"}
+          </span>
+        </div>
+        <p className="text-yellow-500/90 text-[11px] mb-4">
+          {billing === "monthly" ? "Beta rate — locked for 3 months" : "Just $6.58/mo billed annually"}
+        </p>
+
         <button className="w-full py-3 rounded-xl font-bold text-black text-sm"
           style={{ background: "linear-gradient(135deg, #facc15, #eab308)" }}>
-          Subscribe — $19.99/mo
+          Claim Beta Price
         </button>
-        <p className="text-muted-foreground text-[11px] mt-3">Cancel anytime</p>
+        <p className="text-muted-foreground text-[10px] mt-3">
+          Price returns to ${billing === "monthly" ? "19.99/mo" : "119/yr"} after beta · Cancel anytime
+        </p>
       </div>
     </div>
   );
