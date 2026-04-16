@@ -41,7 +41,16 @@ Deno.serve(async (req) => {
       );
     }
 
-    const body = await req.json();
+    let body: unknown = {};
+    try {
+      const text = await req.text();
+      body = text ? JSON.parse(text) : {};
+    } catch (_) {
+      return new Response(
+        JSON.stringify({ error: "Invalid JSON body" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     const parsed = RequestSchema.safeParse(body);
     if (!parsed.success) {
       return new Response(
