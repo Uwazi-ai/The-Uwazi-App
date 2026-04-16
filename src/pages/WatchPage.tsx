@@ -70,7 +70,7 @@ export default function WatchPage() {
           ))}
         </div>
         <button className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-500/90 text-black">
-          Uwazi+
+          Uwazi+ BETA
         </button>
       </div>
 
