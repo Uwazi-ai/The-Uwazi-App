@@ -298,13 +298,13 @@ function PaywallOverlay({ onClose }: { onClose: () => void }) {
             onClick={() => setBilling("annual")}
             className={`flex-1 py-1.5 text-xs font-semibold rounded-full transition-all ${billing === "annual" ? "bg-background text-foreground shadow" : "text-muted-foreground"}`}
           >
-            Annual <span className="text-yellow-500">−34%</span>
+            Annual <span className="text-amber-500">−35%</span>
           </button>
         </div>
 
         <div className="flex items-baseline justify-center gap-2 mb-1">
           <span className="text-foreground font-black text-3xl">
-            ${billing === "monthly" ? "9.99" : "79"}
+            ${billing === "monthly" ? "4.99" : "39"}
           </span>
           <span className="text-muted-foreground text-sm line-through">
             ${billing === "monthly" ? "19.99" : "119"}
@@ -313,16 +313,17 @@ function PaywallOverlay({ onClose }: { onClose: () => void }) {
             /{billing === "monthly" ? "mo" : "yr"}
           </span>
         </div>
-        <p className="text-yellow-500/90 text-[11px] mb-4">
-          {billing === "monthly" ? "Beta rate — locked for 3 months" : "Just $6.58/mo billed annually"}
+        <p className="text-amber-500/90 text-[11px] mb-1">
+          {billing === "monthly" ? "Beta rate — locked through beta" : "Just $3.25/mo billed annually"}
         </p>
+        <p className="text-muted-foreground text-[11px] mb-4">⏰ Beta pricing ends July 16, 2026</p>
 
         <button className="w-full py-3 rounded-xl font-bold text-black text-sm"
           style={{ background: "linear-gradient(135deg, #facc15, #eab308)" }}>
           Claim Beta Price
         </button>
         <p className="text-muted-foreground text-[10px] mt-3">
-          Price returns to ${billing === "monthly" ? "19.99/mo" : "119/yr"} after beta · Cancel anytime
+          Price returns to ${billing === "monthly" ? "19.99/mo" : "119/yr"} after beta · No contracts · Cancel anytime
         </p>
       </div>
     </div>
