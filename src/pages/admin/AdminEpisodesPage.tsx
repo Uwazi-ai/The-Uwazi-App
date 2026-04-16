@@ -155,6 +155,42 @@ export default function AdminEpisodesPage() {
     setModalOpen(true);
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = filtered.findIndex((e) => e.id === active.id);
+    const newIndex = filtered.findIndex((e) => e.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(filtered, oldIndex, newIndex);
+
+    // Optimistic update
+    queryClient.setQueryData(["admin-episodes"], (old: Episode[] = []) => {
+      const map = new Map(reordered.map((ep, i) => [ep.id, i + 1]));
+      return [...old]
+        .map((ep) => (map.has(ep.id) ? { ...ep, sort_order: map.get(ep.id)! } : ep))
+        .sort((a, b) => a.topic.localeCompare(b.topic) || a.sort_order - b.sort_order);
+    });
+
+    // Persist
+    const updates = reordered.map((ep, i) =>
+      supabase.from("episodes").update({ sort_order: i + 1 }).eq("id", ep.id)
+    );
+    const results = await Promise.all(updates);
+    if (results.some((r) => r.error)) {
+      toast.error("Failed to save order");
+      queryClient.invalidateQueries({ queryKey: ["admin-episodes"] });
+    } else {
+      toast.success("Order saved");
+    }
+  };
+
   return (
     <div className="p-4 md:p-8 space-y-6 max-w-[1400px] mx-auto">
       {/* Header */}
