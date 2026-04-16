@@ -334,7 +334,88 @@ export default function AdminEpisodesPage() {
   );
 }
 
-// ─── Episode Modal ───
+// ─── Sortable Row ───
+interface SortableEpisodeRowProps {
+  ep: Episode;
+  selected: boolean;
+  onToggleSelect: () => void;
+  onTogglePublished: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+function SortableEpisodeRow({ ep, selected, onToggleSelect, onTogglePublished, onEdit, onDelete }: SortableEpisodeRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: ep.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <tr ref={setNodeRef} style={style} className="border-b border-border hover:bg-primary/5 transition-colors">
+      <td className="p-3">
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={onToggleSelect}
+          className="rounded border-border"
+        />
+      </td>
+      <td className="p-3 text-muted-foreground">
+        <button
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing touch-none p-1 hover:text-foreground"
+          aria-label="Drag to reorder"
+        >
+          <GripVertical size={14} />
+        </button>
+      </td>
+      <td className="p-3">
+        <div className="flex items-center gap-3">
+          <div className="w-16 h-9 rounded bg-black/50 flex items-center justify-center shrink-0 overflow-hidden">
+            {ep.video_url ? (
+              <video src={ep.video_url} className="w-full h-full object-cover" muted preload="metadata" />
+            ) : (
+              <Film size={14} className="text-muted-foreground" />
+            )}
+          </div>
+          <span className="text-foreground font-medium truncate max-w-[200px]">{ep.title}</span>
+        </div>
+      </td>
+      <td className="p-3 hidden md:table-cell">
+        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+          {ep.topic_emoji} {ep.topic}
+        </span>
+      </td>
+      <td className="p-3 text-muted-foreground hidden md:table-cell">{ep.date || "—"}</td>
+      <td className="p-3">
+        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${ep.is_free ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"}`}>
+          {ep.is_free ? "FREE" : "PLUS"}
+        </span>
+      </td>
+      <td className="p-3">
+        <Switch
+          checked={ep.is_published}
+          onCheckedChange={onTogglePublished}
+          className="data-[state=checked]:bg-primary"
+        />
+      </td>
+      <td className="p-3">
+        <div className="flex items-center gap-1">
+          <button onClick={onEdit} className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground">
+            <Pencil size={14} />
+          </button>
+          <button onClick={onDelete} className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
 interface EpisodeModalProps {
   open: boolean;
   onClose: () => void;
