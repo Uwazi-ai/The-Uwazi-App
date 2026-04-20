@@ -118,7 +118,9 @@ export default function AdminUsersPage() {
                 <td className="p-3" colSpan={5}><Skeleton className="h-6 w-full" /></td>
               </tr>
             ))}
-            {data?.users.map(u => (
+            {data?.users.map(u => {
+              const isProgramAdmin = (u as any).roles?.includes("program_admin");
+              return (
               <tr key={u.id} className="border-b border-border hover:bg-primary/5 transition-colors">
                 <td className="p-3">
                   <div className="flex items-center gap-2">
@@ -126,9 +128,10 @@ export default function AdminUsersPage() {
                       {u.avatar_url ? <img src={u.avatar_url} className="h-full w-full object-cover" /> : u.display_name?.[0]?.toUpperCase() || "?"}
                     </div>
                     <div>
-                      <p className="font-medium text-foreground text-xs flex items-center gap-1">
+                      <p className="font-medium text-foreground text-xs flex items-center gap-1 flex-wrap">
                         {u.display_name || "Unknown"}
-                        {u.is_admin && <span className="bg-primary/20 text-primary text-[9px] px-1.5 py-0.5 rounded font-axis">ADMIN</span>}
+                        {u.is_admin && <span className="bg-primary/20 text-primary text-[9px] px-1.5 py-0.5 rounded font-axis">SUPER</span>}
+                        {isProgramAdmin && <span className="bg-accent/20 text-accent-foreground text-[9px] px-1.5 py-0.5 rounded font-axis">PROGRAM</span>}
                         {u.is_suspended && <span className="bg-destructive/20 text-destructive text-[9px] px-1.5 py-0.5 rounded">SUSPENDED</span>}
                       </p>
                     </div>
@@ -138,10 +141,13 @@ export default function AdminUsersPage() {
                 <td className="p-3 text-xs text-muted-foreground hidden lg:table-cell">{new Date(u.created_at).toLocaleDateString()}</td>
                 <td className="p-3 hidden md:table-cell">{u.is_admin ? <span className="text-primary text-xs">✓</span> : <span className="text-muted-foreground text-xs">—</span>}</td>
                 <td className="p-3">
-                  <div className="flex gap-1.5">
+                  <div className="flex gap-1.5 flex-wrap">
                     <Button size="sm" variant="outline" className="text-[10px] h-7 px-2" onClick={() => setSelectedUser(u)}>View</Button>
                     <Button size="sm" variant="outline" className="text-[10px] h-7 px-2" onClick={() => toggleAdmin(u.user_id, u.is_admin ?? false)}>
-                      {u.is_admin ? "Remove Admin" : "Make Admin"}
+                      {u.is_admin ? "Remove Super" : "Make Super"}
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-[10px] h-7 px-2" onClick={() => toggleProgramAdmin(u.user_id, isProgramAdmin)}>
+                      {isProgramAdmin ? "Remove Program" : "Make Program"}
                     </Button>
                     <Button size="sm" variant={u.is_suspended ? "outline" : "destructive"} className="text-[10px] h-7 px-2" onClick={() => toggleSuspend(u.user_id, u.is_suspended ?? false)}>
                       {u.is_suspended ? "Unsuspend" : "Suspend"}
@@ -149,7 +155,8 @@ export default function AdminUsersPage() {
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
         {!isLoading && !data?.users.length && (
