@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Lock, Volume2, VolumeX, Share2, Info, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface Episode {
   id: string;
@@ -22,7 +24,9 @@ export default function WatchPage() {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [loading, setLoading] = useState(true);
   const feedRef = useRef<HTMLDivElement>(null);
-  const isSubscriber = false; // TODO: wire to real subscription status
+  const navigate = useNavigate();
+  const { isPremium } = useSubscription();
+  const isSubscriber = isPremium;
 
   useEffect(() => {
     const fetchVideos = async () => {
