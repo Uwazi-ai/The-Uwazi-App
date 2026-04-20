@@ -49,7 +49,7 @@ export default function AdminUsersPage() {
       await (supabase as any).from("user_roles").delete().eq("user_id", userId).eq("role", "super_admin");
     }
     toast.success(current ? "Super Admin removed — they must refresh to see changes" : "Super Admin granted — they must refresh to see changes");
-    invalidateAll();
+    invalidateAll(userId);
   };
 
   const toggleSuspend = async (userId: string, current: boolean) => {
