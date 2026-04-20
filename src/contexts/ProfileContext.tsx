@@ -74,6 +74,27 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     refreshProfile();
   }, [refreshProfile]);
 
+  // Realtime: refresh profile when this user's roles or profile change
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`profile-sync-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "user_roles", filter: `user_id=eq.${user.id}` },
+        () => refreshProfile()
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles", filter: `user_id=eq.${user.id}` },
+        () => refreshProfile()
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, refreshProfile]);
+
   const isProgramAdmin = isAdmin || roles.includes("program_admin");
 
   return (
