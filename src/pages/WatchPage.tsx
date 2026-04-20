@@ -109,13 +109,14 @@ export default function WatchPage() {
                 toggleInfo={() => setInfoOpen(infoOpen === ep.id ? null : ep.id)}
                 locked={locked}
                 onPaywall={() => setShowPaywall(true)}
+                onUpgrade={() => navigate("/app/upgrade?plan=beta_monthly")}
               />
             );
           })
         )}
       </div>
 
-      {showPaywall && <PaywallOverlay onClose={() => setShowPaywall(false)} />}
+      {showPaywall && <PaywallOverlay onClose={() => setShowPaywall(false)} onUpgrade={(plan) => { setShowPaywall(false); navigate(`/app/upgrade?plan=${plan}`); }} />}
     </div>
   );
 }
@@ -132,9 +133,10 @@ interface VideoCardProps {
   toggleInfo: () => void;
   locked: boolean;
   onPaywall: () => void;
+  onUpgrade: () => void;
 }
 
-function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, toggleInfo, locked, onPaywall }: VideoCardProps) {
+function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, toggleInfo, locked, onPaywall, onUpgrade }: VideoCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -261,8 +263,11 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
             </div>
             <p className="text-amber-400/90 text-[11px] mb-1">or $39/yr · save 35%</p>
             <p className="text-white/50 text-[11px] mb-4">⏰ Beta pricing ends July 16, 2026</p>
-            <button className="w-full py-3 rounded-xl font-bold text-black text-sm"
-              style={{ background: "linear-gradient(135deg, #facc15, #eab308)" }}>
+            <button
+              onClick={onUpgrade}
+              className="w-full py-3 rounded-xl font-bold text-black text-sm"
+              style={{ background: "linear-gradient(135deg, #facc15, #eab308)" }}
+            >
               Claim Beta Price
             </button>
             <p className="text-white/30 text-[10px] mt-3">Price returns to $19.99/mo after beta · No contracts · Cancel anytime</p>
@@ -273,7 +278,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
   );
 }
 
-function PaywallOverlay({ onClose }: { onClose: () => void }) {
+function PaywallOverlay({ onClose, onUpgrade }: { onClose: () => void; onUpgrade: (plan: string) => void }) {
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6" onClick={onClose}>
@@ -322,8 +327,11 @@ function PaywallOverlay({ onClose }: { onClose: () => void }) {
         </p>
         <p className="text-muted-foreground text-[11px] mb-4">⏰ Beta pricing ends July 16, 2026</p>
 
-        <button className="w-full py-3 rounded-xl font-bold text-black text-sm"
-          style={{ background: "linear-gradient(135deg, #facc15, #eab308)" }}>
+        <button
+          onClick={() => onUpgrade(billing === "monthly" ? "beta_monthly" : "beta_yearly")}
+          className="w-full py-3 rounded-xl font-bold text-black text-sm"
+          style={{ background: "linear-gradient(135deg, #facc15, #eab308)" }}
+        >
           Claim Beta Price
         </button>
         <p className="text-muted-foreground text-[10px] mt-3">
