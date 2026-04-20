@@ -176,7 +176,24 @@ export function useAllUsers(search: string, filter: string, sort: string, page: 
       query = query.range(from, from + 24);
 
       const { data, count } = await query;
-      return { users: data || [], total: count || 0 };
+      const users = data || [];
+
+      const userIds = users.map(u => u.user_id);
+      const rolesByUser: Record<string, string[]> = {};
+      if (userIds.length) {
+        const { data: roleRows } = await supabase
+          .from("user_roles" as any)
+          .select("user_id, role")
+          .in("user_id", userIds);
+        (roleRows as any[] | null)?.forEach((r: any) => {
+          rolesByUser[r.user_id] = [...(rolesByUser[r.user_id] || []), r.role];
+        });
+      }
+
+      return {
+        users: users.map(u => ({ ...u, roles: rolesByUser[u.user_id] || [] })),
+        total: count || 0,
+      };
     },
   });
 }
