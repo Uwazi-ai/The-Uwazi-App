@@ -56,7 +56,7 @@ export default function AdminUsersPage() {
     const { error } = await supabase.from("profiles").update({ is_suspended: !current }).eq("user_id", userId);
     if (error) return toast.error(error.message);
     toast.success(current ? "User unsuspended" : "User suspended");
-    invalidateAll();
+    invalidateAll(userId);
   };
 
   const toggleProgramAdmin = async (userId: string, hasRole: boolean) => {
