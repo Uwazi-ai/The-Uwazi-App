@@ -39,6 +39,25 @@ export default function AdminUsersPage() {
     refetch();
   };
 
+  const toggleProgramAdmin = async (userId: string, hasRole: boolean) => {
+    if (hasRole) {
+      const { error } = await (supabase as any)
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId)
+        .eq("role", "program_admin");
+      if (error) return toast.error(error.message);
+      toast.success("Program Admin removed");
+    } else {
+      const { error } = await (supabase as any)
+        .from("user_roles")
+        .insert({ user_id: userId, role: "program_admin" });
+      if (error) return toast.error(error.message);
+      toast.success("Program Admin granted");
+    }
+    refetch();
+  };
+
   const exportCSV = () => {
     if (!data?.users.length) return;
     const headers = ["Name", "Email", "ZIP", "Admin", "Joined"];
