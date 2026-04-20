@@ -7,7 +7,10 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/contexts/ProfileContext";
-import { useNavigate } from "react-router-dom";
+import { useSubscription } from "@/hooks/useSubscription";
+import { Link, useNavigate } from "react-router-dom";
+import uwaziPlusLogo from "@/assets/uwazi-plus-logo.png";
+import { Crown, Sparkles, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { usePWAInstall } from "@/components/PWAInstallPrompt";
