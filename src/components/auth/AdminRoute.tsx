@@ -1,8 +1,14 @@
 import { useProfile } from "@/contexts/ProfileContext";
 import { Navigate } from "react-router-dom";
 
-export function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { isAdmin, profileLoaded } = useProfile();
+interface AdminRouteProps {
+  children: React.ReactNode;
+  /** If true, allow program_admin too. Otherwise require super_admin. */
+  allowProgramAdmin?: boolean;
+}
+
+export function AdminRoute({ children, allowProgramAdmin = false }: AdminRouteProps) {
+  const { isAdmin, isProgramAdmin, profileLoaded } = useProfile();
 
   if (!profileLoaded) {
     return (
@@ -12,8 +18,9 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!isAdmin) {
-    return <Navigate to="/" replace />;
+  const allowed = allowProgramAdmin ? isProgramAdmin : isAdmin;
+  if (!allowed) {
+    return <Navigate to="/app" replace />;
   }
 
   return <>{children}</>;
