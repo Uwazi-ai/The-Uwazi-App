@@ -2,6 +2,8 @@ import { createContext, useContext, useState, useEffect, useCallback, ReactNode 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+export type AppRole = "super_admin" | "program_admin" | "user";
+
 interface ProfileContextType {
   displayName: string;
   avatarUrl: string | null;
@@ -9,7 +11,9 @@ interface ProfileContextType {
   fullAddress: string | null;
   city: string | null;
   stateCode: string | null;
-  isAdmin: boolean;
+  isAdmin: boolean; // super admin (legacy + role-based)
+  isProgramAdmin: boolean; // program_admin OR super_admin
+  roles: AppRole[];
   profileLoaded: boolean;
   refreshProfile: () => Promise<void>;
 }
@@ -22,6 +26,8 @@ const ProfileContext = createContext<ProfileContextType>({
   city: null,
   stateCode: null,
   isAdmin: false,
+  isProgramAdmin: false,
+  roles: [],
   profileLoaded: false,
   refreshProfile: async () => {},
 });
@@ -37,15 +43,20 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const [city, setCity] = useState<string | null>(null);
   const [stateCode, setStateCode] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [roles, setRoles] = useState<AppRole[]>([]);
   const [profileLoaded, setProfileLoaded] = useState(false);
 
   const refreshProfile = useCallback(async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from("profiles")
-      .select("display_name, avatar_url, zip_code, is_admin, full_address, city, state_code")
-      .eq("user_id", user.id)
-      .maybeSingle();
+    const [{ data }, { data: roleRows }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("display_name, avatar_url, zip_code, is_admin, full_address, city, state_code")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      supabase.from("user_roles" as any).select("role").eq("user_id", user.id),
+    ]);
+    const userRoles: AppRole[] = (roleRows as any[] | null)?.map(r => r.role) ?? [];
     if (data) {
       setDisplayName(data.display_name || user.email?.split("@")[0] || "User");
       setAvatarUrl(data.avatar_url);
@@ -53,8 +64,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       setFullAddress((data as any).full_address ?? null);
       setCity((data as any).city ?? null);
       setStateCode((data as any).state_code ?? null);
-      setIsAdmin(data.is_admin ?? false);
+      setIsAdmin((data.is_admin ?? false) || userRoles.includes("super_admin"));
     }
+    setRoles(userRoles);
     setProfileLoaded(true);
   }, [user]);
 
@@ -62,8 +74,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     refreshProfile();
   }, [refreshProfile]);
 
+  const isProgramAdmin = isAdmin || roles.includes("program_admin");
+
   return (
-    <ProfileContext.Provider value={{ displayName, avatarUrl, zipCode, fullAddress, city, stateCode, isAdmin, profileLoaded, refreshProfile }}>
+    <ProfileContext.Provider value={{ displayName, avatarUrl, zipCode, fullAddress, city, stateCode, isAdmin, isProgramAdmin, roles, profileLoaded, refreshProfile }}>
       {children}
     </ProfileContext.Provider>
   );
