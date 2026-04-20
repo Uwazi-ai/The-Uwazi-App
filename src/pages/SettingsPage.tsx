@@ -87,6 +87,7 @@ export default function SettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { isInstalled, install, isSupported } = usePWAInstall();
   const { theme, setTheme, resolvedTheme } = useTheme();
+  const { isPremium, subscription } = useSubscription();
   const [themeMounted, setThemeMounted] = useState(false);
 
   useEffect(() => setThemeMounted(true), []);
