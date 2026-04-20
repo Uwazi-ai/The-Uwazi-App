@@ -23,16 +23,18 @@ const mainNav = [
   { to: "/app/progress", icon: ProgressIcon, label: "Progress" },
 ];
 
-const adminNav = [
-  { to: "/app/admin", icon: AdminOverviewIcon, label: "Admin Overview" },
+type AdminNavItem = { to: string; icon: any; label: string; programAdmin?: boolean };
+
+const adminNav: AdminNavItem[] = [
+  { to: "/app/admin", icon: AdminOverviewIcon, label: "Admin Overview", programAdmin: true },
   { to: "/app/admin/users", icon: UsersIcon, label: "Users" },
-  { to: "/app/admin/content", icon: WatchIcon, label: "Content" },
-  { to: "/app/admin/analytics", icon: AnalyticsIcon, label: "Analytics" },
-  { to: "/app/admin/intelligence", icon: IntelligenceIcon, label: "Intelligence" },
-  { to: "/app/admin/lessons", icon: LessonManagerIcon, label: "Lesson Manager" },
-  { to: "/app/admin/alerts", icon: AlertsIcon, label: "Alerts" },
-  { to: "/app/admin/crm", icon: CRMIcon, label: "CRM" },
-  { to: "/app/admin/surveys", icon: SurveysIcon, label: "Surveys" },
+  { to: "/app/admin/content", icon: WatchIcon, label: "Content", programAdmin: true },
+  { to: "/app/admin/analytics", icon: AnalyticsIcon, label: "Analytics", programAdmin: true },
+  { to: "/app/admin/intelligence", icon: IntelligenceIcon, label: "Intelligence", programAdmin: true },
+  { to: "/app/admin/lessons", icon: LessonManagerIcon, label: "Lesson Manager", programAdmin: true },
+  { to: "/app/admin/alerts", icon: AlertsIcon, label: "Alerts", programAdmin: true },
+  { to: "/app/admin/crm", icon: CRMIcon, label: "CRM", programAdmin: true },
+  { to: "/app/admin/surveys", icon: SurveysIcon, label: "Surveys", programAdmin: true },
   { to: "/app/admin/platform", icon: PlatformSettingsIcon, label: "Platform Settings" },
 ];
 
@@ -42,7 +44,7 @@ const bottomNav = [
 
 export function DesktopSidebar() {
   const { user, signOut } = useAuth();
-  const { displayName, avatarUrl, isAdmin } = useProfile();
+  const { displayName, avatarUrl, isAdmin, isProgramAdmin } = useProfile();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -79,21 +81,23 @@ export function DesktopSidebar() {
           </NavLink>
         ))}
 
-        {isAdmin && (
+        {isProgramAdmin && (
           <>
             <div className="mt-4 mb-2 px-[22px]">
               <p className="text-[10px] font-semibold tracking-[0.06em] uppercase text-muted-foreground">
-                SUPER ADMIN
+                {isAdmin ? "SUPER ADMIN" : "PROGRAM ADMIN"}
               </p>
             </div>
-            {adminNav.map((item) => (
-              <NavLink key={item.to} to={item.to} end={item.to === "/admin"} className={linkClass}>
-                <div className="nav-icon-wrap">
-                  <item.icon size={18} />
-                </div>
-                {item.label}
-              </NavLink>
-            ))}
+            {adminNav
+              .filter((item) => isAdmin || item.programAdmin)
+              .map((item) => (
+                <NavLink key={item.to} to={item.to} end={item.to === "/admin"} className={linkClass}>
+                  <div className="nav-icon-wrap">
+                    <item.icon size={18} />
+                  </div>
+                  {item.label}
+                </NavLink>
+              ))}
           </>
         )}
       </nav>

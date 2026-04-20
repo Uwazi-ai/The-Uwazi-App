@@ -91,17 +91,17 @@ const App = () => (
                 <Route path="/app/upgrade" element={<UpgradePage />} />
                 <Route path="/app/checkout/return" element={<CheckoutReturnPage />} />
 
-                {/* Admin routes */}
-                <Route path="/app/admin" element={<AdminRoute><AdminOverviewPage /></AdminRoute>} />
+                {/* Admin routes — program_admin can access lessons, analytics, intelligence, surveys, crm, alerts, overview, content */}
+                <Route path="/app/admin" element={<AdminRoute allowProgramAdmin><AdminOverviewPage /></AdminRoute>} />
                 <Route path="/app/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
-                <Route path="/app/admin/analytics" element={<AdminRoute><AdminAnalyticsPage /></AdminRoute>} />
-                <Route path="/app/admin/intelligence" element={<AdminRoute><AdminIntelligencePage /></AdminRoute>} />
-                <Route path="/app/admin/lessons" element={<AdminRoute><AdminLessonsPage /></AdminRoute>} />
-                <Route path="/app/admin/content" element={<AdminRoute><AdminEpisodesPage /></AdminRoute>} />
-                <Route path="/app/admin/alerts" element={<AdminRoute><AdminAlertsPage /></AdminRoute>} />
+                <Route path="/app/admin/analytics" element={<AdminRoute allowProgramAdmin><AdminAnalyticsPage /></AdminRoute>} />
+                <Route path="/app/admin/intelligence" element={<AdminRoute allowProgramAdmin><AdminIntelligencePage /></AdminRoute>} />
+                <Route path="/app/admin/lessons" element={<AdminRoute allowProgramAdmin><AdminLessonsPage /></AdminRoute>} />
+                <Route path="/app/admin/content" element={<AdminRoute allowProgramAdmin><AdminEpisodesPage /></AdminRoute>} />
+                <Route path="/app/admin/alerts" element={<AdminRoute allowProgramAdmin><AdminAlertsPage /></AdminRoute>} />
                 <Route path="/app/admin/platform" element={<AdminRoute><AdminPlatformPage /></AdminRoute>} />
-                <Route path="/app/admin/crm" element={<AdminRoute><AdminCRMPage /></AdminRoute>} />
-                <Route path="/app/admin/surveys" element={<AdminRoute><AdminSurveysPage /></AdminRoute>} />
+                <Route path="/app/admin/crm" element={<AdminRoute allowProgramAdmin><AdminCRMPage /></AdminRoute>} />
+                <Route path="/app/admin/surveys" element={<AdminRoute allowProgramAdmin><AdminSurveysPage /></AdminRoute>} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
