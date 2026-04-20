@@ -365,6 +365,55 @@ export default function SettingsPage() {
         )}
       </motion.div>
 
+      {/* UWAZI+ MEMBERSHIP */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.13 }}
+        className="rounded-xl overflow-hidden relative"
+        style={{
+          background: isPremium
+            ? "linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.04))"
+            : "linear-gradient(135deg, rgba(250, 204, 21, 0.12), rgba(234, 179, 8, 0.04))",
+          border: isPremium
+            ? "1px solid hsl(var(--primary) / 0.35)"
+            : "1px solid rgba(250, 204, 21, 0.3)",
+        }}>
+        <div className="p-6 flex items-center gap-4">
+          <img src={uwaziPlusLogo} alt="Uwazi+" className="h-14 w-14 shrink-0 object-contain" />
+          <div className="flex-1 min-w-0">
+            {isPremium ? (
+              <>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-heading text-xl text-foreground">UWAZI+ ACTIVE</h3>
+                  <Crown className="h-4 w-4 text-yellow-400" />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {subscription?.cancel_at_period_end ? "Access ends" : "Renews"}{" "}
+                  {subscription?.current_period_end ? new Date(subscription.current_period_end).toLocaleDateString() : "—"}
+                </p>
+              </>
+            ) : (
+              <>
+                <h3 className="font-heading text-xl text-foreground mb-1">UPGRADE TO UWAZI+</h3>
+                <p className="text-xs text-muted-foreground">
+                  Unlock Watch, unlimited Ask Uwazi, full legislation tracking & more.
+                </p>
+              </>
+            )}
+          </div>
+          <Link
+            to={isPremium ? "/app/settings/subscription" : "/app/upgrade"}
+            className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-sm transition-transform hover:scale-105"
+            style={
+              isPremium
+                ? { background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }
+                : { background: "linear-gradient(135deg, #facc15, #eab308)", color: "#000" }
+            }
+          >
+            {isPremium ? "Manage" : (<><Sparkles className="h-4 w-4" /> Upgrade</>)}
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </motion.div>
+
       {/* Profile Fields */}
       <motion.form onSubmit={handleSaveProfile} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
         className="rounded-xl p-6 space-y-4" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
