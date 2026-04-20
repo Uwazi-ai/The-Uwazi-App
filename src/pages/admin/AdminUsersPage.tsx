@@ -75,7 +75,7 @@ export default function AdminUsersPage() {
       if (error) return toast.error(error.message);
       toast.success("Program Admin granted — they must refresh to see changes");
     }
-    invalidateAll();
+    invalidateAll(userId);
   };
 
   const exportCSV = () => {
