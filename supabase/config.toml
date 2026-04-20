@@ -7,3 +7,11 @@ project_id = "zigemhmhbzegwbgvvmpc"
     verify_jwt = true
   [functions.ballotpedia-scraper]
     verify_jwt = false
+  [functions.create-checkout]
+    verify_jwt = false
+  [functions.get-stripe-price]
+    verify_jwt = false
+  [functions.payments-webhook]
+    verify_jwt = false
+  [functions.cancel-subscription]
+    verify_jwt = false

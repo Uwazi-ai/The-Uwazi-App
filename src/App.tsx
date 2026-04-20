@@ -43,6 +43,9 @@ import AdminPlatformPage from "./pages/admin/AdminPlatformPage";
 import AdminCRMPage from "./pages/admin/AdminCRMPage";
 import AdminSurveysPage from "./pages/admin/AdminSurveysPage";
 import AdminEpisodesPage from "./pages/admin/AdminEpisodesPage";
+import UpgradePage from "./pages/UpgradePage";
+import CheckoutReturnPage from "./pages/CheckoutReturnPage";
+import ManageSubscriptionPage from "./pages/ManageSubscriptionPage";
 
 const queryClient = new QueryClient();
 
@@ -84,6 +87,9 @@ const App = () => (
                 <Route path="/app/progress" element={<ProgressPage />} />
                 <Route path="/app/profile" element={<ProfilePage />} />
                 <Route path="/app/settings" element={<SettingsPage />} />
+                <Route path="/app/settings/subscription" element={<ManageSubscriptionPage />} />
+                <Route path="/app/upgrade" element={<UpgradePage />} />
+                <Route path="/app/checkout/return" element={<CheckoutReturnPage />} />
 
                 {/* Admin routes */}
                 <Route path="/app/admin" element={<AdminRoute><AdminOverviewPage /></AdminRoute>} />
