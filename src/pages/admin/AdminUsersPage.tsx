@@ -26,17 +26,30 @@ export default function AdminUsersPage() {
     { key: "admin", label: "Admin Only" },
   ];
 
+  const invalidateAll = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    await queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+    await refetch();
+  };
+
   const toggleAdmin = async (userId: string, current: boolean) => {
-    await supabase.from("profiles").update({ is_admin: !current }).eq("user_id", userId);
-    toast.success(current ? "Admin removed" : "Admin granted");
-    refetch();
-    queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+    const { error } = await supabase.from("profiles").update({ is_admin: !current }).eq("user_id", userId);
+    if (error) return toast.error(error.message);
+    // Mirror to user_roles for RBAC consistency
+    if (!current) {
+      await (supabase as any).from("user_roles").insert({ user_id: userId, role: "super_admin" }).select();
+    } else {
+      await (supabase as any).from("user_roles").delete().eq("user_id", userId).eq("role", "super_admin");
+    }
+    toast.success(current ? "Super Admin removed — they must refresh to see changes" : "Super Admin granted — they must refresh to see changes");
+    invalidateAll();
   };
 
   const toggleSuspend = async (userId: string, current: boolean) => {
-    await supabase.from("profiles").update({ is_suspended: !current }).eq("user_id", userId);
+    const { error } = await supabase.from("profiles").update({ is_suspended: !current }).eq("user_id", userId);
+    if (error) return toast.error(error.message);
     toast.success(current ? "User unsuspended" : "User suspended");
-    refetch();
+    invalidateAll();
   };
 
   const toggleProgramAdmin = async (userId: string, hasRole: boolean) => {
@@ -47,15 +60,15 @@ export default function AdminUsersPage() {
         .eq("user_id", userId)
         .eq("role", "program_admin");
       if (error) return toast.error(error.message);
-      toast.success("Program Admin removed");
+      toast.success("Program Admin removed — they must refresh to see changes");
     } else {
       const { error } = await (supabase as any)
         .from("user_roles")
         .insert({ user_id: userId, role: "program_admin" });
       if (error) return toast.error(error.message);
-      toast.success("Program Admin granted");
+      toast.success("Program Admin granted — they must refresh to see changes");
     }
-    refetch();
+    invalidateAll();
   };
 
   const exportCSV = () => {
