@@ -20,6 +20,8 @@ export default function AdminUsersPage() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const { data, isLoading, refetch } = useAllUsers(search, filter, sort, page);
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { refreshProfile } = useProfile();
 
   const filters = [
     { key: "all", label: "All" },
