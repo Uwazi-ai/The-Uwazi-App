@@ -30,10 +30,13 @@ export default function AdminUsersPage() {
     { key: "admin", label: "Admin Only" },
   ];
 
-  const invalidateAll = async () => {
+  const invalidateAll = async (affectedUserId?: string) => {
     await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
     await queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
     await refetch();
+    if (affectedUserId && affectedUserId === user?.id) {
+      await refreshProfile();
+    }
   };
 
   const toggleAdmin = async (userId: string, current: boolean) => {
