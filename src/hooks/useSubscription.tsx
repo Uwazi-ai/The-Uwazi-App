@@ -25,7 +25,7 @@ export function useSubscription() {
       return;
     }
     const env = getStripeEnvironment();
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("subscriptions")
       .select("id, status, product_id, price_id, current_period_end, cancel_at_period_end, stripe_subscription_id")
       .eq("user_id", user.id)
@@ -33,7 +33,7 @@ export function useSubscription() {
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    setSubscription(data as SubscriptionRow | null);
+    setSubscription((data as SubscriptionRow | null) ?? null);
     setLoading(false);
   }, [user]);
 
