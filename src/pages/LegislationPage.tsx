@@ -521,7 +521,7 @@ export default function LegislationPage() {
                     </button>
                   </div>
                   <button
-                    onClick={() => navigate(`/legislation/${bill.congress || "119"}/${(bill.type || "").toLowerCase()}/${bill.number}`)}
+                    onClick={() => navigate(`/app/legislation/${bill.congress || "119"}/${(bill.type || "").toLowerCase()}/${bill.number}`)}
                     className="text-xs text-primary font-medium hover:underline"
                   >
                     View Details →
