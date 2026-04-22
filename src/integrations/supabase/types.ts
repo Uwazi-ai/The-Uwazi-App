@@ -460,6 +460,36 @@ export type Database = {
         }
         Relationships: []
       }
+      bill_summaries: {
+        Row: {
+          bill_id: string
+          community_impact_template: string
+          created_at: string
+          id: string
+          jurisdiction: string
+          plain_summary: string
+          updated_at: string
+        }
+        Insert: {
+          bill_id: string
+          community_impact_template: string
+          created_at?: string
+          id?: string
+          jurisdiction?: string
+          plain_summary: string
+          updated_at?: string
+        }
+        Update: {
+          bill_id?: string
+          community_impact_template?: string
+          created_at?: string
+          id?: string
+          jurisdiction?: string
+          plain_summary?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bill_upvotes: {
         Row: {
           bill_id: string
@@ -1802,6 +1832,36 @@ export type Database = {
           },
         ]
       }
+      user_civic_stats: {
+        Row: {
+          bills_tracked_count: number
+          civic_xp: number
+          current_streak: number
+          last_action_at: string | null
+          longest_streak: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bills_tracked_count?: number
+          civic_xp?: number
+          current_streak?: number
+          last_action_at?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bills_tracked_count?: number
+          civic_xp?: number
+          current_streak?: number
+          last_action_at?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_lesson_progress: {
         Row: {
           completed_at: string | null
@@ -1911,6 +1971,45 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_tracked_bills: {
+        Row: {
+          bill_id: string
+          bill_number: string | null
+          bill_title: string | null
+          id: string
+          jurisdiction: string
+          last_action: string | null
+          last_action_date: string | null
+          status: string | null
+          tracked_at: string
+          user_id: string
+        }
+        Insert: {
+          bill_id: string
+          bill_number?: string | null
+          bill_title?: string | null
+          id?: string
+          jurisdiction?: string
+          last_action?: string | null
+          last_action_date?: string | null
+          status?: string | null
+          tracked_at?: string
+          user_id: string
+        }
+        Update: {
+          bill_id?: string
+          bill_number?: string | null
+          bill_title?: string | null
+          id?: string
+          jurisdiction?: string
+          last_action?: string | null
+          last_action_date?: string | null
+          status?: string | null
+          tracked_at?: string
           user_id?: string
         }
         Relationships: []
