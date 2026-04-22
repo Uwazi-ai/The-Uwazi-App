@@ -42,9 +42,9 @@ export function CommunityImpactCard({ bill }: { bill: NormalizedBill }) {
         if (!data?.ok) throw new Error(data?.error);
 
         const filled = String(data.community_impact_template)
-          .replaceAll('{zip}', zip || 'your zip code')
-          .replaceAll('{city}', cityName || 'your city')
-          .replaceAll('{state}', stateName || 'your state');
+          .replace(/\{zip\}/g, zip || 'your zip code')
+          .replace(/\{city\}/g, cityName || 'your city')
+          .replace(/\{state\}/g, stateName || 'your state');
 
         if (!cancelled) {
           setCity(cityName || 'Your Community');
