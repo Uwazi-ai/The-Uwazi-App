@@ -56,6 +56,31 @@ serve(async (req) => {
           { role: 'system', content: SYSTEM },
           { role: 'user', content: userMsg },
         ],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'return_bill_summary',
+              description: 'Return the plain-language summary and community impact template.',
+              parameters: {
+                type: 'object',
+                properties: {
+                  plain_summary: {
+                    type: 'string',
+                    description: '2 short paragraphs (max 120 words). What the bill does, who it affects, what changes if it passes. No headers, no bullets, no markdown.',
+                  },
+                  community_impact_template: {
+                    type: 'string',
+                    description: '1 paragraph (max 80 words) describing kinds of people and communities most likely to feel effects. Use {city}, {state}, {zip} as placeholders.',
+                  },
+                },
+                required: ['plain_summary', 'community_impact_template'],
+                additionalProperties: false,
+              },
+            },
+          },
+        ],
+        tool_choice: { type: 'function', function: { name: 'return_bill_summary' } },
       }),
     });
 
@@ -65,13 +90,28 @@ serve(async (req) => {
     }
 
     const j = await r.json();
-    const text = j?.choices?.[0]?.message?.content ?? '';
+    const msg = j?.choices?.[0]?.message;
+    const toolCall = msg?.tool_calls?.[0];
     let parsed: { plain_summary: string; community_impact_template: string };
     try {
-      const cleaned = text.replace(/```json|```/g, '').trim();
-      parsed = JSON.parse(cleaned);
-    } catch {
+      if (toolCall?.function?.arguments) {
+        parsed = JSON.parse(toolCall.function.arguments);
+      } else {
+        // Fallback: try to extract JSON from content
+        const text = msg?.content ?? '';
+        const cleaned = text.replace(/```json|```/g, '').trim();
+        const start = cleaned.search(/[{]/);
+        const end = cleaned.lastIndexOf('}');
+        if (start === -1 || end === -1) throw new Error('no json');
+        parsed = JSON.parse(cleaned.substring(start, end + 1));
+      }
+    } catch (parseErr) {
+      console.error('[bill-summary] parse failed. Raw response:', JSON.stringify(j).slice(0, 2000));
       throw new Error('Model returned invalid JSON');
+    }
+
+    if (!parsed.plain_summary || !parsed.community_impact_template) {
+      throw new Error('Model response missing required fields');
     }
 
     await supabase.from('bill_summaries').upsert(
