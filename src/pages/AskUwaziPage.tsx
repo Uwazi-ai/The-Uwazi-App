@@ -14,7 +14,7 @@ import ReactMarkdown from "react-markdown";
 import { useAskUwaziContext, getSuggestedPrompts, useAskUwaziSession, type ChatSession } from "@/hooks/useAskUwazi";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { isToday, isYesterday, differenceInDays } from "date-fns";
@@ -319,6 +319,7 @@ export default function AskUwaziPage() {
   const ctx = useAskUwaziContext();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const {
     restoredMessages, sessionLoading, saveMessages, startNewSession,
     chatHistory, loadSession, deleteSession,
@@ -447,6 +448,19 @@ export default function AskUwaziPage() {
       onError: (err) => { toast.error(err); setIsStreaming(false); setIsSearching(false); },
     });
   }, [input, isStreaming, messages, session, saveMessages, ctx.zipCode]);
+
+  // Auto-send when arriving with ?q= prefilled prompt (e.g. from candidate cards)
+  const autoSentRef = useRef(false);
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (!q || autoSentRef.current || isStreaming) return;
+    autoSentRef.current = true;
+    handleSend(q);
+    // Strip the query param so refresh doesn't re-send
+    const next = new URLSearchParams(searchParams);
+    next.delete("q");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, isStreaming, handleSend, setSearchParams]);
 
   const handleNewChat = useCallback(() => {
     setMessages([]);
