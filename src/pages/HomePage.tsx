@@ -130,9 +130,12 @@ export default function HomePage() {
               <video
                 src={featured.video_url}
                 className="absolute inset-0 w-full h-full object-cover opacity-80"
+                autoPlay
+                loop
                 muted
                 playsInline
-                preload="metadata"
+                preload="auto"
+                disableRemotePlayback
               />
             )}
 
@@ -254,9 +257,12 @@ export default function HomePage() {
                       <video
                         src={ep.video_url}
                         className="absolute inset-0 w-full h-full object-cover opacity-70"
+                        autoPlay={isPlaying}
+                        loop={isPlaying}
                         muted
                         playsInline
-                        preload="metadata"
+                        preload={isPlaying ? "auto" : "metadata"}
+                        disableRemotePlayback
                       />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
