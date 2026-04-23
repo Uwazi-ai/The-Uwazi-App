@@ -61,21 +61,25 @@ export default function WatchPage() {
   return (
     <div className="fixed inset-0 z-40 bg-black flex flex-col md:relative md:inset-auto md:z-auto md:rounded-xl md:overflow-hidden" style={{ height: "100dvh" }}>
       {/* Top bar */}
-      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-[max(12px,env(safe-area-inset-top))] pb-2"
+      <div className="absolute top-0 left-0 right-0 z-20 px-4 pt-[max(12px,env(safe-area-inset-top))] pb-2"
         style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)" }}>
-        <span className="text-lg font-black tracking-tight text-primary">UWAZI</span>
-        <div className="flex gap-1 bg-white/10 rounded-full p-0.5">
-          {["Public Safety", "Housing"].map((tab) => (
-            <button key={tab} onClick={() => handleTabChange(tab)}
-              className={`px-3 py-1 text-xs font-semibold rounded-full transition-all ${activeTab === tab ? "bg-white/20 text-white" : "text-white/60"}`}
-            >
-              {tab}
-            </button>
-          ))}
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-lg font-black tracking-tight text-primary shrink-0">UWAZI</span>
+          <button className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-500/90 text-black shrink-0">
+            Uwazi+ BETA
+          </button>
         </div>
-        <button className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-500/90 text-black">
-          Uwazi+ BETA
-        </button>
+        <div className="mt-2 -mx-4 px-4 overflow-x-auto no-scrollbar" style={{ scrollbarWidth: "none" }}>
+          <div className="inline-flex gap-1 bg-white/10 rounded-full p-0.5">
+            {["Public Safety", "Housing", "Elections", "Workforce", "Public Health", "Education", "Other"].map((tab) => (
+              <button key={tab} onClick={() => handleTabChange(tab)}
+                className={`px-3 py-1 text-xs font-semibold rounded-full transition-all whitespace-nowrap ${activeTab === tab ? "bg-white/20 text-white" : "text-white/60"}`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Feed */}
