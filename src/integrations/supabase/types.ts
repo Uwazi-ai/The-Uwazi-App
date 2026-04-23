@@ -852,6 +852,39 @@ export type Database = {
         }
         Relationships: []
       }
+      episode_video_access_log: {
+        Row: {
+          context: Json | null
+          created_at: string
+          episode_id: string | null
+          granted: boolean
+          id: string
+          reason: string
+          user_id: string | null
+          video_path: string | null
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string
+          episode_id?: string | null
+          granted: boolean
+          id?: string
+          reason: string
+          user_id?: string | null
+          video_path?: string | null
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string
+          episode_id?: string | null
+          granted?: boolean
+          id?: string
+          reason?: string
+          user_id?: string | null
+          video_path?: string | null
+        }
+        Relationships: []
+      }
       episodes: {
         Row: {
           created_at: string
@@ -2238,6 +2271,18 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_program_admin: { Args: { _user_id: string }; Returns: boolean }
+      log_episode_video_access: {
+        Args: {
+          _context?: Json
+          _episode_id: string
+          _user_id: string
+          _video_path?: string
+        }
+        Returns: {
+          granted: boolean
+          reason: string
+        }[]
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
