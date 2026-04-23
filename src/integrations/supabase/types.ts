@@ -1302,7 +1302,7 @@ export type Database = {
           last_used_at: string | null
           p256dh: string
           platform: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           auth_key: string
@@ -1313,7 +1313,7 @@ export type Database = {
           last_used_at?: string | null
           p256dh: string
           platform?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           auth_key?: string
@@ -1324,7 +1324,7 @@ export type Database = {
           last_used_at?: string | null
           p256dh?: string
           platform?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
