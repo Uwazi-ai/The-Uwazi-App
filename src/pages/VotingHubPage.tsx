@@ -427,12 +427,6 @@ function CountdownBar({ nextElection }: { nextElection: { name: string; date: st
             </div>
           ))}
         </div>
-        <button
-          onClick={() => document.getElementById("voting-plan-builder")?.scrollIntoView({ behavior: "smooth" })}
-          className="text-xs text-primary font-semibold hover:underline hidden sm:inline"
-        >
-          Set up voting plan →
-        </button>
       </div>
     </motion.div>
   );
