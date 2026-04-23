@@ -16,24 +16,34 @@ export interface SubscriptionRow {
 export function useSubscription() {
   const { user } = useAuth();
   const [subscription, setSubscription] = useState<SubscriptionRow | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
     if (!user) {
       setSubscription(null);
+      setIsAdmin(false);
       setLoading(false);
       return;
     }
     const env = getStripeEnvironment();
-    const { data } = await (supabase as any)
-      .from("subscriptions")
-      .select("id, status, product_id, price_id, current_period_end, cancel_at_period_end, stripe_subscription_id")
-      .eq("user_id", user.id)
-      .eq("environment", env)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    setSubscription((data as SubscriptionRow | null) ?? null);
+    const [subRes, profileRes] = await Promise.all([
+      (supabase as any)
+        .from("subscriptions")
+        .select("id, status, product_id, price_id, current_period_end, cancel_at_period_end, stripe_subscription_id")
+        .eq("user_id", user.id)
+        .eq("environment", env)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("profiles")
+        .select("is_admin")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+    ]);
+    setSubscription((subRes.data as SubscriptionRow | null) ?? null);
+    setIsAdmin(Boolean((profileRes.data as { is_admin?: boolean } | null)?.is_admin));
     setLoading(false);
   }, [user]);
 
@@ -57,6 +67,8 @@ export function useSubscription() {
   }, [user, refresh]);
 
   const isPremium = (() => {
+    // Admins always have full Uwazi+ access
+    if (isAdmin) return true;
     if (!subscription) return false;
     const periodOk = !subscription.current_period_end || new Date(subscription.current_period_end) > new Date();
     if (["active", "trialing"].includes(subscription.status) && periodOk) return true;
