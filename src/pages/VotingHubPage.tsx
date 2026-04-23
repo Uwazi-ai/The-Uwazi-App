@@ -96,10 +96,17 @@ export default function VotingHubPage() {
     setActiveTab(getTabFromHash(location.hash));
   }, [location.hash]);
 
-  const handleTabChange = (val: string) => {
-    const tab = val as TabValue;
-    setActiveTab(tab);
-    window.history.replaceState(null, "", `#${tab}`);
+  const handleTabChange = (value: string) => {
+    if (value === "elections") {
+      setActiveTab("elections");
+      window.history.replaceState(null, "", "#elections");
+    } else if (value === "reps") {
+      setActiveTab("reps");
+      window.history.replaceState(null, "", "#reps");
+    } else if (value === "act") {
+      setActiveTab("act");
+      window.history.replaceState(null, "", "#act");
+    }
   };
 
   const nextElection = useMemo(() => getNextElectionForState(stateCode), [stateCode]);
@@ -250,6 +257,19 @@ export default function VotingHubPage() {
             onClick={() => navigate(`/ask?q=${encodeURIComponent("What are the most important races in the 2026 midterm elections?")}`)}
           >
             Ask Uwazi about 2026 →
+          </Button>
+          <Button
+            variant="ghost"
+            className="text-foreground/80 hover:text-foreground hover:bg-muted/60 gap-1.5"
+            onClick={() => {
+              setActiveTab("act");
+              window.history.replaceState(null, "", "#act");
+              setTimeout(() => {
+                document.getElementById("voting-plan-builder")?.scrollIntoView({ behavior: "smooth" });
+              }, 100);
+            }}
+          >
+            Set up voting plan →
           </Button>
         </div>
       </motion.div>
@@ -407,12 +427,6 @@ function CountdownBar({ nextElection }: { nextElection: { name: string; date: st
             </div>
           ))}
         </div>
-        <button
-          onClick={() => document.getElementById("voting-plan-builder")?.scrollIntoView({ behavior: "smooth" })}
-          className="text-xs text-primary font-semibold hover:underline hidden sm:inline"
-        >
-          Set up voting plan →
-        </button>
       </div>
     </motion.div>
   );
