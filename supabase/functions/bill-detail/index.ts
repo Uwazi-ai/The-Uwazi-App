@@ -27,8 +27,9 @@ serve(async (req) => {
 
     const r = await fetch(url);
     if (!r.ok) {
-      const errText = await r.text();
-      throw new Error(`Congress.gov returned ${r.status}: ${errText}`);
+      const errText = await r.text().catch(() => "");
+      console.error(`[bill-detail] Congress.gov ${r.status}:`, errText);
+      throw new Error(`upstream_error_${r.status}`);
     }
 
     const json = await r.json();
@@ -58,7 +59,7 @@ serve(async (req) => {
   } catch (e) {
     console.error('[bill-detail]', e);
     return new Response(
-      JSON.stringify({ ok: false, error: e instanceof Error ? e.message : 'Unknown error' }),
+      JSON.stringify({ ok: false, error: 'Unable to fetch bill details' }),
       { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } }
     );
   }
