@@ -364,7 +364,19 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
               setBufferPct((v.buffered.end(v.buffered.length - 1) / v.duration) * 100);
             }
           }}
-          onError={(e) => console.error("[WatchPage] video error:", episode.title, e.currentTarget.error)}
+          onError={(e) => {
+            const err = e.currentTarget.error;
+            const codeMap: Record<number, string> = {
+              1: "MEDIA_ERR_ABORTED",
+              2: "MEDIA_ERR_NETWORK",
+              3: "MEDIA_ERR_DECODE",
+              4: "MEDIA_ERR_SRC_NOT_SUPPORTED",
+            };
+            const msg = err ? `${codeMap[err.code] || "Unknown"} (${err.code})${err.message ? ": " + err.message : ""}` : "Unknown error";
+            console.error("[WatchPage] video error:", episode.title, err);
+            setLastError(msg);
+            if (episode.video_url) probeNetwork(episode.video_url);
+          }}
         />
       ) : (
         <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-zinc-900 to-black flex items-center justify-center">
