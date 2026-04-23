@@ -4,7 +4,7 @@ import { useProfile } from "@/contexts/ProfileContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   HomeIcon, LearnIcon, WatchIcon, AskUwaziIcon, VotingHubIcon,
-  CivicFeedIcon, LegislationIcon, ProgressIcon,
+  LegislationIcon, ProgressIcon,
   SavedIcon, SettingsIcon, MoreIcon,
 } from "@/components/icons/UwaziIcons";
 
@@ -17,7 +17,6 @@ const navItems = [
 ];
 
 const moreItems = [
-  { to: "/app/civic-feed", icon: CivicFeedIcon, label: "Civic Feed" },
   { to: "/app/legislation", icon: LegislationIcon, label: "Legislation" },
   { to: "/app/progress", icon: ProgressIcon, label: "Progress" },
   { to: "/app/saved", icon: SavedIcon, label: "Saved" },
