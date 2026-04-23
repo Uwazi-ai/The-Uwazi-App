@@ -18,7 +18,7 @@ const navItems = [
 ];
 
 const drawerItems = [
-  { to: "/app/profile", icon: User, label: "Profile" },
+  { to: "/app/settings", icon: User, label: "You" },
   { to: "/app/legislation", icon: LegislationIcon, label: "Legislation" },
   { to: "/app/progress", icon: ProgressIcon, label: "Progress" },
   { to: "/app/saved", icon: SavedIcon, label: "Saved" },
