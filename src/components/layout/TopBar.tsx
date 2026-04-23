@@ -1,11 +1,8 @@
-import { Link } from "react-router-dom";
-import { useProfile } from "@/contexts/ProfileContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SearchIcon, NotificationIcon } from "@/components/icons/UwaziIcons";
 import uwaziLogo from "@/assets/uwazi-logo.png";
 
 export function TopBar() {
-  const { displayName, avatarUrl } = useProfile();
 
   return (
     <header className="flex items-center justify-between gap-4 px-4 md:px-6 h-[52px] sticky top-0 z-10 topbar-safe"
