@@ -4,8 +4,9 @@ import {
   Send, BookmarkPlus, BookmarkCheck, Share2, RotateCcw, MapPin,
   Plus, MessageCircle, Trash2, Clock, ArrowLeft,
   Copy, Check, Vote, FileText, Landmark, CalendarDays,
-  Globe, ExternalLink, AlertCircle, X,
+  Globe, ExternalLink, AlertCircle, X, Zap, Star,
 } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
 import uwaziLogo from "@/assets/uwazi-logo.png";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
@@ -313,6 +314,8 @@ function HistoryList({
 /* ═══════════════════════════════
    MAIN PAGE COMPONENT
    ═══════════════════════════════ */
+const FREE_DAILY_LIMIT = 5;
+
 export default function AskUwaziPage() {
   const { session } = useAuth();
   const { displayName } = useProfile();
@@ -320,6 +323,8 @@ export default function AskUwaziPage() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { isPremium } = useSubscription();
+  const isSubscribed = isPremium;
   const {
     restoredMessages, sessionLoading, saveMessages, startNewSession,
     chatHistory, loadSession, deleteSession,
@@ -337,6 +342,9 @@ export default function AskUwaziPage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [civicScore, setCivicScore] = useState<number | null>(null);
+  const [dailyCount, setDailyCount] = useState(0);
+  const [showBanner, setShowBanner] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -345,6 +353,24 @@ export default function AskUwaziPage() {
     supabase.from("civic_scores").select("civic_literacy_score").eq("user_id", session.user.id).maybeSingle()
       .then(({ data }) => { if (data) setCivicScore(data.civic_literacy_score); });
   }, [session?.user?.id]);
+
+  const fetchDailyCount = useCallback(async () => {
+    if (!session?.user?.id || isSubscribed) return;
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const { count } = await supabase
+      .from("uwazi_question_log")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", session.user.id)
+      .gte("created_at", todayStart.toISOString());
+    const todayCount = count ?? 0;
+    setDailyCount(todayCount);
+    if (todayCount >= FREE_DAILY_LIMIT && !bannerDismissed) {
+      setShowBanner(true);
+    }
+  }, [session?.user?.id, isSubscribed, bannerDismissed]);
+
+  useEffect(() => { fetchDailyCount(); }, [fetchDailyCount]);
 
   const groupedHistory = useMemo(() => groupChatsByDate(chatHistory), [chatHistory]);
 
@@ -397,6 +423,14 @@ export default function AskUwaziPage() {
     setInput("");
     setIsStreaming(true);
 
+    // Log question for daily-count tracking (free users only)
+    if (session?.user?.id && !isSubscribed) {
+      supabase.from("uwazi_question_log").insert({
+        user_id: session.user.id,
+        question_text: msg.substring(0, 200),
+      }).then(() => fetchDailyCount());
+    }
+
     const likelySearching = willLikelySearch(msg);
     if (likelySearching) {
       setIsSearching(true);
@@ -447,7 +481,7 @@ export default function AskUwaziPage() {
       },
       onError: (err) => { toast.error(err); setIsStreaming(false); setIsSearching(false); },
     });
-  }, [input, isStreaming, messages, session, saveMessages, ctx.zipCode]);
+  }, [input, isStreaming, messages, session, saveMessages, ctx.zipCode, isSubscribed, fetchDailyCount]);
 
   // Auto-send when arriving with ?q= prefilled prompt (e.g. from candidate cards)
   const autoSentRef = useRef(false);
@@ -647,6 +681,17 @@ export default function AskUwaziPage() {
                     {stateName && <span className="text-[10px] text-primary/50">· {stateName}</span>}
                   </div>
                 )}
+
+                {/* Free question counter */}
+                {!isSubscribed && dailyCount > 0 && dailyCount < FREE_DAILY_LIMIT && (
+                  <motion.div
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-[11px] text-muted-foreground mt-2 ml-2"
+                  >
+                    <Zap className="w-3 h-3 text-primary" />
+                    {FREE_DAILY_LIMIT - dailyCount} free questions left today
+                  </motion.div>
+                )}
               </motion.div>
 
               {/* 2x2 Suggestion Cards — always 2 columns */}
@@ -805,6 +850,70 @@ export default function AskUwaziPage() {
             </div>
           </div>
         )}
+
+        {/* ─── Soft Paywall Banner ─── */}
+        <AnimatePresence>
+          {showBanner && !isSubscribed && (
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.96 }}
+              transition={{ type: "spring", stiffness: 300, damping: 28 }}
+              className="relative mx-4 mb-3 rounded-2xl border border-primary/30 overflow-hidden"
+              style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.1) 0%, hsl(var(--primary) / 0.04) 100%)" }}
+            >
+              <button
+                onClick={() => { setShowBanner(false); setBannerDismissed(true); }}
+                className="absolute top-3 right-3 w-6 h-6 rounded-full bg-foreground/10 hover:bg-foreground/20 flex items-center justify-center transition-colors z-10"
+                aria-label="Dismiss"
+              >
+                <X className="w-3.5 h-3.5 text-muted-foreground" />
+              </button>
+
+              <div className="p-4 pr-10 flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Zap className="w-4 h-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground mb-0.5">
+                    You're loving Ask Uwazi! 🎉
+                  </p>
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                    You've used your {FREE_DAILY_LIMIT} free questions today. Unlock unlimited access with Uwazi+ — plus Watch, advanced legislation tracking, and more.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => navigate("/app/settings/subscription")}
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs rounded-xl transition-colors"
+                    >
+                      <Star className="w-3 h-3" />
+                      Unlock Uwazi+
+                    </button>
+                    <button
+                      onClick={() => { setShowBanner(false); setBannerDismissed(true); }}
+                      className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Maybe later
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="px-4 pb-3">
+                <div className="flex justify-between text-[10px] text-muted-foreground/70 mb-1">
+                  <span>{dailyCount} of {FREE_DAILY_LIMIT} free questions used today</span>
+                  <span>Resets at midnight</span>
+                </div>
+                <div className="h-1 bg-foreground/[0.07] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min((dailyCount / FREE_DAILY_LIMIT) * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ─── Input Area ─── */}
         <div className="shrink-0 px-3 sm:px-6 py-3 md:py-4 border-t border-primary/10 bg-background/95 backdrop-blur-xl mb-16 md:mb-0"
