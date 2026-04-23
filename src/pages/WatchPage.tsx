@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Lock, Volume2, VolumeX, Share2, Info, X, Plus, Check, Heart } from "lucide-react";
+import { Lock, Volume2, VolumeX, Share2, Info, X, Plus, Check, Heart, Play } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
