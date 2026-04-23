@@ -59,7 +59,7 @@ serve(async (req) => {
   } catch (e) {
     console.error('[bill-detail]', e);
     return new Response(
-      JSON.stringify({ ok: false, error: e instanceof Error ? e.message : 'Unknown error' }),
+      JSON.stringify({ ok: false, error: 'Unable to fetch bill details' }),
       { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } }
     );
   }
