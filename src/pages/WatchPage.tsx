@@ -171,6 +171,85 @@ interface VideoCardProps {
   onUpgrade: () => void;
 }
 
+function LikeButton({ episodeId }: { episodeId: string }) {
+  const [liked, setLiked] = useState(false);
+  const [count, setCount] = useState(0);
+  const [burst, setBurst] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (cancelled) return;
+      setUserId(user?.id ?? null);
+
+      const { count: total } = await supabase
+        .from("episode_likes")
+        .select("*", { count: "exact", head: true })
+        .eq("episode_id", episodeId);
+      if (!cancelled) setCount(total ?? 0);
+
+      if (user) {
+        const { data } = await supabase
+          .from("episode_likes")
+          .select("id")
+          .eq("episode_id", episodeId)
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (!cancelled) setLiked(!!data);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [episodeId]);
+
+  const toggle = async () => {
+    if (!userId) {
+      toast.error("Sign in to like videos");
+      return;
+    }
+    if (liked) {
+      setLiked(false);
+      setCount((c) => Math.max(0, c - 1));
+      const { error } = await supabase
+        .from("episode_likes")
+        .delete()
+        .eq("episode_id", episodeId)
+        .eq("user_id", userId);
+      if (error) {
+        setLiked(true);
+        setCount((c) => c + 1);
+        toast.error("Couldn't unlike");
+      }
+    } else {
+      setLiked(true);
+      setCount((c) => c + 1);
+      setBurst(true);
+      setTimeout(() => setBurst(false), 500);
+      const { error } = await supabase
+        .from("episode_likes")
+        .insert({ episode_id: episodeId, user_id: userId });
+      if (error && error.code !== "23505") {
+        setLiked(false);
+        setCount((c) => Math.max(0, c - 1));
+        toast.error("Couldn't like");
+      }
+    }
+  };
+
+  return (
+    <button onClick={toggle} className="flex flex-col items-center gap-1" aria-label={liked ? "Unlike" : "Like"}>
+      <span className="relative p-2 rounded-full bg-black/40 text-white">
+        <Heart
+          size={20}
+          className={`transition-all duration-200 ${liked ? "fill-red-500 text-red-500 scale-110" : "text-white"} ${burst ? "scale-125" : ""}`}
+        />
+      </span>
+      <span className="text-white text-[11px] font-semibold drop-shadow">{count}</span>
+    </button>
+  );
+}
+
 function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, toggleInfo, locked, onPaywall, onUpgrade }: VideoCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
