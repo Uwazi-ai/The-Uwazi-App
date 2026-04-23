@@ -28,6 +28,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { US_STATES, getStateFromZip } from "@/utils/stateFromZip";
+import { resolveAvatarUrl } from "@/lib/avatar";
 
 interface ProfileData {
   display_name: string | null;
