@@ -166,11 +166,7 @@ const SearchingIndicator = ({ query }: { query?: string }) => (
     initial={{ opacity: 0, y: 8 }}
     animate={{ opacity: 1, y: 0 }}
     exit={{ opacity: 0, y: -4 }}
-    className="flex items-center gap-2.5 py-2.5 px-4 rounded-xl max-w-fit my-2"
-    style={{
-      background: "rgba(155, 211, 75, 0.06)",
-      border: "1px solid rgba(155, 211, 75, 0.2)",
-    }}
+    className="flex items-center gap-2.5 py-2.5 px-4 rounded-xl max-w-fit my-2 bg-primary/[0.06] border border-primary/20"
   >
     <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>
       <Globe className="w-4 h-4 text-primary" />
@@ -192,7 +188,7 @@ const SearchingIndicator = ({ query }: { query?: string }) => (
 const SourcesPanel = ({ sources }: { sources: Source[] }) => {
   if (!sources?.length) return null;
   return (
-    <div className="mt-3 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+    <div className="mt-3 pt-3 border-t border-border">
       <div className="flex items-center gap-1.5 mb-2">
         <Globe className="w-3 h-3 text-muted-foreground" />
         <span className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Sources</span>
@@ -200,13 +196,8 @@ const SourcesPanel = ({ sources }: { sources: Source[] }) => {
       <div className="flex flex-wrap gap-1.5">
         {sources.map((source, i) => (
           <a key={i} href={source.url} target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[12px] text-primary no-underline transition-all duration-150 max-w-[200px]"
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.1)",
-            }}>
-            <span className="flex-shrink-0 h-[18px] w-[18px] rounded-full flex items-center justify-center text-[10px] font-semibold"
-              style={{ background: "rgba(155,211,75,0.15)", color: "#9bd34b" }}>
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[12px] text-primary no-underline transition-all duration-150 max-w-[200px] bg-foreground/[0.04] border border-border hover:bg-foreground/[0.08]">
+            <span className="flex-shrink-0 h-[18px] w-[18px] rounded-full flex items-center justify-center text-[10px] font-semibold bg-primary/15 text-primary">
               {i + 1}
             </span>
             <span className="truncate">{source.title.length > 35 ? source.title.slice(0, 35) + '...' : source.title}</span>
@@ -223,11 +214,7 @@ const NonpartisanNotice = ({ message }: { message: Message }) => {
   const lower = message.content.toLowerCase();
   if (!lower.includes('candidate') && !lower.includes('running for') && !lower.includes('campaign')) return null;
   return (
-    <div className="flex items-start gap-2 px-3.5 py-2.5 rounded-lg mt-3"
-      style={{
-        background: "rgba(255, 200, 0, 0.05)",
-        border: "1px solid rgba(255, 200, 0, 0.15)",
-      }}>
+    <div className="flex items-start gap-2 px-3.5 py-2.5 rounded-lg mt-3 bg-muted/40 border border-border">
       <AlertCircle className="w-3 h-3 text-muted-foreground mt-0.5 flex-shrink-0" />
       <span className="text-[11px] text-muted-foreground leading-relaxed">
         UWAZI provides factual candidate information from public sources. We do not endorse any candidate or party.
@@ -301,7 +288,7 @@ function HistoryList({
         )}
       </ScrollArea>
 
-      <div className="px-3 py-3 space-y-2" style={{ borderTop: "1px solid rgba(155, 211, 75, 0.1)" }}>
+      <div className="px-3 py-3 space-y-2 border-t border-primary/10">
         {ctx.zipCode && (
           <div className="flex items-center gap-2 px-2">
             <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
@@ -538,9 +525,9 @@ export default function AskUwaziPage() {
       {/* Gradient mesh background */}
       <div className="fixed inset-0 pointer-events-none z-0" style={{
         background: `
-          radial-gradient(ellipse at 15% 30%, rgba(155,211,75,0.06) 0%, transparent 50%),
-          radial-gradient(ellipse at 85% 70%, rgba(155,211,75,0.04) 0%, transparent 50%),
-          radial-gradient(ellipse at 50% 50%, rgba(155,211,75,0.02) 0%, transparent 60%)`,
+          radial-gradient(ellipse at 15% 30%, hsl(var(--primary) / 0.06) 0%, transparent 50%),
+          radial-gradient(ellipse at 85% 70%, hsl(var(--primary) / 0.04) 0%, transparent 50%),
+          radial-gradient(ellipse at 50% 50%, hsl(var(--primary) / 0.02) 0%, transparent 60%)`,
       }} />
 
       {/* ═══ DESKTOP SIDEBAR — only on md+ ═══ */}
@@ -549,15 +536,8 @@ export default function AskUwaziPage() {
           <motion.aside
             initial={{ x: -260, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -260, opacity: 0 }}
             transition={{ type: "spring", damping: 28, stiffness: 320 }}
-            className="hidden md:flex relative z-40 w-[260px] h-full flex-col shrink-0"
-            style={{
-              background: "rgba(10, 10, 10, 0.8)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              borderRight: "1px solid rgba(155, 211, 75, 0.1)",
-            }}>
-            <div className="flex items-center justify-between px-4 py-4"
-              style={{ borderBottom: "1px solid rgba(155, 211, 75, 0.1)" }}>
+            className="hidden md:flex relative z-40 w-[260px] h-full flex-col shrink-0 bg-card/80 backdrop-blur-xl border-r border-primary/10">
+            <div className="flex items-center justify-between px-4 py-4 border-b border-primary/10">
               <div className="flex items-center gap-2">
                 <img src={uwaziLogo} alt="UWAZI" className="h-4 w-4" />
                 <h2 className="text-sm font-heading tracking-wide text-foreground">HISTORY</h2>
@@ -575,11 +555,7 @@ export default function AskUwaziPage() {
       {/* ═══ MOBILE BOTTOM SHEET — only on mobile ═══ */}
       {isMobile && (
         <Drawer open={historyOpen} onOpenChange={setHistoryOpen}>
-          <DrawerContent className="max-h-[85dvh]" style={{
-            background: "rgba(10, 10, 10, 0.95)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-          }}>
+          <DrawerContent className="max-h-[85dvh] bg-card/95 backdrop-blur-xl">
             <DrawerHeader className="pb-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -600,21 +576,10 @@ export default function AskUwaziPage() {
       )}
 
       {/* ═══ MAIN CHAT PANEL ═══ */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10"
-        style={{
-          background: "rgba(13, 13, 13, 0.6)",
-          backdropFilter: "blur(40px)",
-          WebkitBackdropFilter: "blur(40px)",
-        }}>
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10 bg-background/60 backdrop-blur-2xl">
 
         {/* ─── Top Bar ─── */}
-        <div className="flex items-center justify-between px-3 md:px-5 py-2.5 shrink-0 z-10 topbar-safe"
-          style={{
-            borderBottom: "1px solid rgba(155, 211, 75, 0.08)",
-            background: "rgba(13,13,13,0.95)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-          }}>
+        <div className="flex items-center justify-between px-3 md:px-5 py-2.5 shrink-0 z-10 topbar-safe border-b border-primary/10 bg-background/90 backdrop-blur-xl">
           {/* Left: Back + History */}
           <div className="flex items-center gap-1">
             <button onClick={() => navigate(-1)}
@@ -684,19 +649,7 @@ export default function AskUwaziPage() {
                       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4 + i * 0.08 }}
                       onClick={() => handleSend(card.prompt)}
-                      className="text-left p-3 rounded-xl cursor-pointer transition-all duration-200 group min-h-[72px] flex flex-col justify-between"
-                      style={{
-                        background: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(155,211,75,0.15)",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "rgba(155,211,75,0.08)";
-                        e.currentTarget.style.borderColor = "rgba(155,211,75,0.4)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-                        e.currentTarget.style.borderColor = "rgba(155,211,75,0.15)";
-                      }}
+                      className="text-left p-3 rounded-xl cursor-pointer transition-all duration-200 group min-h-[72px] flex flex-col justify-between bg-card/60 border border-primary/15 hover:bg-primary/[0.08] hover:border-primary/40"
                     >
                       <card.icon className="h-5 w-5 text-primary mb-1.5" strokeWidth={1.8} />
                       <div>
@@ -718,12 +671,7 @@ export default function AskUwaziPage() {
                 <div className="grid grid-cols-2 gap-2">
                   {webSearchSuggestions.map((s, i) => (
                     <button key={i} onClick={() => handleSend(s)}
-                      className="text-left text-[10px] sm:text-[11px] px-2.5 py-2 rounded-lg transition-all duration-200 leading-tight"
-                      style={{
-                        background: "rgba(255,255,255,0.03)",
-                        border: "1px solid rgba(100,180,255,0.15)",
-                        color: "#9bd34b",
-                      }}>
+                      className="text-left text-[10px] sm:text-[11px] px-2.5 py-2 rounded-lg transition-all duration-200 leading-tight bg-card/50 border border-primary/15 text-primary hover:bg-primary/[0.08]">
                       <Globe className="w-3 h-3 inline mr-1 opacity-60 shrink-0" />
                       {s}
                     </button>
@@ -748,26 +696,18 @@ export default function AskUwaziPage() {
                     )}
                     {msg.role === "user" ? (
                       <div className="max-w-[85%] sm:max-w-[80%] ml-auto">
-                        <div className="px-3.5 py-2.5 sm:px-4 sm:py-3 text-sm leading-relaxed"
+                        <div className="px-3.5 py-2.5 sm:px-4 sm:py-3 text-sm leading-relaxed bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/30 text-foreground"
                           style={{
-                            background: "linear-gradient(135deg, rgba(155,211,75,0.2), rgba(155,211,75,0.1))",
-                            border: "1px solid rgba(155,211,75,0.3)",
                             borderRadius: "18px 18px 4px 18px",
-                            color: "#F0F6FC",
                           }}>
                           {msg.content}
                         </div>
                       </div>
                     ) : (
                       <div className="max-w-[90%] sm:max-w-[85%] space-y-2 min-w-0">
-                        <div className="p-3 sm:p-4 md:px-5 md:py-4"
+                        <div className="p-3 sm:p-4 md:px-5 md:py-4 bg-card/60 backdrop-blur border border-border text-foreground"
                           style={{
-                            background: "rgba(255,255,255,0.05)",
-                            backdropFilter: "blur(10px)",
-                            WebkitBackdropFilter: "blur(10px)",
-                            border: "1px solid rgba(255,255,255,0.08)",
                             borderRadius: "4px 18px 18px 18px",
-                            color: "#F0F6FC",
                           }}>
                           <div className="flex items-center gap-2 mb-2">
                             <img src={uwaziLogo} alt="UWAZI" className="h-3 w-3" />
@@ -778,7 +718,7 @@ export default function AskUwaziPage() {
                               </span>
                             )}
                           </div>
-                          <div className="prose prose-sm prose-invert max-w-none break-words [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_strong]:text-primary/90 [&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm [&_h1]:font-heading [&_h2]:font-heading [&_h3]:font-heading [&_ul]:space-y-1.5 [&_ol]:space-y-1.5 [&_li]:text-sm [&_p]:text-sm [&_p]:leading-relaxed [&_blockquote]:border-l-2 [&_blockquote]:border-primary/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs">
+                          <div className="prose prose-sm dark:prose-invert max-w-none break-words [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_strong]:text-primary/90 [&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm [&_h1]:font-heading [&_h2]:font-heading [&_h3]:font-heading [&_ul]:space-y-1.5 [&_ol]:space-y-1.5 [&_li]:text-sm [&_p]:text-sm [&_p]:leading-relaxed [&_blockquote]:border-l-2 [&_blockquote]:border-primary/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs">
                             <ReactMarkdown>{msg.content}</ReactMarkdown>
                           </div>
                           {msg.id === "streaming" && (
@@ -821,12 +761,7 @@ export default function AskUwaziPage() {
                   <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
                     <img src={uwaziLogo} alt="UWAZI" className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                   </div>
-                  <div className="p-3 sm:p-4 rounded-[4px_18px_18px_18px]"
-                    style={{
-                      background: "rgba(255,255,255,0.05)",
-                      backdropFilter: "blur(10px)",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                    }}>
+                  <div className="p-3 sm:p-4 rounded-[4px_18px_18px_18px] bg-card/60 backdrop-blur border border-border">
                     <div className="flex items-center gap-2">
                       <div className="flex gap-1">
                         <span className="dot h-2 w-2 rounded-full bg-primary" />
@@ -858,13 +793,9 @@ export default function AskUwaziPage() {
         )}
 
         {/* ─── Input Area ─── */}
-        <div className="shrink-0 px-3 sm:px-6 py-3 md:py-4"
+        <div className="shrink-0 px-3 sm:px-6 py-3 md:py-4 border-t border-primary/10 bg-background/95 backdrop-blur-xl"
           style={{
             paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
-            borderTop: "1px solid rgba(155,211,75,0.1)",
-            background: "rgba(13,13,13,0.95)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
           }}>
           <div className="max-w-3xl mx-auto">
             <div className="uwazi-input-container">
@@ -878,12 +809,12 @@ export default function AskUwaziPage() {
                   disabled={isStreaming} />
                 <motion.button type="submit" disabled={!input.trim() || isStreaming}
                   whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
-                  className="h-9 w-9 sm:h-10 sm:w-10 rounded-full shrink-0 flex items-center justify-center transition-all disabled:opacity-40"
-                  style={{
-                    background: (!input.trim() || isStreaming) ? "rgba(255,255,255,0.1)" : "#9bd34b",
-                    boxShadow: (!input.trim() || isStreaming) ? "none" : "0 0 12px rgba(155,211,75,0.3)",
-                  }}>
-                  <Send className="h-4 w-4" style={{ color: (!input.trim() || isStreaming) ? "rgba(255,255,255,0.3)" : "#0A0A0A" }} />
+                  className={`h-9 w-9 sm:h-10 sm:w-10 rounded-full shrink-0 flex items-center justify-center transition-all disabled:opacity-40 ${
+                    (!input.trim() || isStreaming)
+                      ? "bg-muted text-muted-foreground"
+                      : "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.3)]"
+                  }`}>
+                  <Send className="h-4 w-4" />
                 </motion.button>
               </form>
             </div>
