@@ -292,7 +292,7 @@ function HistoryList({
         )}
       </ScrollArea>
 
-      <div className="px-3 py-3 space-y-2" style={{ borderTop: "1px solid rgba(155, 211, 75, 0.1)" }}>
+      <div className="px-3 py-3 space-y-2 border-t border-primary/10">
         {ctx.zipCode && (
           <div className="flex items-center gap-2 px-2">
             <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
@@ -529,9 +529,9 @@ export default function AskUwaziPage() {
       {/* Gradient mesh background */}
       <div className="fixed inset-0 pointer-events-none z-0" style={{
         background: `
-          radial-gradient(ellipse at 15% 30%, rgba(155,211,75,0.06) 0%, transparent 50%),
-          radial-gradient(ellipse at 85% 70%, rgba(155,211,75,0.04) 0%, transparent 50%),
-          radial-gradient(ellipse at 50% 50%, rgba(155,211,75,0.02) 0%, transparent 60%)`,
+          radial-gradient(ellipse at 15% 30%, hsl(var(--primary) / 0.06) 0%, transparent 50%),
+          radial-gradient(ellipse at 85% 70%, hsl(var(--primary) / 0.04) 0%, transparent 50%),
+          radial-gradient(ellipse at 50% 50%, hsl(var(--primary) / 0.02) 0%, transparent 60%)`,
       }} />
 
       {/* ═══ DESKTOP SIDEBAR — only on md+ ═══ */}
@@ -540,15 +540,8 @@ export default function AskUwaziPage() {
           <motion.aside
             initial={{ x: -260, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -260, opacity: 0 }}
             transition={{ type: "spring", damping: 28, stiffness: 320 }}
-            className="hidden md:flex relative z-40 w-[260px] h-full flex-col shrink-0"
-            style={{
-              background: "rgba(10, 10, 10, 0.8)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              borderRight: "1px solid rgba(155, 211, 75, 0.1)",
-            }}>
-            <div className="flex items-center justify-between px-4 py-4"
-              style={{ borderBottom: "1px solid rgba(155, 211, 75, 0.1)" }}>
+            className="hidden md:flex relative z-40 w-[260px] h-full flex-col shrink-0 bg-card/80 backdrop-blur-xl border-r border-primary/10">
+            <div className="flex items-center justify-between px-4 py-4 border-b border-primary/10">
               <div className="flex items-center gap-2">
                 <img src={uwaziLogo} alt="UWAZI" className="h-4 w-4" />
                 <h2 className="text-sm font-heading tracking-wide text-foreground">HISTORY</h2>
@@ -566,11 +559,7 @@ export default function AskUwaziPage() {
       {/* ═══ MOBILE BOTTOM SHEET — only on mobile ═══ */}
       {isMobile && (
         <Drawer open={historyOpen} onOpenChange={setHistoryOpen}>
-          <DrawerContent className="max-h-[85dvh]" style={{
-            background: "rgba(10, 10, 10, 0.95)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-          }}>
+          <DrawerContent className="max-h-[85dvh] bg-card/95 backdrop-blur-xl">
             <DrawerHeader className="pb-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -591,21 +580,10 @@ export default function AskUwaziPage() {
       )}
 
       {/* ═══ MAIN CHAT PANEL ═══ */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10"
-        style={{
-          background: "rgba(13, 13, 13, 0.6)",
-          backdropFilter: "blur(40px)",
-          WebkitBackdropFilter: "blur(40px)",
-        }}>
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10 bg-background/60 backdrop-blur-2xl">
 
         {/* ─── Top Bar ─── */}
-        <div className="flex items-center justify-between px-3 md:px-5 py-2.5 shrink-0 z-10 topbar-safe"
-          style={{
-            borderBottom: "1px solid rgba(155, 211, 75, 0.08)",
-            background: "rgba(13,13,13,0.95)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-          }}>
+        <div className="flex items-center justify-between px-3 md:px-5 py-2.5 shrink-0 z-10 topbar-safe border-b border-primary/10 bg-background/90 backdrop-blur-xl">
           {/* Left: Back + History */}
           <div className="flex items-center gap-1">
             <button onClick={() => navigate(-1)}
