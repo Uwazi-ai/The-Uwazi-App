@@ -36,7 +36,7 @@ export default function HomePage() {
   const { user } = useAuth();
   const { civicScore } = useGamification();
   const { zipCode } = useCivicLocation();
-  const { isSubscribed } = useSubscription();
+  const { isPremium: isSubscribed } = useSubscription();
   const reduceMotion = useReducedMotion();
 
   const [tourOpen, setTourOpen] = useState(false);
@@ -74,8 +74,8 @@ export default function HomePage() {
   const featured = episodes[0];
   const score = civicScore?.civic_literacy_score ?? 0;
 
-  const noMotion = (val: object) => (reduceMotion ? {} : val);
-  const noTransition = (val: object) => (reduceMotion ? { duration: 0 } : val);
+  const noMotion = <T,>(val: T): T | Record<string, never> => (reduceMotion ? {} : val);
+  const noTransition = <T,>(val: T): T | { duration: 0 } => (reduceMotion ? { duration: 0 } : val);
 
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-10 py-6 md:py-8 pb-24 md:pb-8 space-y-8">
