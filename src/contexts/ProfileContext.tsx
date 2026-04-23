@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { resolveAvatarUrl } from "@/lib/avatar";
 
 export type AppRole = "super_admin" | "program_admin" | "user";
 
@@ -59,7 +60,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     const userRoles: AppRole[] = (roleRows as any[] | null)?.map(r => r.role) ?? [];
     if (data) {
       setDisplayName(data.display_name || user.email?.split("@")[0] || "User");
-      setAvatarUrl(data.avatar_url);
+      const signed = await resolveAvatarUrl(data.avatar_url);
+      setAvatarUrl(signed);
       setZipCode(data.zip_code);
       setFullAddress((data as any).full_address ?? null);
       setCity((data as any).city ?? null);
