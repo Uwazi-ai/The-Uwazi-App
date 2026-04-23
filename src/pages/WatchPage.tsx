@@ -301,12 +301,12 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
   }, [locked, onPaywall]);
 
   return (
-    <div ref={cardRef} className="relative w-full snap-start flex-shrink-0" style={{ height: "100dvh" }}>
+    <div ref={cardRef} className="relative w-full md:w-auto md:h-screen md:aspect-[9/16] snap-start flex-shrink-0" style={{ height: "100dvh" }}>
       {episode.video_url ? (
         <video
           ref={videoRef}
           src={episode.video_url}
-          className={`absolute inset-0 w-full h-full object-cover ${locked ? "blur-lg scale-105" : ""}`}
+          className={`absolute inset-0 w-full h-full object-cover md:object-contain ${locked ? "blur-lg scale-105" : ""}`}
           muted={muted}
           loop
           playsInline
