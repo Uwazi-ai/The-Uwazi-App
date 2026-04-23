@@ -7,6 +7,7 @@ import {
   FileText,
   TrendingUp,
   ArrowUpRight,
+  type LucideIcon,
 } from "lucide-react";
 
 interface Feature {
@@ -14,7 +15,7 @@ interface Feature {
   eyebrow: string;
   title: string;
   description: string;
-  icon: React.ComponentType<{ className?: string; size?: number }>;
+  icon: LucideIcon;
   accent: string; // gradient classes
   size?: "lg" | "md";
 }
