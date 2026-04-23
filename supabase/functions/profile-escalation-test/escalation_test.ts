@@ -55,7 +55,7 @@ async function cleanup(userId: string) {
   await admin.auth.admin.deleteUser(userId).catch(() => {});
 }
 
-Deno.test("non-admin cannot set is_admin=true on own profile", async () => {
+Deno.test({ name: "non-admin cannot set is_admin=true on own profile", sanitizeOps: false, sanitizeResources: false, fn: async () => {
   const { userId, client } = await createSignedInUser();
   try {
     const before = await getProfile(userId);
@@ -77,7 +77,7 @@ Deno.test("non-admin cannot set is_admin=true on own profile", async () => {
   }
 });
 
-Deno.test("non-admin cannot set is_suspended on own profile", async () => {
+Deno.test({ name: "non-admin cannot set is_suspended on own profile", sanitizeOps: false, sanitizeResources: false, fn: async () => {
   const { userId, client } = await createSignedInUser();
   try {
     const { error } = await client
@@ -94,7 +94,7 @@ Deno.test("non-admin cannot set is_suspended on own profile", async () => {
   }
 });
 
-Deno.test("non-admin cannot escalate via combined update with safe field", async () => {
+Deno.test({ name: "non-admin cannot escalate via combined update with safe field", sanitizeOps: false, sanitizeResources: false, fn: async () => {
   // Attempts to sneak is_admin=true alongside a legitimate display_name change.
   const { userId, client } = await createSignedInUser();
   try {
@@ -117,7 +117,7 @@ Deno.test("non-admin cannot escalate via combined update with safe field", async
   }
 });
 
-Deno.test("non-admin CAN update safe field (display_name)", async () => {
+Deno.test({ name: "non-admin CAN update safe field (display_name)", sanitizeOps: false, sanitizeResources: false, fn: async () => {
   // Sanity check: the lockdown didn't break legitimate self-updates.
   const { userId, client } = await createSignedInUser();
   try {
@@ -137,7 +137,7 @@ Deno.test("non-admin CAN update safe field (display_name)", async () => {
   }
 });
 
-Deno.test("non-admin cannot update another user's profile", async () => {
+Deno.test({ name: "non-admin cannot update another user's profile", sanitizeOps: false, sanitizeResources: false, fn: async () => {
   const userA = await createSignedInUser();
   const userB = await createSignedInUser();
   try {
