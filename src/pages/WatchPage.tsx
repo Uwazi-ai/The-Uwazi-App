@@ -255,6 +255,8 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
   const progressRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const [needsTap, setNeedsTap] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(true);
+  const [bufferPct, setBufferPct] = useState(0);
 
   const tryPlay = () => {
     const video = videoRef.current;
