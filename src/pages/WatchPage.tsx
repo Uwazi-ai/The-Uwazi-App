@@ -260,15 +260,19 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
     const video = videoRef.current;
     if (!el || !video) return;
     const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && !locked) {
-        video.play().catch(() => {});
+      if (entry.isIntersecting && !locked && episode.video_url) {
+        if (video.readyState < 2) video.load();
+        const p = video.play();
+        if (p && typeof p.catch === "function") {
+          p.catch((err) => console.warn("[WatchPage] play failed:", episode.title, err));
+        }
       } else {
         video.pause();
       }
     }, { threshold: 0.6 });
     obs.observe(el);
     return () => obs.disconnect();
-  }, [locked]);
+  }, [locked, episode.video_url, episode.title]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -298,15 +302,26 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
 
   return (
     <div ref={cardRef} className="relative w-full snap-start flex-shrink-0" style={{ height: "100dvh" }}>
-      <video
-        ref={videoRef}
-        src={episode.video_url || ""}
-        className={`absolute inset-0 w-full h-full object-cover ${locked ? "blur-lg scale-105" : ""}`}
-        muted={muted}
-        loop
-        playsInline
-        preload="metadata"
-      />
+      {episode.video_url ? (
+        <video
+          ref={videoRef}
+          src={episode.video_url}
+          className={`absolute inset-0 w-full h-full object-cover ${locked ? "blur-lg scale-105" : ""}`}
+          muted={muted}
+          loop
+          playsInline
+          autoPlay
+          preload="auto"
+          onError={(e) => console.error("[WatchPage] video error:", episode.title, e.currentTarget.error)}
+        />
+      ) : (
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-zinc-900 to-black flex items-center justify-center">
+          <div className="text-center px-6">
+            <div className="text-5xl mb-3">{episode.topic_emoji || "🎬"}</div>
+            <p className="text-white/60 text-sm">Video coming soon</p>
+          </div>
+        </div>
+      )}
 
       <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: "55%", background: "linear-gradient(transparent, rgba(0,0,0,0.85))" }} />
 
