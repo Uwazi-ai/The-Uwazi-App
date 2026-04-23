@@ -380,10 +380,20 @@ function RaceCard({
         >
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <div
-              className="h-8 w-8 shrink-0 rounded-full flex items-center justify-center text-xs font-bold text-white"
-              style={{ backgroundColor: partyColor(c.party) }}
+              className="h-10 w-10 shrink-0 rounded-full flex items-center justify-center text-xs font-bold text-white overflow-hidden ring-2"
+              style={{ backgroundColor: partyColor(c.party), boxShadow: `0 0 0 2px ${partyColor(c.party)}33` }}
             >
-              {c.name.split(" ").map((w) => w[0]).join("").slice(0, 2)}
+              {c.photo_url ? (
+                <img
+                  src={c.photo_url}
+                  alt={c.name}
+                  loading="lazy"
+                  className="h-full w-full object-cover"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                />
+              ) : (
+                c.name.split(" ").map((w) => w[0]).join("").slice(0, 2)
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-foreground truncate">{c.name}</p>
