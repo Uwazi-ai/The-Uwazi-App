@@ -9,7 +9,7 @@ export function RootRedirect() {
   return (
     <>
       <AnimatePresence>{loading && <LoadingScreen />}</AnimatePresence>
-      {!loading && (user ? <Navigate to="/app" replace /> : <Navigate to="/login" replace />)}
+      {!loading && (user ? <Navigate to="/app" replace /> : <Navigate to="/welcome" replace />)}
     </>
   );
 }
