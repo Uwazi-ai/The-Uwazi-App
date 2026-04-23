@@ -57,7 +57,7 @@ const TOPICS = [
   { value: "Workforce", emoji: "💼" },
   { value: "Public Health", emoji: "🏥" },
   { value: "Education", emoji: "📚" },
-  { value: "Other", emoji: "📌" },
+  { value: "Uwazi", emoji: "✨" },
 ];
 
 export default function AdminEpisodesPage() {
@@ -224,7 +224,7 @@ export default function AdminEpisodesPage() {
 
       {/* Tabs */}
       <div className="flex gap-2 flex-wrap">
-        {["All", "Public Safety", "Housing", "Elections", "Workforce", "Public Health", "Education", "Other"].map((tab) => (
+        {["All", "Public Safety", "Housing", "Elections", "Workforce", "Public Health", "Education", "Uwazi"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveFilter(tab)}
