@@ -1,77 +1,105 @@
-import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
-import { ArrowRight, MapPin, Flame, BookOpen, Target, Zap, Trophy, Calendar, FileText, Vote, Award, Play } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion, useReducedMotion } from "framer-motion";
+import {
+  Play,
+  ArrowRight,
+  BookOpen,
+  Target,
+  TrendingUp,
+  Vote,
+  Lock,
+  Sparkles,
+  MessageSquare,
+} from "lucide-react";
 import { useGamification } from "@/hooks/useGamification";
 import { useCivicLocation } from "@/hooks/useCivicLocation";
 import { useAuth } from "@/contexts/AuthContext";
-import AppTourModal from "@/components/home/AppTourModal";
-import LatestEpisodeCard from "@/components/home/LatestEpisodeCard";
+import { useSubscription } from "@/hooks/useSubscription";
+import { supabase } from "@/integrations/supabase/client";
+import FeatureTour from "@/components/home/FeatureTour";
 
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.06, delayChildren: 0.1 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 16 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { type: "spring", stiffness: 400, damping: 30 },
-  },
-};
-
-function useCountUp(target: number, duration = 800) {
-  const [value, setValue] = useState(0);
-  const ref = useRef(false);
-  useEffect(() => {
-    if (ref.current) return;
-    ref.current = true;
-    const start = performance.now();
-    const animate = (now: number) => {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setValue(Math.round(target * eased));
-      if (progress < 1) requestAnimationFrame(animate);
-    };
-    requestAnimationFrame(animate);
-  }, [target, duration]);
-  return value;
+interface Episode {
+  id: string;
+  title: string;
+  description: string | null;
+  topic: string;
+  topic_emoji: string | null;
+  date: string | null;
+  video_url: string | null;
+  is_free: boolean;
+  sort_order: number;
 }
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
-  const { civicScore, streak, earnedBadges, loading: gamLoading } = useGamification();
+  const { civicScore } = useGamification();
   const { zipCode } = useCivicLocation();
-  const [tourOpen, setTourOpen] = useState(false);
+  const { isSubscribed } = useSubscription();
+  const reduceMotion = useReducedMotion();
 
-  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Citizen";
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? "GOOD MORNING" : hour < 18 ? "GOOD AFTERNOON" : "GOOD EVENING";
+  const [tourOpen, setTourOpen] = useState(false);
+  const [episodes, setEpisodes] = useState<Episode[]>([]);
+  const [lessonCount, setLessonCount] = useState<number>(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const [epRes, lessonRes] = await Promise.all([
+        supabase
+          .from("episodes")
+          .select("id, title, description, topic, topic_emoji, date, video_url, is_free, sort_order")
+          .eq("is_published", true)
+          .order("sort_order", { ascending: true }),
+        supabase
+          .from("lessons")
+          .select("id", { count: "exact", head: true })
+          .eq("is_published", true),
+      ]);
+      if (cancelled) return;
+      setEpisodes((epRes.data as Episode[]) ?? []);
+      setLessonCount(lessonRes.count ?? 0);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const displayName =
+    user?.user_metadata?.full_name?.split(" ")[0] ||
+    user?.email?.split("@")[0] ||
+    "Citizen";
+
+  const featured = episodes[0];
+  const score = civicScore?.civic_literacy_score ?? 0;
+
+  const noMotion = (val: object) => (reduceMotion ? {} : val);
+  const noTransition = (val: object) => (reduceMotion ? { duration: 0 } : val);
 
   return (
-    <motion.div variants={containerVariants} initial="hidden" animate="show" className="max-w-6xl mx-auto px-4 md:px-10 py-6 md:py-8 pb-24 md:pb-8 space-y-5 md:space-y-6">
-      <AppTourModal open={tourOpen} onClose={() => setTourOpen(false)} />
+    <div className="max-w-6xl mx-auto px-4 md:px-10 py-6 md:py-8 pb-24 md:pb-8 space-y-8">
+      <FeatureTour open={tourOpen} onClose={() => setTourOpen(false)} />
 
-      {/* Hero */}
-      <motion.div variants={itemVariants} className="pt-2 md:pt-4">
-        <p className="eyebrow mb-2">YOUR CIVIC DASHBOARD</p>
+      {/* SECTION 1 — Hero */}
+      <motion.div
+        initial={noMotion({ opacity: 0, y: 12 })}
+        animate={noMotion({ opacity: 1, y: 0 })}
+        transition={noTransition({ duration: 0.5, ease: "easeOut" })}
+      >
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary mb-2">
+          Your Civic Dashboard
+        </p>
         <h1 className="font-heading text-3xl sm:text-4xl md:text-[52px] text-foreground leading-[1.05]">
-          {greeting}, {displayName.toUpperCase()}.
+          Welcome back, <span className="text-primary">{displayName}</span>.
         </h1>
-        <div className="flex flex-wrap items-center gap-3 mt-2">
+        <div className="flex flex-wrap items-center gap-3 mt-3">
           <p className="text-[15px] text-muted-foreground">Build your Civic Freedom</p>
           <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
+            whileHover={noMotion({ scale: 1.04 })}
+            whileTap={noMotion({ scale: 0.96 })}
             onClick={() => setTourOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-foreground/[0.03] border border-border text-muted-foreground hover:border-primary/40 hover:text-primary text-xs font-semibold transition-all duration-200"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-foreground/[0.04] border border-border text-muted-foreground hover:border-primary/40 hover:text-primary text-xs font-semibold transition-all duration-200"
           >
             <Play className="w-3 h-3" />
             Explore the App
@@ -79,148 +107,375 @@ export default function HomePage() {
         </div>
       </motion.div>
 
-      {/* Stats Grid - Row 1 */}
-      <motion.div variants={containerVariants} className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <motion.div variants={itemVariants}>
-          <StatCard label="Civic Score" value={civicScore?.civic_literacy_score ?? 0} accent animate />
-        </motion.div>
-        <motion.div variants={itemVariants}>
-          <StatCard label="Current Streak" value={streak?.current_streak ?? 0} sub={`+${streak?.current_streak ?? 0} days`} icon={<Flame className="h-4 w-4 text-orange-400" />} animate />
-        </motion.div>
-        <motion.div variants={itemVariants}>
-          <StatCard label="Lessons Completed" value={civicScore?.lessons_completed ?? 0} animate />
-        </motion.div>
-        <motion.div variants={itemVariants}>
-          <StatCard label="Total XP Earned" value={civicScore?.total_xp ?? 0} animate />
-        </motion.div>
-      </motion.div>
+      {/* SECTION 2 — Featured Episode Hero */}
+      {featured && (
+        <motion.div
+          initial={noMotion({ opacity: 0, y: 30 })}
+          animate={noMotion({ opacity: 1, y: 0 })}
+          transition={noTransition({ delay: 0.15, duration: 0.5 })}
+          onClick={() => navigate("/app/watch")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              navigate("/app/watch");
+            }
+          }}
+          className="rounded-2xl overflow-hidden border border-border bg-card cursor-pointer group"
+        >
+          {/* Top visual area */}
+          <div className="h-56 relative bg-gradient-to-br from-primary/20 to-background overflow-hidden">
+            {featured.video_url && (
+              <video
+                src={featured.video_url}
+                className="absolute inset-0 w-full h-full object-cover opacity-80"
+                muted
+                playsInline
+                preload="metadata"
+              />
+            )}
 
-      {/* Stats Grid - Row 2 */}
-      <motion.div variants={containerVariants} className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <motion.div variants={itemVariants}>
-          <StatCard label="Local Elections" value={zipCode ? 3 : 0} sub={zipCode ? `ZIP ${zipCode}` : "Set ZIP"} />
-        </motion.div>
-        <motion.div variants={itemVariants}>
-          <StatCard label="Bills Tracked" value={0} />
-        </motion.div>
-        <motion.div variants={itemVariants}>
-          <StatCard label="Voting Plan" value="Set up" link="/vote" />
-        </motion.div>
-        <motion.div variants={itemVariants}>
-          <StatCard label="Badges Earned" value={earnedBadges.length} icon={<Award className="h-4 w-4 text-primary" />} animate />
-        </motion.div>
-      </motion.div>
+            {/* Animated grid overlay */}
+            <div
+              className="absolute inset-0 opacity-30 pointer-events-none"
+              style={{
+                backgroundImage:
+                  "linear-gradient(hsl(var(--primary) / 0.15) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.15) 1px, transparent 1px)",
+                backgroundSize: "40px 40px",
+                animation: reduceMotion ? "none" : "gridScroll 8s linear infinite",
+              }}
+            />
 
-      {/* Latest episode card */}
-      <motion.div variants={itemVariants}>
-        <LatestEpisodeCard />
-      </motion.div>
+            {/* Bottom scrim */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 
-      {/* Two columns */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Civic Loop */}
-        <motion.div variants={itemVariants}
-          className="rounded-2xl p-5 md:p-7 card-highlight hover-lift"
-          style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
-          <h2 className="font-heading text-xl md:text-2xl text-foreground mb-5">YOUR CIVIC LOOP</h2>
-          <div className="space-y-0">
-            {[
-              { num: "01", label: "LEARN", sub: `${civicScore?.lessons_completed ?? 0} lessons available`, icon: BookOpen },
-              { num: "02", label: "PRACTICE", sub: "Daily challenge ready", icon: Target },
-              { num: "03", label: "PROGRESS", sub: `Score: ${civicScore?.civic_literacy_score ?? 0}/100`, icon: Zap },
-              { num: "04", label: "ACT", sub: "Election in 210 days", icon: Calendar },
-            ].map((item, idx) => (
-              <div key={item.num}
-                className="flex items-center gap-[14px] py-[14px] transition-all duration-150 hover:translate-x-1"
-                style={{ borderBottom: idx < 3 ? "1px solid var(--border-subtle)" : "none" }}>
-                <div className="w-8 h-8 rounded-lg bg-primary/[0.12] border border-primary/20 flex items-center justify-center text-[12px] font-bold text-primary shrink-0">
-                  {item.num}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-bold text-foreground">{item.label}</p>
-                  <p className="text-xs text-muted-foreground">{item.sub}</p>
-                </div>
-              </div>
-            ))}
+            {/* Top-left badges */}
+            <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
+              <span className="px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider">
+                {featured.topic_emoji} {featured.topic}
+              </span>
+              <span className="px-2.5 py-1 rounded-full bg-foreground/10 backdrop-blur-sm text-muted-foreground text-[10px] font-semibold uppercase tracking-wider">
+                Featured
+              </span>
+            </div>
+
+            {/* Top-right counter */}
+            <div className="absolute top-4 right-4 z-10">
+              <span className="px-2.5 py-1 rounded-full bg-foreground/10 backdrop-blur-sm text-muted-foreground text-[10px] font-semibold">
+                1 / {episodes.length}
+              </span>
+            </div>
+
+            {/* Center pulsing play button */}
+            <motion.button
+              animate={noMotion({ scale: [1, 1.06, 1] })}
+              transition={noTransition({
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              })}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate("/app/watch");
+              }}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-[0_0_40px_hsl(var(--primary)/0.5)] hover:scale-110 transition-transform z-10"
+              aria-label="Play featured episode"
+            >
+              <Play size={26} className="ml-1 fill-current" />
+            </motion.button>
+          </div>
+
+          {/* Bottom info bar */}
+          <div className="bg-background/60 backdrop-blur-sm p-5 flex items-center justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <h3 className="font-heading text-[20px] text-foreground leading-tight truncate">
+                {featured.title}
+              </h3>
+              {featured.description && (
+                <p className="text-muted-foreground text-xs line-clamp-2 mt-1">
+                  {featured.description}
+                </p>
+              )}
+              {featured.date && (
+                <p className="text-muted-foreground/60 text-[11px] mt-1">
+                  {featured.date}
+                </p>
+              )}
+            </div>
+            <div className="shrink-0 inline-flex items-center gap-1.5 text-primary text-xs font-bold whitespace-nowrap">
+              <Play size={12} className="fill-current" />
+              Watch Now
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
         </motion.div>
+      )}
 
-        {/* Civic Location */}
-        <motion.div variants={itemVariants}
-          className="rounded-2xl p-5 md:p-7 card-highlight hover-lift"
-          style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
-          <h2 className="font-heading text-xl md:text-2xl text-foreground mb-5">YOUR CIVIC LOCATION</h2>
-          {zipCode ? (
-            <>
-              <div className="flex items-center gap-2 mb-4">
-                <MapPin className="h-5 w-5 text-primary" />
-                <span className="text-2xl md:text-3xl font-heading text-primary">{zipCode}</span>
-              </div>
-              <div className="rounded-card p-4 mb-4" style={{ background: "var(--input-bg)", border: "1px solid var(--border-subtle)" }}>
-                <p className="text-[11px] text-muted-foreground uppercase tracking-[0.06em] font-medium mb-1">Raia Score for {zipCode}</p>
-                <p className="text-lg font-bold text-foreground">Calculating...</p>
-              </div>
-              <Link to="/settings" className="text-sm text-primary hover:underline">Change Location →</Link>
-              <p className="text-xs text-muted-foreground mt-2">Showing civic data for {zipCode}</p>
-            </>
-          ) : (
-            <div className="text-center py-8">
-              <MapPin className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground mb-3">Set your ZIP to personalize your civic experience</p>
-              <Link to="/settings" className="text-sm font-semibold text-primary hover:underline">Set My Location →</Link>
-            </div>
-          )}
-        </motion.div>
-      </div>
-
-      {/* Ask UWAZI Banner */}
-      <motion.div variants={itemVariants}>
-        <Link to="/ask"
-          className="block rounded-2xl p-5 md:p-7 card-highlight hover-lift transition-all"
-          style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      {/* SECTION 3 — Episode Strip */}
+      {episodes.length > 0 && (
+        <section>
+          <div className="flex items-end justify-between mb-4">
             <div>
-              <h3 className="font-heading text-xl md:text-2xl text-foreground">ASK UWAZI</h3>
-              <p className="text-sm text-muted-foreground mt-1">Have a civic question? Get non-partisan, AI-powered answers.</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary mb-1">
+                Watch & Learn
+              </p>
+              <h2 className="font-heading text-[22px] text-foreground">
+                Featured Episodes
+              </h2>
             </div>
-            <div className="shrink-0">
-              <div className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold flex items-center gap-2 transition-all hover:scale-[1.02]">
-                Ask Now <ArrowRight className="h-4 w-4" />
-              </div>
-            </div>
+            <Link
+              to="/app/watch"
+              className="text-xs font-semibold text-muted-foreground hover:text-primary transition-colors"
+            >
+              View all →
+            </Link>
           </div>
-        </Link>
+
+          <div className="flex gap-3.5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory -mx-4 px-4 md:mx-0 md:px-0">
+            {episodes.map((ep, idx) => {
+              const requiresSub = !ep.is_free && !isSubscribed;
+              const isPlaying = idx === 0;
+              return (
+                <div
+                  key={ep.id}
+                  onClick={() => navigate("/app/watch")}
+                  className="w-40 flex-shrink-0 rounded-xl overflow-hidden border border-border bg-card cursor-pointer snap-start group hover:border-primary/40 transition-colors"
+                >
+                  <div className="h-[90px] relative bg-gradient-to-br from-primary/20 to-background overflow-hidden">
+                    {ep.video_url && (
+                      <video
+                        src={ep.video_url}
+                        className="absolute inset-0 w-full h-full object-cover opacity-70"
+                        muted
+                        playsInline
+                        preload="metadata"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+
+                    {isPlaying && (
+                      <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-primary text-primary-foreground text-[8px] font-bold uppercase tracking-wider flex items-center gap-1">
+                        <Play size={8} className="fill-current" />
+                        Playing
+                      </div>
+                    )}
+
+                    {requiresSub ? (
+                      <div className="absolute inset-0 bg-background/70 backdrop-blur-sm flex flex-col items-center justify-center">
+                        <Lock size={16} className="text-primary mb-1" />
+                        <span className="text-[9px] font-bold text-primary uppercase tracking-wider">
+                          Uwazi+
+                        </span>
+                      </div>
+                    ) : (
+                      !isPlaying && (
+                        <div className="absolute inset-0 bg-background/0 group-hover:bg-background/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                          <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                            <Play size={14} className="ml-0.5 fill-current" />
+                          </div>
+                        </div>
+                      )
+                    )}
+                  </div>
+
+                  <div className="p-2.5">
+                    <p className="text-primary text-[9px] font-bold uppercase tracking-wider mb-0.5 truncate">
+                      {ep.topic}
+                    </p>
+                    <p className="text-foreground text-[11px] font-semibold leading-tight line-clamp-2">
+                      {ep.title}
+                    </p>
+                    {ep.date && (
+                      <p className="text-muted-foreground/60 text-[10px] mt-1">
+                        {ep.date}
+                      </p>
+                    )}
+                  </div>
+
+                  {requiresSub && (
+                    <Link
+                      to="/upgrade"
+                      onClick={(e) => e.stopPropagation()}
+                      className="block px-2.5 py-1.5 bg-primary/10 border-t border-primary/20 text-primary text-[10px] font-bold text-center hover:bg-primary/20 transition-colors"
+                    >
+                      Unlock All Episodes →
+                    </Link>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* SECTION 4 — Civic Loop Cards */}
+      <section>
+        <div className="mb-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary mb-1">
+            Your Journey
+          </p>
+          <h2 className="font-heading text-[22px] text-foreground">
+            Your Civic Loop
+          </h2>
+        </div>
+
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.08 } },
+          }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5"
+        >
+          {/* Card 1 — LEARN */}
+          <motion.div
+            variants={{
+              hidden: noMotion({ opacity: 0, y: 20 }),
+              visible: noMotion({ opacity: 1, y: 0 }),
+            }}
+            whileHover={noMotion({ y: -4, transition: { duration: 0.2 } })}
+            onClick={() => navigate("/app/learn")}
+            className="bg-card backdrop-blur-xl border border-border rounded-2xl p-5 cursor-pointer flex flex-col gap-3"
+          >
+            <div className="bg-primary/10 rounded-xl w-10 h-10 flex items-center justify-center">
+              <BookOpen size={20} className="text-primary" />
+            </div>
+            <div>
+              <h3 className="font-heading text-[16px] text-foreground">01 LEARN</h3>
+              <p className="text-muted-foreground text-xs mt-1">
+                {lessonCount || 13} lessons available
+              </p>
+            </div>
+            <button className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-[11px] w-full py-2 rounded-lg mt-auto transition-colors">
+              Start Learning →
+            </button>
+          </motion.div>
+
+          {/* Card 2 — PRACTICE */}
+          <motion.div
+            variants={{
+              hidden: noMotion({ opacity: 0, y: 20 }),
+              visible: noMotion({ opacity: 1, y: 0 }),
+            }}
+            whileHover={noMotion({ y: -4, transition: { duration: 0.2 } })}
+            animate={noMotion({
+              boxShadow: [
+                "0 0 0px hsl(var(--primary) / 0)",
+                "0 0 16px -4px hsl(var(--primary) / 0.3)",
+                "0 0 0px hsl(var(--primary) / 0)",
+              ],
+            })}
+            transition={noTransition({
+              repeat: Infinity,
+              duration: 3,
+              ease: "easeInOut",
+            })}
+            onClick={() => navigate("/app/learn")}
+            className="bg-card backdrop-blur-xl border border-border rounded-2xl p-5 cursor-pointer flex flex-col gap-3"
+          >
+            <div className="bg-primary/10 rounded-xl w-10 h-10 flex items-center justify-center">
+              <Target size={20} className="text-primary" />
+            </div>
+            <div>
+              <h3 className="font-heading text-[16px] text-foreground">02 PRACTICE</h3>
+              <p className="text-muted-foreground text-xs mt-1">Daily challenge ready</p>
+            </div>
+            <button className="border border-primary/50 text-primary hover:bg-primary/10 font-bold text-[11px] w-full py-2 rounded-lg mt-auto transition-colors">
+              Take Challenge →
+            </button>
+          </motion.div>
+
+          {/* Card 3 — PROGRESS */}
+          <motion.div
+            variants={{
+              hidden: noMotion({ opacity: 0, y: 20 }),
+              visible: noMotion({ opacity: 1, y: 0 }),
+            }}
+            whileHover={noMotion({ y: -4, transition: { duration: 0.2 } })}
+            onClick={() => navigate("/app/progress")}
+            className="bg-card backdrop-blur-xl border border-border rounded-2xl p-5 cursor-pointer flex flex-col gap-3"
+          >
+            <div className="bg-primary/10 rounded-xl w-10 h-10 flex items-center justify-center">
+              <TrendingUp size={20} className="text-primary" />
+            </div>
+            <div>
+              <h3 className="font-heading text-[16px] text-foreground">03 PROGRESS</h3>
+              <div className="h-1.5 rounded-full bg-foreground/10 overflow-hidden mt-2">
+                <motion.div
+                  initial={noMotion({ width: 0 })}
+                  animate={noMotion({ width: `${score}%` })}
+                  transition={noTransition({ duration: 1, ease: "easeOut" })}
+                  className="h-full bg-primary rounded-full"
+                />
+              </div>
+              <p className="text-muted-foreground text-xs mt-2">
+                Civic Score: {score}/100
+              </p>
+            </div>
+            <button className="border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 font-bold text-[11px] w-full py-2 rounded-lg mt-auto transition-colors">
+              View Progress →
+            </button>
+          </motion.div>
+
+          {/* Card 4 — ACT */}
+          <motion.div
+            variants={{
+              hidden: noMotion({ opacity: 0, y: 20 }),
+              visible: noMotion({ opacity: 1, y: 0 }),
+            }}
+            whileHover={noMotion({ y: -4, transition: { duration: 0.2 } })}
+            onClick={() => navigate("/app/vote")}
+            className="bg-gradient-to-br from-primary/10 to-transparent border border-primary/30 rounded-2xl p-5 cursor-pointer flex flex-col gap-3"
+          >
+            <div className="bg-primary/15 rounded-xl w-10 h-10 flex items-center justify-center">
+              <Vote size={20} className="text-primary" />
+            </div>
+            <div>
+              <h3 className="font-heading text-[16px] text-foreground">04 ACT</h3>
+              <p className="text-primary text-xs mt-1 font-semibold">
+                {zipCode ? `ZIP ${zipCode}` : "Set your ZIP"}
+              </p>
+              <p className="text-muted-foreground text-xs">
+                {zipCode ? "Local elections ready" : "Personalize your hub"}
+              </p>
+            </div>
+            <button className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-[11px] w-full py-2 rounded-lg mt-auto transition-colors">
+              Voting Hub →
+            </button>
+          </motion.div>
+        </motion.div>
+      </section>
+
+      {/* SECTION 5 — Ask Uwazi CTA */}
+      <motion.div
+        onClick={() => navigate("/app/ask")}
+        whileHover={noMotion({ y: -2 })}
+        className="flex items-center gap-4 p-5 rounded-2xl bg-card backdrop-blur-xl border border-border hover:border-primary/30 cursor-pointer transition-all duration-300"
+      >
+        <div className="w-12 h-12 rounded-xl bg-primary/15 border border-primary/30 flex items-center justify-center shrink-0">
+          <MessageSquare size={22} className="text-primary" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-heading text-lg md:text-xl text-foreground flex items-center gap-2">
+            Ask Uwazi
+            <Sparkles size={14} className="text-primary" />
+          </h3>
+          <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
+            Have a civic question? Get non-partisan, AI-powered answers.
+          </p>
+        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate("/app/ask");
+          }}
+          className="shrink-0 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-bold hover:scale-[1.03] transition-transform whitespace-nowrap"
+        >
+          Ask Now →
+        </button>
       </motion.div>
-    </motion.div>
-  );
-}
-
-function StatCard({ label, value, sub, icon, accent, link, animate }: {
-  label: string;
-  value: string | number;
-  sub?: string;
-  icon?: React.ReactNode;
-  accent?: boolean;
-  link?: string;
-  animate?: boolean;
-}) {
-  const numericValue = typeof value === "number" ? value : 0;
-  const countedValue = useCountUp(numericValue);
-  const displayValue = animate && typeof value === "number" ? countedValue : value;
-
-  const inner = (
-    <div className="rounded-card p-4 md:p-5 card-highlight hover-lift transition-all"
-      style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
-      <div className="flex items-center justify-between mb-2">
-        <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">{label}</p>
-        {icon}
-      </div>
-      <p className={`text-[32px] font-semibold leading-none tracking-[-0.03em] ${accent ? "text-primary" : "text-foreground"}`}>
-        {displayValue}
-      </p>
-      {sub && <p className="text-[11px] text-muted-foreground mt-1">{sub}</p>}
     </div>
   );
-  if (link) return <Link to={link}>{inner}</Link>;
-  return inner;
 }
