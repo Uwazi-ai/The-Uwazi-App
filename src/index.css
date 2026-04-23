@@ -498,3 +498,17 @@ body {
 .animate-marquee {
   animation: marquee 30s linear infinite;
 }
+
+/* ═══ Home page utilities ═══ */
+@keyframes gridScroll {
+  from { background-position: 0 0; }
+  to { background-position: 40px 40px; }
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
