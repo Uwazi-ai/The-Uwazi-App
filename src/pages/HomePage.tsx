@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, MapPin, Flame, BookOpen, Target, Zap, Trophy, Calendar, FileText, Vote, Award } from "lucide-react";
+import { ArrowRight, MapPin, Flame, BookOpen, Target, Zap, Trophy, Calendar, FileText, Vote, Award, Play } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useGamification } from "@/hooks/useGamification";
 import { useCivicLocation } from "@/hooks/useCivicLocation";
 import { useAuth } from "@/contexts/AuthContext";
+import AppTourModal from "@/components/home/AppTourModal";
+
 
 const containerVariants = {
   hidden: { opacity: 0 },
