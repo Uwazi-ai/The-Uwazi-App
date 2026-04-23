@@ -111,24 +111,31 @@ function RepCard({ rep, index }: { rep: Representative; index: number }) {
       {/* Contact actions */}
       <div className="flex flex-wrap gap-1.5 mt-3">
         {rep.phone && (
-          <a href={`tel:${rep.phone}`}>
-            <Button variant="outline" size="sm" className="h-7 text-[10px] px-2 gap-1 border-border">
-              <Phone className="h-3 w-3" /> Call
-            </Button>
+          <a
+            href={`tel:${rep.phone}`}
+            className="inline-flex items-center justify-center gap-1 h-7 px-2 text-[10px] rounded-md border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
+            <Phone className="h-3 w-3" /> Call
           </a>
         )}
         {rep.contact_form_url && (
-          <a href={rep.contact_form_url} target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" size="sm" className="h-7 text-[10px] px-2 gap-1 border-border">
-              ✉️ Contact
-            </Button>
+          <a
+            href={rep.contact_form_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-1 h-7 px-2 text-[10px] rounded-md border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
+            ✉️ Contact
           </a>
         )}
         {rep.website_url && (
-          <a href={rep.website_url} target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" size="sm" className="h-7 text-[10px] px-2 gap-1 border-border">
-              <ExternalLink className="h-3 w-3" /> Website
-            </Button>
+          <a
+            href={rep.website_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-1 h-7 px-2 text-[10px] rounded-md border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
+            <ExternalLink className="h-3 w-3" /> Website
           </a>
         )}
         <Button
