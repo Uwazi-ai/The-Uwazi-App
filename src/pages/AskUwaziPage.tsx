@@ -319,6 +319,7 @@ export default function AskUwaziPage() {
   const ctx = useAskUwaziContext();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const {
     restoredMessages, sessionLoading, saveMessages, startNewSession,
     chatHistory, loadSession, deleteSession,
