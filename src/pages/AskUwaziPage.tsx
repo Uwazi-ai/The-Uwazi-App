@@ -4,8 +4,9 @@ import {
   Send, BookmarkPlus, BookmarkCheck, Share2, RotateCcw, MapPin,
   Plus, MessageCircle, Trash2, Clock, ArrowLeft,
   Copy, Check, Vote, FileText, Landmark, CalendarDays,
-  Globe, ExternalLink, AlertCircle, X,
+  Globe, ExternalLink, AlertCircle, X, Zap, Star,
 } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
 import uwaziLogo from "@/assets/uwazi-logo.png";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
