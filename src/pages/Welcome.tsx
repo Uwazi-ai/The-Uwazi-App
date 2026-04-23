@@ -192,7 +192,7 @@ export default function Welcome() {
                 </p>
 
                 <div
-                  className="inline-flex items-center gap-4 py-4 px-5 rounded-2xl border bg-white/[0.03]"
+                  className="inline-flex items-center gap-4 py-4 px-5 rounded-2xl border bg-white/[0.03] mb-6"
                   style={{ borderColor: `${slide.accent}33` }}
                 >
                   <div className="text-3xl sm:text-4xl font-black" style={{ color: slide.accent }}>
@@ -201,6 +201,22 @@ export default function Welcome() {
                   <div className="text-xs sm:text-sm text-white/60 max-w-[200px] leading-snug">
                     {slide.statLabel}
                   </div>
+                </div>
+
+                {/* Inline primary CTA — always visible alongside the story */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={() => navigate('/signup')}
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#9bd34b] hover:bg-[#aee06a] text-black font-bold text-sm transition-colors shadow-[0_8px_24px_-8px_rgba(155,211,75,0.5)]"
+                  >
+                    Sign up free →
+                  </button>
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="inline-flex items-center gap-2 px-4 py-3 rounded-xl text-white/70 hover:text-white text-sm font-semibold transition-colors"
+                  >
+                    I have an account
+                  </button>
                 </div>
               </motion.div>
             </AnimatePresence>
