@@ -96,10 +96,17 @@ export default function VotingHubPage() {
     setActiveTab(getTabFromHash(location.hash));
   }, [location.hash]);
 
-  const handleTabChange = (val: string) => {
-    const tab = val as TabValue;
-    setActiveTab(tab);
-    window.history.replaceState(null, "", `#${tab}`);
+  const handleTabChange = (value: string) => {
+    if (value === "elections") {
+      setActiveTab("elections");
+      window.history.replaceState(null, "", "#elections");
+    } else if (value === "reps") {
+      setActiveTab("reps");
+      window.history.replaceState(null, "", "#reps");
+    } else if (value === "act") {
+      setActiveTab("act");
+      window.history.replaceState(null, "", "#act");
+    }
   };
 
   const nextElection = useMemo(() => getNextElectionForState(stateCode), [stateCode]);
