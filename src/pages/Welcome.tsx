@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import uwaziPinwheel from '@/assets/uwazi-pinwheel.png'
+import uwaziAppWordmark from '@/assets/uwazi-app-wordmark.png'
 
 const SLIDES = [
   {
@@ -269,7 +270,7 @@ export default function Welcome() {
             {/* Logo */}
             <div className="flex items-center gap-2.5">
               <img src={uwaziPinwheel} alt="UWAZI" className="w-8 h-8 object-contain" />
-              <span className="text-sm font-bold tracking-wide text-primary">UWAZI.APP</span>
+              <img src={uwaziAppWordmark} alt="UWAZI.APP" className="h-5 object-contain" />
             </div>
 
             {/* Feature peek cards */}
