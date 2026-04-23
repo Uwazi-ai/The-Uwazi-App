@@ -544,10 +544,45 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  )
+  const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
+  const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
+  const CRON_SECRET = Deno.env.get('SCRAPER_CRON_SECRET') || ''
+
+  // ── AUTHZ: admin user JWT OR pre-shared cron secret ─────
+  const authHeader = req.headers.get('authorization') || ''
+  const cronHeader = req.headers.get('x-scraper-secret') || ''
+
+  let authorized = false
+
+  if (CRON_SECRET && cronHeader && cronHeader === CRON_SECRET) {
+    authorized = true
+  } else if (authHeader.startsWith('Bearer ')) {
+    try {
+      const userClient = createClient(SUPABASE_URL, ANON_KEY, {
+        global: { headers: { Authorization: authHeader } },
+      })
+      const token = authHeader.replace('Bearer ', '')
+      const { data: claims } = await userClient.auth.getClaims(token)
+      const userId = claims?.claims?.sub
+      if (userId) {
+        const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE)
+        const { data: isAdmin } = await adminClient.rpc('is_admin', { _user_id: userId })
+        if (isAdmin === true) authorized = true
+      }
+    } catch (e) {
+      console.error('Auth check failed:', e)
+    }
+  }
+
+  if (!authorized) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized: admin access required' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
+  const supabase = createClient(SUPABASE_URL, SERVICE_ROLE)
 
   try {
     const body = await req.json().catch(() => ({}))
