@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import uwaziPinwheel from '@/assets/uwazi-pinwheel.png'
 
 const SLIDES = [
   {
@@ -267,9 +268,7 @@ export default function Welcome() {
           <div className="w-full px-8 sm:px-10 py-10 lg:py-14 space-y-7">
             {/* Logo */}
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#9bd34b] to-[#3b82f6] flex items-center justify-center text-black font-black text-sm">
-                U
-              </div>
+              <img src={uwaziPinwheel} alt="UWAZI" className="w-8 h-8 object-contain" />
               <span className="text-sm font-bold tracking-wide">UWAZI.AI</span>
             </div>
 
