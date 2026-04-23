@@ -506,6 +506,74 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
           </div>
         </div>
       )}
+
+      {debugOpen && (
+        <div className="absolute top-16 left-3 right-3 z-40 max-w-md rounded-xl bg-black/85 backdrop-blur-md border border-white/15 p-4 text-white text-[12px] shadow-2xl">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2 font-semibold">
+              <Bug size={14} className="text-amber-400" />
+              <span>Video Debug</span>
+            </div>
+            <button onClick={() => setDebugOpen(false)} className="text-white/60 hover:text-white" aria-label="Close debug">
+              <X size={16} />
+            </button>
+          </div>
+          <div className="space-y-2 font-mono">
+            <div>
+              <div className="text-white/50 text-[10px] uppercase tracking-wider">Episode</div>
+              <div className="break-all">{episode.id}</div>
+            </div>
+            <div>
+              <div className="text-white/50 text-[10px] uppercase tracking-wider">Source URL</div>
+              <div className="break-all text-white/80">{episode.video_url || "(none)"}</div>
+            </div>
+            <div>
+              <div className="text-white/50 text-[10px] uppercase tracking-wider">Last Video Error</div>
+              <div className={lastError ? "text-red-400" : "text-emerald-400"}>{lastError || "None"}</div>
+            </div>
+            <div>
+              <div className="text-white/50 text-[10px] uppercase tracking-wider">Autoplay</div>
+              <div className={autoplayReason ? "text-amber-400" : "text-emerald-400"}>{autoplayReason || "OK"}</div>
+            </div>
+            <div>
+              <div className="text-white/50 text-[10px] uppercase tracking-wider">Network Probe</div>
+              {netProbe ? (
+                netProbe.error ? (
+                  <div className="text-red-400">CORS / Network: {netProbe.error}</div>
+                ) : (
+                  <div className="text-white/80">
+                    <div>Status: <span className={netProbe.status && netProbe.status >= 400 ? "text-red-400" : "text-emerald-400"}>{netProbe.status} {netProbe.statusText}</span></div>
+                    <div>CORS type: {netProbe.cors}</div>
+                    <div>Content-Type: {netProbe.contentType || "n/a"}</div>
+                  </div>
+                )
+              ) : (
+                <div className="text-white/50">Not probed yet</div>
+              )}
+            </div>
+            <div>
+              <div className="text-white/50 text-[10px] uppercase tracking-wider">Player State</div>
+              <div className="text-white/80">
+                buffering={String(isBuffering)} · needsTap={String(needsTap)} · buffered={Math.round(bufferPct)}%
+              </div>
+            </div>
+          </div>
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={() => episode.video_url && probeNetwork(episode.video_url)}
+              className="flex-1 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-white text-[11px] font-semibold"
+            >
+              Re-probe
+            </button>
+            <button
+              onClick={() => { setLastError(null); setAutoplayReason(null); setNetProbe(null); }}
+              className="flex-1 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-white text-[11px] font-semibold"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
