@@ -45,6 +45,7 @@ import AdminEpisodesPage from "./pages/admin/AdminEpisodesPage";
 import UpgradePage from "./pages/UpgradePage";
 import CheckoutReturnPage from "./pages/CheckoutReturnPage";
 import ManageSubscriptionPage from "./pages/ManageSubscriptionPage";
+import Welcome from "./pages/Welcome";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,7 @@ const App = () => (
               <Route path="/" element={<RootRedirect />} />
 
               {/* Public routes */}
+              <Route path="/welcome" element={<Welcome />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />

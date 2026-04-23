@@ -74,7 +74,13 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
+      <div className="w-full max-w-md space-y-6">
+        <Link
+          to="/welcome"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          ← Explore features
+        </Link>
         <div className="text-center space-y-3">
           <img src={uwaziLogo} alt="UWAZI.AI" className="h-12 mx-auto" />
           <h1 className="text-2xl font-bold text-foreground">Create your account</h1>
