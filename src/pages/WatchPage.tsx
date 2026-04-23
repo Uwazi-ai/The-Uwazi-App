@@ -237,7 +237,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
 
       {!locked && (
         <>
-          <div className="absolute bottom-14 left-4 right-16 z-10">
+          <div className="absolute bottom-[88px] md:bottom-14 left-4 right-16 z-10">
             <span className="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold mb-2 bg-primary text-primary-foreground">
               {episode.topic_emoji} {episode.topic}
             </span>
@@ -246,7 +246,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
             <p className="text-white/40 text-[11px]">{episode.date}</p>
           </div>
 
-          <div className="absolute right-3 bottom-28 z-10 flex flex-col items-center gap-5">
+          <div className="absolute right-3 bottom-[104px] md:bottom-28 z-10 flex flex-col items-center gap-5">
             <button onClick={() => setMuted(!muted)} className="p-2 rounded-full bg-black/40 text-white">
               {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
             </button>

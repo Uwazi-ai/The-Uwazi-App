@@ -793,7 +793,7 @@ export default function AskUwaziPage() {
         )}
 
         {/* ─── Input Area ─── */}
-        <div className="shrink-0 px-3 sm:px-6 py-3 md:py-4 border-t border-primary/10 bg-background/95 backdrop-blur-xl"
+        <div className="shrink-0 px-3 sm:px-6 py-3 md:py-4 border-t border-primary/10 bg-background/95 backdrop-blur-xl mb-16 md:mb-0"
           style={{
             paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
           }}>
