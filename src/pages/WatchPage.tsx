@@ -1,7 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Lock, Volume2, VolumeX, Share2, Info, X } from "lucide-react";
+import { Lock, Volume2, VolumeX, Share2, Info, X, Plus, Check } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 
@@ -17,7 +23,7 @@ interface Episode {
 }
 
 export default function WatchPage() {
-  const [activeTab, setActiveTab] = useState<string>("Public Safety");
+  const [activeTab, setActiveTab] = useState<string>("Uwazi");
   const [muted, setMuted] = useState(true);
   const [infoOpen, setInfoOpen] = useState<string | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -69,16 +75,27 @@ export default function WatchPage() {
             Uwazi+ BETA
           </button>
         </div>
-        <div className="mt-2 -mx-4 px-4 overflow-x-auto no-scrollbar" style={{ scrollbarWidth: "none" }}>
-          <div className="inline-flex gap-1 bg-white/10 rounded-full p-0.5">
-            {["Public Safety", "Housing", "Elections", "Workforce", "Public Health", "Education", "Other"].map((tab) => (
-              <button key={tab} onClick={() => handleTabChange(tab)}
-                className={`px-3 py-1 text-xs font-semibold rounded-full transition-all whitespace-nowrap ${activeTab === tab ? "bg-white/20 text-white" : "text-white/60"}`}
-              >
-                {tab}
+        <div className="mt-2 flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="inline-flex items-center gap-1.5 pl-2 pr-3 py-1 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all">
+                <Plus size={14} strokeWidth={3} />
+                <span className="whitespace-nowrap">{activeTab}</span>
               </button>
-            ))}
-          </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="bg-black/90 border-white/10 backdrop-blur-md">
+              {["Uwazi", "Public Safety", "Housing", "Elections", "Workforce", "Public Health", "Education"].map((tab) => (
+                <DropdownMenuItem
+                  key={tab}
+                  onClick={() => handleTabChange(tab)}
+                  className="text-white/80 focus:bg-white/10 focus:text-white cursor-pointer text-xs font-medium"
+                >
+                  <span className="flex-1">{tab}</span>
+                  {activeTab === tab && <Check size={14} className="ml-2 text-primary" />}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
