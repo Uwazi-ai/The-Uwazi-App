@@ -254,6 +254,28 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const [needsTap, setNeedsTap] = useState(false);
+
+  const tryPlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.readyState < 2) video.load();
+    const p = video.play();
+    if (p && typeof p.catch === "function") {
+      p.then(() => setNeedsTap(false)).catch((err) => {
+        console.warn("[WatchPage] play failed:", episode.title, err);
+        setNeedsTap(true);
+      });
+    }
+  };
+
+  const handleTapToPlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    // First user gesture — unmute-safe retry
+    video.muted = muted;
+    tryPlay();
+  };
 
   useEffect(() => {
     const el = cardRef.current;
@@ -261,17 +283,14 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
     if (!el || !video) return;
     const obs = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting && !locked && episode.video_url) {
-        if (video.readyState < 2) video.load();
-        const p = video.play();
-        if (p && typeof p.catch === "function") {
-          p.catch((err) => console.warn("[WatchPage] play failed:", episode.title, err));
-        }
+        tryPlay();
       } else {
         video.pause();
       }
     }, { threshold: 0.6 });
     obs.observe(el);
     return () => obs.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locked, episode.video_url, episode.title]);
 
   useEffect(() => {
