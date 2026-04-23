@@ -102,7 +102,7 @@ export default function WatchPage() {
       </div>
 
       {/* Feed */}
-      <div ref={feedRef} className="flex-1 overflow-y-scroll snap-y snap-mandatory no-scrollbar" style={{ scrollbarWidth: "none" }}>
+      <div ref={feedRef} className="flex-1 overflow-y-scroll snap-y snap-mandatory no-scrollbar md:flex md:flex-col md:items-center" style={{ scrollbarWidth: "none" }}>
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="relative w-full snap-start flex-shrink-0 bg-black" style={{ height: "100dvh" }}>
