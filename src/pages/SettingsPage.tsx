@@ -263,12 +263,12 @@ export default function SettingsPage() {
         headers: { Authorization: `Bearer ${session?.access_token}` },
       });
       if (error) throw error;
-      await signOut(); navigate("/login"); toast.success("Your account has been deleted.");
+      await signOut(); navigate("/welcome"); toast.success("Your account has been deleted.");
     } catch (err: any) { toast.error(err.message || "Failed to delete account"); }
     finally { setDeletingAccount(false); }
   };
 
-  const handleSignOut = async () => { await signOut(); toast.success("Signed out"); navigate("/"); };
+  const handleSignOut = async () => { await signOut(); toast.success("Signed out"); navigate("/welcome"); };
 
   const currentAvatar = avatarPreview || avatarUrl;
   const initials = displayName?.[0]?.toUpperCase() || "U";
