@@ -93,9 +93,9 @@ export default function BallotpediaSection({ racesWithCandidates, measures }: Ba
 
   const stateName = racesWithCandidates[0] ? (STATE_NAMES[racesWithCandidates[0].state] || racesWithCandidates[0].state) : "";
 
-  const handleResearch = (name: string, office: string) => {
-    const prompt = `Research ${name}, who is running for ${office}. Give me a nonpartisan overview of their background and key positions.`;
-    navigate(`/ask?q=${encodeURIComponent(prompt)}`);
+  const handleResearch = (name: string, _office: string) => {
+    const prompt = `Tell me more about ${name}`;
+    navigate(`/app/ask?q=${encodeURIComponent(prompt)}`);
   };
 
   // Filter out measures with garbage text
@@ -326,8 +326,8 @@ function MeasureCard({ measure }: { measure: Measure }) {
     .trim();
 
   const handleResearch = () => {
-    const prompt = `Explain ballot measure "${title}" in plain language. What would a YES vote mean? What would a NO vote mean?`;
-    navigate(`/ask?q=${encodeURIComponent(prompt)}`);
+    const prompt = `Tell me more about ballot measure "${title}"`;
+    navigate(`/app/ask?q=${encodeURIComponent(prompt)}`);
   };
 
   return (
