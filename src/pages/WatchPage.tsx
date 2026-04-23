@@ -342,6 +342,18 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
         </div>
       )}
 
+      {needsTap && episode.video_url && !locked && (
+        <button
+          onClick={handleTapToPlay}
+          className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          aria-label="Tap to play"
+        >
+          <span className="flex items-center justify-center w-20 h-20 rounded-full bg-white/90 text-black shadow-2xl">
+            <Play size={32} className="ml-1" fill="currentColor" />
+          </span>
+        </button>
+      )}
+
       <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: "55%", background: "linear-gradient(transparent, rgba(0,0,0,0.85))" }} />
 
       <div className="absolute top-16 right-3 z-10 px-2 py-0.5 rounded-full bg-black/50 text-white text-[11px] font-medium">
