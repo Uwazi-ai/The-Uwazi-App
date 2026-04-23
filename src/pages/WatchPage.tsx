@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Lock, Volume2, VolumeX, Share2, Info, X, Plus, Check, Heart } from "lucide-react";
+import { Lock, Volume2, VolumeX, Share2, Info, X, Plus, Check, Heart, Play } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -254,6 +254,28 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const [needsTap, setNeedsTap] = useState(false);
+
+  const tryPlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.readyState < 2) video.load();
+    const p = video.play();
+    if (p && typeof p.catch === "function") {
+      p.then(() => setNeedsTap(false)).catch((err) => {
+        console.warn("[WatchPage] play failed:", episode.title, err);
+        setNeedsTap(true);
+      });
+    }
+  };
+
+  const handleTapToPlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    // First user gesture — unmute-safe retry
+    video.muted = muted;
+    tryPlay();
+  };
 
   useEffect(() => {
     const el = cardRef.current;
@@ -261,17 +283,14 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
     if (!el || !video) return;
     const obs = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting && !locked && episode.video_url) {
-        if (video.readyState < 2) video.load();
-        const p = video.play();
-        if (p && typeof p.catch === "function") {
-          p.catch((err) => console.warn("[WatchPage] play failed:", episode.title, err));
-        }
+        tryPlay();
       } else {
         video.pause();
       }
     }, { threshold: 0.6 });
     obs.observe(el);
     return () => obs.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locked, episode.video_url, episode.title]);
 
   useEffect(() => {
@@ -321,6 +340,18 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
             <p className="text-white/60 text-sm">Video coming soon</p>
           </div>
         </div>
+      )}
+
+      {needsTap && episode.video_url && !locked && (
+        <button
+          onClick={handleTapToPlay}
+          className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          aria-label="Tap to play"
+        >
+          <span className="flex items-center justify-center w-20 h-20 rounded-full bg-white/90 text-black shadow-2xl">
+            <Play size={32} className="ml-1" fill="currentColor" />
+          </span>
+        </button>
       )}
 
       <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: "55%", background: "linear-gradient(transparent, rgba(0,0,0,0.85))" }} />
