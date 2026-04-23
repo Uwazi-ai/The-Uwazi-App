@@ -232,7 +232,14 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="flex gap-3.5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory -mx-4 px-4 md:mx-0 md:px-0">
+          <div
+            className="flex gap-3.5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory touch-pan-x -mx-4 px-4 md:mx-0 md:px-0"
+            style={{
+              WebkitOverflowScrolling: "touch",
+              overscrollBehaviorX: "contain",
+              scrollPaddingLeft: "1rem",
+            }}
+          >
             {episodes.map((ep, idx) => {
               const requiresSub = !ep.is_free && !isSubscribed;
               const isPlaying = idx === 0;
