@@ -48,6 +48,7 @@ export default function HomePage() {
   const { user } = useAuth();
   const { civicScore, streak, earnedBadges, loading: gamLoading } = useGamification();
   const { zipCode } = useCivicLocation();
+  const [tourOpen, setTourOpen] = useState(false);
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Citizen";
   const hour = new Date().getHours();
@@ -55,13 +56,26 @@ export default function HomePage() {
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="show" className="max-w-6xl mx-auto px-4 md:px-10 py-6 md:py-8 pb-24 md:pb-8 space-y-5 md:space-y-6">
+      <AppTourModal open={tourOpen} onClose={() => setTourOpen(false)} />
+
       {/* Hero */}
       <motion.div variants={itemVariants} className="pt-2 md:pt-4">
         <p className="eyebrow mb-2">YOUR CIVIC DASHBOARD</p>
         <h1 className="font-heading text-3xl sm:text-4xl md:text-[52px] text-foreground leading-[1.05]">
           {greeting}, {displayName.toUpperCase()}.
         </h1>
-        <p className="text-[15px] text-muted-foreground mt-1">Build your Civic Freedom</p>
+        <div className="flex flex-wrap items-center gap-3 mt-2">
+          <p className="text-[15px] text-muted-foreground">Build your Civic Freedom</p>
+          <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={() => setTourOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-foreground/[0.03] border border-border text-muted-foreground hover:border-primary/40 hover:text-primary text-xs font-semibold transition-all duration-200"
+          >
+            <Play className="w-3 h-3" />
+            Explore the App
+          </motion.button>
+        </div>
       </motion.div>
 
       {/* Stats Grid - Row 1 */}
