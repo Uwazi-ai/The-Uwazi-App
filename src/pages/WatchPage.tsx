@@ -257,6 +257,24 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
   const [needsTap, setNeedsTap] = useState(false);
   const [isBuffering, setIsBuffering] = useState(true);
   const [bufferPct, setBufferPct] = useState(0);
+  const [debugOpen, setDebugOpen] = useState(false);
+  const [lastError, setLastError] = useState<string | null>(null);
+  const [autoplayReason, setAutoplayReason] = useState<string | null>(null);
+  const [netProbe, setNetProbe] = useState<{ status?: number; statusText?: string; cors?: string; contentType?: string | null; error?: string } | null>(null);
+
+  const probeNetwork = async (url: string) => {
+    try {
+      const res = await fetch(url, { method: "HEAD", mode: "cors" });
+      setNetProbe({
+        status: res.status,
+        statusText: res.statusText,
+        cors: res.type,
+        contentType: res.headers.get("content-type"),
+      });
+    } catch (err: any) {
+      setNetProbe({ error: err?.message || String(err), cors: "blocked-or-network-error" });
+    }
+  };
 
   const tryPlay = () => {
     const video = videoRef.current;
@@ -264,8 +282,10 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
     if (video.readyState < 2) video.load();
     const p = video.play();
     if (p && typeof p.catch === "function") {
-      p.then(() => setNeedsTap(false)).catch((err) => {
+      p.then(() => { setNeedsTap(false); setAutoplayReason(null); }).catch((err) => {
+        const reason = `${err?.name || "Error"}: ${err?.message || String(err)}`;
         console.warn("[WatchPage] play failed:", episode.title, err);
+        setAutoplayReason(reason);
         setNeedsTap(true);
       });
     }
