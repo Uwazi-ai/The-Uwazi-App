@@ -192,7 +192,7 @@ const SearchingIndicator = ({ query }: { query?: string }) => (
 const SourcesPanel = ({ sources }: { sources: Source[] }) => {
   if (!sources?.length) return null;
   return (
-    <div className="mt-3 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+    <div className="mt-3 pt-3 border-t border-border">
       <div className="flex items-center gap-1.5 mb-2">
         <Globe className="w-3 h-3 text-muted-foreground" />
         <span className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Sources</span>
@@ -200,13 +200,8 @@ const SourcesPanel = ({ sources }: { sources: Source[] }) => {
       <div className="flex flex-wrap gap-1.5">
         {sources.map((source, i) => (
           <a key={i} href={source.url} target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[12px] text-primary no-underline transition-all duration-150 max-w-[200px]"
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.1)",
-            }}>
-            <span className="flex-shrink-0 h-[18px] w-[18px] rounded-full flex items-center justify-center text-[10px] font-semibold"
-              style={{ background: "rgba(155,211,75,0.15)", color: "#9bd34b" }}>
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[12px] text-primary no-underline transition-all duration-150 max-w-[200px] bg-foreground/[0.04] border border-border hover:bg-foreground/[0.08]">
+            <span className="flex-shrink-0 h-[18px] w-[18px] rounded-full flex items-center justify-center text-[10px] font-semibold bg-primary/15 text-primary">
               {i + 1}
             </span>
             <span className="truncate">{source.title.length > 35 ? source.title.slice(0, 35) + '...' : source.title}</span>
