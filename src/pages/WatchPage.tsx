@@ -139,7 +139,19 @@ export default function WatchPage() {
         )}
       </div>
 
-      {showPaywall && <PaywallOverlay onClose={() => setShowPaywall(false)} onUpgrade={(plan) => { setShowPaywall(false); navigate(`/app/upgrade?plan=${plan}`); }} />}
+      {showPaywall && (
+        <PaywallOverlay
+          onClose={() => {
+            setShowPaywall(false);
+            // Scroll back to the last free episode the user could watch
+            const lastFreeIdx = episodes.map((e) => e.is_free).lastIndexOf(true);
+            if (lastFreeIdx >= 0 && feedRef.current) {
+              feedRef.current.scrollTo({ top: lastFreeIdx * feedRef.current.clientHeight, behavior: "smooth" });
+            }
+          }}
+          onUpgrade={(plan) => { setShowPaywall(false); navigate(`/app/upgrade?plan=${plan}`); }}
+        />
+      )}
     </div>
   );
 }
