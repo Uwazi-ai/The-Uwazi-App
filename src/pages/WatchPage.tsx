@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Lock, Volume2, VolumeX, Share2, Info, X, Plus, Check, Heart, Play } from "lucide-react";
+import { Lock, Volume2, VolumeX, Share2, Info, X, Plus, Check, Heart, Play, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -119,6 +119,7 @@ export default function WatchPage() {
         ) : (
           episodes.map((ep, idx) => {
             const locked = !isSubscriber && !ep.is_free;
+            const isLast = idx === episodes.length - 1;
             return (
               <VideoCard
                 key={ep.id}
@@ -133,6 +134,14 @@ export default function WatchPage() {
                 locked={locked}
                 onPaywall={() => setShowPaywall(true)}
                 onUpgrade={() => navigate("/app/upgrade?plan=beta_monthly")}
+                onNext={isLast ? undefined : () => {
+                  if (feedRef.current) {
+                    feedRef.current.scrollTo({
+                      top: (idx + 1) * feedRef.current.clientHeight,
+                      behavior: "smooth",
+                    });
+                  }
+                }}
               />
             );
           })
@@ -169,9 +178,10 @@ interface VideoCardProps {
   locked: boolean;
   onPaywall: () => void;
   onUpgrade: () => void;
+  onNext?: () => void;
 }
 
-function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, toggleInfo, locked, onPaywall, onUpgrade }: VideoCardProps) {
+function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, toggleInfo, locked, onPaywall, onUpgrade, onNext }: VideoCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -313,6 +323,16 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
             <button onClick={toggleInfo} className="p-2 rounded-full bg-black/40 text-white">
               <Info size={20} />
             </button>
+            {onNext && (
+              <button
+                onClick={onNext}
+                className="p-2 rounded-full bg-primary text-primary-foreground transition-transform active:scale-90 mt-1"
+                aria-label="Next episode"
+                title="Next episode"
+              >
+                <ChevronDown size={20} />
+              </button>
+            )}
           </div>
 
           {infoOpen && (
