@@ -201,7 +201,7 @@ export default function AdminUsersPage() {
           {selectedUser && (
             <div className="mt-4 space-y-4 text-sm">
               <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xl font-bold mx-auto overflow-hidden">
-                {selectedUser.avatar_url ? <img src={selectedUser.avatar_url} className="h-full w-full object-cover" /> : selectedUser.display_name?.[0]?.toUpperCase() || "?"}
+                <AdminAvatar src={selectedUser.avatar_url} fallback={selectedUser.display_name?.[0]?.toUpperCase() || "?"} />
               </div>
               <div className="space-y-2">
                 <Row label="Name" value={selectedUser.display_name} />
