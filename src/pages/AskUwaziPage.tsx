@@ -314,6 +314,8 @@ function HistoryList({
 /* ═══════════════════════════════
    MAIN PAGE COMPONENT
    ═══════════════════════════════ */
+const FREE_DAILY_LIMIT = 5;
+
 export default function AskUwaziPage() {
   const { session } = useAuth();
   const { displayName } = useProfile();
@@ -321,6 +323,8 @@ export default function AskUwaziPage() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { isPremium } = useSubscription();
+  const isSubscribed = isPremium;
   const {
     restoredMessages, sessionLoading, saveMessages, startNewSession,
     chatHistory, loadSession, deleteSession,
@@ -338,6 +342,9 @@ export default function AskUwaziPage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [civicScore, setCivicScore] = useState<number | null>(null);
+  const [dailyCount, setDailyCount] = useState(0);
+  const [showBanner, setShowBanner] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -346,6 +353,24 @@ export default function AskUwaziPage() {
     supabase.from("civic_scores").select("civic_literacy_score").eq("user_id", session.user.id).maybeSingle()
       .then(({ data }) => { if (data) setCivicScore(data.civic_literacy_score); });
   }, [session?.user?.id]);
+
+  const fetchDailyCount = useCallback(async () => {
+    if (!session?.user?.id || isSubscribed) return;
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const { count } = await supabase
+      .from("uwazi_question_log")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", session.user.id)
+      .gte("created_at", todayStart.toISOString());
+    const todayCount = count ?? 0;
+    setDailyCount(todayCount);
+    if (todayCount >= FREE_DAILY_LIMIT && !bannerDismissed) {
+      setShowBanner(true);
+    }
+  }, [session?.user?.id, isSubscribed, bannerDismissed]);
+
+  useEffect(() => { fetchDailyCount(); }, [fetchDailyCount]);
 
   const groupedHistory = useMemo(() => groupChatsByDate(chatHistory), [chatHistory]);
 
