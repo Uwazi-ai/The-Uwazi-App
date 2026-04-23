@@ -128,8 +128,8 @@ export default function FeatureTour({ open, onClose }: FeatureTourProps) {
   const isFirst = currentStep === 0;
   const isLast = currentStep === STEPS.length - 1;
 
-  const noMotion = (val: object) => (reduceMotion ? {} : val);
-  const noTransition = (val: object) => (reduceMotion ? { duration: 0 } : val);
+  const noMotion = <T,>(val: T): T | Record<string, never> => (reduceMotion ? {} : val);
+  const noTransition = <T,>(val: T): T | { duration: 0 } => (reduceMotion ? { duration: 0 } : val);
 
   return (
     <AnimatePresence>
