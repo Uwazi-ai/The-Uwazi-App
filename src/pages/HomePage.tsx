@@ -171,22 +171,24 @@ export default function HomePage() {
             </div>
 
             {/* Center pulsing play button */}
-            <motion.button
-              animate={noMotion({ scale: [1, 1.06, 1] })}
-              transition={noTransition({
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              })}
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate("/app/watch");
-              }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-[0_0_40px_hsl(var(--primary)/0.5)] hover:scale-110 transition-transform z-10"
-              aria-label="Play featured episode"
-            >
-              <Play size={26} className="ml-1 fill-current" />
-            </motion.button>
+            <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+              <motion.button
+                animate={noMotion({ scale: [1, 1.06, 1] })}
+                transition={noTransition({
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                })}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate("/app/watch");
+                }}
+                className="pointer-events-auto w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-[0_0_40px_hsl(var(--primary)/0.5)] hover:scale-110 transition-transform"
+                aria-label="Play featured episode"
+              >
+                <Play size={26} className="ml-1 fill-current" />
+              </motion.button>
+            </div>
           </div>
 
           {/* Bottom info bar */}
