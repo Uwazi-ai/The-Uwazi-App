@@ -17,6 +17,7 @@ import {
   Send, Eye, Trash2, CheckCircle2, Clock, XCircle, BarChart3,
   Megaphone, Filter, X,
 } from "lucide-react";
+import { AdminAvatar } from "@/components/admin/AdminAvatar";
 
 interface Contact {
   id: string;
@@ -241,7 +242,7 @@ export default function AdminCRMPage() {
                           <td className="p-3">
                             <div className="flex items-center gap-2">
                               <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold shrink-0 overflow-hidden">
-                                {c.avatar_url ? <img src={c.avatar_url} alt="" className="h-full w-full object-cover" /> : (c.display_name?.[0]?.toUpperCase() || "?")}
+                                <AdminAvatar src={c.avatar_url} fallback={c.display_name?.[0]?.toUpperCase() || "?"} />
                               </div>
                               <span className="font-medium text-foreground truncate max-w-[140px]">{c.display_name || "—"}</span>
                             </div>
@@ -272,7 +273,7 @@ export default function AdminCRMPage() {
                 <CardContent className="p-4 space-y-4">
                   <div className="flex items-center gap-3">
                     <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold overflow-hidden">
-                      {selectedContact.avatar_url ? <img src={selectedContact.avatar_url} alt="" className="h-full w-full object-cover" /> : (selectedContact.display_name?.[0]?.toUpperCase() || "?")}
+                      <AdminAvatar src={selectedContact.avatar_url} fallback={selectedContact.display_name?.[0]?.toUpperCase() || "?"} />
                     </div>
                     <div>
                       <p className="font-medium text-foreground">{selectedContact.display_name || "Unknown"}</p>
