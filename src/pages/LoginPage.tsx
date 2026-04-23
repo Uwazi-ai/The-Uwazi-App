@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import uwaziLogo from "@/assets/uwazi-logo.png";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -163,6 +164,7 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
+      <PWAInstallPrompt />
     </div>
   );
 }
