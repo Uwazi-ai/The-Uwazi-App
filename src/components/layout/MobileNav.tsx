@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, User } from "lucide-react";
+import { useProfile } from "@/contexts/ProfileContext";
 import {
   HomeIcon, LearnIcon, WatchIcon, AskUwaziIcon, VotingHubIcon,
   LegislationIcon, ProgressIcon,
-  SavedIcon, SettingsIcon, MoreIcon,
+  SavedIcon, SettingsIcon,
 } from "@/components/icons/UwaziIcons";
 
 const navItems = [
@@ -16,7 +17,8 @@ const navItems = [
   { to: "/app/vote", icon: VotingHubIcon, label: "Vote" },
 ];
 
-const moreItems = [
+const drawerItems = [
+  { to: "/app/profile", icon: User, label: "Profile" },
   { to: "/app/legislation", icon: LegislationIcon, label: "Legislation" },
   { to: "/app/progress", icon: ProgressIcon, label: "Progress" },
   { to: "/app/saved", icon: SavedIcon, label: "Saved" },
@@ -24,7 +26,9 @@ const moreItems = [
 ];
 
 export function MobileNav() {
-  const [moreOpen, setMoreOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const { displayName, avatarUrl } = useProfile();
+  const initial = (displayName?.[0] || "U").toUpperCase();
 
   return (
     <nav
@@ -60,35 +64,58 @@ export function MobileNav() {
           </NavLink>
         ))}
 
-        <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+        {/* Profile avatar — opens drawer with profile + secondary nav */}
+        <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
             <button
               type="button"
+              aria-label="Open profile and more"
               className={`bottom-nav-item flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-medium tracking-[0.02em] transition-all duration-150 ${
-                moreOpen ? "active text-primary" : "text-muted-foreground"
+                open ? "active text-primary" : "text-muted-foreground"
               }`}
-              aria-label="More navigation"
             >
-              <div className={`p-1 rounded-lg transition-colors ${moreOpen ? "bg-primary/[0.12]" : ""}`}>
-                <MoreIcon size={22} />
+              <div
+                className={`relative w-7 h-7 rounded-full overflow-hidden border-2 transition-colors ${
+                  open ? "border-primary" : "border-border"
+                } bg-muted flex items-center justify-center`}
+              >
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[11px] font-bold text-foreground">{initial}</span>
+                )}
               </div>
-              <span>More</span>
+              <span>You</span>
             </button>
           </SheetTrigger>
           <SheetContent
             side="bottom"
             className="rounded-t-2xl border-t border-border bg-background p-5 md:hidden"
           >
-            <SheetHeader className="mb-3">
-              <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mx-auto mb-2" />
-              <SheetTitle className="text-base font-semibold text-foreground text-left">More</SheetTitle>
+            <SheetHeader className="mb-4">
+              <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mx-auto mb-3" />
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full overflow-hidden border border-border bg-muted flex items-center justify-center">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-base font-bold text-foreground">{initial}</span>
+                  )}
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <SheetTitle className="text-base font-semibold text-foreground truncate">
+                    {displayName}
+                  </SheetTitle>
+                  <p className="text-xs text-muted-foreground">View profile & more</p>
+                </div>
+              </div>
             </SheetHeader>
             <div className="flex flex-col gap-1">
-              {moreItems.map((item) => (
+              {drawerItems.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  onClick={() => setMoreOpen(false)}
+                  onClick={() => setOpen(false)}
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-150 ${
                       isActive
