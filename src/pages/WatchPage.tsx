@@ -333,9 +333,42 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
           playsInline
           autoPlay
           preload="auto"
+          onWaiting={() => setIsBuffering(true)}
+          onStalled={() => setIsBuffering(true)}
+          onLoadStart={() => setIsBuffering(true)}
+          onPlaying={() => setIsBuffering(false)}
+          onCanPlay={() => setIsBuffering(false)}
+          onProgress={(e) => {
+            const v = e.currentTarget;
+            if (v.buffered.length && v.duration) {
+              setBufferPct((v.buffered.end(v.buffered.length - 1) / v.duration) * 100);
+            }
+          }}
           onError={(e) => console.error("[WatchPage] video error:", episode.title, e.currentTarget.error)}
         />
       ) : (
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-zinc-900 to-black flex items-center justify-center">
+          <div className="text-center px-6">
+            <div className="text-5xl mb-3">{episode.topic_emoji || "🎬"}</div>
+            <p className="text-white/60 text-sm">Video coming soon</p>
+          </div>
+        </div>
+      )}
+
+      {/* Buffering overlay */}
+      {isBuffering && episode.video_url && !needsTap && !locked && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px] pointer-events-none">
+          <div className="w-12 h-12 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+          {bufferPct > 0 && bufferPct < 100 && (
+            <div className="mt-4 w-32">
+              <div className="h-1 rounded-full bg-white/15 overflow-hidden">
+                <div className="h-full bg-white transition-all duration-300" style={{ width: `${bufferPct}%` }} />
+              </div>
+              <p className="mt-2 text-center text-white/70 text-[11px] font-medium">Loading {Math.round(bufferPct)}%</p>
+            </div>
+          )}
+        </div>
+      )}
         <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-zinc-900 to-black flex items-center justify-center">
           <div className="text-center px-6">
             <div className="text-5xl mb-3">{episode.topic_emoji || "🎬"}</div>
