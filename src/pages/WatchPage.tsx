@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Lock, Volume2, VolumeX, Share2, Info, X, Plus, Check, Heart, Play } from "lucide-react";
+import { Lock, Volume2, VolumeX, Share2, Info, X, Plus, Check, Heart, Play, Bug } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -257,6 +257,24 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
   const [needsTap, setNeedsTap] = useState(false);
   const [isBuffering, setIsBuffering] = useState(true);
   const [bufferPct, setBufferPct] = useState(0);
+  const [debugOpen, setDebugOpen] = useState(false);
+  const [lastError, setLastError] = useState<string | null>(null);
+  const [autoplayReason, setAutoplayReason] = useState<string | null>(null);
+  const [netProbe, setNetProbe] = useState<{ status?: number; statusText?: string; cors?: string; contentType?: string | null; error?: string } | null>(null);
+
+  const probeNetwork = async (url: string) => {
+    try {
+      const res = await fetch(url, { method: "HEAD", mode: "cors" });
+      setNetProbe({
+        status: res.status,
+        statusText: res.statusText,
+        cors: res.type,
+        contentType: res.headers.get("content-type"),
+      });
+    } catch (err: any) {
+      setNetProbe({ error: err?.message || String(err), cors: "blocked-or-network-error" });
+    }
+  };
 
   const tryPlay = () => {
     const video = videoRef.current;
@@ -264,8 +282,10 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
     if (video.readyState < 2) video.load();
     const p = video.play();
     if (p && typeof p.catch === "function") {
-      p.then(() => setNeedsTap(false)).catch((err) => {
+      p.then(() => { setNeedsTap(false); setAutoplayReason(null); }).catch((err) => {
+        const reason = `${err?.name || "Error"}: ${err?.message || String(err)}`;
         console.warn("[WatchPage] play failed:", episode.title, err);
+        setAutoplayReason(reason);
         setNeedsTap(true);
       });
     }
@@ -344,7 +364,19 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
               setBufferPct((v.buffered.end(v.buffered.length - 1) / v.duration) * 100);
             }
           }}
-          onError={(e) => console.error("[WatchPage] video error:", episode.title, e.currentTarget.error)}
+          onError={(e) => {
+            const err = e.currentTarget.error;
+            const codeMap: Record<number, string> = {
+              1: "MEDIA_ERR_ABORTED",
+              2: "MEDIA_ERR_NETWORK",
+              3: "MEDIA_ERR_DECODE",
+              4: "MEDIA_ERR_SRC_NOT_SUPPORTED",
+            };
+            const msg = err ? `${codeMap[err.code] || "Unknown"} (${err.code})${err.message ? ": " + err.message : ""}` : "Unknown error";
+            console.error("[WatchPage] video error:", episode.title, err);
+            setLastError(msg);
+            if (episode.video_url) probeNetwork(episode.video_url);
+          }}
         />
       ) : (
         <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-zinc-900 to-black flex items-center justify-center">
@@ -410,6 +442,17 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
             <button onClick={toggleInfo} className="p-2 rounded-full bg-black/40 text-white">
               <Info size={20} />
             </button>
+            <button
+              onClick={() => {
+                if (!debugOpen && episode.video_url) probeNetwork(episode.video_url);
+                setDebugOpen((v) => !v);
+              }}
+              className="p-2 rounded-full bg-black/40 text-white"
+              aria-label="Video debug info"
+              title="Video issues"
+            >
+              <Bug size={20} />
+            </button>
           </div>
 
           {infoOpen && (
@@ -460,6 +503,74 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
               Claim Beta Price
             </button>
             <p className="text-white/30 text-[10px] mt-3">Price returns to $19.99/mo after beta · No contracts · Cancel anytime</p>
+          </div>
+        </div>
+      )}
+
+      {debugOpen && (
+        <div className="absolute top-16 left-3 right-3 z-40 max-w-md rounded-xl bg-black/85 backdrop-blur-md border border-white/15 p-4 text-white text-[12px] shadow-2xl">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2 font-semibold">
+              <Bug size={14} className="text-amber-400" />
+              <span>Video Debug</span>
+            </div>
+            <button onClick={() => setDebugOpen(false)} className="text-white/60 hover:text-white" aria-label="Close debug">
+              <X size={16} />
+            </button>
+          </div>
+          <div className="space-y-2 font-mono">
+            <div>
+              <div className="text-white/50 text-[10px] uppercase tracking-wider">Episode</div>
+              <div className="break-all">{episode.id}</div>
+            </div>
+            <div>
+              <div className="text-white/50 text-[10px] uppercase tracking-wider">Source URL</div>
+              <div className="break-all text-white/80">{episode.video_url || "(none)"}</div>
+            </div>
+            <div>
+              <div className="text-white/50 text-[10px] uppercase tracking-wider">Last Video Error</div>
+              <div className={lastError ? "text-red-400" : "text-emerald-400"}>{lastError || "None"}</div>
+            </div>
+            <div>
+              <div className="text-white/50 text-[10px] uppercase tracking-wider">Autoplay</div>
+              <div className={autoplayReason ? "text-amber-400" : "text-emerald-400"}>{autoplayReason || "OK"}</div>
+            </div>
+            <div>
+              <div className="text-white/50 text-[10px] uppercase tracking-wider">Network Probe</div>
+              {netProbe ? (
+                netProbe.error ? (
+                  <div className="text-red-400">CORS / Network: {netProbe.error}</div>
+                ) : (
+                  <div className="text-white/80">
+                    <div>Status: <span className={netProbe.status && netProbe.status >= 400 ? "text-red-400" : "text-emerald-400"}>{netProbe.status} {netProbe.statusText}</span></div>
+                    <div>CORS type: {netProbe.cors}</div>
+                    <div>Content-Type: {netProbe.contentType || "n/a"}</div>
+                  </div>
+                )
+              ) : (
+                <div className="text-white/50">Not probed yet</div>
+              )}
+            </div>
+            <div>
+              <div className="text-white/50 text-[10px] uppercase tracking-wider">Player State</div>
+              <div className="text-white/80">
+                buffering={String(isBuffering)} · needsTap={String(needsTap)} · buffered={Math.round(bufferPct)}%
+              </div>
+            </div>
+          </div>
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={() => episode.video_url && probeNetwork(episode.video_url)}
+              className="flex-1 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-white text-[11px] font-semibold"
+            >
+              Re-probe
+            </button>
+            <button
+              onClick={() => { setLastError(null); setAutoplayReason(null); setNetProbe(null); }}
+              className="flex-1 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-white text-[11px] font-semibold"
+            >
+              Clear
+            </button>
           </div>
         </div>
       )}
