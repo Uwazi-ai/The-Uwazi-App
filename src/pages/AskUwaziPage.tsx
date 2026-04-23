@@ -481,7 +481,7 @@ export default function AskUwaziPage() {
       },
       onError: (err) => { toast.error(err); setIsStreaming(false); setIsSearching(false); },
     });
-  }, [input, isStreaming, messages, session, saveMessages, ctx.zipCode]);
+  }, [input, isStreaming, messages, session, saveMessages, ctx.zipCode, isSubscribed, fetchDailyCount]);
 
   // Auto-send when arriving with ?q= prefilled prompt (e.g. from candidate cards)
   const autoSentRef = useRef(false);
