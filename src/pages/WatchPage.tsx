@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Lock, Volume2, VolumeX, Share2, Info, X, Plus, Check, Heart, Play, Bug } from "lucide-react";
 import {
@@ -31,8 +31,23 @@ export default function WatchPage() {
   const [loading, setLoading] = useState(true);
   const feedRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { isPremium } = useSubscription();
   const isSubscriber = isPremium;
+
+  // Scroll to requested episode when ?v=<id> is present
+  useEffect(() => {
+    const targetId = searchParams.get("v");
+    if (!targetId || episodes.length === 0 || !feedRef.current) return;
+    const idx = episodes.findIndex((e) => e.id === targetId);
+    if (idx < 0) return;
+    requestAnimationFrame(() => {
+      feedRef.current?.scrollTo({ top: idx * feedRef.current.clientHeight, behavior: "auto" });
+    });
+    const next = new URLSearchParams(searchParams);
+    next.delete("v");
+    setSearchParams(next, { replace: true });
+  }, [episodes, searchParams, setSearchParams]);
 
   useEffect(() => {
     const fetchVideos = async () => {
