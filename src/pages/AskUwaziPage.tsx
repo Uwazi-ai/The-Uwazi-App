@@ -851,6 +851,70 @@ export default function AskUwaziPage() {
           </div>
         )}
 
+        {/* ─── Soft Paywall Banner ─── */}
+        <AnimatePresence>
+          {showBanner && !isSubscribed && (
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.96 }}
+              transition={{ type: "spring", stiffness: 300, damping: 28 }}
+              className="relative mx-4 mb-3 rounded-2xl border border-primary/30 overflow-hidden"
+              style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.1) 0%, hsl(var(--primary) / 0.04) 100%)" }}
+            >
+              <button
+                onClick={() => { setShowBanner(false); setBannerDismissed(true); }}
+                className="absolute top-3 right-3 w-6 h-6 rounded-full bg-foreground/10 hover:bg-foreground/20 flex items-center justify-center transition-colors z-10"
+                aria-label="Dismiss"
+              >
+                <X className="w-3.5 h-3.5 text-muted-foreground" />
+              </button>
+
+              <div className="p-4 pr-10 flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Zap className="w-4 h-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground mb-0.5">
+                    You're loving Ask Uwazi! 🎉
+                  </p>
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                    You've used your {FREE_DAILY_LIMIT} free questions today. Unlock unlimited access with Uwazi+ — plus Watch, advanced legislation tracking, and more.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => navigate("/app/settings/subscription")}
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs rounded-xl transition-colors"
+                    >
+                      <Star className="w-3 h-3" />
+                      Unlock Uwazi+
+                    </button>
+                    <button
+                      onClick={() => { setShowBanner(false); setBannerDismissed(true); }}
+                      className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Maybe later
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="px-4 pb-3">
+                <div className="flex justify-between text-[10px] text-muted-foreground/70 mb-1">
+                  <span>{dailyCount} of {FREE_DAILY_LIMIT} free questions used today</span>
+                  <span>Resets at midnight</span>
+                </div>
+                <div className="h-1 bg-foreground/[0.07] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min((dailyCount / FREE_DAILY_LIMIT) * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* ─── Input Area ─── */}
         <div className="shrink-0 px-3 sm:px-6 py-3 md:py-4 border-t border-primary/10 bg-background/95 backdrop-blur-xl mb-16 md:mb-0"
           style={{
