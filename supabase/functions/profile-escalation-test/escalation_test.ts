@@ -13,7 +13,7 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUB
 
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
   auth: { persistSession: false },
-});
+} });
 
 // deno-lint-ignore no-explicit-any
 async function createSignedInUser(): Promise<{
@@ -75,7 +75,7 @@ Deno.test({ name: "non-admin cannot set is_admin=true on own profile", sanitizeO
   } finally {
     await cleanup(userId);
   }
-});
+} });
 
 Deno.test({ name: "non-admin cannot set is_suspended on own profile", sanitizeOps: false, sanitizeResources: false, fn: async () => {
   const { userId, client } = await createSignedInUser();
@@ -92,7 +92,7 @@ Deno.test({ name: "non-admin cannot set is_suspended on own profile", sanitizeOp
   } finally {
     await cleanup(userId);
   }
-});
+} });
 
 Deno.test({ name: "non-admin cannot escalate via combined update with safe field", sanitizeOps: false, sanitizeResources: false, fn: async () => {
   // Attempts to sneak is_admin=true alongside a legitimate display_name change.
@@ -115,7 +115,7 @@ Deno.test({ name: "non-admin cannot escalate via combined update with safe field
   } finally {
     await cleanup(userId);
   }
-});
+} });
 
 Deno.test({ name: "non-admin CAN update safe field (display_name)", sanitizeOps: false, sanitizeResources: false, fn: async () => {
   // Sanity check: the lockdown didn't break legitimate self-updates.
@@ -135,7 +135,7 @@ Deno.test({ name: "non-admin CAN update safe field (display_name)", sanitizeOps:
   } finally {
     await cleanup(userId);
   }
-});
+} });
 
 Deno.test({ name: "non-admin cannot update another user's profile", sanitizeOps: false, sanitizeResources: false, fn: async () => {
   const userA = await createSignedInUser();
@@ -158,4 +158,4 @@ Deno.test({ name: "non-admin cannot update another user's profile", sanitizeOps:
     await cleanup(userA.userId);
     await cleanup(userB.userId);
   }
-});
+} });
