@@ -393,7 +393,7 @@ function LikeButton({ episodeId }: { episodeId: string }) {
   );
 }
 
-
+function PaywallOverlay({ onClose, onUpgrade }: { onClose: () => void; onUpgrade: (plan: string) => void }) {
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6" onClick={onClose}>
