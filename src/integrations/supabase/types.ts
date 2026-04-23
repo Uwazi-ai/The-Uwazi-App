@@ -852,6 +852,35 @@ export type Database = {
         }
         Relationships: []
       }
+      episode_likes: {
+        Row: {
+          created_at: string
+          episode_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          episode_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          episode_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "episode_likes_episode_id_fkey"
+            columns: ["episode_id"]
+            isOneToOne: false
+            referencedRelation: "episodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       episode_video_access_log: {
         Row: {
           context: Json | null
