@@ -6,6 +6,7 @@ import { TopBar } from "./TopBar";
 import { ScrollToTop } from "./ScrollToTop";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { ProfileProvider } from "@/contexts/ProfileContext";
+import { useForceRefresh } from "@/hooks/useForceRefresh";
 
 const pageVariants = {
   initial: { opacity: 0, y: 8 },
@@ -24,6 +25,7 @@ const pageVariants = {
 export function AppLayout() {
   const location = useLocation();
   const isAskPage = location.pathname === "/app/ask";
+  useForceRefresh();
 
   return (
     <ProfileProvider>

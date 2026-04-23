@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Shield, Copy, Download } from "lucide-react";
+import { Shield, Copy, Download, RefreshCw } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,6 +85,15 @@ export default function AdminPlatformPage() {
     toast.success("Admin removed");
   };
 
+  const forceRefreshAll = async () => {
+    const version = `v-${Date.now()}`;
+    const { error } = await supabase
+      .from("platform_settings")
+      .upsert({ key: "force_refresh_version", value: version as any, updated_at: new Date().toISOString() }, { onConflict: "key" });
+    if (error) { toast.error("Failed to trigger refresh"); return; }
+    toast.success("All active users will reload to the latest build");
+  };
+
   const copySnapshot = () => {
     if (!statsSnapshot) return;
     const text = `UWAZI.AI Platform Stats\n• Total Users: ${statsSnapshot.totalUsers}\n• Lessons Completed: ${statsSnapshot.totalLessons}\n• Total XP: ${statsSnapshot.totalXp}\n• Voting Plans: ${statsSnapshot.votingPlans}`;
@@ -100,6 +110,37 @@ export default function AdminPlatformPage() {
         </div>
         <h1 className="text-3xl md:text-5xl font-axis uppercase text-foreground">PLATFORM SETTINGS</h1>
       </div>
+
+      {/* Force Refresh */}
+      <Card className="bg-card border-border p-4 space-y-3">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-sm font-axis uppercase text-foreground flex items-center gap-2">
+              <RefreshCw className="h-4 w-4 text-primary" /> FORCE REFRESH UI
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1 max-w-md">
+              Pushes a signal to every active user's browser to unregister the service worker, clear caches, and hard-reload the app — so they immediately see the latest published frontend build. Use after publishing an update.
+            </p>
+          </div>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="sm" className="gap-1.5 shrink-0"><RefreshCw className="h-3.5 w-3.5" /> Republish UI</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Force refresh all active users?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Every user currently using the app will be reloaded within seconds. In-progress unsaved input may be lost. This does not trigger a Lovable deployment — make sure you've already clicked Publish → Update in the editor first.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={forceRefreshAll}>Force Refresh</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </Card>
 
       {/* Feature Flags */}
       <Card className="bg-card border-border p-4 space-y-4">
