@@ -13,7 +13,7 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUB
 
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
   auth: { persistSession: false },
-} });
+});
 
 // deno-lint-ignore no-explicit-any
 async function createSignedInUser(): Promise<{
