@@ -258,6 +258,19 @@ export default function VotingHubPage() {
           >
             Ask Uwazi about 2026 →
           </Button>
+          <Button
+            variant="ghost"
+            className="text-foreground/80 hover:text-foreground hover:bg-muted/60 gap-1.5"
+            onClick={() => {
+              setActiveTab("act");
+              window.history.replaceState(null, "", "#act");
+              setTimeout(() => {
+                document.getElementById("voting-plan-builder")?.scrollIntoView({ behavior: "smooth" });
+              }, 100);
+            }}
+          >
+            Set up voting plan →
+          </Button>
         </div>
       </motion.div>
 
