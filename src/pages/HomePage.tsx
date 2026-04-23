@@ -15,6 +15,7 @@ import {
 import { useGamification } from "@/hooks/useGamification";
 import { useCivicLocation } from "@/hooks/useCivicLocation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/contexts/ProfileContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import FeatureTour from "@/components/home/FeatureTour";
@@ -66,7 +67,9 @@ export default function HomePage() {
     };
   }, []);
 
+  const { displayName: profileDisplayName } = useProfile();
   const displayName =
+    profileDisplayName?.split(" ")[0] ||
     user?.user_metadata?.full_name?.split(" ")[0] ||
     user?.email?.split("@")[0] ||
     "Citizen";
