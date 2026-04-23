@@ -111,6 +111,11 @@ export default function HomePage() {
         </motion.div>
       </motion.div>
 
+      {/* Latest episode card */}
+      <motion.div variants={itemVariants}>
+        <LatestEpisodeCard />
+      </motion.div>
+
       {/* Two columns */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Civic Loop */}
