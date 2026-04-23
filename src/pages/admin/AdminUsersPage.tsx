@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/contexts/ProfileContext";
+import { AdminAvatar } from "@/components/admin/AdminAvatar";
 
 export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
@@ -145,7 +146,7 @@ export default function AdminUsersPage() {
                 <td className="p-3">
                   <div className="flex items-center gap-2">
                     <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold shrink-0 overflow-hidden">
-                      {u.avatar_url ? <img src={u.avatar_url} className="h-full w-full object-cover" /> : u.display_name?.[0]?.toUpperCase() || "?"}
+                      <AdminAvatar src={u.avatar_url} fallback={u.display_name?.[0]?.toUpperCase() || "?"} />
                     </div>
                     <div>
                       <p className="font-medium text-foreground text-xs flex items-center gap-1 flex-wrap">
@@ -200,7 +201,7 @@ export default function AdminUsersPage() {
           {selectedUser && (
             <div className="mt-4 space-y-4 text-sm">
               <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xl font-bold mx-auto overflow-hidden">
-                {selectedUser.avatar_url ? <img src={selectedUser.avatar_url} className="h-full w-full object-cover" /> : selectedUser.display_name?.[0]?.toUpperCase() || "?"}
+                <AdminAvatar src={selectedUser.avatar_url} fallback={selectedUser.display_name?.[0]?.toUpperCase() || "?"} />
               </div>
               <div className="space-y-2">
                 <Row label="Name" value={selectedUser.display_name} />

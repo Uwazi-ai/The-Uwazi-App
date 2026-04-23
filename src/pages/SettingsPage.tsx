@@ -28,6 +28,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { US_STATES, getStateFromZip } from "@/utils/stateFromZip";
+import { resolveAvatarUrl } from "@/lib/avatar";
 
 interface ProfileData {
   display_name: string | null;
@@ -154,7 +155,8 @@ export default function SettingsPage() {
 
       if (data) {
         setDisplayName(data.display_name || "");
-        setAvatarUrl(data.avatar_url);
+        const signed = await resolveAvatarUrl(data.avatar_url);
+        setAvatarUrl(signed);
         setNotifyElections(data.notify_elections ?? true);
         setNotifyNewLessons(data.notify_new_lessons ?? true);
         setNotifyStreakReminders(data.notify_streak_reminders ?? true);
@@ -184,10 +186,10 @@ export default function SettingsPage() {
       const filePath = `${user.id}/avatar.${ext}`;
       const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, { upsert: true });
       if (uploadError) throw uploadError;
-      const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(filePath);
-      const freshUrl = `${publicUrl}?t=${Date.now()}`;
-      await supabase.from("profiles").update({ avatar_url: freshUrl }).eq("user_id", user.id);
-      setAvatarUrl(freshUrl);
+      // Store the storage object path (private bucket) — UI resolves to a signed URL.
+      await supabase.from("profiles").update({ avatar_url: filePath }).eq("user_id", user.id);
+      const signed = await resolveAvatarUrl(filePath);
+      setAvatarUrl(signed);
       setAvatarPreview(null);
       toast.success("Profile photo updated ✓");
       refreshProfile();

@@ -5,6 +5,7 @@ import { Shield, Users, UserPlus, Activity, Brain, Zap, GraduationCap, MessageCi
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { AdminAvatar } from "@/components/admin/AdminAvatar";
 
 function formatTimeAgo(d: string) {
   const diff = Date.now() - new Date(d).getTime();
@@ -129,7 +130,7 @@ export default function AdminOverviewPage() {
             {recent?.map((u) => (
               <div key={u.user_id} className="flex items-center gap-3 py-1.5 border-b border-border last:border-0">
                 <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold shrink-0 overflow-hidden">
-                  {u.avatar_url ? <img src={u.avatar_url} className="h-full w-full object-cover" /> : u.display_name?.[0]?.toUpperCase() || "?"}
+                  <AdminAvatar src={u.avatar_url} fallback={u.display_name?.[0]?.toUpperCase() || "?"} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-medium text-foreground truncate">{u.display_name || "Unknown"}</p>
