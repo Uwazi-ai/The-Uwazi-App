@@ -33,7 +33,8 @@ async function createSignedInUser(): Promise<{
   const userId = data.user!.id;
 
   const client = createClient(SUPABASE_URL, ANON_KEY, {
-    auth: { persistSession: false },
+    auth: { persistSession: false, autoRefreshToken: false },
+    realtime: { params: { eventsPerSecond: 0 } },
   });
   const { error: signInErr } = await client.auth.signInWithPassword({ email, password });
   if (signInErr) throw signInErr;
