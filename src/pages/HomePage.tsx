@@ -130,9 +130,12 @@ export default function HomePage() {
               <video
                 src={featured.video_url}
                 className="absolute inset-0 w-full h-full object-cover opacity-80"
+                autoPlay
+                loop
                 muted
                 playsInline
-                preload="metadata"
+                preload="auto"
+                disableRemotePlayback
               />
             )}
 
