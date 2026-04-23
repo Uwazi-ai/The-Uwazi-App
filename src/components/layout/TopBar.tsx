@@ -1,11 +1,8 @@
-import { Link } from "react-router-dom";
-import { useProfile } from "@/contexts/ProfileContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SearchIcon, NotificationIcon } from "@/components/icons/UwaziIcons";
 import uwaziLogo from "@/assets/uwazi-logo.png";
 
 export function TopBar() {
-  const { displayName, avatarUrl } = useProfile();
 
   return (
     <header className="flex items-center justify-between gap-4 px-4 md:px-6 h-[52px] sticky top-0 z-10 topbar-safe"
@@ -50,13 +47,6 @@ export function TopBar() {
           <NotificationIcon size={20} className="text-muted-foreground" />
         </button>
 
-        <Link to="/settings" className="hidden md:flex h-8 w-8 rounded-full bg-primary/20 items-center justify-center text-primary text-sm font-bold overflow-hidden shrink-0">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
-          ) : (
-            displayName[0]?.toUpperCase()
-          )}
-        </Link>
       </div>
     </header>
   );
