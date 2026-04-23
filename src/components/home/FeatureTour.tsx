@@ -113,6 +113,12 @@ export default function FeatureTour({ open, onClose }: FeatureTourProps) {
 
   useEffect(() => {
     if (!open) return;
+    setCurrentStep(0);
+    setDirection(1);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight") advance(1);
       if (e.key === "ArrowLeft") advance(-1);
