@@ -251,7 +251,7 @@ export default function HomePage() {
               return (
                 <div
                   key={ep.id}
-                  onClick={() => navigate("/app/watch")}
+                  onClick={() => navigate(requiresSub ? "/app/upgrade?plan=beta_monthly" : `/app/watch?v=${ep.id}`)}
                   className="w-40 flex-shrink-0 rounded-xl overflow-hidden border border-border bg-card cursor-pointer snap-start group hover:border-primary/40 transition-colors"
                 >
                   <div className="h-[90px] relative bg-gradient-to-br from-primary/20 to-background overflow-hidden">
@@ -310,7 +310,7 @@ export default function HomePage() {
 
                   {requiresSub && (
                     <Link
-                      to="/upgrade"
+                      to="/app/upgrade?plan=beta_monthly"
                       onClick={(e) => e.stopPropagation()}
                       className="block px-2.5 py-1.5 bg-primary/10 border-t border-primary/20 text-primary text-[10px] font-bold text-center hover:bg-primary/20 transition-colors"
                     >
