@@ -269,7 +269,7 @@ export default function Welcome() {
             {/* Logo */}
             <div className="flex items-center gap-2.5">
               <img src={uwaziPinwheel} alt="UWAZI" className="w-8 h-8 object-contain" />
-              <span className="text-sm font-bold tracking-wide">UWAZI.AI</span>
+              <span className="text-sm font-bold tracking-wide text-primary">UWAZI.APP</span>
             </div>
 
             {/* Feature peek cards */}
