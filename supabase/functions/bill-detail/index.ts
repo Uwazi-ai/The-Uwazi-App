@@ -27,8 +27,9 @@ serve(async (req) => {
 
     const r = await fetch(url);
     if (!r.ok) {
-      const errText = await r.text();
-      throw new Error(`Congress.gov returned ${r.status}: ${errText}`);
+      const errText = await r.text().catch(() => "");
+      console.error(`[bill-detail] Congress.gov ${r.status}:`, errText);
+      throw new Error(`upstream_error_${r.status}`);
     }
 
     const json = await r.json();
