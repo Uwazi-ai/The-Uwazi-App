@@ -253,20 +253,20 @@ function RaceCard({
       {race.candidates.map((c) => (
         <div
           key={c.id}
-          className={`rounded-xl p-3 border-l-4 ${partyBorderClass(c.party)} flex items-center justify-between cursor-pointer hover:bg-muted/30 transition-colors`}
+          className={`rounded-xl p-3 border-l-4 ${partyBorderClass(c.party)} flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 cursor-pointer hover:bg-muted/30 transition-colors`}
           style={{ background: "var(--input-bg)", border: "1px solid var(--border-subtle)" }}
           onClick={() => navigate(`/vote/candidates/${c.id}`)}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <div
-              className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
+              className="h-8 w-8 shrink-0 rounded-full flex items-center justify-center text-xs font-bold text-white"
               style={{ backgroundColor: partyColor(c.party) }}
             >
               {c.name.split(" ").map((w) => w[0]).join("").slice(0, 2)}
             </div>
-            <div>
-              <p className="text-sm font-medium text-foreground">{c.name}</p>
-              <div className="flex items-center gap-1.5">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-foreground truncate">{c.name}</p>
+              <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
                 <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${partyBadgeClasses(c.party)}`}>
                   {partyShortLabel(c.party)}
                 </span>
@@ -279,13 +279,13 @@ function RaceCard({
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto pl-11 sm:pl-0">
             {c.ballotpedia_url && (
               <a
                 href={c.ballotpedia_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-muted-foreground hover:text-primary"
+                className="text-xs text-muted-foreground hover:text-primary whitespace-nowrap"
                 onClick={(e) => e.stopPropagation()}
               >
                 Ballotpedia ↗
@@ -294,7 +294,7 @@ function RaceCard({
             <Button
               variant="ghost"
               size="sm"
-              className="text-xs text-primary h-7"
+              className="text-xs text-primary h-7 whitespace-nowrap"
               onClick={(e) => { e.stopPropagation(); onResearch(c.name, officeLabel(race.office)); }}
             >
               Ask Uwazi →
