@@ -442,6 +442,17 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
             <button onClick={toggleInfo} className="p-2 rounded-full bg-black/40 text-white">
               <Info size={20} />
             </button>
+            <button
+              onClick={() => {
+                if (!debugOpen && episode.video_url) probeNetwork(episode.video_url);
+                setDebugOpen((v) => !v);
+              }}
+              className="p-2 rounded-full bg-black/40 text-white"
+              aria-label="Video debug info"
+              title="Video issues"
+            >
+              <Bug size={20} />
+            </button>
           </div>
 
           {infoOpen && (
