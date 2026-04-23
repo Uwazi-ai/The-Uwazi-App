@@ -369,13 +369,6 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
           )}
         </div>
       )}
-        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-zinc-900 to-black flex items-center justify-center">
-          <div className="text-center px-6">
-            <div className="text-5xl mb-3">{episode.topic_emoji || "🎬"}</div>
-            <p className="text-white/60 text-sm">Video coming soon</p>
-          </div>
-        </div>
-      )}
 
       {needsTap && episode.video_url && !locked && (
         <button
