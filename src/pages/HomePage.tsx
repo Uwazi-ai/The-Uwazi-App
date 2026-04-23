@@ -257,13 +257,13 @@ export default function HomePage() {
                   <div className="h-[90px] relative bg-gradient-to-br from-primary/20 to-background overflow-hidden">
                     {ep.video_url && (
                       <video
-                        src={ep.video_url}
+                        src={`${ep.video_url}#t=0.1`}
                         className="absolute inset-0 w-full h-full object-cover opacity-70"
-                        autoPlay={isPlaying}
-                        loop={isPlaying}
+                        autoPlay
+                        loop
                         muted
                         playsInline
-                        preload={isPlaying ? "auto" : "metadata"}
+                        preload="auto"
                         disableRemotePlayback
                       />
                     )}
