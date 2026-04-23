@@ -141,6 +141,62 @@ function checkFile(file) {
   return violations;
 }
 
+// Policies on these (table, command) pairs are append-only / public-by-design.
+// `USING (true)` or `WITH CHECK (true)` is acceptable here.
+const ALLOWED_TRUE = new Set([
+  // Append-only logs: any authenticated insert is fine; reads are gated separately.
+  "uwazi_question_log:INSERT",
+  "episode_video_access_log:INSERT",
+  // Aggregate community metrics, not user-private.
+  "raia_scores:SELECT",
+]);
+
+const DROP_REGEX =
+  /DROP\s+POLICY\s+(?:IF\s+EXISTS\s+)?["']?([\w\s\-]+?)["']?\s+ON\s+(?:public\.)?["']?(\w+)["']?\s*;/gi;
+
+function collectPoliciesAndDrops(files) {
+  // Walk migrations in filename order (timestamp-prefixed) to compute the
+  // final effective set of policies. A later DROP/REPLACE clears earlier ones.
+  const effective = new Map(); // key: `${table}:${policyName}` -> { clause, expr, file, table, policyName, command }
+  const sorted = [...files].sort();
+
+  for (const file of sorted) {
+    const raw = stripComments(readFileSync(file, "utf8"));
+
+    // First, apply DROPs from this file.
+    let d;
+    while ((d = DROP_REGEX.exec(raw)) !== null) {
+      const name = d[1].trim();
+      const table = d[2].toLowerCase();
+      effective.delete(`${table}:${name}`);
+    }
+    DROP_REGEX.lastIndex = 0;
+
+    // Then add CREATE POLICY statements (later definitions overwrite earlier).
+    let m;
+    while ((m = POLICY_REGEX.exec(raw)) !== null) {
+      const policyName = m[1].trim();
+      const table = m[2].toLowerCase();
+      const body = m[3];
+      const cmdMatch = /\bFOR\s+(SELECT|INSERT|UPDATE|DELETE|ALL)\b/i.exec(body);
+      const command = (cmdMatch ? cmdMatch[1] : "ALL").toUpperCase();
+      const usingExpr = extractParenGroup(body, "USING");
+      const checkExpr = extractParenGroup(body, "WITH\\s+CHECK");
+      effective.set(`${table}:${policyName}`, {
+        file,
+        table,
+        policyName,
+        command,
+        usingExpr,
+        checkExpr,
+      });
+    }
+    POLICY_REGEX.lastIndex = 0;
+  }
+
+  return [...effective.values()];
+}
+
 function main() {
   let files;
   try {
@@ -150,7 +206,19 @@ function main() {
     process.exit(2);
   }
 
-  const allViolations = files.flatMap(checkFile);
+  const effective = collectPoliciesAndDrops(files);
+  const allViolations = [];
+  for (const p of effective) {
+    if (!SENSITIVE_TABLES.has(p.table)) continue;
+    const allowKey = `${p.table}:${p.command}`;
+    const allowAll = ALLOWED_TRUE.has(allowKey);
+    if (!allowAll && isAlwaysTrue(p.usingExpr)) {
+      allViolations.push({ ...p, clause: "USING", expr: p.usingExpr });
+    }
+    if (!allowAll && isAlwaysTrue(p.checkExpr)) {
+      allViolations.push({ ...p, clause: "WITH CHECK", expr: p.checkExpr });
+    }
+  }
 
   if (allViolations.length === 0) {
     console.log(
