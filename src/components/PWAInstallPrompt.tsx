@@ -1,71 +1,129 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, X, Share } from "lucide-react";
+import { Download, X, Share, Plus } from "lucide-react";
+import { toast } from "sonner";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
-// Shared global deferred prompt so Settings page can also use it
+// Shared global deferred prompt so any component can use it
 let globalDeferredPrompt: BeforeInstallPromptEvent | null = null;
+const promptListeners = new Set<(p: BeforeInstallPromptEvent | null) => void>();
+
+// Capture the event as early as possible (module load) so we never miss it.
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeinstallprompt", (e: Event) => {
+    e.preventDefault();
+    globalDeferredPrompt = e as BeforeInstallPromptEvent;
+    promptListeners.forEach((fn) => fn(globalDeferredPrompt));
+  });
+  window.addEventListener("appinstalled", () => {
+    globalDeferredPrompt = null;
+    promptListeners.forEach((fn) => fn(null));
+  });
+}
+
+function detectPlatform() {
+  if (typeof window === "undefined") {
+    return { isIOS: false, isSafari: false, isAndroid: false, isDesktop: true, isStandalone: false, isFirefox: false };
+  }
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
+  const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|Chrome|Edg|OPR/.test(ua);
+  const isAndroid = /Android/.test(ua);
+  const isFirefox = /Firefox|FxiOS/.test(ua);
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as any).standalone === true;
+  const isDesktop = !isIOS && !isAndroid;
+  return { isIOS, isSafari, isAndroid, isDesktop, isStandalone, isFirefox };
+}
 
 export function usePWAInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(globalDeferredPrompt);
   const [isInstalled, setIsInstalled] = useState(false);
+  const platform = detectPlatform();
 
   useEffect(() => {
-    if (window.matchMedia("(display-mode: standalone)").matches) {
+    if (platform.isStandalone) {
       setIsInstalled(true);
       return;
     }
-    const handler = (e: Event) => {
-      e.preventDefault();
-      globalDeferredPrompt = e as BeforeInstallPromptEvent;
-      setDeferredPrompt(globalDeferredPrompt);
+    const listener = (p: BeforeInstallPromptEvent | null) => {
+      setDeferredPrompt(p);
+      if (p === null) setIsInstalled(true);
     };
-    window.addEventListener("beforeinstallprompt", handler);
-
-    const installed = () => setIsInstalled(true);
-    window.addEventListener("appinstalled", installed);
-
+    promptListeners.add(listener);
     return () => {
-      window.removeEventListener("beforeinstallprompt", handler);
-      window.removeEventListener("appinstalled", installed);
+      promptListeners.delete(listener);
     };
-  }, []);
+  }, [platform.isStandalone]);
 
   const install = useCallback(async () => {
     const prompt = deferredPrompt || globalDeferredPrompt;
-    if (!prompt) return false;
-    await prompt.prompt();
-    const { outcome } = await prompt.userChoice;
-    if (outcome === "accepted") {
-      setIsInstalled(true);
-      globalDeferredPrompt = null;
-      setDeferredPrompt(null);
-      return true;
+
+    // iOS Safari: no programmatic install — guide the user
+    if (platform.isIOS) {
+      toast.info("Tap the Share button, then 'Add to Home Screen' to install UWAZI.", {
+        duration: 6000,
+      });
+      return false;
     }
-    return false;
-  }, [deferredPrompt]);
 
-  const isSupported = typeof window !== "undefined" &&
-    /Chrome|Edg/.test(navigator.userAgent) &&
-    !/Firefox|OPR/.test(navigator.userAgent);
+    // No native prompt available
+    if (!prompt) {
+      if (platform.isFirefox) {
+        toast.info("Firefox doesn't support app install. Try Chrome, Edge, or Brave to install UWAZI.", {
+          duration: 6000,
+        });
+      } else if (platform.isSafari && !platform.isIOS) {
+        toast.info("To install on macOS Safari, use the File menu → Add to Dock.", {
+          duration: 6000,
+        });
+      } else {
+        toast.info(
+          "Install isn't available right now. Look for the install icon (⊕) in your browser's address bar, or check your browser menu.",
+          { duration: 7000 }
+        );
+      }
+      return false;
+    }
 
-  return { deferredPrompt, isInstalled, install, isSupported };
+    try {
+      await prompt.prompt();
+      const { outcome } = await prompt.userChoice;
+      if (outcome === "accepted") {
+        setIsInstalled(true);
+        globalDeferredPrompt = null;
+        setDeferredPrompt(null);
+        toast.success("UWAZI installed! Find it on your home screen or app launcher.");
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("[PWA] install failed", err);
+      toast.error("Couldn't open the install prompt. Try your browser's menu instead.");
+      return false;
+    }
+  }, [deferredPrompt, platform.isIOS, platform.isFirefox, platform.isSafari]);
+
+  // Always supported as a UI action — install() will guide the user appropriately
+  const isSupported = !platform.isStandalone;
+  const canPromptNatively = !!deferredPrompt || platform.isIOS;
+
+  return { deferredPrompt, isInstalled, install, isSupported, canPromptNatively, platform };
 }
 
 export function PWAInstallPrompt() {
-  const { install, isInstalled } = usePWAInstall();
+  const { install, isInstalled, platform } = usePWAInstall();
   const [showBanner, setShowBanner] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
-    if (isInstalled) return;
-    if (window.matchMedia("(display-mode: standalone)").matches) return;
+    if (isInstalled || platform.isStandalone) return;
 
-    // Check 7-day dismiss cooldown
+    // 7-day dismiss cooldown
     const dismissedAt = localStorage.getItem("pwa-dismissed");
     if (dismissedAt) {
       const elapsed = Date.now() - parseInt(dismissedAt, 10);
@@ -77,21 +135,11 @@ export function PWAInstallPrompt() {
     const visits = parseInt(localStorage.getItem("pwa-visits") || "0", 10) + 1;
     localStorage.setItem("pwa-visits", String(visits));
 
-    // Detect iOS Safari
-    const ua = navigator.userAgent;
-    const isiOS = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
-    const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|Chrome/.test(ua);
-    if (isiOS && isSafari) {
-      setIsIOS(true);
-    }
-
-    // Show after 30s OR on 2nd+ visit
-    if (visits >= 2) {
-      setTimeout(() => setShowBanner(true), 2000);
-    } else {
-      setTimeout(() => setShowBanner(true), 30000);
-    }
-  }, [isInstalled]);
+    // Show after 20s on first visit, 3s on 2nd+ visit
+    const delay = visits >= 2 ? 3000 : 20000;
+    const timer = setTimeout(() => setShowBanner(true), delay);
+    return () => clearTimeout(timer);
+  }, [isInstalled, platform.isStandalone]);
 
   const handleInstall = async () => {
     const accepted = await install();
@@ -103,7 +151,7 @@ export function PWAInstallPrompt() {
     localStorage.setItem("pwa-dismissed", String(Date.now()));
   };
 
-  if (!showBanner || isInstalled) return null;
+  if (!showBanner || isInstalled || platform.isStandalone) return null;
 
   return (
     <AnimatePresence>
@@ -111,7 +159,8 @@ export function PWAInstallPrompt() {
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
-        className="fixed bottom-20 md:bottom-6 left-4 right-4 z-[60] max-w-md mx-auto" style={{ marginBottom: "env(safe-area-inset-bottom)" }}
+        className="fixed bottom-20 md:bottom-6 left-4 right-4 z-[60] max-w-md mx-auto"
+        style={{ marginBottom: "env(safe-area-inset-bottom)" }}
       >
         <div
           className="rounded-2xl p-4 flex items-start gap-3"
@@ -127,9 +176,16 @@ export function PWAInstallPrompt() {
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-bold text-foreground">Install UWAZI.AI</h3>
-            {isIOS ? (
+            {platform.isIOS && platform.isSafari ? (
               <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                Tap <Share className="inline h-3 w-3 text-primary" /> then <strong>"Add to Home Screen"</strong> to install UWAZI like an app.
+                Tap <Share className="inline h-3 w-3 text-primary" /> below, then{" "}
+                <strong>"Add to Home Screen"</strong> to install.
+              </p>
+            ) : platform.isIOS ? (
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                Open this page in <strong>Safari</strong>, tap{" "}
+                <Share className="inline h-3 w-3 text-primary" />, then{" "}
+                <strong>"Add to Home Screen"</strong>.
               </p>
             ) : (
               <>
@@ -138,15 +194,20 @@ export function PWAInstallPrompt() {
                 </p>
                 <button
                   onClick={handleInstall}
-                  className="mt-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all hover:brightness-110"
+                  className="mt-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all hover:brightness-110 inline-flex items-center gap-1.5"
                   style={{ background: "#9bd34b", color: "#0A0A0A" }}
                 >
+                  <Plus className="h-3.5 w-3.5" />
                   Install App
                 </button>
               </>
             )}
           </div>
-          <button onClick={handleDismiss} className="text-muted-foreground hover:text-foreground shrink-0">
+          <button
+            onClick={handleDismiss}
+            className="text-muted-foreground hover:text-foreground shrink-0"
+            aria-label="Dismiss install prompt"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
