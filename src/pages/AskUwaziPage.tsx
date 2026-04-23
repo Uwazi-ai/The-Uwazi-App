@@ -681,6 +681,17 @@ export default function AskUwaziPage() {
                     {stateName && <span className="text-[10px] text-primary/50">· {stateName}</span>}
                   </div>
                 )}
+
+                {/* Free question counter */}
+                {!isSubscribed && dailyCount > 0 && dailyCount < FREE_DAILY_LIMIT && (
+                  <motion.div
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-[11px] text-muted-foreground mt-2 ml-2"
+                  >
+                    <Zap className="w-3 h-3 text-primary" />
+                    {FREE_DAILY_LIMIT - dailyCount} free questions left today
+                  </motion.div>
+                )}
               </motion.div>
 
               {/* 2x2 Suggestion Cards — always 2 columns */}
