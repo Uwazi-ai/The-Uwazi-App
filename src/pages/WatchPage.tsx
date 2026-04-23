@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Lock, Volume2, VolumeX, Share2, Info, X, Plus, Check, Heart, Play, ChevronDown } from "lucide-react";
+import { Lock, Volume2, VolumeX, Share2, Info, X, Plus, Check } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -119,7 +119,6 @@ export default function WatchPage() {
         ) : (
           episodes.map((ep, idx) => {
             const locked = !isSubscriber && !ep.is_free;
-            const isLast = idx === episodes.length - 1;
             return (
               <VideoCard
                 key={ep.id}
@@ -134,14 +133,6 @@ export default function WatchPage() {
                 locked={locked}
                 onPaywall={() => setShowPaywall(true)}
                 onUpgrade={() => navigate("/app/upgrade?plan=beta_monthly")}
-                onNext={isLast ? undefined : () => {
-                  if (feedRef.current) {
-                    feedRef.current.scrollTo({
-                      top: (idx + 1) * feedRef.current.clientHeight,
-                      behavior: "smooth",
-                    });
-                  }
-                }}
               />
             );
           })
@@ -178,49 +169,12 @@ interface VideoCardProps {
   locked: boolean;
   onPaywall: () => void;
   onUpgrade: () => void;
-  onNext?: () => void;
 }
 
-function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, toggleInfo, locked, onPaywall, onUpgrade, onNext }: VideoCardProps) {
+function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, toggleInfo, locked, onPaywall, onUpgrade }: VideoCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-  const [isPaused, setIsPaused] = useState(false);
-  const [liked, setLiked] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    try {
-      const likes = JSON.parse(localStorage.getItem("uwazi_liked_episodes") || "[]");
-      return Array.isArray(likes) && likes.includes(episode.id);
-    } catch {
-      return false;
-    }
-  });
-
-  const toggleLike = () => {
-    setLiked((prev) => {
-      const next = !prev;
-      try {
-        const likes = JSON.parse(localStorage.getItem("uwazi_liked_episodes") || "[]");
-        const set = new Set<string>(Array.isArray(likes) ? likes : []);
-        if (next) set.add(episode.id);
-        else set.delete(episode.id);
-        localStorage.setItem("uwazi_liked_episodes", JSON.stringify(Array.from(set)));
-      } catch {}
-      return next;
-    });
-  };
-
-  const togglePlay = () => {
-    const video = videoRef.current;
-    if (!video || locked) return;
-    if (video.paused) {
-      video.play().catch(() => {});
-      setIsPaused(false);
-    } else {
-      video.pause();
-      setIsPaused(true);
-    }
-  };
 
   useEffect(() => {
     const el = cardRef.current;
@@ -229,7 +183,6 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
     const obs = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting && !locked) {
         video.play().catch(() => {});
-        setIsPaused(false);
       } else {
         video.pause();
       }
@@ -274,21 +227,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
         loop
         playsInline
         preload="metadata"
-        onClick={togglePlay}
       />
-
-      {/* Play indicator when paused */}
-      {!locked && isPaused && (
-        <button
-          onClick={togglePlay}
-          className="absolute inset-0 z-10 flex items-center justify-center bg-black/20"
-          aria-label="Play"
-        >
-          <div className="w-20 h-20 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
-            <Play size={36} className="text-white fill-white ml-1" />
-          </div>
-        </button>
-      )}
 
       <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: "55%", background: "linear-gradient(transparent, rgba(0,0,0,0.85))" }} />
 
@@ -311,28 +250,12 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
             <button onClick={() => setMuted(!muted)} className="p-2 rounded-full bg-black/40 text-white">
               {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
             </button>
-            <button onClick={toggleLike} className="p-2 rounded-full bg-black/40 transition-transform active:scale-90" aria-label={liked ? "Unlike" : "Like"}>
-              <Heart
-                size={20}
-                className={liked ? "text-red-500 fill-red-500" : "text-white"}
-              />
-            </button>
             <button onClick={onShare} className="p-2 rounded-full bg-black/40 text-white">
               <Share2 size={20} />
             </button>
             <button onClick={toggleInfo} className="p-2 rounded-full bg-black/40 text-white">
               <Info size={20} />
             </button>
-            {onNext && (
-              <button
-                onClick={onNext}
-                className="p-2 rounded-full bg-primary text-primary-foreground transition-transform active:scale-90 mt-1"
-                aria-label="Next episode"
-                title="Next episode"
-              >
-                <ChevronDown size={20} />
-              </button>
-            )}
           </div>
 
           {infoOpen && (

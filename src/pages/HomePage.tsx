@@ -1,185 +1,220 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Flame, Zap, FileText, GraduationCap, MapPin, TrendingUp } from "lucide-react";
+import { ArrowRight, MapPin, Flame, BookOpen, Target, Zap, Trophy, Calendar, FileText, Vote, Award, Play } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useGamification } from "@/hooks/useGamification";
+import { useCivicLocation } from "@/hooks/useCivicLocation";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import EpisodeHero from "@/components/home/EpisodeHero";
-import FeatureTour from "@/components/home/FeatureTour";
+import AppTourModal from "@/components/home/AppTourModal";
 
-interface HomeData {
-  displayName: string | null;
-  zipCode: string | null;
-  civicXp: number;
-  currentStreak: number;
-  billsTracked: number;
-  civicScore: number;
-  lessonCount: number;
-  episodeCount: number;
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06, delayChildren: 0.1 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 400, damping: 30 },
+  },
+};
+
+function useCountUp(target: number, duration = 800) {
+  const [value, setValue] = useState(0);
+  const ref = useRef(false);
+  useEffect(() => {
+    if (ref.current) return;
+    ref.current = true;
+    const start = performance.now();
+    const animate = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(target * eased));
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  }, [target, duration]);
+  return value;
 }
 
 export default function HomePage() {
   const { user } = useAuth();
-  const [data, setData] = useState<HomeData | null>(null);
+  const { civicScore, streak, earnedBadges, loading: gamLoading } = useGamification();
+  const { zipCode } = useCivicLocation();
+  const [tourOpen, setTourOpen] = useState(false);
 
-  useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
-    (async () => {
-      const [statsRes, profileRes, scoreRes, lessonsRes, episodesRes] = await Promise.all([
-        supabase
-          .from("user_civic_stats")
-          .select("civic_xp, current_streak, bills_tracked_count")
-          .eq("user_id", user.id)
-          .maybeSingle(),
-        supabase
-          .from("profiles")
-          .select("zip_code, display_name")
-          .eq("user_id", user.id)
-          .maybeSingle(),
-        supabase
-          .from("civic_scores")
-          .select("civic_literacy_score")
-          .eq("user_id", user.id)
-          .maybeSingle(),
-        supabase
-          .from("lessons")
-          .select("id", { count: "exact", head: true })
-          .eq("is_published", true),
-        supabase
-          .from("episodes")
-          .select("id", { count: "exact", head: true })
-          .eq("is_published", true),
-      ]);
-
-      if (cancelled) return;
-      setData({
-        displayName: profileRes.data?.display_name ?? null,
-        zipCode: profileRes.data?.zip_code ?? null,
-        civicXp: statsRes.data?.civic_xp ?? 0,
-        currentStreak: statsRes.data?.current_streak ?? 0,
-        billsTracked: statsRes.data?.bills_tracked_count ?? 0,
-        civicScore: scoreRes.data?.civic_literacy_score ?? 0,
-        lessonCount: lessonsRes.count ?? 0,
-        episodeCount: episodesRes.count ?? 0,
-      });
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [user]);
-
-  const displayName =
-    data?.displayName ||
-    user?.user_metadata?.full_name?.split(" ")[0] ||
-    user?.email?.split("@")[0] ||
-    "Citizen";
-
+  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Citizen";
   const hour = new Date().getHours();
-  const greeting =
-    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
-
-  const stats = [
-    { label: "Civic Score", value: data?.civicScore ?? 0, icon: TrendingUp, to: "/app/progress" },
-    { label: "XP", value: data?.civicXp ?? 0, icon: Zap, to: "/app/progress" },
-    { label: "Day Streak", value: data?.currentStreak ?? 0, icon: Flame, to: "/app/progress" },
-    { label: "Bills Tracked", value: data?.billsTracked ?? 0, icon: FileText, to: "/app/legislation" },
-  ];
+  const greeting = hour < 12 ? "GOOD MORNING" : hour < 18 ? "GOOD AFTERNOON" : "GOOD EVENING";
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-10 pb-24 md:pb-10 space-y-8 md:space-y-10">
-      {/* Greeting */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-      >
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary mb-1.5">
-          {greeting}
-        </p>
-        <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-foreground leading-[1.02] tracking-tight">
-          Welcome back,{" "}
-          <span className="text-primary">{displayName}</span>.
+    <motion.div variants={containerVariants} initial="hidden" animate="show" className="max-w-6xl mx-auto px-4 md:px-10 py-6 md:py-8 pb-24 md:pb-8 space-y-5 md:space-y-6">
+      <AppTourModal open={tourOpen} onClose={() => setTourOpen(false)} />
+
+      {/* Hero */}
+      <motion.div variants={itemVariants} className="pt-2 md:pt-4">
+        <p className="eyebrow mb-2">YOUR CIVIC DASHBOARD</p>
+        <h1 className="font-heading text-3xl sm:text-4xl md:text-[52px] text-foreground leading-[1.05]">
+          {greeting}, {displayName.toUpperCase()}.
         </h1>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3">
-          <p className="text-base md:text-lg text-muted-foreground max-w-xl">
-            Your civic feed, curated. Watch, learn, and act — all in one place.
-          </p>
-          {data?.zipCode && (
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-              <MapPin size={12} className="text-primary" />
-              ZIP {data.zipCode}
-            </span>
-          )}
+        <div className="flex flex-wrap items-center gap-3 mt-2">
+          <p className="text-[15px] text-muted-foreground">Build your Civic Freedom</p>
+          <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={() => setTourOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-foreground/[0.03] border border-border text-muted-foreground hover:border-primary/40 hover:text-primary text-xs font-semibold transition-all duration-200"
+          >
+            <Play className="w-3 h-3" />
+            Explore the App
+          </motion.button>
         </div>
       </motion.div>
 
-      {/* Live stats strip */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
-        className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4"
-      >
-        {stats.map((s) => {
-          const Icon = s.icon;
-          return (
-            <Link
-              key={s.label}
-              to={s.to}
-              className="group rounded-2xl p-4 md:p-5 bg-card border border-border hover-lift transition-all"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <Icon size={18} className="text-primary" />
-              </div>
-              <p className="font-heading text-2xl md:text-3xl text-foreground leading-none">
-                {s.value}
-              </p>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mt-1.5">
-                {s.label}
-              </p>
-            </Link>
-          );
-        })}
+      {/* Stats Grid - Row 1 */}
+      <motion.div variants={containerVariants} className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <motion.div variants={itemVariants}>
+          <StatCard label="Civic Score" value={civicScore?.civic_literacy_score ?? 0} accent animate />
+        </motion.div>
+        <motion.div variants={itemVariants}>
+          <StatCard label="Current Streak" value={streak?.current_streak ?? 0} sub={`+${streak?.current_streak ?? 0} days`} icon={<Flame className="h-4 w-4 text-orange-400" />} animate />
+        </motion.div>
+        <motion.div variants={itemVariants}>
+          <StatCard label="Lessons Completed" value={civicScore?.lessons_completed ?? 0} animate />
+        </motion.div>
+        <motion.div variants={itemVariants}>
+          <StatCard label="Total XP Earned" value={civicScore?.total_xp ?? 0} animate />
+        </motion.div>
       </motion.div>
 
-      {/* Featured episode hero */}
-      <EpisodeHero />
+      {/* Stats Grid - Row 2 */}
+      <motion.div variants={containerVariants} className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <motion.div variants={itemVariants}>
+          <StatCard label="Local Elections" value={zipCode ? 3 : 0} sub={zipCode ? `ZIP ${zipCode}` : "Set ZIP"} />
+        </motion.div>
+        <motion.div variants={itemVariants}>
+          <StatCard label="Bills Tracked" value={0} />
+        </motion.div>
+        <motion.div variants={itemVariants}>
+          <StatCard label="Voting Plan" value="Set up" link="/vote" />
+        </motion.div>
+        <motion.div variants={itemVariants}>
+          <StatCard label="Badges Earned" value={earnedBadges.length} icon={<Award className="h-4 w-4 text-primary" />} animate />
+        </motion.div>
+      </motion.div>
 
-      {/* Quick links to Watch + Learn with live counts */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-        <Link
-          to="/app/watch"
-          className="rounded-2xl p-5 md:p-6 bg-card border border-border hover-lift flex items-center justify-between"
-        >
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1">
-              Watch Feed
-            </p>
-            <p className="font-heading text-xl md:text-2xl text-foreground">
-              {data?.episodeCount ?? 0} episodes ready
-            </p>
+      {/* Two columns */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Civic Loop */}
+        <motion.div variants={itemVariants}
+          className="rounded-2xl p-5 md:p-7 card-highlight hover-lift"
+          style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
+          <h2 className="font-heading text-xl md:text-2xl text-foreground mb-5">YOUR CIVIC LOOP</h2>
+          <div className="space-y-0">
+            {[
+              { num: "01", label: "LEARN", sub: `${civicScore?.lessons_completed ?? 0} lessons available`, icon: BookOpen },
+              { num: "02", label: "PRACTICE", sub: "Daily challenge ready", icon: Target },
+              { num: "03", label: "PROGRESS", sub: `Score: ${civicScore?.civic_literacy_score ?? 0}/100`, icon: Zap },
+              { num: "04", label: "ACT", sub: "Election in 210 days", icon: Calendar },
+            ].map((item, idx) => (
+              <div key={item.num}
+                className="flex items-center gap-[14px] py-[14px] transition-all duration-150 hover:translate-x-1"
+                style={{ borderBottom: idx < 3 ? "1px solid var(--border-subtle)" : "none" }}>
+                <div className="w-8 h-8 rounded-lg bg-primary/[0.12] border border-primary/20 flex items-center justify-center text-[12px] font-bold text-primary shrink-0">
+                  {item.num}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-foreground">{item.label}</p>
+                  <p className="text-xs text-muted-foreground">{item.sub}</p>
+                </div>
+              </div>
+            ))}
           </div>
-          <FileText size={28} className="text-primary opacity-60" />
-        </Link>
-        <Link
-          to="/app/learn"
-          className="rounded-2xl p-5 md:p-6 bg-card border border-border hover-lift flex items-center justify-between"
-        >
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1">
-              Learn
-            </p>
-            <p className="font-heading text-xl md:text-2xl text-foreground">
-              {data?.lessonCount ?? 0} lessons available
-            </p>
-          </div>
-          <GraduationCap size={28} className="text-primary opacity-60" />
-        </Link>
+        </motion.div>
+
+        {/* Civic Location */}
+        <motion.div variants={itemVariants}
+          className="rounded-2xl p-5 md:p-7 card-highlight hover-lift"
+          style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
+          <h2 className="font-heading text-xl md:text-2xl text-foreground mb-5">YOUR CIVIC LOCATION</h2>
+          {zipCode ? (
+            <>
+              <div className="flex items-center gap-2 mb-4">
+                <MapPin className="h-5 w-5 text-primary" />
+                <span className="text-2xl md:text-3xl font-heading text-primary">{zipCode}</span>
+              </div>
+              <div className="rounded-card p-4 mb-4" style={{ background: "var(--input-bg)", border: "1px solid var(--border-subtle)" }}>
+                <p className="text-[11px] text-muted-foreground uppercase tracking-[0.06em] font-medium mb-1">Raia Score for {zipCode}</p>
+                <p className="text-lg font-bold text-foreground">Calculating...</p>
+              </div>
+              <Link to="/settings" className="text-sm text-primary hover:underline">Change Location →</Link>
+              <p className="text-xs text-muted-foreground mt-2">Showing civic data for {zipCode}</p>
+            </>
+          ) : (
+            <div className="text-center py-8">
+              <MapPin className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground mb-3">Set your ZIP to personalize your civic experience</p>
+              <Link to="/settings" className="text-sm font-semibold text-primary hover:underline">Set My Location →</Link>
+            </div>
+          )}
+        </motion.div>
       </div>
 
-      {/* Feature tour bento grid */}
-      <FeatureTour />
+      {/* Ask UWAZI Banner */}
+      <motion.div variants={itemVariants}>
+        <Link to="/ask"
+          className="block rounded-2xl p-5 md:p-7 card-highlight hover-lift transition-all"
+          style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="font-heading text-xl md:text-2xl text-foreground">ASK UWAZI</h3>
+              <p className="text-sm text-muted-foreground mt-1">Have a civic question? Get non-partisan, AI-powered answers.</p>
+            </div>
+            <div className="shrink-0">
+              <div className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold flex items-center gap-2 transition-all hover:scale-[1.02]">
+                Ask Now <ArrowRight className="h-4 w-4" />
+              </div>
+            </div>
+          </div>
+        </Link>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function StatCard({ label, value, sub, icon, accent, link, animate }: {
+  label: string;
+  value: string | number;
+  sub?: string;
+  icon?: React.ReactNode;
+  accent?: boolean;
+  link?: string;
+  animate?: boolean;
+}) {
+  const numericValue = typeof value === "number" ? value : 0;
+  const countedValue = useCountUp(numericValue);
+  const displayValue = animate && typeof value === "number" ? countedValue : value;
+
+  const inner = (
+    <div className="rounded-card p-4 md:p-5 card-highlight hover-lift transition-all"
+      style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">{label}</p>
+        {icon}
+      </div>
+      <p className={`text-[32px] font-semibold leading-none tracking-[-0.03em] ${accent ? "text-primary" : "text-foreground"}`}>
+        {displayValue}
+      </p>
+      {sub && <p className="text-[11px] text-muted-foreground mt-1">{sub}</p>}
     </div>
   );
+  if (link) return <Link to={link}>{inner}</Link>;
+  return inner;
 }
