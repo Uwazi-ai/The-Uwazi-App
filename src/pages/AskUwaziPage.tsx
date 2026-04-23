@@ -449,6 +449,19 @@ export default function AskUwaziPage() {
     });
   }, [input, isStreaming, messages, session, saveMessages, ctx.zipCode]);
 
+  // Auto-send when arriving with ?q= prefilled prompt (e.g. from candidate cards)
+  const autoSentRef = useRef(false);
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (!q || autoSentRef.current || isStreaming) return;
+    autoSentRef.current = true;
+    handleSend(q);
+    // Strip the query param so refresh doesn't re-send
+    const next = new URLSearchParams(searchParams);
+    next.delete("q");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, isStreaming, handleSend, setSearchParams]);
+
   const handleNewChat = useCallback(() => {
     setMessages([]);
     startNewSession();
