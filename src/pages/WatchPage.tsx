@@ -105,7 +105,7 @@ export default function WatchPage() {
       <div ref={feedRef} className="flex-1 overflow-y-scroll snap-y snap-mandatory no-scrollbar md:flex md:flex-col md:items-center" style={{ scrollbarWidth: "none" }}>
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="relative w-full snap-start flex-shrink-0 bg-black" style={{ height: "100dvh" }}>
+            <div key={i} className="relative w-full md:w-auto md:h-screen md:aspect-[9/16] snap-start flex-shrink-0 bg-black" style={{ height: "100dvh" }}>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-16 h-16 rounded-full bg-white/5 animate-pulse" />
               </div>
