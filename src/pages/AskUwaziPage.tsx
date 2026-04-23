@@ -218,7 +218,7 @@ const NonpartisanNotice = ({ message }: { message: Message }) => {
   const lower = message.content.toLowerCase();
   if (!lower.includes('candidate') && !lower.includes('running for') && !lower.includes('campaign')) return null;
   return (
-    <div className="flex items-start gap-2 px-3.5 py-2.5 rounded-lg mt-3 bg-amber-500/[0.06] border border-amber-500/20">
+    <div className="flex items-start gap-2 px-3.5 py-2.5 rounded-lg mt-3 bg-muted/40 border border-border">
       <AlertCircle className="w-3 h-3 text-muted-foreground mt-0.5 flex-shrink-0" />
       <span className="text-[11px] text-muted-foreground leading-relaxed">
         UWAZI provides factual candidate information from public sources. We do not endorse any candidate or party.
