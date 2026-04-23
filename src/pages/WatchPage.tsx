@@ -119,6 +119,7 @@ export default function WatchPage() {
         ) : (
           episodes.map((ep, idx) => {
             const locked = !isSubscriber && !ep.is_free;
+            const isLast = idx === episodes.length - 1;
             return (
               <VideoCard
                 key={ep.id}
@@ -133,6 +134,14 @@ export default function WatchPage() {
                 locked={locked}
                 onPaywall={() => setShowPaywall(true)}
                 onUpgrade={() => navigate("/app/upgrade?plan=beta_monthly")}
+                onNext={isLast ? undefined : () => {
+                  if (feedRef.current) {
+                    feedRef.current.scrollTo({
+                      top: (idx + 1) * feedRef.current.clientHeight,
+                      behavior: "smooth",
+                    });
+                  }
+                }}
               />
             );
           })
