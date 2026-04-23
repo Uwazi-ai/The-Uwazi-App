@@ -136,7 +136,8 @@ export default function WatchPage() {
               />
             );
           })
-      )}
+        )}
+      </div>
 
       {showPaywall && (
         <PaywallOverlay
