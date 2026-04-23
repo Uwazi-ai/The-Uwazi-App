@@ -23,7 +23,7 @@ interface Episode {
 }
 
 export default function WatchPage() {
-  const [activeTab, setActiveTab] = useState<string>("Uwazi");
+  const [activeTab, setActiveTab] = useState<string>("All");
   const [muted, setMuted] = useState(true);
   const [infoOpen, setInfoOpen] = useState<string | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -37,12 +37,14 @@ export default function WatchPage() {
   useEffect(() => {
     const fetchVideos = async () => {
       setLoading(true);
-      const { data } = await supabase
+      let query = supabase
         .from("episodes")
         .select("id, title, description, date, topic, topic_emoji, video_url, is_free")
-        .eq("is_published", true)
-        .eq("topic", activeTab)
-        .order("sort_order", { ascending: true });
+        .eq("is_published", true);
+      if (activeTab !== "All") {
+        query = query.eq("topic", activeTab);
+      }
+      const { data } = await query.order("sort_order", { ascending: true });
       setEpisodes((data as Episode[]) || []);
       setLoading(false);
     };
@@ -84,7 +86,7 @@ export default function WatchPage() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="bg-black/90 border-white/10 backdrop-blur-md">
-              {["Uwazi", "Public Safety", "Housing", "Elections", "Workforce", "Public Health", "Education"].map((tab) => (
+              {["All", "Uwazi", "Public Safety", "Housing", "Elections", "Workforce", "Public Health", "Education"].map((tab) => (
                 <DropdownMenuItem
                   key={tab}
                   onClick={() => handleTabChange(tab)}
