@@ -72,7 +72,7 @@ export function DesktopSidebar() {
 
       <nav className="flex-1 flex flex-col py-2 gap-0 overflow-y-auto">
         {mainNav.map((item) => (
-          <NavLink key={item.to} to={item.to} end={item.to === "/"} className={linkClass}>
+          <NavLink key={item.to} to={item.to} end={item.to === "/app"} className={linkClass}>
             <div className="nav-icon-wrap">
               <item.icon size={18} />
             </div>
@@ -90,7 +90,7 @@ export function DesktopSidebar() {
             {adminNav
               .filter((item) => isAdmin || item.programAdmin)
               .map((item) => (
-                <NavLink key={item.to} to={item.to} end={item.to === "/admin"} className={linkClass}>
+                <NavLink key={item.to} to={item.to} end={item.to === "/app/admin"} className={linkClass}>
                   <div className="nav-icon-wrap">
                     <item.icon size={18} />
                   </div>
