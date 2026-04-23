@@ -6,6 +6,7 @@ import { useGamification } from "@/hooks/useGamification";
 import { useCivicLocation } from "@/hooks/useCivicLocation";
 import { useAuth } from "@/contexts/AuthContext";
 import AppTourModal from "@/components/home/AppTourModal";
+import LatestEpisodeCard from "@/components/home/LatestEpisodeCard";
 
 
 const containerVariants = {
