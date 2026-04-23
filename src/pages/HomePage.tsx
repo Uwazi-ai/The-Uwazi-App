@@ -6,6 +6,7 @@ import { useGamification } from "@/hooks/useGamification";
 import { useCivicLocation } from "@/hooks/useCivicLocation";
 import { useAuth } from "@/contexts/AuthContext";
 import AppTourModal from "@/components/home/AppTourModal";
+import LatestEpisodeCard from "@/components/home/LatestEpisodeCard";
 
 
 const containerVariants = {
@@ -108,6 +109,11 @@ export default function HomePage() {
         <motion.div variants={itemVariants}>
           <StatCard label="Badges Earned" value={earnedBadges.length} icon={<Award className="h-4 w-4 text-primary" />} animate />
         </motion.div>
+      </motion.div>
+
+      {/* Latest episode card */}
+      <motion.div variants={itemVariants}>
+        <LatestEpisodeCard />
       </motion.div>
 
       {/* Two columns */}
