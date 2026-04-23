@@ -264,8 +264,8 @@ export default function Welcome() {
           </div>
         </div>
 
-        {/* ─── RIGHT PANEL ─── */}
-        <div className="w-full lg:w-[440px] lg:min-h-screen border-t lg:border-t-0 lg:border-l border-white/[0.07] bg-[#0a0a0a] flex items-center">
+        {/* ─── RIGHT PANEL (desktop only — mobile uses inline CTAs in left panel) ─── */}
+        <div className="hidden lg:flex w-full lg:w-[440px] lg:min-h-screen border-t lg:border-t-0 lg:border-l border-white/[0.07] bg-[#0a0a0a] items-center">
           <div className="w-full px-8 sm:px-10 py-10 lg:py-14 space-y-7">
             {/* Logo */}
             <div className="flex items-center gap-2.5">
