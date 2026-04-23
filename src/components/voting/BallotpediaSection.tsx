@@ -2,11 +2,14 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown, ChevronUp, ExternalLink, Users, FileText, Landmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useNavigate } from "react-router-dom";
 import type { RaceWithCandidates } from "@/hooks/useBallotpediaData";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Measure = Tables<"ballotpedia_ballot_measures">;
+type Candidate = RaceWithCandidates["candidates"][number];
+type SelectedCandidate = Candidate & { _office?: string; _stateName?: string; _district?: number | null };
 
 const STATE_NAMES: Record<string, string> = {
   MO: "Missouri", CA: "California", TX: "Texas", NY: "New York", FL: "Florida",
@@ -68,14 +71,13 @@ interface BallotpediaSectionProps {
 
 export default function BallotpediaSection({ racesWithCandidates, measures }: BallotpediaSectionProps) {
   const navigate = useNavigate();
+  const [selectedCandidate, setSelectedCandidate] = useState<SelectedCandidate | null>(null);
 
   if (racesWithCandidates.length === 0 && measures.length === 0) return null;
 
-  // Separate federal vs state races
   const federalRaces = racesWithCandidates.filter((r) => isFederal(r.office));
   const stateRaces = racesWithCandidates.filter((r) => !isFederal(r.office));
 
-  // Group federal races by office type
   const federalByOffice: Record<string, RaceWithCandidates[]> = {};
   federalRaces.forEach((r) => {
     const key = r.office;
@@ -83,7 +85,6 @@ export default function BallotpediaSection({ racesWithCandidates, measures }: Ba
     federalByOffice[key].push(r);
   });
 
-  // Group state races by office type
   const stateByOffice: Record<string, RaceWithCandidates[]> = {};
   stateRaces.forEach((r) => {
     const key = r.office;
@@ -98,7 +99,10 @@ export default function BallotpediaSection({ racesWithCandidates, measures }: Ba
     navigate(`/app/ask?q=${encodeURIComponent(prompt)}`);
   };
 
-  // Filter out measures with garbage text
+  const handleSelectCandidate = (c: Candidate, race: RaceWithCandidates) => {
+    setSelectedCandidate({ ...c, _office: officeLabel(race.office), _stateName: stateName, _district: race.district });
+  };
+
   const cleanMeasures = measures.filter((m) => {
     const title = (m.title || "").toLowerCase();
     return !title.includes("see also:") && !title.includes("ballot initiatives filed") && title.length > 5;
@@ -115,7 +119,6 @@ export default function BallotpediaSection({ racesWithCandidates, measures }: Ba
           </div>
 
           {Object.entries(federalByOffice).map(([office, races]) => {
-            // Sort by district
             const sorted = [...races].sort((a, b) => (a.district ?? 0) - (b.district ?? 0));
             const label = office === "us_house"
               ? `U.S. House — ${stateName}`
@@ -132,7 +135,7 @@ export default function BallotpediaSection({ racesWithCandidates, measures }: Ba
                 </p>
                 <div className="space-y-2">
                   {sorted.map((race) => (
-                    <RaceCard key={race.race_id} race={race} stateName={stateName} onResearch={handleResearch} navigate={navigate} />
+                    <RaceCard key={race.race_id} race={race} stateName={stateName} onResearch={handleResearch} onSelect={handleSelectCandidate} />
                   ))}
                 </div>
               </div>
@@ -162,7 +165,7 @@ export default function BallotpediaSection({ racesWithCandidates, measures }: Ba
                 </p>
                 <div className="space-y-2">
                   {sorted.map((race) => (
-                    <RaceCard key={race.race_id} race={race} stateName={stateName} onResearch={handleResearch} navigate={navigate} />
+                    <RaceCard key={race.race_id} race={race} stateName={stateName} onResearch={handleResearch} onSelect={handleSelectCandidate} />
                   ))}
                 </div>
               </div>
@@ -204,6 +207,124 @@ export default function BallotpediaSection({ racesWithCandidates, measures }: Ba
       <p className="text-xs text-muted-foreground text-center leading-relaxed">
         Data sourced from Ballotpedia. UWAZI does not endorse any candidate, party, or ballot measure.
       </p>
+
+      {/* Candidate Detail Sheet */}
+      <Sheet open={!!selectedCandidate} onOpenChange={(open) => !open && setSelectedCandidate(null)}>
+        <SheetContent
+          side="bottom"
+          className="rounded-t-2xl border-t border-border max-h-[85vh] overflow-y-auto p-0"
+          style={{ background: "var(--card-bg)" }}
+        >
+          {selectedCandidate && (
+            <div className="p-6 space-y-5">
+              {/* Drag handle */}
+              <div className="mx-auto h-1 w-10 rounded-full bg-muted-foreground/30 -mt-2" />
+
+              {/* Header */}
+              <div className="flex items-start gap-4">
+                <div
+                  className="h-16 w-16 shrink-0 rounded-full flex items-center justify-center text-lg font-bold text-white"
+                  style={{ backgroundColor: partyColor(selectedCandidate.party) }}
+                >
+                  {selectedCandidate.photo_url ? (
+                    <img
+                      src={selectedCandidate.photo_url}
+                      alt={selectedCandidate.name}
+                      className="h-full w-full rounded-full object-cover"
+                    />
+                  ) : (
+                    selectedCandidate.name?.split(" ").map((w) => w[0]).join("").slice(0, 2)
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-xl font-bold text-foreground leading-tight">
+                    {selectedCandidate.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    {selectedCandidate._office}
+                    {selectedCandidate._district ? ` · District ${selectedCandidate._district}` : ""}
+                    {selectedCandidate._stateName ? ` · ${selectedCandidate._stateName}` : ""}
+                  </p>
+                  <div className="flex items-center gap-1.5 flex-wrap mt-2">
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${partyBadgeClasses(selectedCandidate.party)}`}>
+                      {selectedCandidate.party}
+                    </span>
+                    {selectedCandidate.is_incumbent && (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary inline-block" />
+                        Incumbent
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Ask Uwazi */}
+              <button
+                className="w-full flex items-center gap-3 p-4 rounded-xl bg-primary/10 hover:bg-primary/15 border border-primary/20 transition-colors text-left"
+                onClick={() => {
+                  const name = selectedCandidate.name;
+                  setSelectedCandidate(null);
+                  navigate(`/app/ask?q=${encodeURIComponent(`Tell me more about ${name}`)}`);
+                }}
+              >
+                <span className="text-2xl">💬</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground">
+                    Ask Uwazi about {selectedCandidate.name?.split(" ").slice(-1)[0]}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Get a nonpartisan AI breakdown of their positions
+                  </p>
+                </div>
+                <span className="text-primary">→</span>
+              </button>
+
+              {/* Action buttons */}
+              <div className="grid grid-cols-2 gap-2">
+                {selectedCandidate.ballotpedia_url && (
+                  <a
+                    href={selectedCandidate.ballotpedia_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 py-3 rounded-xl border border-border hover:bg-muted/30 transition-colors text-sm font-medium text-foreground"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Ballotpedia
+                    <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                  </a>
+                )}
+                {selectedCandidate.website_url && (
+                  <a
+                    href={selectedCandidate.website_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 py-3 rounded-xl border border-border hover:bg-muted/30 transition-colors text-sm font-medium text-foreground"
+                  >
+                    Website
+                    <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                  </a>
+                )}
+              </div>
+
+              {/* Build Voting Plan */}
+              <button
+                className="w-full py-3.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-colors"
+                onClick={() => {
+                  setSelectedCandidate(null);
+                  navigate("/app/vote#act");
+                }}
+              >
+                🗳️ Build My Voting Plan →
+              </button>
+
+              <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
+                UWAZI does not endorse any candidate. Information sourced from Ballotpedia.
+              </p>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </motion.div>
   );
 }
@@ -213,12 +334,12 @@ function RaceCard({
   race,
   stateName,
   onResearch,
-  navigate,
+  onSelect,
 }: {
   race: RaceWithCandidates;
   stateName: string;
   onResearch: (name: string, office: string) => void;
-  navigate: (path: string) => void;
+  onSelect: (c: Candidate, race: RaceWithCandidates) => void;
 }) {
   const districtLabel = race.office === "us_house" && race.district
     ? `${stateName}'s ${race.district}${ordinalSuffix(race.district)} Congressional District`
@@ -253,9 +374,9 @@ function RaceCard({
       {race.candidates.map((c) => (
         <div
           key={c.id}
-          className={`rounded-xl p-3 border-l-4 ${partyBorderClass(c.party)} flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 cursor-pointer hover:bg-muted/30 transition-colors`}
+          className={`rounded-xl p-3 border-l-4 ${partyBorderClass(c.party)} flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 cursor-pointer hover:border-primary/30 hover:bg-muted/30 transition-all`}
           style={{ background: "var(--input-bg)", border: "1px solid var(--border-subtle)" }}
-          onClick={() => navigate(`/vote/candidates/${c.id}`)}
+          onClick={() => onSelect(c, race)}
         >
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <div
@@ -319,7 +440,6 @@ function MeasureCard({ measure }: { measure: Measure }) {
   const title = measure.title;
   const summary = measure.summary || "";
 
-  // Filter out raw article bleed-through
   const cleanSummary = summary
     .replace(/See also:.*$/gis, "")
     .replace(/\[edit\]/gi, "")
