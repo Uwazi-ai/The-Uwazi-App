@@ -423,6 +423,14 @@ export default function AskUwaziPage() {
     setInput("");
     setIsStreaming(true);
 
+    // Log question for daily-count tracking (free users only)
+    if (session?.user?.id && !isSubscribed) {
+      supabase.from("uwazi_question_log").insert({
+        user_id: session.user.id,
+        question_text: msg.substring(0, 200),
+      }).then(() => fetchDailyCount());
+    }
+
     const likelySearching = willLikelySearch(msg);
     if (likelySearching) {
       setIsSearching(true);
