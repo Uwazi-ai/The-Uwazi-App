@@ -279,6 +279,8 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
   const tryPlay = () => {
     const video = videoRef.current;
     if (!video) return;
+    // Guard: don't attempt playback until we have a real source URL
+    if (!episode.video_url || !video.src) return;
     if (video.readyState < 2) video.load();
     const p = video.play();
     if (p && typeof p.catch === "function") {
