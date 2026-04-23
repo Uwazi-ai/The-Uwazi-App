@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Lock, Volume2, VolumeX, Share2, Info, X, Plus, Check } from "lucide-react";
+import { Lock, Volume2, VolumeX, Share2, Info, X, Plus, Check, Heart } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -247,6 +247,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
           </div>
 
           <div className="absolute right-3 bottom-[104px] md:bottom-28 z-10 flex flex-col items-center gap-5">
+            <LikeButton episodeId={episode.id} />
             <button onClick={() => setMuted(!muted)} className="p-2 rounded-full bg-black/40 text-white">
               {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
             </button>
