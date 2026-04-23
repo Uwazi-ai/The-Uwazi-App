@@ -74,7 +74,6 @@ export default function AdminEpisodesPage() {
       const { data, error } = await supabase
         .from("episodes")
         .select("*")
-        .order("topic")
         .order("sort_order", { ascending: true });
       if (error) throw error;
       return (data || []) as Episode[];
@@ -175,7 +174,7 @@ export default function AdminEpisodesPage() {
       const map = new Map(reordered.map((ep, i) => [ep.id, i + 1]));
       return [...old]
         .map((ep) => (map.has(ep.id) ? { ...ep, sort_order: map.get(ep.id)! } : ep))
-        .sort((a, b) => a.topic.localeCompare(b.topic) || a.sort_order - b.sort_order);
+        .sort((a, b) => a.sort_order - b.sort_order);
     });
 
     // Persist
