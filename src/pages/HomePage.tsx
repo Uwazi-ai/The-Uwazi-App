@@ -360,21 +360,23 @@ export default function HomePage() {
               visible: noMotion({ opacity: 1, y: 0 }),
             }}
             whileHover={noMotion({ y: -4, transition: { duration: 0.2 } })}
-            animate={noMotion({
-              boxShadow: [
-                "0 0 0px hsl(var(--primary) / 0)",
-                "0 0 16px -4px hsl(var(--primary) / 0.3)",
-                "0 0 0px hsl(var(--primary) / 0)",
-              ],
-            })}
-            transition={noTransition({
-              repeat: Infinity,
-              duration: 3,
-              ease: "easeInOut",
-            })}
             onClick={() => navigate("/app/learn")}
-            className="bg-card backdrop-blur-xl border border-border rounded-2xl p-5 cursor-pointer flex flex-col gap-3"
+            className="relative bg-card backdrop-blur-xl border border-border rounded-2xl p-5 cursor-pointer flex flex-col gap-3"
           >
+            {!reduceMotion && (
+              <motion.div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 rounded-2xl"
+                animate={{
+                  boxShadow: [
+                    "0 0 0px hsl(var(--primary) / 0)",
+                    "0 0 16px -4px hsl(var(--primary) / 0.3)",
+                    "0 0 0px hsl(var(--primary) / 0)",
+                  ],
+                }}
+                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+              />
+            )}
             <div className="bg-primary/10 rounded-xl w-10 h-10 flex items-center justify-center">
               <Target size={20} className="text-primary" />
             </div>
