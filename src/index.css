@@ -376,6 +376,26 @@ button, a, .hover-lift, .follow-up-pill, [class*="animate-"] {
   animation: streamingBlink 0.75s ease-in-out infinite;
 }
 
+/* Typing dots (send-button state while streaming) */
+@keyframes typingDot {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+.typing-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.typing-dots > span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: typingDot 1.2s ease-in-out infinite;
+}
+.typing-dots > span:nth-child(2) { animation-delay: 0.15s; }
+.typing-dots > span:nth-child(3) { animation-delay: 0.3s; }
+
 /* Skeleton shimmer */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
