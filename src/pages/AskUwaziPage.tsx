@@ -944,18 +944,30 @@ export default function AskUwaziPage() {
                 className="flex items-end gap-2 sm:gap-3 w-full">
                 <textarea ref={inputRef} rows={1} value={input}
                   onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
-                  placeholder="Ask about elections, legislation, your rights..."
-                  className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground/50 outline-none min-w-0 resize-none leading-relaxed"
+                  placeholder={isStreaming ? "Uwazi is typing…" : "Ask about elections, legislation, your rights..."}
+                  className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground/50 outline-none min-w-0 resize-none leading-relaxed disabled:cursor-not-allowed"
                   style={{ maxHeight: "120px", fontSize: "16px" }}
-                  disabled={isStreaming} />
+                  disabled={isStreaming}
+                  aria-busy={isStreaming} />
                 <motion.button type="submit" disabled={!input.trim() || isStreaming}
-                  whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
-                  className={`h-9 w-9 sm:h-10 sm:w-10 rounded-full shrink-0 flex items-center justify-center transition-all disabled:opacity-40 ${
-                    (!input.trim() || isStreaming)
-                      ? "bg-muted text-muted-foreground"
-                      : "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.3)]"
+                  whileHover={isStreaming ? undefined : { scale: 1.08 }}
+                  whileTap={isStreaming ? undefined : { scale: 0.92 }}
+                  aria-label={isStreaming ? "Uwazi is typing" : "Send message"}
+                  title={isStreaming ? "Wait for Uwazi to finish…" : "Send"}
+                  className={`h-9 w-9 sm:h-10 sm:w-10 rounded-full shrink-0 flex items-center justify-center transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
+                    isStreaming
+                      ? "bg-primary/15 text-primary border border-primary/30"
+                      : (!input.trim()
+                        ? "bg-muted text-muted-foreground"
+                        : "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.3)]")
                   }`}>
-                  <Send className="h-4 w-4" />
+                  {isStreaming ? (
+                    <span className="typing-dots" aria-hidden="true">
+                      <span /><span /><span />
+                    </span>
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                 </motion.button>
               </form>
             </div>
