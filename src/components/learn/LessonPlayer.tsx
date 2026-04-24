@@ -276,29 +276,37 @@ export default function LessonPlayer({ lesson, onClose, onComplete }: LessonPlay
         </div>
       </div>
 
-      {/* Bottom nav */}
-      <div className="px-4 py-3 border-t border-border flex items-center justify-between">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setStep(Math.max(0, step - 1))}
-          disabled={step === 0}
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" /> Back
-        </Button>
-
-        {step < totalSteps - 1 ? (
+      {/* Bottom nav — sits above mobile tab bar; centered CTA on mobile */}
+      <div className="px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+88px)] md:pb-3 border-t border-border grid grid-cols-3 items-center gap-2">
+        <div className="justify-self-start">
           <Button
-            onClick={() => setStep(step + 1)}
-            disabled={isQuiz && !revealedQuiz.has(currentQuiz?.id || "")}
+            variant="ghost"
+            size="sm"
+            onClick={() => setStep(Math.max(0, step - 1))}
+            disabled={step === 0}
           >
-            Continue <ArrowRight className="h-4 w-4 ml-1" />
+            <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </Button>
-        ) : (
-          <Button onClick={handleComplete} className="bg-primary">
-            <Trophy className="h-4 w-4 mr-1" /> Complete Lesson
-          </Button>
-        )}
+        </div>
+
+        <div className="justify-self-center">
+          {step < totalSteps - 1 ? (
+            <Button
+              size="lg"
+              onClick={() => setStep(step + 1)}
+              disabled={isQuiz && !revealedQuiz.has(currentQuiz?.id || "")}
+              className="min-w-[160px]"
+            >
+              Continue <ArrowRight className="h-4 w-4 ml-1" />
+            </Button>
+          ) : (
+            <Button onClick={handleComplete} size="lg" className="bg-primary min-w-[160px]">
+              <Trophy className="h-4 w-4 mr-1" /> Complete
+            </Button>
+          )}
+        </div>
+
+        <div className="justify-self-end" aria-hidden />
       </div>
     </div>
   );
