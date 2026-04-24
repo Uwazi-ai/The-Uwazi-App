@@ -360,6 +360,22 @@ button, a, .hover-lift, .follow-up-pill, [class*="animate-"] {
   border-color: hsl(var(--primary) / 0.4);
 }
 
+/* Streaming cursor (blinking circle) */
+@keyframes streamingBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.streaming-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  margin-left: 4px;
+  vertical-align: middle;
+  animation: streamingBlink 0.75s ease-in-out infinite;
+}
+
 /* Skeleton shimmer */
 @keyframes shimmer {
   0% { background-position: -200% 0; }

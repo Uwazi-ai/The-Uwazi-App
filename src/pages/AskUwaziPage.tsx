@@ -129,9 +129,27 @@ async function streamChat({ messages, token, onDelta, onDone, onError, onSearchM
   onDone();
 }
 
+// Strips a trailing <followups>...</followups> block from the model output
+// and returns { clean, pills }. Pills are pipe-separated short questions.
+const FOLLOWUPS_REGEX = /<followups>([\s\S]*?)<\/followups>\s*$/i;
+function extractFollowups(content: string): { clean: string; pills: string[] } {
+  const match = content.match(FOLLOWUPS_REGEX);
+  if (!match) return { clean: content, pills: [] };
+  const pills = match[1]
+    .split("|")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0 && s.length < 80)
+    .slice(0, 4);
+  return { clean: content.replace(FOLLOWUPS_REGEX, "").trimEnd(), pills };
+}
+
 function getFollowUpPills(messages: Message[]): string[] {
   const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
   if (!lastAssistant) return [];
+  // Prefer model-generated follow-ups
+  const { pills } = extractFollowups(lastAssistant.content);
+  if (pills.length > 0) return pills;
+  // Fallback: keyword heuristic
   const text = lastAssistant.content.toLowerCase();
   if (text.includes("ballot") || text.includes("election") || text.includes("vote") || text.includes("polling")) {
     return ["Where's my polling place?", "Register to vote", "Vote by mail"];
@@ -778,11 +796,11 @@ export default function AskUwaziPage() {
                             )}
                           </div>
                           <div className="prose prose-sm dark:prose-invert max-w-none break-words [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_strong]:text-primary/90 [&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm [&_h1]:font-heading [&_h2]:font-heading [&_h3]:font-heading [&_ul]:space-y-1.5 [&_ol]:space-y-1.5 [&_li]:text-sm [&_p]:text-sm [&_p]:leading-relaxed [&_blockquote]:border-l-2 [&_blockquote]:border-primary/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs">
-                            <ReactMarkdown>{msg.content}</ReactMarkdown>
+                            <ReactMarkdown>{extractFollowups(msg.content).clean}</ReactMarkdown>
+                            {msg.id === "streaming" && isStreaming && (
+                              <span className="streaming-cursor" />
+                            )}
                           </div>
-                          {msg.id === "streaming" && (
-                            <span className="inline-block w-2 h-5 bg-primary/60 animate-pulse ml-0.5 rounded-sm" />
-                          )}
                           {msg.id !== "streaming" && msg.sources && msg.sources.length > 0 && (
                             <SourcesPanel sources={msg.sources} />
                           )}
