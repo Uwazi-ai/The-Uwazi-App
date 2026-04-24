@@ -44,7 +44,7 @@ export default function LearnPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-32 md:pb-8 space-y-8 min-h-screen overflow-y-auto">
       {/* Hero */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <p className="text-xs font-bold tracking-widest text-primary uppercase mb-2">Civic Education</p>
