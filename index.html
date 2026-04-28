@@ -2,44 +2,53 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- Viewport — CRITICAL for Android safe areas + notch/cutout devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+
     <title>Uwazi.app— sign up today!</title>
-    <meta name="description" content="Understand politics, voting, legislation, and civic issues in plain language. AI-powered, non-partisan civic education platform.">
+    <meta name="description" content="UWAZI — AI-powered civic education. Learn your rights, track legislation, and vote informed." />
     <meta name="author" content="Lovable" />
 
-    <meta property="og:type" content="website" />
-    
-    
-    <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/DrPayZ25vecg9CmzvWnvhFWvfW83/social-images/social-1776943614830-Beta_web_graphic.webp">
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
-    
-    
-    <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/DrPayZ25vecg9CmzvWnvhFWvfW83/social-images/social-1776943614830-Beta_web_graphic.webp">
-
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#84cc16" />
+    <!-- PWA Core -->
     <meta name="application-name" content="UWAZI" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="UWAZI" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="msapplication-TileColor" content="#0a0a0a" />
+    <meta name="msapplication-TileColor" content="#080808" />
     <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
+
+    <!-- Theme color for Android Chrome address bar / status bar -->
+    <meta name="theme-color" content="#080808" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#080808" />
+
+    <!-- Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-128x128.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512x512.png" />
     <link rel="apple-touch-startup-image" href="/splash/splash-2732x2732.png" />
-    
-  
-  
-  
-  <meta property="og:title" content="Uwazi.app— sign up today!">
-  <meta name="twitter:title" content="Uwazi.app— sign up today!">
-  <meta property="og:description" content="Understand politics, voting, legislation, and civic issues in plain language. AI-powered, non-partisan civic education platform.">
-  <meta name="twitter:description" content="Understand politics, voting, legislation, and civic issues in plain language. AI-powered, non-partisan civic education platform.">
-  <link rel="icon" type="image/png" href="/icons/icon-192x192.png">
-</head>
+
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="UWAZI — Civic Intelligence" />
+    <meta property="og:description" content="The Duolingo of civic education. Know your government. Use your voice." />
+    <meta property="og:url" content="https://uwaziapp.uwazi.ai" />
+    <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/DrPayZ25vecg9CmzvWnvhFWvfW83/social-images/social-1776943614830-Beta_web_graphic.webp" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@Lovable" />
+    <meta name="twitter:title" content="UWAZI — Civic Intelligence" />
+    <meta name="twitter:description" content="The Duolingo of civic education. Know your government. Use your voice." />
+    <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/DrPayZ25vecg9CmzvWnvhFWvfW83/social-images/social-1776943614830-Beta_web_graphic.webp" />
+  </head>
 
   <body>
     <div id="root"></div>
@@ -62,7 +71,6 @@
                   await reg.periodicSync.register('sync-civic-data', {
                     minInterval: 24 * 60 * 60 * 1000
                   });
-                  console.log('Periodic sync registered');
                   await reg.periodicSync.register('sync-legislation', {
                     minInterval: 12 * 60 * 60 * 1000
                   });
