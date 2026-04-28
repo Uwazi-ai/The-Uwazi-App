@@ -4,15 +4,27 @@
 
 /* ═══ Safe area insets ═══ */
 :root {
-  --sat: env(safe-area-inset-top);
-  --sab: env(safe-area-inset-bottom);
-  --sal: env(safe-area-inset-left);
-  --sar: env(safe-area-inset-right);
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
 }
 
 html {
   height: 100%;
   height: -webkit-fill-available;
+}
+
+html, body {
+  overscroll-behavior: none; /* prevents pull-to-refresh chrome on Android */
+  -webkit-tap-highlight-color: transparent; /* removes blue tap flash on Android */
+  touch-action: manipulation;
+}
+
+/* Bottom nav must respect Android home bar / gesture area */
+.bottom-nav,
+[data-mobile-nav] {
+  padding-bottom: max(var(--sab), 16px);
 }
 
 #root {
