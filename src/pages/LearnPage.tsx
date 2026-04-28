@@ -44,18 +44,18 @@ export default function LearnPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-40 md:pb-8 space-y-8 min-h-screen overflow-y-auto">
+    <div className="w-full max-w-5xl mx-auto px-3 sm:px-4 md:px-8 py-5 md:py-8 pb-24 md:pb-8 space-y-6 sm:space-y-8 min-h-screen overflow-x-hidden">
       {/* Hero */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <p className="text-xs font-bold tracking-widest text-primary uppercase mb-2">Civic Education</p>
-        <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl text-foreground leading-none mb-1">
+        <p className="text-[11px] sm:text-xs font-bold tracking-widest text-primary uppercase mb-2">Civic Education</p>
+        <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl text-foreground leading-tight mb-1 break-words">
           KNOW MORE. DO MORE.
         </h1>
-        <p className="text-sm text-muted-foreground mb-5">
+        <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-5">
           Nonpartisan lessons built for your community.
         </p>
 
-        <div className="grid grid-cols-3 gap-3 mb-5">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-5">
           <StatCard icon={<Zap className="h-4 w-4" />} value={`${totalXp}`} label="XP Earned" accent />
           <StatCard icon={<BookOpen className="h-4 w-4" />} value={`${completedCount}`} label="Lessons" />
           <StatCard icon={<Flame className="h-4 w-4" />} value={`${tracksStarted}`} label="Tracks Started" />
@@ -98,30 +98,30 @@ export default function LearnPage() {
                 className="w-full text-left bg-card rounded-xl border border-border hover:border-primary/30 transition-all overflow-hidden"
                 style={{ borderLeftWidth: 4, borderLeftColor: track.color || "hsl(var(--primary))" }}
               >
-                <div className="p-4 flex items-start gap-3">
-                  <span className="text-3xl leading-none mt-0.5 shrink-0">{track.emoji}</span>
+                <div className="p-3 sm:p-4 flex items-start gap-2.5 sm:gap-3">
+                  <span className="text-2xl sm:text-3xl leading-none mt-0.5 shrink-0">{track.emoji}</span>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-bold text-foreground text-base truncate">{track.name}</h3>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase shrink-0 ${diff.class}`}>
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <h3 className="font-bold text-foreground text-sm sm:text-base break-words min-w-0">{track.name}</h3>
+                      <span className={`text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full border uppercase shrink-0 ${diff.class}`}>
                         {diff.label}
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground line-clamp-1 mb-2.5">{track.description}</p>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                    <p className="text-xs text-muted-foreground line-clamp-2 sm:line-clamp-1 mb-2.5">{track.description}</p>
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden min-w-0">
                         <div
                           className="h-full rounded-full transition-all duration-500"
                           style={{ width: `${pct}%`, backgroundColor: track.color || "hsl(var(--primary))" }}
                         />
                       </div>
-                      <span className="text-xs text-muted-foreground font-medium shrink-0">
-                        {completed}/{total} lessons
+                      <span className="text-[10px] sm:text-xs text-muted-foreground font-medium shrink-0 whitespace-nowrap">
+                        {completed}/{total}
                       </span>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2 shrink-0 ml-2">
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg ${isDone ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                  <div className="flex flex-col items-end gap-1.5 sm:gap-2 shrink-0 ml-1 sm:ml-2">
+                    <span className={`text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-1 rounded-lg whitespace-nowrap ${isDone ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
                       {ctaLabel}
                     </span>
                     <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
@@ -235,12 +235,12 @@ export default function LearnPage() {
 
 function StatCard({ icon, value, label, accent }: { icon: React.ReactNode; value: string; label: string; accent?: boolean }) {
   return (
-    <div className="bg-card rounded-xl border border-border p-3 text-center">
-      <div className={`flex items-center justify-center gap-1.5 mb-1 ${accent ? "text-primary" : "text-foreground"}`}>
+    <div className="bg-card rounded-xl border border-border p-2.5 sm:p-3 text-center min-w-0">
+      <div className={`flex items-center justify-center gap-1 sm:gap-1.5 mb-1 ${accent ? "text-primary" : "text-foreground"}`}>
         {icon}
-        <span className="text-xl font-bold">{value}</span>
+        <span className="text-lg sm:text-xl font-bold truncate">{value}</span>
       </div>
-      <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">{label}</p>
+      <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider font-medium truncate">{label}</p>
     </div>
   );
 }
