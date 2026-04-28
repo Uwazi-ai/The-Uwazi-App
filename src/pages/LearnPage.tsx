@@ -235,12 +235,12 @@ export default function LearnPage() {
 
 function StatCard({ icon, value, label, accent }: { icon: React.ReactNode; value: string; label: string; accent?: boolean }) {
   return (
-    <div className="bg-card rounded-xl border border-border p-3 text-center">
-      <div className={`flex items-center justify-center gap-1.5 mb-1 ${accent ? "text-primary" : "text-foreground"}`}>
+    <div className="bg-card rounded-xl border border-border p-2.5 sm:p-3 text-center min-w-0">
+      <div className={`flex items-center justify-center gap-1 sm:gap-1.5 mb-1 ${accent ? "text-primary" : "text-foreground"}`}>
         {icon}
-        <span className="text-xl font-bold">{value}</span>
+        <span className="text-lg sm:text-xl font-bold truncate">{value}</span>
       </div>
-      <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">{label}</p>
+      <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider font-medium truncate">{label}</p>
     </div>
   );
 }
