@@ -217,13 +217,6 @@ export default function LessonPlayer({ lesson, onClose, onComplete }: LessonPlay
   }
 
   return (
-    <div className="fixed inset-0 bg-background z-50 flex flex-col">
-      {/* Top bar */}
-      <div
-        className="flex items-center gap-3 px-4 py-3 border-b border-border"
-        style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
-      >
-  return (
     <div
       className="fixed inset-0 bg-background z-50 flex flex-col"
       style={{
