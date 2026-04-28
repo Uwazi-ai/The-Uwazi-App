@@ -139,7 +139,15 @@ export default function LessonPlayer({ lesson, onClose, onComplete }: LessonPlay
     const passed = score >= 75;
 
     return (
-      <div className="fixed inset-0 bg-background z-50 flex items-center justify-center p-4">
+      <div
+        className="fixed inset-0 bg-background z-50 flex items-center justify-center p-4 overflow-y-auto"
+        style={{
+          paddingTop: "max(1rem, env(safe-area-inset-top))",
+          paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+          paddingLeft: "max(1rem, env(safe-area-inset-left))",
+          paddingRight: "max(1rem, env(safe-area-inset-right))",
+        }}
+      >
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-md w-full text-center space-y-6">
           <motion.div
             initial={{ rotate: -180, scale: 0 }}
@@ -209,19 +217,29 @@ export default function LessonPlayer({ lesson, onClose, onComplete }: LessonPlay
   }
 
   return (
-    <div className="fixed inset-0 bg-background z-50 flex flex-col">
+    <div
+      className="fixed inset-0 bg-background z-50 flex flex-col"
+      style={{
+        paddingLeft: "env(safe-area-inset-left)",
+        paddingRight: "env(safe-area-inset-right)",
+      }}
+    >
       {/* Top bar */}
       <div
-        className="flex items-center gap-3 px-4 py-3 border-b border-border"
+        className="flex items-center gap-3 px-4 py-3 border-b border-border shrink-0"
         style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
       >
-        <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+        <button
+          onClick={onClose}
+          aria-label="Close lesson"
+          className="text-muted-foreground hover:text-foreground p-1 -ml-1 shrink-0"
+        >
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <Progress value={progressPct} className="h-2" />
         </div>
-        <span className="text-xs font-medium text-muted-foreground">{step + 1}/{totalSteps}</span>
+        <span className="text-xs font-medium text-muted-foreground shrink-0">{step + 1}/{totalSteps}</span>
       </div>
 
       {/* Content */}
