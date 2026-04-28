@@ -1,9 +1,10 @@
 // ───────────────────────────────────────────────
 // UWAZI Service Worker
-// Bump CACHE_VERSION on each deploy to invalidate old caches.
+// ⚠️ CACHE_VERSION is auto-replaced by vite.config.ts (injectSWVersion plugin)
+// on every production build. Do NOT edit the value manually.
 // ───────────────────────────────────────────────
-const CACHE_VERSION = 'v2';
-const CACHE_NAME = `uwazi-${CACHE_VERSION}`;
+const CACHE_VERSION = 'uwazi-dev';
+const CACHE_NAME = `${CACHE_VERSION}`;
 
 const STATIC_ASSETS = [
   '/',
