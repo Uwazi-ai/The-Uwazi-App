@@ -139,7 +139,15 @@ export default function LessonPlayer({ lesson, onClose, onComplete }: LessonPlay
     const passed = score >= 75;
 
     return (
-      <div className="fixed inset-0 bg-background z-50 flex items-center justify-center p-4">
+      <div
+        className="fixed inset-0 bg-background z-50 flex items-center justify-center p-4 overflow-y-auto"
+        style={{
+          paddingTop: "max(1rem, env(safe-area-inset-top))",
+          paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+          paddingLeft: "max(1rem, env(safe-area-inset-left))",
+          paddingRight: "max(1rem, env(safe-area-inset-right))",
+        }}
+      >
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-md w-full text-center space-y-6">
           <motion.div
             initial={{ rotate: -180, scale: 0 }}
