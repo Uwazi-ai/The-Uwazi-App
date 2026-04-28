@@ -44,7 +44,10 @@ export default function LearnPage() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-3 sm:px-4 md:px-8 py-5 md:py-8 pb-24 md:pb-8 space-y-6 sm:space-y-8 min-h-screen overflow-x-hidden">
+    <div
+      className="w-full max-w-5xl mx-auto px-3 sm:px-4 md:px-8 py-5 md:py-8 pb-24 md:pb-8 space-y-6 sm:space-y-8 min-h-screen overflow-x-hidden"
+      style={{ paddingTop: "max(1.25rem, env(safe-area-inset-top))" }}
+    >
       {/* Hero */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <p className="text-[11px] sm:text-xs font-bold tracking-widest text-primary uppercase mb-2">Civic Education</p>
