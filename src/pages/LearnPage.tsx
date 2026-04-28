@@ -44,18 +44,18 @@ export default function LearnPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-40 md:pb-8 space-y-8 min-h-screen overflow-y-auto">
+    <div className="w-full max-w-5xl mx-auto px-3 sm:px-4 md:px-8 py-5 md:py-8 pb-24 md:pb-8 space-y-6 sm:space-y-8 min-h-screen overflow-x-hidden">
       {/* Hero */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <p className="text-xs font-bold tracking-widest text-primary uppercase mb-2">Civic Education</p>
-        <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl text-foreground leading-none mb-1">
+        <p className="text-[11px] sm:text-xs font-bold tracking-widest text-primary uppercase mb-2">Civic Education</p>
+        <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl text-foreground leading-tight mb-1 break-words">
           KNOW MORE. DO MORE.
         </h1>
-        <p className="text-sm text-muted-foreground mb-5">
+        <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-5">
           Nonpartisan lessons built for your community.
         </p>
 
-        <div className="grid grid-cols-3 gap-3 mb-5">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-5">
           <StatCard icon={<Zap className="h-4 w-4" />} value={`${totalXp}`} label="XP Earned" accent />
           <StatCard icon={<BookOpen className="h-4 w-4" />} value={`${completedCount}`} label="Lessons" />
           <StatCard icon={<Flame className="h-4 w-4" />} value={`${tracksStarted}`} label="Tracks Started" />
