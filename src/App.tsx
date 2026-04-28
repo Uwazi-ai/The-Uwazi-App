@@ -46,6 +46,7 @@ import UpgradePage from "./pages/UpgradePage";
 import CheckoutReturnPage from "./pages/CheckoutReturnPage";
 import ManageSubscriptionPage from "./pages/ManageSubscriptionPage";
 import Welcome from "./pages/Welcome";
+import { PWAUpdateBanner } from "@/components/PWAUpdateBanner";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <PWAUpdateBanner />
         <BrowserRouter>
           <AuthProvider>
             <Routes>

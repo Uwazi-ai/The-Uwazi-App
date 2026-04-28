@@ -1,4 +1,9 @@
-const CACHE_NAME = 'uwazi-v1';
+// ───────────────────────────────────────────────
+// UWAZI Service Worker
+// Bump CACHE_VERSION on each deploy to invalidate old caches.
+// ───────────────────────────────────────────────
+const CACHE_VERSION = 'v2';
+const CACHE_NAME = `uwazi-${CACHE_VERSION}`;
 
 const STATIC_ASSETS = [
   '/',
@@ -8,62 +13,97 @@ const STATIC_ASSETS = [
   '/icons/icon-512x512.png',
 ];
 
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(STATIC_ASSETS);
-    })
-  );
+// ───────────── INSTALL ─────────────
+self.addEventListener('install', (event) => {
+  // Take over immediately on next cycle
   self.skipWaiting();
-});
-
-self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-      )
-    )
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
   );
-  self.clients.claim();
 });
 
-self.addEventListener('fetch', event => {
+// ───────────── ACTIVATE ─────────────
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    (async () => {
+      // Delete every old cache version
+      const keys = await caches.keys();
+      await Promise.all(
+        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
+      );
+      // Take control of all open tabs immediately
+      await self.clients.claim();
+      // Notify all open clients that a new SW is now active
+      const clients = await self.clients.matchAll({ type: 'window' });
+      clients.forEach((client) =>
+        client.postMessage({ type: 'SW_UPDATED', version: CACHE_VERSION })
+      );
+    })()
+  );
+});
+
+// ───────────── MESSAGE (skipWaiting trigger from page) ─────────────
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
+// ───────────── FETCH ─────────────
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+
   const url = new URL(event.request.url);
-  
-  // Network first for API calls and auth
-  if (url.pathname.startsWith('/api') || 
-      url.hostname.includes('supabase')) {
+
+  // Network-first for HTML navigations → always freshest app shell
+  if (
+    event.request.mode === 'navigate' ||
+    event.request.headers.get('accept')?.includes('text/html')
+  ) {
     event.respondWith(
-      fetch(event.request).catch(() => 
-        caches.match(event.request)
-      )
+      fetch(event.request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request).then((c) => c || caches.match('/')))
     );
     return;
   }
-  
-  // Cache first for static assets
+
+  // Network-first for API / Supabase (never stale data)
+  if (url.hostname.includes('supabase') || url.pathname.startsWith('/api/')) {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Cache-first with background refresh for static assets
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
-      return fetch(event.request).then(response => {
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, clone);
-          });
-        }
-        return response;
-      });
-    }).catch(() => caches.match('/'))
+    caches.match(event.request).then((cached) => {
+      const fetchPromise = fetch(event.request)
+        .then((response) => {
+          if (response && response.ok) {
+            const clone = response.clone();
+            caches
+              .open(CACHE_NAME)
+              .then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => cached);
+      return cached || fetchPromise;
+    })
   );
 });
 
-self.addEventListener('push', event => {
+// ───────────── PUSH NOTIFICATIONS ─────────────
+self.addEventListener('push', (event) => {
   const data = event.data?.json() || {};
   event.waitUntil(
-    self.registration.showNotification(
-      data.title || 'UWAZI', {
+    self.registration.showNotification(data.title || 'UWAZI', {
       body: data.body || 'New civic update',
       icon: '/icons/icon-192x192.png',
       badge: '/icons/icon-72x72.png',
@@ -71,27 +111,18 @@ self.addEventListener('push', event => {
   );
 });
 
-self.addEventListener('periodicsync', event => {
-  console.log('Periodic sync fired:', event.tag);
-  if (event.tag === 'sync-civic-data') {
-    event.waitUntil(syncCivicData());
-  }
-  if (event.tag === 'sync-legislation') {
-    event.waitUntil(syncLegislation());
-  }
-  if (event.tag === 'sync-elections') {
-    event.waitUntil(syncElections());
-  }
+// ───────────── PERIODIC SYNC ─────────────
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'sync-civic-data') event.waitUntil(syncCivicData());
+  if (event.tag === 'sync-legislation') event.waitUntil(syncLegislation());
+  if (event.tag === 'sync-elections') event.waitUntil(syncElections());
 });
 
 async function syncCivicData() {
   try {
-    const cache = await caches.open('uwazi-v1');
+    const cache = await caches.open(CACHE_NAME);
     const response = await fetch('/api/civic-feed');
-    if (response.ok) {
-      await cache.put('/api/civic-feed', response);
-      console.log('Civic feed synced in background');
-    }
+    if (response.ok) await cache.put('/api/civic-feed', response);
   } catch (err) {
     console.log('Civic data sync failed:', err);
   }
@@ -99,12 +130,9 @@ async function syncCivicData() {
 
 async function syncLegislation() {
   try {
-    const cache = await caches.open('uwazi-v1');
+    const cache = await caches.open(CACHE_NAME);
     const response = await fetch('/api/legislation');
-    if (response.ok) {
-      await cache.put('/api/legislation', response);
-      console.log('Legislation synced in background');
-    }
+    if (response.ok) await cache.put('/api/legislation', response);
   } catch (err) {
     console.log('Legislation sync failed:', err);
   }
@@ -112,34 +140,33 @@ async function syncLegislation() {
 
 async function syncElections() {
   try {
-    const cache = await caches.open('uwazi-v1');
+    const cache = await caches.open(CACHE_NAME);
     const response = await fetch('/api/elections');
     if (response.ok) {
       await cache.put('/api/elections', response);
       const clients = await self.clients.matchAll();
       if (clients.length === 0) {
-        await self.registration.showNotification(
-          'UWAZI Election Update', {
+        await self.registration.showNotification('UWAZI Election Update', {
           body: 'New election information is available',
           icon: '/icons/icon-192x192.png',
           badge: '/icons/icon-72x72.png',
           tag: 'election-update',
           renotify: false,
-          data: { url: '/vote' }
+          data: { url: '/app/vote' },
         });
       }
-      console.log('Elections synced in background');
     }
   } catch (err) {
     console.log('Elections sync failed:', err);
   }
 }
 
-self.addEventListener('notificationclick', event => {
+// ───────────── NOTIFICATION CLICK ─────────────
+self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const url = event.notification.data?.url || '/';
   event.waitUntil(
-    self.clients.matchAll({ type: 'window' }).then(clients => {
+    self.clients.matchAll({ type: 'window' }).then((clients) => {
       for (const client of clients) {
         if (client.url.includes(self.location.origin)) {
           client.focus();
