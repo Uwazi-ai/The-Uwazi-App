@@ -43,6 +43,13 @@ export default function LessonPlayer({ lesson, onClose, onComplete }: LessonPlay
 
   const correctCount = quizQuestions.reduce((n, q) => {
     const ans = quizAnswers[q.id];
+    if (ans == null) return n;
+    const qType = q.type || "multiple_choice";
+    if (qType === "true_false") {
+      // ans is index: 0 = True, 1 = False; q.correct is boolean
+      const selectedBool = ans === 0;
+      return n + (selectedBool === q.correct ? 1 : 0);
+    }
     return n + (ans === q.correct ? 1 : 0);
   }, 0);
 
