@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAllUsers } from "@/hooks/useAdminData";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Search, Download } from "lucide-react";
+import { Shield, Search, Download, Crown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,9 @@ export default function AdminUsersPage() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { refreshProfile } = useProfile();
+  const [compUsers, setCompUsers] = useState<Set<string>>(new Set());
+  const [paidUsers, setPaidUsers] = useState<Set<string>>(new Set());
+  const [grantingPremium, setGrantingPremium] = useState<string | null>(null);
 
   const filters = [
     { key: "all", label: "All" },
@@ -30,6 +33,30 @@ export default function AdminUsersPage() {
     { key: "new", label: "New (24h)" },
     { key: "admin", label: "Admin Only" },
   ];
+
+  // Fetch subscription status for displayed users
+  useEffect(() => {
+    if (!data?.users.length) return;
+    const userIds = data.users.map(u => u.user_id);
+    (supabase as any)
+      .from("subscriptions")
+      .select("user_id, stripe_subscription_id, status")
+      .in("user_id", userIds)
+      .in("status", ["active", "trialing"])
+      .then(({ data: subs }: any) => {
+        const comp = new Set<string>();
+        const paid = new Set<string>();
+        (subs || []).forEach((s: any) => {
+          if (s.stripe_subscription_id?.startsWith("comp_")) {
+            comp.add(s.user_id);
+          } else {
+            paid.add(s.user_id);
+          }
+        });
+        setCompUsers(comp);
+        setPaidUsers(paid);
+      });
+  }, [data?.users]);
 
   const invalidateAll = async (affectedUserId?: string) => {
     await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
@@ -43,7 +70,6 @@ export default function AdminUsersPage() {
   const toggleAdmin = async (userId: string, current: boolean) => {
     const { error } = await supabase.from("profiles").update({ is_admin: !current }).eq("user_id", userId);
     if (error) return toast.error(error.message);
-    // Mirror to user_roles for RBAC consistency
     if (!current) {
       await (supabase as any).from("user_roles").insert({ user_id: userId, role: "super_admin" }).select();
     } else {
@@ -77,6 +103,31 @@ export default function AdminUsersPage() {
       toast.success("Program Admin granted — they must refresh to see changes");
     }
     invalidateAll(userId);
+  };
+
+  const togglePremium = async (userId: string, hasComp: boolean) => {
+    setGrantingPremium(userId);
+    try {
+      const { data: res, error } = await supabase.functions.invoke("grant-premium", {
+        body: { user_id: userId, action: hasComp ? "revoke" : "grant", environment: "live" },
+      });
+      if (error) {
+        toast.error(error.message || "Failed to update premium status");
+      } else {
+        toast.success(res?.message || (hasComp ? "UWAZI+ revoked" : "UWAZI+ granted"));
+        // Update local state
+        setCompUsers(prev => {
+          const next = new Set(prev);
+          if (hasComp) next.delete(userId);
+          else next.add(userId);
+          return next;
+        });
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Error");
+    } finally {
+      setGrantingPremium(null);
+    }
   };
 
   const exportCSV = () => {
@@ -141,6 +192,8 @@ export default function AdminUsersPage() {
             ))}
             {data?.users.map(u => {
               const isProgramAdmin = (u as any).roles?.includes("program_admin");
+              const hasCompPremium = compUsers.has(u.user_id);
+              const hasPaidPremium = paidUsers.has(u.user_id);
               return (
               <tr key={u.id} className="border-b border-border hover:bg-primary/5 transition-colors">
                 <td className="p-3">
@@ -154,6 +207,16 @@ export default function AdminUsersPage() {
                         {u.is_admin && <span className="bg-primary/20 text-primary text-[9px] px-1.5 py-0.5 rounded font-axis">SUPER</span>}
                         {isProgramAdmin && <span className="bg-accent/20 text-accent-foreground text-[9px] px-1.5 py-0.5 rounded font-axis">PROGRAM</span>}
                         {u.is_suspended && <span className="bg-destructive/20 text-destructive text-[9px] px-1.5 py-0.5 rounded">SUSPENDED</span>}
+                        {hasCompPremium && (
+                          <span className="bg-yellow-500/20 text-yellow-400 text-[9px] px-1.5 py-0.5 rounded font-axis flex items-center gap-0.5">
+                            <Crown className="h-2.5 w-2.5" /> UWAZI+
+                          </span>
+                        )}
+                        {hasPaidPremium && !hasCompPremium && (
+                          <span className="bg-green-500/20 text-green-400 text-[9px] px-1.5 py-0.5 rounded font-axis flex items-center gap-0.5">
+                            <Crown className="h-2.5 w-2.5" /> PAID
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -169,6 +232,17 @@ export default function AdminUsersPage() {
                     </Button>
                     <Button size="sm" variant="outline" className="text-[10px] h-7 px-2" onClick={() => toggleProgramAdmin(u.user_id, isProgramAdmin)}>
                       {isProgramAdmin ? "Remove Program" : "Make Program"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className={`text-[10px] h-7 px-2 ${hasCompPremium ? "border-yellow-500/50 text-yellow-400" : "border-primary/30"}`}
+                      disabled={grantingPremium === u.user_id || hasPaidPremium}
+                      onClick={() => togglePremium(u.user_id, hasCompPremium)}
+                      title={hasPaidPremium ? "User has a paid subscription" : undefined}
+                    >
+                      <Crown className="h-3 w-3 mr-1" />
+                      {hasPaidPremium ? "Paid Sub" : hasCompPremium ? "Revoke UWAZI+" : "Grant UWAZI+"}
                     </Button>
                     <Button size="sm" variant={u.is_suspended ? "outline" : "destructive"} className="text-[10px] h-7 px-2" onClick={() => toggleSuspend(u.user_id, u.is_suspended ?? false)}>
                       {u.is_suspended ? "Unsuspend" : "Suspend"}
@@ -210,6 +284,7 @@ export default function AdminUsersPage() {
                 <Row label="Knowledge Level" value={selectedUser.civic_knowledge_level} />
                 <Row label="Admin" value={selectedUser.is_admin ? "Yes" : "No"} />
                 <Row label="Suspended" value={selectedUser.is_suspended ? "Yes" : "No"} />
+                <Row label="UWAZI+" value={compUsers.has(selectedUser.user_id) ? "Complimentary" : paidUsers.has(selectedUser.user_id) ? "Paid" : "No"} />
                 <Row label="Onboarding" value={selectedUser.onboarding_complete ? "Complete" : "Incomplete"} />
                 <Row label="Joined" value={new Date(selectedUser.created_at).toLocaleDateString()} />
                 <Row label="Last Active" value={selectedUser.last_active ? new Date(selectedUser.last_active).toLocaleDateString() : "—"} />
