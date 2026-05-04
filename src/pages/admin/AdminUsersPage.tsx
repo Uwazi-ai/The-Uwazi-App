@@ -34,10 +34,13 @@ export default function AdminUsersPage() {
     { key: "admin", label: "Admin Only" },
   ];
 
+  // Stable key for the current user list to avoid re-render loops
+  const userIdKey = useMemo(() => data?.users.map(u => u.user_id).join(",") ?? "", [data?.users]);
+
   // Fetch subscription status for displayed users
   useEffect(() => {
-    if (!data?.users.length) return;
-    const userIds = data.users.map(u => u.user_id);
+    if (!userIdKey) return;
+    const userIds = userIdKey.split(",");
     (supabase as any)
       .from("subscriptions")
       .select("user_id, stripe_subscription_id, status")
@@ -56,7 +59,7 @@ export default function AdminUsersPage() {
         setCompUsers(comp);
         setPaidUsers(paid);
       });
-  }, [data?.users]);
+  }, [userIdKey]);
 
   const invalidateAll = async (affectedUserId?: string) => {
     await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
