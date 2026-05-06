@@ -41,7 +41,7 @@ export function AppLayout() {
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                className="h-full"
+                className="min-h-0"
               >
                 <Outlet />
               </motion.div>
