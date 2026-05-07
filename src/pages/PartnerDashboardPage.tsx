@@ -162,7 +162,13 @@ export default function PartnerDashboardPage() {
         invited_by: user?.id,
       }, { onConflict: "org_id,user_id" });
       if (memberError) throw memberError;
-      await supabase.from("profiles").update({ org_role: "org_member" } as any).eq("user_id", targetUserId);
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const { data: { session } } = await supabase.auth.getSession();
+      await fetch(`${supabaseUrl}/rest/v1/profiles?user_id=eq.${targetUserId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${session?.access_token}`, Prefer: "return=minimal" },
+        body: JSON.stringify({ org_role: "org_member" }),
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["org-team"] });
