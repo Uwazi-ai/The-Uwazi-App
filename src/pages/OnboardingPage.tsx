@@ -109,8 +109,7 @@ export default function OnboardingPage() {
         profileUpdate.referred_by_org = referredOrg;
       }
 
-      await supabase
-        .from("profiles")
+      await (supabase.from("profiles") as any)
         .update(profileUpdate)
         .eq("user_id", user.id);
 
