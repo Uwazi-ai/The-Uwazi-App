@@ -28,6 +28,7 @@ export default function PartnerDashboardPage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
+  const [leaderView, setLeaderView] = useState<"national" | "city" | "category">("national");
 
   // Get user's org membership
   const { data: membership, isLoading: membershipLoading } = useQuery({
@@ -219,7 +220,8 @@ export default function PartnerDashboardPage() {
     return <Navigate to="/app" replace />;
   }
 
-  const [leaderView, setLeaderView] = useState<"national" | "city" | "category">("national");
+
+
 
   const filteredLeaderboard = leaderboard?.filter((o: any) => {
     if (leaderView === "city") return o.city === org?.city;
