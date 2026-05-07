@@ -87,8 +87,8 @@ describe("AppLayout scroll regression", () => {
   it("outer wrapper allows vertical growth with min-h-screen", () => {
     const { outer } = renderLayoutSkeleton();
     expect(outer.className).toContain("min-h-screen");
-    // Must NOT be h-screen (fixed height blocks scroll)
-    expect(outer.className).not.toMatch(/\bh-screen\b/);
+    // Must NOT be h-screen (fixed height blocks scroll) — min-h-screen is OK
+    expect(outer.className).not.toMatch(/(?<!\bmin-)h-screen\b/);
   });
 
   // Verify the actual source file hasn't drifted from the class strings we test
