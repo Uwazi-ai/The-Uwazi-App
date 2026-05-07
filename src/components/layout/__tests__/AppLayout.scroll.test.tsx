@@ -24,7 +24,7 @@ import React from "react";
 
 /** Mirrors the className values from AppLayout.tsx */
 const OUTER_DIV_CLASSES = "min-h-screen flex w-full bg-background overflow-x-hidden";
-const CONTENT_COL_CLASSES = "flex-1 flex flex-col min-h-screen min-w-0 overflow-x-hidden";
+const CONTENT_COL_CLASSES = "flex-1 flex flex-col h-screen min-w-0 overflow-x-hidden overflow-y-auto";
 const MAIN_CLASSES = "flex-1 min-w-0 overflow-x-hidden pb-20 md:pb-0";
 const MOTION_DIV_CLASSES = "min-h-0";
 
