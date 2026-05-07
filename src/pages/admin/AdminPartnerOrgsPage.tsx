@@ -360,13 +360,13 @@ export default function AdminPartnerOrgsPage() {
                 <Label className="text-xs text-muted-foreground">Referral Link</Label>
                 <div className="flex items-center gap-2 mt-1">
                   <code className="flex-1 text-xs bg-background p-2 rounded border border-border truncate">
-                    uwaziapp.uwazi.ai/vote?org={selectedOrg.slug}
+                    uwaziapp.uwazi.ai/impact?org={selectedOrg.slug}
                   </code>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => {
-                      navigator.clipboard.writeText(`https://uwaziapp.uwazi.ai/vote?org=${selectedOrg.slug}`);
+                      navigator.clipboard.writeText(`https://uwaziapp.uwazi.ai/impact?org=${selectedOrg.slug}`);
                       toast.success("Link copied!");
                     }}
                   >
