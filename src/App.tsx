@@ -47,6 +47,9 @@ import UpgradePage from "./pages/UpgradePage";
 import CheckoutReturnPage from "./pages/CheckoutReturnPage";
 import ManageSubscriptionPage from "./pages/ManageSubscriptionPage";
 import Welcome from "./pages/Welcome";
+import PartnerDashboardPage from "./pages/PartnerDashboardPage";
+import JoinPage from "./pages/JoinPage";
+import ImpactPage from "./pages/ImpactPage";
 import { PWAUpdateBanner } from "@/components/PWAUpdateBanner";
 
 const queryClient = new QueryClient();
@@ -73,6 +76,9 @@ const App = () => (
               <Route path="/onboarding" element={<OnboardingPage />} />
               <Route path="/privacy" element={<PrivacyPolicyPage />} />
               <Route path="/terms" element={<TermsOfServicePage />} />
+              <Route path="/join" element={<JoinPage />} />
+              <Route path="/impact" element={<ImpactPage />} />
+              <Route path="/partner-dashboard" element={<ProtectedRoute><PartnerDashboardPage /></ProtectedRoute>} />
 
               {/* App dashboard */}
               <Route path="/app" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
