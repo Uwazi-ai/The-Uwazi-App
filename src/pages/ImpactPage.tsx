@@ -6,8 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Medal, Users, Vote, MapPin, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import uwaziLogo from "@/assets/uwazi-logo.png";
+import { useOrgTracking } from "@/hooks/useOrgTracking";
 
 export default function ImpactPage() {
+  useOrgTracking();
   const { data: orgs } = useQuery({
     queryKey: ["public-leaderboard"],
     queryFn: async () => {
