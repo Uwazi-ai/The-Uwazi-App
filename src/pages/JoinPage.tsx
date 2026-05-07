@@ -75,15 +75,12 @@ export default function JoinPage() {
         invited_by: invite.invited_by,
       }, { onConflict: "org_id,user_id" });
 
-      // Set profile org_role
+      // Set profile org_role — cast the whole chain to bypass typed SDK stripping unknown keys
       const orgRole = invite.role === "admin" ? "org_admin" : "org_member";
-      await supabase
-        .from("profiles")
-        .update({ org_role: orgRole } as Record<string, unknown> as any)
+      const { error: orgRoleError } = await (supabase.from("profiles") as any)
+        .update({ org_role: orgRole })
         .eq("user_id", userId);
-
-      // Double-check it was written (RLS or type issues can silently fail)
-      console.log("[JoinPage] Setting org_role to", orgRole, "for user", userId);
+      if (orgRoleError) console.error("[JoinPage] Failed to set org_role:", orgRoleError);
 
       toast.success(`Welcome to ${org?.name}!`);
       navigate("/partner-dashboard");
