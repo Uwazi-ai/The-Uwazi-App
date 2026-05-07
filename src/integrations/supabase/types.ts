@@ -1123,6 +1123,120 @@ export type Database = {
         }
         Relationships: []
       }
+      org_invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string | null
+          email: string
+          expires_at: string | null
+          id: string
+          invited_by: string | null
+          org_id: string
+          role: string | null
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string | null
+          email: string
+          expires_at?: string | null
+          id?: string
+          invited_by?: string | null
+          org_id: string
+          role?: string | null
+          token: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string | null
+          email?: string
+          expires_at?: string | null
+          id?: string
+          invited_by?: string | null
+          org_id?: string
+          role?: string | null
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_invites_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "partner_orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_members: {
+        Row: {
+          id: string
+          invited_by: string | null
+          joined_at: string | null
+          org_id: string
+          role: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          invited_by?: string | null
+          joined_at?: string | null
+          org_id: string
+          role?: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          invited_by?: string | null
+          joined_at?: string | null
+          org_id?: string
+          role?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_members_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "partner_orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_registrations: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          org_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          org_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          org_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_registrations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "partner_orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       outreach_campaigns: {
         Row: {
           campaign_type: string
@@ -1225,6 +1339,45 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_orgs: {
+        Row: {
+          category: string | null
+          city: string | null
+          civic_impact_score: number | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          name: string
+          slug: string
+        }
+        Insert: {
+          category?: string | null
+          city?: string | null
+          civic_impact_score?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name: string
+          slug: string
+        }
+        Update: {
+          category?: string | null
+          city?: string | null
+          civic_impact_score?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       platform_settings: {
         Row: {
           key: string
@@ -1269,10 +1422,12 @@ export type Database = {
           notify_new_lessons: boolean
           notify_streak_reminders: boolean
           onboarding_complete: boolean
+          org_role: string | null
           phone_number: string | null
           phone_verified: boolean | null
           push_opt_in: boolean | null
           push_token: string | null
+          referred_by_org: string | null
           sms_opt_in: boolean | null
           state_code: string | null
           street_address: string | null
@@ -1305,10 +1460,12 @@ export type Database = {
           notify_new_lessons?: boolean
           notify_streak_reminders?: boolean
           onboarding_complete?: boolean
+          org_role?: string | null
           phone_number?: string | null
           phone_verified?: boolean | null
           push_opt_in?: boolean | null
           push_token?: string | null
+          referred_by_org?: string | null
           sms_opt_in?: boolean | null
           state_code?: string | null
           street_address?: string | null
@@ -1341,10 +1498,12 @@ export type Database = {
           notify_new_lessons?: boolean
           notify_streak_reminders?: boolean
           onboarding_complete?: boolean
+          org_role?: string | null
           phone_number?: string | null
           phone_verified?: boolean | null
           push_opt_in?: boolean | null
           push_token?: string | null
+          referred_by_org?: string | null
           sms_opt_in?: boolean | null
           state_code?: string | null
           street_address?: string | null
@@ -2299,6 +2458,11 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_org_admin: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_org_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_program_admin: { Args: { _user_id: string }; Returns: boolean }
       log_episode_video_access: {
         Args: {

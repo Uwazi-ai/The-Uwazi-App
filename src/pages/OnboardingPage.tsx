@@ -8,6 +8,7 @@ import uwaziLogo from "@/assets/uwazi-logo.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, BookOpen, Heart, Layers, Check, ChevronRight, ChevronLeft } from "lucide-react";
 import AddressStep, { type AddressData } from "@/components/onboarding/AddressStep";
+import { getStoredOrgSlug, clearStoredOrgSlug } from "@/hooks/useOrgTracking";
 
 const STEPS = [
   { id: "welcome", title: "Welcome to UWAZI.AI", subtitle: "Your personal civic intelligence companion. Let's personalize your experience.", icon: null },
@@ -91,19 +92,26 @@ export default function OnboardingPage() {
         ? `${answers.address_line1}${answers.address_line2 ? " " + answers.address_line2 : ""}, ${answers.city}, ${answers.state_code} ${answers.zip_code}`
         : null;
 
+      const referredOrg = getStoredOrgSlug();
+
+      const profileUpdate: Record<string, any> = {
+        address_line1: answers.address_line1 || null,
+        address_line2: answers.address_line2 || null,
+        city: answers.city || null,
+        state_code: answers.state_code || null,
+        zip_code: answers.zip_code || null,
+        full_address: fullAddress,
+        street_address: answers.address_line1 || null,
+        civic_knowledge_level: answers.civic_knowledge_level,
+        onboarding_complete: true,
+      };
+      if (referredOrg) {
+        profileUpdate.referred_by_org = referredOrg;
+      }
+
       await supabase
         .from("profiles")
-        .update({
-          address_line1: answers.address_line1 || null,
-          address_line2: answers.address_line2 || null,
-          city: answers.city || null,
-          state_code: answers.state_code || null,
-          zip_code: answers.zip_code || null,
-          full_address: fullAddress,
-          street_address: answers.address_line1 || null,
-          civic_knowledge_level: answers.civic_knowledge_level,
-          onboarding_complete: true,
-        })
+        .update(profileUpdate)
         .eq("user_id", user.id);
 
       await supabase
@@ -113,6 +121,23 @@ export default function OnboardingPage() {
           content_depth: answers.content_depth,
         })
         .eq("user_id", user.id);
+
+      // Track org signup if referred
+      if (referredOrg) {
+        const { data: org } = await supabase
+          .from("partner_orgs" as any)
+          .select("id")
+          .eq("slug", referredOrg)
+          .maybeSingle();
+        if (org) {
+          await supabase.from("org_registrations" as any).insert({
+            org_id: (org as any).id,
+            user_id: user.id,
+            event_type: "uwazi_signup",
+          });
+        }
+        clearStoredOrgSlug();
+      }
 
       toast.success("You're all set! Welcome to UWAZI.AI 🗳️");
       navigate("/app");

@@ -10,6 +10,7 @@ import {
   UsersIcon, AnalyticsIcon, IntelligenceIcon,
   LessonManagerIcon, CivicContentIcon, AlertsIcon,
   CRMIcon, SurveysIcon, PlatformSettingsIcon,
+  PartnerOrgsIcon,
 } from "@/components/icons/UwaziIcons";
 
 const mainNav = [
@@ -35,6 +36,7 @@ const adminNav: AdminNavItem[] = [
   { to: "/app/admin/crm", icon: CRMIcon, label: "CRM", programAdmin: true },
   { to: "/app/admin/surveys", icon: SurveysIcon, label: "Surveys", programAdmin: true },
   { to: "/app/admin/platform", icon: PlatformSettingsIcon, label: "Platform Settings" },
+  { to: "/app/admin/partner-orgs", icon: PartnerOrgsIcon, label: "Partner Orgs" },
 ];
 
 const bottomNav = [
