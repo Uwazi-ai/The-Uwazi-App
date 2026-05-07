@@ -8,6 +8,7 @@ import uwaziLogo from "@/assets/uwazi-logo.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, BookOpen, Heart, Layers, Check, ChevronRight, ChevronLeft } from "lucide-react";
 import AddressStep, { type AddressData } from "@/components/onboarding/AddressStep";
+import { getStoredOrgSlug, clearStoredOrgSlug } from "@/hooks/useOrgTracking";
 
 const STEPS = [
   { id: "welcome", title: "Welcome to UWAZI.AI", subtitle: "Your personal civic intelligence companion. Let's personalize your experience.", icon: null },
