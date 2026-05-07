@@ -75,12 +75,20 @@ export default function JoinPage() {
         invited_by: invite.invited_by,
       }, { onConflict: "org_id,user_id" });
 
-      // Set profile org_role — cast the whole chain to bypass typed SDK stripping unknown keys
+      // Set profile org_role via raw fetch — SDK strips unknown typed keys
       const orgRole = invite.role === "admin" ? "org_admin" : "org_member";
-      const { error: orgRoleError } = await (supabase.from("profiles") as any)
-        .update({ org_role: orgRole })
-        .eq("user_id", userId);
-      if (orgRoleError) console.error("[JoinPage] Failed to set org_role:", orgRoleError);
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const { data: { session } } = await supabase.auth.getSession();
+      await fetch(`${supabaseUrl}/rest/v1/profiles?user_id=eq.${userId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${session?.access_token}`,
+          Prefer: "return=minimal",
+        },
+        body: JSON.stringify({ org_role: orgRole }),
+      });
 
       toast.success(`Welcome to ${org?.name}!`);
       navigate("/partner-dashboard");
