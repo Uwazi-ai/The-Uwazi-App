@@ -162,7 +162,7 @@ export default function PartnerDashboardPage() {
         invited_by: user?.id,
       }, { onConflict: "org_id,user_id" });
       if (memberError) throw memberError;
-      await supabase.from("profiles").update({ org_role: "org_member" } as any).eq("user_id", targetUserId);
+      await (supabase.from("profiles") as any).update({ org_role: "org_member" }).eq("user_id", targetUserId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["org-team"] });

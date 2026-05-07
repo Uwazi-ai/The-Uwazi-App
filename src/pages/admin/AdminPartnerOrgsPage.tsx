@@ -147,9 +147,8 @@ export default function AdminPartnerOrgsPage() {
       if (memberError) throw memberError;
 
       // Update profile org_role
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ org_role: "org_admin" } as any)
+      const { error: profileError } = await (supabase.from("profiles") as any)
+        .update({ org_role: "org_admin" })
         .eq("user_id", targetUserId);
       if (profileError) throw profileError;
     },
