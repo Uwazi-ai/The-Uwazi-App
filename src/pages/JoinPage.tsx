@@ -79,8 +79,11 @@ export default function JoinPage() {
       const orgRole = invite.role === "admin" ? "org_admin" : "org_member";
       await supabase
         .from("profiles")
-        .update({ org_role: orgRole } as any)
+        .update({ org_role: orgRole } as Record<string, unknown> as any)
         .eq("user_id", userId);
+
+      // Double-check it was written (RLS or type issues can silently fail)
+      console.log("[JoinPage] Setting org_role to", orgRole, "for user", userId);
 
       toast.success(`Welcome to ${org?.name}!`);
       navigate("/partner-dashboard");
