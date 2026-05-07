@@ -146,11 +146,15 @@ export default function AdminPartnerOrgsPage() {
       }, { onConflict: "org_id,user_id" });
       if (memberError) throw memberError;
 
-      // Update profile org_role
-      const { error: profileError } = await (supabase.from("profiles") as any)
-        .update({ org_role: "org_admin" })
-        .eq("user_id", targetUserId);
-      if (profileError) throw profileError;
+      // Update profile org_role via raw fetch (SDK strips untyped keys)
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const { data: { session } } = await supabase.auth.getSession();
+      const resp = await fetch(`${supabaseUrl}/rest/v1/profiles?user_id=eq.${targetUserId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${session?.access_token}`, Prefer: "return=minimal" },
+        body: JSON.stringify({ org_role: "org_admin" }),
+      });
+      if (!resp.ok) throw new Error("Failed to set org_role");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-org-members"] });
