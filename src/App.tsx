@@ -42,6 +42,7 @@ import AdminPlatformPage from "./pages/admin/AdminPlatformPage";
 import AdminCRMPage from "./pages/admin/AdminCRMPage";
 import AdminSurveysPage from "./pages/admin/AdminSurveysPage";
 import AdminEpisodesPage from "./pages/admin/AdminEpisodesPage";
+import AdminPartnerOrgsPage from "./pages/admin/AdminPartnerOrgsPage";
 import UpgradePage from "./pages/UpgradePage";
 import CheckoutReturnPage from "./pages/CheckoutReturnPage";
 import ManageSubscriptionPage from "./pages/ManageSubscriptionPage";
@@ -104,6 +105,7 @@ const App = () => (
                 <Route path="/app/admin/platform" element={<AdminRoute><AdminPlatformPage /></AdminRoute>} />
                 <Route path="/app/admin/crm" element={<AdminRoute allowProgramAdmin><AdminCRMPage /></AdminRoute>} />
                 <Route path="/app/admin/surveys" element={<AdminRoute allowProgramAdmin><AdminSurveysPage /></AdminRoute>} />
+                <Route path="/app/admin/partner-orgs" element={<AdminRoute><AdminPartnerOrgsPage /></AdminRoute>} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
