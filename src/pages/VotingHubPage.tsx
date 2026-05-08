@@ -27,6 +27,7 @@ import BallotSection from "@/components/voting/BallotSection";
 import BallotpediaSection from "@/components/voting/BallotpediaSection";
 import RepresentativesSection from "@/components/voting/RepresentativesSection";
 import { useBallotpediaData } from "@/hooks/useBallotpediaData";
+import PersonalizedElections from "@/components/voting/PersonalizedElections";
 
 /* ─── 2026 election calendar ─── */
 const STATE_PRIMARY_DATES_2026: Record<string, string> = {
