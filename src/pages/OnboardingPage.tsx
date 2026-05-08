@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import uwaziLogo from "@/assets/uwazi-logo.png";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, BookOpen, Heart, Layers, Check, ChevronRight, ChevronLeft } from "lucide-react";
+import { MapPin, BookOpen, Heart, Layers, Check, ChevronRight, ChevronLeft, Vote } from "lucide-react";
 import AddressStep, { type AddressData } from "@/components/onboarding/AddressStep";
+import VoterAddressStep from "@/components/onboarding/VoterAddressStep";
 import { getStoredOrgSlug, clearStoredOrgSlug } from "@/hooks/useOrgTracking";
 
 const STEPS = [
