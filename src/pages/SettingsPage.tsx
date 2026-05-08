@@ -218,7 +218,7 @@ export default function SettingsPage() {
     if (!user || !isZipValid || !addressLine1.trim() || !addressCity.trim() || !addressState) return;
     setSavingAddress(true);
     const fullAddr = `${addressLine1.trim()}${addressLine2.trim() ? " " + addressLine2.trim() : ""}, ${addressCity.trim()}, ${addressState} ${addressZip.trim()}`;
-    await supabase.from("profiles").update({
+    await (supabase.from("profiles") as any).update({
       address_line1: addressLine1.trim(),
       address_line2: addressLine2.trim() || null,
       city: addressCity.trim(),
@@ -226,6 +226,11 @@ export default function SettingsPage() {
       zip_code: addressZip.trim(),
       full_address: fullAddr,
       street_address: addressLine1.trim(),
+      // Also update voter-specific columns
+      voter_address_street: addressLine1.trim(),
+      voter_address_city: addressCity.trim(),
+      voter_address_state: addressState,
+      voter_address_zip: addressZip.trim(),
     }).eq("user_id", user.id);
     setCurrentFullAddress(fullAddr);
     setSavingAddress(false);

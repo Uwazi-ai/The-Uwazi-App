@@ -1433,6 +1433,10 @@ export type Database = {
           street_address: string | null
           updated_at: string
           user_id: string
+          voter_address_city: string | null
+          voter_address_state: string | null
+          voter_address_street: string | null
+          voter_address_zip: string | null
           voter_elections_cached_at: string | null
           voter_elections_data: Json | null
           zip_code: string | null
@@ -1473,6 +1477,10 @@ export type Database = {
           street_address?: string | null
           updated_at?: string
           user_id: string
+          voter_address_city?: string | null
+          voter_address_state?: string | null
+          voter_address_street?: string | null
+          voter_address_zip?: string | null
           voter_elections_cached_at?: string | null
           voter_elections_data?: Json | null
           zip_code?: string | null
@@ -1513,6 +1521,10 @@ export type Database = {
           street_address?: string | null
           updated_at?: string
           user_id?: string
+          voter_address_city?: string | null
+          voter_address_state?: string | null
+          voter_address_street?: string | null
+          voter_address_zip?: string | null
           voter_elections_cached_at?: string | null
           voter_elections_data?: Json | null
           zip_code?: string | null

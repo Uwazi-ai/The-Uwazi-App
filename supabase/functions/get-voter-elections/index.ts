@@ -22,7 +22,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth check
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(
@@ -49,7 +48,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Parse & validate body
     let body: unknown;
     try {
       body = await req.json();
@@ -71,11 +69,9 @@ Deno.serve(async (req) => {
     const { street, city, state, zip } = parsed.data;
 
     const apiKey = Deno.env.get("DEMOCRACY_WORKS_API_KEY");
-
     let electionsData: any = null;
 
     if (apiKey) {
-      // Call Democracy Works / TurboVote API
       const params = new URLSearchParams({
         "street-address": street,
         city,
@@ -103,18 +99,23 @@ Deno.serve(async (req) => {
       }
     }
 
-    // If no API key or API failed, build a helpful fallback response
     if (!electionsData) {
       electionsData = buildFallbackElections(state, zip);
     }
 
-    // Cache in profiles
+    // Cache in profiles — save to both old and new address columns
     const adminClient = createClient(supabaseUrl, serviceKey);
     await adminClient
       .from("profiles")
       .update({
         voter_elections_data: electionsData,
         voter_elections_cached_at: new Date().toISOString(),
+        // New voter-specific address columns
+        voter_address_street: street,
+        voter_address_city: city,
+        voter_address_state: state,
+        voter_address_zip: zip,
+        // Legacy address columns
         address_line1: street,
         city,
         state_code: state,
@@ -139,10 +140,6 @@ Deno.serve(async (req) => {
   }
 });
 
-/**
- * Build a fallback elections response using known 2026 midterm data
- * when the Democracy Works API key is not configured or the call fails.
- */
 function buildFallbackElections(state: string, zip: string) {
   const generalDate = "2026-11-03";
 
@@ -168,21 +165,14 @@ function buildFallbackElections(state: string, zip: string) {
       date: primaryStr,
       electionDay: primaryStr,
       status: "active",
-      registrationDeadlines: {
-        online: null,
-        byMail: null,
-        inPerson: null,
-      },
-      votingMethods: {
-        byMail: true,
-        earlyVoting: null,
-        inPerson: true,
-      },
+      registrationDeadlines: { online: null, byMail: null, inPerson: null },
+      votingMethods: { byMail: true, earlyVoting: null, inPerson: true },
       checkRegistrationUrl: `https://www.vote.org/am-i-registered-to-vote/`,
       registrationUrl: `https://www.vote.org/register-to-vote/`,
       pollingLocationUrl: `https://www.vote.org/polling-place-locator/`,
       contests: [],
       ballotMeasures: [],
+      coverage: { hasLocalRaces: false },
     });
   }
 
@@ -192,21 +182,14 @@ function buildFallbackElections(state: string, zip: string) {
     date: generalDate,
     electionDay: generalDate,
     status: "active",
-    registrationDeadlines: {
-      online: null,
-      byMail: null,
-      inPerson: null,
-    },
-    votingMethods: {
-      byMail: true,
-      earlyVoting: null,
-      inPerson: true,
-    },
+    registrationDeadlines: { online: null, byMail: null, inPerson: null },
+    votingMethods: { byMail: true, earlyVoting: null, inPerson: true },
     checkRegistrationUrl: `https://www.vote.org/am-i-registered-to-vote/`,
     registrationUrl: `https://www.vote.org/register-to-vote/`,
     pollingLocationUrl: `https://www.vote.org/polling-place-locator/`,
     contests: [],
     ballotMeasures: [],
+    coverage: { hasLocalRaces: false },
   });
 
   return { elections, source: "fallback", state, zip };

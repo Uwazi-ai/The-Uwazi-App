@@ -1,83 +1,76 @@
 import { useState, useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  MapPin, Calendar, Car, Footprints, Bus, CarTaxiFront,
-  Bell, CheckCircle, ExternalLink, ChevronRight, AlertCircle, Loader2, X, Copy,
-  Users, FileText, Scale, Landmark, Globe, ClipboardCheck, Vote,
+  MapPin, ChevronDown, ChevronRight, ExternalLink, Check,
+  MessageCircle, AlertCircle, Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarPicker } from "@/components/ui/calendar";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
-import { useVoterInfo } from "@/hooks/useCivicApi";
-import { useProfile } from "@/contexts/ProfileContext";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { format } from "date-fns";
-import RegistrationCheck from "@/components/voting/RegistrationCheck";
-import BallotSection from "@/components/voting/BallotSection";
-import BallotpediaSection from "@/components/voting/BallotpediaSection";
-import RepresentativesSection from "@/components/voting/RepresentativesSection";
-import { useBallotpediaData } from "@/hooks/useBallotpediaData";
-import PersonalizedElections from "@/components/voting/PersonalizedElections";
-import VoterActionSummary from "@/components/voting/VoterActionSummary";
+import { Link, useNavigate } from "react-router-dom";
+import AddressModal from "@/components/voting/AddressModal";
+import RegistrationModal from "@/components/voting/RegistrationModal";
+import {
+  fetchVoterElections,
+  getVoterElectionsFromProfile,
+  type VoterElection,
+  type VoterContest,
+  type BallotMeasure,
+  type VoterElectionsData,
+} from "@/services/voterElections";
 
-/* ─── 2026 election calendar ─── */
-const STATE_PRIMARY_DATES_2026: Record<string, string> = {
-  IL: "2026-03-17", TX: "2026-03-03", OH: "2026-05-05",
-  NC: "2026-03-17", CA: "2026-06-02", FL: "2026-08-18",
-  GA: "2026-05-19", PA: "2026-05-19", MI: "2026-08-04",
-  MO: "2026-08-04", KS: "2026-08-04", NY: "2026-06-23",
-  VA: "2026-06-09", WA: "2026-08-04", OR: "2026-05-19",
-  CO: "2026-06-23", AZ: "2026-08-04", NV: "2026-06-09",
-  WI: "2026-08-11", MN: "2026-08-11", IA: "2026-06-02",
-  NJ: "2026-06-02", MD: "2026-07-21", MA: "2026-09-15",
-};
+/* ─── helpers ─── */
 
-const GENERAL_DATE = "2026-11-03";
-
-function getNextElectionForState(stateCode?: string | null) {
-  const now = new Date();
-  if (stateCode) {
-    const primaryStr = STATE_PRIMARY_DATES_2026[stateCode];
-    if (primaryStr) {
-      const primary = new Date(`${primaryStr}T00:00:00`);
-      if (primary > now) {
-        return { name: `${stateCode} Primary Election`, date: primaryStr, type: "primary" as const };
-      }
-    }
-  }
-  return { name: "2026 Midterm General Election", date: GENERAL_DATE, type: "general" as const };
+function formatElectionDate(dateStr: string) {
+  const d = new Date(`${dateStr}T00:00:00`);
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long", month: "long", day: "numeric", year: "numeric",
+  }).format(d);
 }
 
-/* ─── Missouri fallback races ─── */
-const MO_2026_RACES = [
-  { office: "U.S. House — District 5 (Kansas City)", incumbent: "Emanuel Cleaver (D)", ballotpedia: "https://ballotpedia.org/Missouri%27s_5th_Congressional_District_election,_2026", primary: "August 4, 2026", general: "November 3, 2026", competitiveness: "Lean Democratic" },
-  { office: "Missouri Governor", incumbent: "Mike Kehoe (R)", ballotpedia: "https://ballotpedia.org/Missouri_gubernatorial_election,_2026", primary: "August 4, 2026", general: "November 3, 2026", competitiveness: "Lean Republican" },
-  { office: "Missouri Attorney General", incumbent: "Andrew Bailey (R)", ballotpedia: "https://ballotpedia.org/Missouri_Attorney_General_election,_2026", primary: "August 4, 2026", general: "November 3, 2026", competitiveness: "Lean Republican" },
-];
+function formatShortDate(dateStr: string) {
+  const d = new Date(`${dateStr}T00:00:00`);
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(d);
+}
 
-const transportOptions = [
-  { value: "driving", icon: Car, label: "Driving" },
-  { value: "walking", icon: Footprints, label: "Walking" },
-  { value: "transit", icon: Bus, label: "Transit" },
-  { value: "rideshare", icon: CarTaxiFront, label: "Ride Share" },
-];
+function daysUntil(dateStr: string): number {
+  const target = new Date(`${dateStr}T00:00:00`).getTime();
+  const now = new Date().setHours(0, 0, 0, 0);
+  return Math.ceil((target - now) / 86400000);
+}
 
-const VALID_TABS = ["elections", "reps", "act"] as const;
-type TabValue = typeof VALID_TABS[number];
+function isToday(dateStr: string): boolean {
+  return daysUntil(dateStr) === 0;
+}
 
-function getTabFromHash(hash: string): TabValue {
-  const h = hash.replace("#", "") as TabValue;
-  return VALID_TABS.includes(h) ? h : "elections";
+function isPast(dateStr: string): boolean {
+  return daysUntil(dateStr) < 0;
+}
+
+const fadeUp = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.35 },
+};
+
+const stagger = (i: number) => ({ ...fadeUp, transition: { ...fadeUp.transition, delay: i * 0.1 } });
+
+/* ─── party colors ─── */
+function partyBorderColor(party?: string) {
+  const p = (party || "").toLowerCase();
+  if (p.includes("democrat")) return "border-[#3b82f6]/40";
+  if (p.includes("republican")) return "border-[#ef4444]/40";
+  return "border-[#555555]/40";
+}
+
+function partyPillClass(party?: string) {
+  const p = (party || "").toLowerCase();
+  if (p.includes("democrat")) return "bg-[#3b82f6]/15 text-[#60a5fa] border-[#3b82f6]/30";
+  if (p.includes("republican")) return "bg-[#ef4444]/15 text-[#f87171] border-[#ef4444]/30";
+  return "bg-[#555555]/15 text-[#888888] border-[#555555]/30";
 }
 
 /* ═══════════════════════════════════════════════
@@ -86,348 +79,191 @@ function getTabFromHash(hash: string): TabValue {
 
 export default function VotingHubPage() {
   const { user } = useAuth();
-  const { zipCode, fullAddress, city, stateCode } = useProfile();
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const location = useLocation();
+  const queryClient = useQueryClient();
 
-  const [activeTab, setActiveTab] = useState<TabValue>(() => getTabFromHash(location.hash));
+  const [addressModalOpen, setAddressModalOpen] = useState(false);
+  const [regModalOpen, setRegModalOpen] = useState(false);
+  const [regModalUrl, setRegModalUrl] = useState("");
+  const [regModalState, setRegModalState] = useState("");
 
-  // Sync hash → tab on popstate
-  useEffect(() => {
-    setActiveTab(getTabFromHash(location.hash));
-  }, [location.hash]);
-
-  const handleTabChange = (value: string) => {
-    if (value === "elections") {
-      setActiveTab("elections");
-      window.history.replaceState(null, "", "#elections");
-    } else if (value === "reps") {
-      setActiveTab("reps");
-      window.history.replaceState(null, "", "#reps");
-    } else if (value === "act") {
-      setActiveTab("act");
-      window.history.replaceState(null, "", "#act");
-    }
-  };
-
-  const nextElection = useMemo(() => getNextElectionForState(stateCode), [stateCode]);
-
-  // Google Civic
-  const hasResolvableAddress = Boolean(fullAddress?.trim() || (city && stateCode && zipCode));
-  const address = fullAddress?.trim() || (city && stateCode && zipCode ? `${city}, ${stateCode} ${zipCode}` : "");
-  const { data: voterData, isLoading: voterLoading } = useVoterInfo(address);
-  const noLiveVoterData = voterData?.status === "no_election";
-  const invalidVoterAddress = voterData?.status === "invalid_address";
-  const needsFullAddress = !hasResolvableAddress || invalidVoterAddress;
-  const pollingLocations = voterData?.pollingLocations || [];
-  const earlyVoteSites = voterData?.earlyVoteSites || [];
-  const contests = voterData?.contests || [];
-  const hasPollingData = pollingLocations.length > 0 || earlyVoteSites.length > 0;
-  const displayPolling = pollingLocations.length > 0 ? pollingLocations : earlyVoteSites;
-
-  // Ballotpedia data
-  const { racesWithCandidates, measures: bpMeasures, loading: bpLoading } = useBallotpediaData(stateCode || undefined, city || undefined);
-  const showMoFallback = stateCode === "MO" && racesWithCandidates.length === 0;
-
-  // Saved legislation
-  const { data: savedBills } = useQuery({
-    queryKey: ["saved_legislation", user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data } = await supabase.from("saved_legislation").select("*").eq("user_id", user.id).limit(5);
-      return data || [];
-    },
-    enabled: !!user,
-  });
-
-  // Voting plan state
-  const [planElectionDate, setPlanElectionDate] = useState<Date | undefined>();
-  const [planPollingName, setPlanPollingName] = useState("");
-  const [planPollingAddress, setPlanPollingAddress] = useState("");
-  const [planTransport, setPlanTransport] = useState("");
-  const [planReminder, setPlanReminder] = useState(false);
-  const [planReminderDate, setPlanReminderDate] = useState<Date | undefined>();
-  const [selectedCandidates, setSelectedCandidates] = useState<Record<string, string>>({});
-  const [reviewOpen, setReviewOpen] = useState(false);
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [reminderPickerOpen, setReminderPickerOpen] = useState(false);
-
-  const { data: existingPlan } = useQuery({
-    queryKey: ["voting_plan", user?.id],
+  // Fetch voter profile
+  const { data: voterProfile, isLoading: profileLoading } = useQuery({
+    queryKey: ["voter-profile", user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data } = await supabase.from("voting_plans").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      const { data } = await (supabase.from("profiles") as any)
+        .select("voter_address_street, voter_address_city, voter_address_state, voter_address_zip, voter_elections_data, voter_elections_cached_at")
+        .eq("user_id", user.id)
+        .maybeSingle();
       return data;
     },
     enabled: !!user,
   });
 
-  useEffect(() => {
-    if (existingPlan) {
-      if (existingPlan.election_date) setPlanElectionDate(new Date(existingPlan.election_date));
-      if (existingPlan.polling_location) setPlanPollingAddress(existingPlan.polling_location);
-      if (existingPlan.polling_location_name) setPlanPollingName(existingPlan.polling_location_name);
-      if (existingPlan.transport_method) setPlanTransport(existingPlan.transport_method);
-      if (existingPlan.reminder_time) { setPlanReminder(true); setPlanReminderDate(new Date(existingPlan.reminder_time)); }
-    }
-  }, [existingPlan]);
+  const { data: electionsResult, hasAddress, isFresh } = useMemo(() => {
+    if (!voterProfile) return { data: null, hasAddress: false, isFresh: false };
+    return getVoterElectionsFromProfile(voterProfile);
+  }, [voterProfile]);
 
-  useEffect(() => {
-    if (displayPolling.length > 0 && !planPollingAddress) {
-      const loc = displayPolling[0];
-      setPlanPollingName(loc.locationName || loc.address?.locationName || "");
-      const addr = loc.address;
-      if (addr) setPlanPollingAddress([addr.line1, addr.city, addr.state, addr.zip].filter(Boolean).join(", "));
-    }
-  }, [displayPolling, planPollingAddress]);
+  // Background refresh if stale
+  const { isLoading: refreshing } = useQuery({
+    queryKey: ["voter-elections-refresh", user?.id],
+    queryFn: async () => {
+      if (!voterProfile) return null;
+      const result = await fetchVoterElections({
+        street: voterProfile.voter_address_street,
+        city: voterProfile.voter_address_city,
+        state: voterProfile.voter_address_state,
+        zip: voterProfile.voter_address_zip,
+      });
+      queryClient.invalidateQueries({ queryKey: ["voter-profile"] });
+      return result;
+    },
+    enabled: !!user && hasAddress && !isFresh && !profileLoading,
+    staleTime: Infinity,
+    retry: false,
+  });
 
-  useEffect(() => {
-    if (!planElectionDate) setPlanElectionDate(new Date(`${nextElection.date}T00:00:00`));
-  }, [nextElection.date, planElectionDate]);
+  const elections = electionsResult?.elections || [];
+  const showSkeleton = profileLoading || (hasAddress && !electionsResult && refreshing);
+  const initialAddress = voterProfile ? {
+    street: voterProfile.voter_address_street || "",
+    city: voterProfile.voter_address_city || "",
+    state: voterProfile.voter_address_state || "",
+    zip: voterProfile.voter_address_zip || "",
+  } : undefined;
 
-  const handleSavePlan = async () => {
-    if (!user) return;
-    const planData = {
-      user_id: user.id, election_id: "midterms-2026",
-      election_date: planElectionDate ? format(planElectionDate, "yyyy-MM-dd") : null,
-      polling_location: planPollingAddress || null, polling_location_name: planPollingName || null,
-      transport_method: planTransport || null,
-      reminder_time: planReminder && planReminderDate ? planReminderDate.toISOString() : null,
-      reminders_enabled: planReminder, status: "active", plan_complete: true, zip_code: zipCode,
-    };
-    if (existingPlan) {
-      await supabase.from("voting_plans").update(planData).eq("id", existingPlan.id);
-      toast.success("Voting plan updated! 🗳️");
-    } else {
-      await supabase.from("voting_plans").insert(planData);
-      toast.success("+25 XP — Voter Ready badge earned! 🎓");
-    }
-    queryClient.invalidateQueries({ queryKey: ["voting_plan"] });
+  const openRegModal = (url: string, stateLabel?: string) => {
+    setRegModalUrl(url);
+    setRegModalState(stateLabel || "");
+    setRegModalOpen(true);
   };
 
-  const handleSaveBallot = async () => {
-    if (!user) return;
-    for (const [raceId, candidate] of Object.entries(selectedCandidates)) {
-      await supabase.from("ballot_selections").upsert({
-        user_id: user.id, race_id: raceId, candidate_or_choice: candidate,
-        election_id: "midterms-2026", zip_code: zipCode,
-      }, { onConflict: "user_id,race_id" as any });
-    }
-    toast.success("Ballot selections saved!");
-    setReviewOpen(false);
-  };
-
-  const copyAddress = (addr: string) => { navigator.clipboard.writeText(addr); toast.success("Address copied!"); };
-
-  const locationString = [city, stateCode, zipCode].filter(Boolean).join(", ");
+  if (profileLoading) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-4">
+        <Skeleton className="h-6 w-40" />
+        <Skeleton className="h-4 w-64" />
+        <div className="grid grid-cols-2 gap-3">
+          <Skeleton className="h-24 rounded-2xl" />
+          <Skeleton className="h-24 rounded-2xl" />
+        </div>
+        {[1, 2].map((i) => (
+          <Skeleton key={i} className="h-64 rounded-2xl" />
+        ))}
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 space-y-0">
+    <div className="max-w-3xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 space-y-6">
+      {!hasAddress ? (
+        <AddressPrompt onAddAddress={() => setAddressModalOpen(true)} />
+      ) : (
+        <>
+          {/* Page header */}
+          <motion.div {...fadeUp} className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#888888]">YOUR VOTER PROFILE</p>
+              <p className="text-sm text-[#888888] mt-0.5">
+                {voterProfile?.voter_address_street}, {voterProfile?.voter_address_city}, {voterProfile?.voter_address_state} {voterProfile?.voter_address_zip}
+              </p>
+            </div>
+            <button onClick={() => setAddressModalOpen(true)} className="text-xs text-muted-foreground underline hover:text-foreground shrink-0">
+              Update Address
+            </button>
+          </motion.div>
 
-      {/* ═══ 1. HERO ═══ */}
-      <motion.div
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl p-6 md:p-10 mb-4"
-        style={{
-          background: "linear-gradient(135deg, hsl(var(--primary) / 0.08) 0%, hsl(var(--primary) / 0.02) 50%, transparent 100%)",
-          border: "1px solid hsl(var(--primary) / 0.2)",
-        }}
-      >
-        <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.4) 30%, hsl(var(--primary) / 0.4) 70%, transparent)" }} />
-        <p className="eyebrow text-muted-foreground mb-2">YOUR CIVIC ACTION CENTER</p>
-        <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl text-foreground leading-none">YOUR VOTE. YOUR POWER.</h1>
-        <p className="text-sm md:text-lg text-muted-foreground mt-2">
-          Everything you need to show up{locationString ? ` · ${locationString}` : ""}
-        </p>
-        {needsFullAddress && (
-          <p className="text-xs text-muted-foreground mt-2">
-            <Link to="/settings" className="text-primary hover:underline">Add or update your full address →</Link> for precise ballot data.
-          </p>
-        )}
-        <div className="flex flex-col sm:flex-row gap-2 mt-5">
-          <Button
-            onClick={() => { setActiveTab("elections"); window.history.replaceState(null, "", "#elections"); navigate("/vote/candidates"); }}
-            className="bg-primary text-primary-foreground gap-1.5"
-          >
-            See candidates in my area →
-          </Button>
-          <Button
-            variant="outline"
-            className="border-primary/30 text-primary hover:bg-primary/10 gap-1.5"
-            onClick={() => navigate(`/ask?q=${encodeURIComponent("What are the most important races in the 2026 midterm elections?")}`)}
-          >
-            Ask Uwazi about 2026 →
-          </Button>
-          <Button
-            variant="ghost"
-            className="text-foreground/80 hover:text-foreground hover:bg-muted/60 gap-1.5"
-            onClick={() => {
-              setActiveTab("act");
-              window.history.replaceState(null, "", "#act");
-              setTimeout(() => {
-                document.getElementById("voting-plan-builder")?.scrollIntoView({ behavior: "smooth" });
-              }, 100);
-            }}
-          >
-            Set up voting plan →
-          </Button>
-        </div>
-      </motion.div>
+          {/* Stat cards */}
+          <motion.div {...stagger(1)} className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl p-5" style={{ background: "#111111", border: "1px solid #2a2a2a" }}>
+              <p className="text-3xl font-extrabold text-primary font-heading leading-none">
+                {elections.length}
+              </p>
+              <p className="text-xs text-[#888888] mt-1">elections near you</p>
+            </div>
+            <div className="rounded-2xl p-5" style={{ background: "#111111", border: "1px solid #2a2a2a" }}>
+              <p className="text-3xl font-extrabold text-[#3b82f6] font-heading leading-none">
+                {elections.reduce((sum, e) => sum + (e.contests?.length || 0), 0)}
+              </p>
+              <p className="text-xs text-[#888888] mt-1">races on your ballot</p>
+            </div>
+          </motion.div>
 
-      {/* ═══ 2. COUNTDOWN BAR ═══ */}
-      <CountdownBar nextElection={nextElection} />
-
-      {/* ═══ 3. TABBED NAVIGATION ═══ */}
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-6">
-        <TabsList className="w-full grid grid-cols-3 h-11 bg-muted/50 rounded-xl">
-          <TabsTrigger value="elections" className="text-xs sm:text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground">
-            Elections 2026
-          </TabsTrigger>
-          <TabsTrigger value="reps" className="text-xs sm:text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground">
-            Your Reps
-          </TabsTrigger>
-          <TabsTrigger value="act" className="text-xs sm:text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground">
-            Take Action
-          </TabsTrigger>
-        </TabsList>
-
-        {/* ─── TAB 1: Elections 2026 ─── */}
-        <TabsContent value="elections" className="space-y-6 mt-6">
-          
-          <ElectionsTab
-            stateCode={stateCode}
-            racesWithCandidates={racesWithCandidates}
-            bpMeasures={bpMeasures}
-            bpLoading={bpLoading}
-            showMoFallback={showMoFallback}
-            contests={contests}
-            nextElection={nextElection}
-            navigate={navigate}
-          />
-        </TabsContent>
-
-        {/* ─── TAB 2: Your Reps ─── */}
-        <TabsContent value="reps" className="mt-6">
-          <RepresentativesSection stateCode={stateCode} zipCode={zipCode} city={city} />
-        </TabsContent>
-
-        {/* ─── TAB 3: Take Action ─── */}
-        <TabsContent value="act" className="mt-6">
-          <TakeActionTab
-            stateCode={stateCode}
-            navigate={navigate}
-            needsFullAddress={needsFullAddress}
-            invalidVoterAddress={invalidVoterAddress}
-            voterLoading={voterLoading}
-            hasPollingData={hasPollingData}
-            displayPolling={displayPolling}
-            nextElection={nextElection}
-            copyAddress={copyAddress}
-            // Voting plan props
-            planElectionDate={planElectionDate}
-            setPlanElectionDate={setPlanElectionDate}
-            planPollingName={planPollingName}
-            setPlanPollingName={setPlanPollingName}
-            planPollingAddress={planPollingAddress}
-            setPlanPollingAddress={setPlanPollingAddress}
-            planTransport={planTransport}
-            setPlanTransport={setPlanTransport}
-            planReminder={planReminder}
-            setPlanReminder={setPlanReminder}
-            planReminderDate={planReminderDate}
-            setPlanReminderDate={setPlanReminderDate}
-            datePickerOpen={datePickerOpen}
-            setDatePickerOpen={setDatePickerOpen}
-            reminderPickerOpen={reminderPickerOpen}
-            setReminderPickerOpen={setReminderPickerOpen}
-            existingPlan={existingPlan}
-            handleSavePlan={handleSavePlan}
-            savedBills={savedBills}
-          />
-        </TabsContent>
-      </Tabs>
-
-      {/* Review Ballot Modal */}
-      <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
-        <DialogContent className="bg-card border-border max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-heading text-2xl text-foreground">REVIEW MY BALLOT</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            {Object.entries(selectedCandidates).length === 0 ? (
-              <p className="text-sm text-muted-foreground">No candidates selected yet.</p>
-            ) : (
-              Object.entries(selectedCandidates).map(([race, candidate]) => (
-                <div key={race} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                  <div>
-                    <p className="text-xs text-muted-foreground">{race}</p>
-                    <p className="text-sm font-medium text-foreground">{candidate}</p>
+          {/* Election cards or skeleton */}
+          {showSkeleton ? (
+            <div className="space-y-4">
+              {[1, 2].map((i) => (
+                <div key={i} className="rounded-2xl p-5 space-y-4" style={{ background: "#111111", border: "1px solid #2a2a2a" }}>
+                  <Skeleton className="h-5 w-24" />
+                  <Skeleton className="h-6 w-64" />
+                  <Skeleton className="h-4 w-48" />
+                  <div className="grid grid-cols-3 gap-2">
+                    <Skeleton className="h-20 rounded-xl" />
+                    <Skeleton className="h-20 rounded-xl" />
+                    <Skeleton className="h-20 rounded-xl" />
                   </div>
-                  <CheckCircle className="h-4 w-4 text-primary" />
+                  <Skeleton className="h-32 rounded-xl" />
                 </div>
-              ))
-            )}
-          </div>
-          <Button onClick={handleSaveBallot} className="w-full bg-primary text-primary-foreground mt-2">
-            Save My Selections
-          </Button>
-        </DialogContent>
-      </Dialog>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {elections
+                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                .map((election, idx) => (
+                  <ElectionCard
+                    key={election.id}
+                    election={election}
+                    index={idx}
+                    onCheckReg={(url) => openRegModal(url, voterProfile?.voter_address_state)}
+                    onRegister={(url) => openRegModal(url, voterProfile?.voter_address_state)}
+                  />
+                ))}
+            </div>
+          )}
+
+          {/* Ask Uwazi nudge */}
+          <motion.div {...stagger(elections.length + 2)} className="rounded-2xl p-5 flex items-start gap-3" style={{ background: "#111111", border: "1px solid #2a2a2a", borderLeft: "3px solid hsl(var(--primary))" }}>
+            <span className="text-2xl">💬</span>
+            <div>
+              <p className="text-sm text-[#888888]">Have a question about something on your ballot?</p>
+              <Link to="/app/ask" className="text-sm text-primary hover:underline font-semibold mt-1 inline-block">
+                Ask Uwazi →
+              </Link>
+            </div>
+          </motion.div>
+        </>
+      )}
+
+      <AddressModal open={addressModalOpen} onOpenChange={setAddressModalOpen} initialAddress={initialAddress} />
+      <RegistrationModal open={regModalOpen} onOpenChange={setRegModalOpen} url={regModalUrl} stateLabel={regModalState} />
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════════
-   COUNTDOWN BAR (slim single row)
+   ADDRESS PROMPT (State A)
    ═══════════════════════════════════════════════ */
 
-function CountdownBar({ nextElection }: { nextElection: { name: string; date: string } }) {
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0 });
-
-  useEffect(() => {
-    const target = new Date(`${nextElection.date}T00:00:00`);
-    const tick = () => {
-      const diff = Math.max(0, target.getTime() - Date.now());
-      setTimeLeft({
-        days: Math.floor(diff / 86400000),
-        hours: Math.floor((diff % 86400000) / 3600000),
-        minutes: Math.floor((diff % 3600000) / 60000),
-      });
-    };
-    tick();
-    const id = setInterval(tick, 60000);
-    return () => clearInterval(id);
-  }, [nextElection.date]);
-
-  const formatted = new Date(`${nextElection.date}T00:00:00`).toLocaleDateString("en-US", {
-    month: "short", day: "numeric", year: "numeric",
-  });
-
+function AddressPrompt({ onAddAddress }: { onAddAddress: () => void }) {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 px-4 py-2.5 rounded-xl"
-      style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.15)" }}
-    >
-      <div className="flex items-center gap-2 text-sm flex-wrap min-w-0">
-        <span className="text-muted-foreground font-medium shrink-0">Next election</span>
-        <span className="text-foreground font-bold truncate">{nextElection.name}</span>
-        <span className="text-muted-foreground shrink-0">{formatted}</span>
-      </div>
-      <div className="flex items-center gap-3 shrink-0">
-        <div className="flex items-center gap-1.5">
-          {[
-            { val: timeLeft.days, lbl: "days" },
-            { val: timeLeft.hours, lbl: "hrs" },
-            { val: timeLeft.minutes, lbl: "min" },
-          ].map((u) => (
-            <div key={u.lbl} className="flex items-baseline gap-0.5">
-              <span className="font-heading text-lg font-extrabold text-primary leading-none">{u.val}</span>
-              <span className="text-[9px] font-semibold uppercase text-muted-foreground">{u.lbl}</span>
-            </div>
+    <motion.div {...fadeUp} className="flex flex-col items-center justify-center min-h-[60vh]">
+      <div className="max-w-md w-full rounded-2xl p-6 space-y-5" style={{ background: "#111111", border: "1px solid #2a2a2a", borderLeft: "3px solid hsl(var(--primary))" }}>
+        <span className="text-3xl">📍</span>
+        <h2 className="font-heading text-2xl font-extrabold text-foreground">Personalize your Voting Hub</h2>
+        <p className="text-sm text-[#888888] leading-relaxed">
+          Add your voting address to see your upcoming elections, registration deadlines, candidates, and polling location — all in one place.
+        </p>
+        <Button onClick={onAddAddress} className="w-full rounded-full h-12 text-sm font-bold bg-primary text-primary-foreground">
+          Add My Address →
+        </Button>
+        <div className="flex flex-wrap gap-2 pt-2">
+          {["🗳️ Upcoming elections", "📋 Your ballot", "📍 Polling location"].map((chip) => (
+            <span key={chip} className="text-xs px-3 py-1.5 rounded-full border border-[#2a2a2a] text-[#888888]" style={{ background: "#1a1a1a" }}>
+              {chip}
+            </span>
           ))}
         </div>
       </div>
@@ -436,341 +272,290 @@ function CountdownBar({ nextElection }: { nextElection: { name: string; date: st
 }
 
 /* ═══════════════════════════════════════════════
-   TAB 1: Elections 2026
+   ELECTION CARD
    ═══════════════════════════════════════════════ */
 
-function ElectionsTab({
-  stateCode, racesWithCandidates, bpMeasures, bpLoading, showMoFallback, contests, nextElection, navigate,
+function ElectionCard({
+  election,
+  index,
+  onCheckReg,
+  onRegister,
 }: {
-  stateCode?: string | null;
-  racesWithCandidates: any[];
-  bpMeasures: any[];
-  bpLoading: boolean;
-  showMoFallback: boolean;
-  contests: any[];
-  nextElection: { name: string; date: string };
-  navigate: (path: string) => void;
+  election: VoterElection;
+  index: number;
+  onCheckReg: (url: string) => void;
+  onRegister: (url: string) => void;
 }) {
-  const stakes = [
-    { number: "435", label: "House Seats", context: "All up for election" },
-    { number: "35", label: "Senate Seats", context: "Including 2 special elections" },
-    { number: "39", label: "Governor Races", context: "Across states & territories" },
-    { number: "40K+", label: "Total Offices", context: "Congress to school board" },
-  ];
+  const contests = election.contests || [];
+  const measures = election.ballotMeasures || [];
+  const deadlines = election.registrationDeadlines;
+  const methods = election.votingMethods;
+  const polling = election.pollingLocation;
+  const [showAllContests, setShowAllContests] = useState(false);
+  const visibleContests = showAllContests ? contests : contests.slice(0, 5);
+  const hiddenCount = contests.length - 5;
+
+  // Group contests by level
+  const groupedContests = useMemo(() => {
+    const groups: Record<string, VoterContest[]> = { federal: [], state: [], local: [] };
+    visibleContests.forEach((c) => {
+      const level = c.level || "local";
+      if (!groups[level]) groups[level] = [];
+      groups[level].push(c);
+    });
+    return groups;
+  }, [visibleContests]);
 
   return (
-    <div className="space-y-6">
-      {/* Stats mini grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        {stakes.map((s) => (
-          <div
-            key={s.label}
-            className="flex flex-col items-center rounded-xl py-3 px-2"
-            style={{ background: "var(--card-bg, hsl(var(--muted)))", border: "1px solid hsl(var(--primary) / 0.1)" }}
-          >
-            <span className="font-heading text-2xl sm:text-3xl font-extrabold text-primary leading-none">{s.number}</span>
-            <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-foreground mt-1">{s.label}</span>
-            <span className="text-[9px] text-muted-foreground mt-0.5 text-center">{s.context}</span>
+    <motion.div {...stagger(index)} className="rounded-2xl p-5 space-y-5" style={{ background: "#111111", border: "1px solid #2a2a2a" }}>
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            {election.status === "active" ? (
+              <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground">● Live</span>
+            ) : (
+              <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full text-primary" style={{ background: "#1a2a1a" }}>◌ Expected</span>
+            )}
           </div>
-        ))}
+          <h3 className="text-lg font-bold text-foreground">{election.name}</h3>
+          <p className="text-sm text-[#888888]">{formatElectionDate(election.date)}</p>
+        </div>
+        <span className="text-xs px-2 py-1 rounded-md text-[#888888] border border-[#2a2a2a]" style={{ background: "#1a1a1a" }}>
+          {election.date.slice(0, 4)}
+        </span>
       </div>
 
-      {/* Congressional control bars */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">HOUSE</p>
-          <div className="flex h-7 rounded-lg overflow-hidden">
-            <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: "49.2%", background: "#1d4ed8" }}>214 D</div>
-            <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: "50.8%", background: "#dc2626" }}>221 R</div>
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-1">Republicans hold majority — 4 seats decide control</p>
-        </div>
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">SENATE</p>
-          <div className="flex h-7 rounded-lg overflow-hidden">
-            <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: "45.9%", background: "#1d4ed8" }}>45 D</div>
-            <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: "54.1%", background: "#dc2626" }}>53 R</div>
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-1">Republicans hold majority — 4 seats decide control</p>
-        </div>
-      </div>
+      {/* Registration deadlines */}
+      <DeadlinesSection deadlines={deadlines} />
 
-      {/* Candidates section link */}
-      <div
-        className="rounded-card p-5 flex items-center justify-between cursor-pointer hover:border-primary/40 transition-colors"
-        style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle, hsl(var(--border)))" }}
-        onClick={() => navigate("/vote/candidates")}
-      >
-        <div className="flex items-center gap-3">
-          <Users className="h-5 w-5 text-primary" />
-          <div>
-            <p className="text-sm font-bold text-foreground">Candidates in Your Area</p>
-            <p className="text-xs text-muted-foreground">View all races grouped by Federal and State</p>
-          </div>
+      {/* Voting methods */}
+      {methods && (
+        <div className="flex flex-wrap gap-2">
+          {methods.byMail && (
+            <span className="text-xs px-3 py-1.5 rounded-full border border-[#2a2a2a] text-[#888888]" style={{ background: "#1a1a1a" }}>✉️ Vote by Mail Available</span>
+          )}
+          {methods.earlyVoting && (
+            <span className="text-xs px-3 py-1.5 rounded-full border border-[#2a2a2a] text-[#888888]" style={{ background: "#1a1a1a" }}>
+              🗓️ Early Voting {methods.earlyVoting.start ? formatShortDate(methods.earlyVoting.start) : ""}{methods.earlyVoting.end ? ` – ${formatShortDate(methods.earlyVoting.end)}` : ""}
+            </span>
+          )}
+          {methods.inPerson && (
+            <span className="text-xs px-3 py-1.5 rounded-full border border-[#2a2a2a] text-[#888888]" style={{ background: "#1a1a1a" }}>📍 In-Person Voting</span>
+          )}
         </div>
-        <ChevronRight className="h-5 w-5 text-muted-foreground" />
-      </div>
-
-      {/* Google Civic contests */}
-      {contests.length > 0 && (
-        <BallotSection contests={contests} isDemo={false} electionDate={nextElection.date} />
       )}
 
-      {/* Ballotpedia candidates & measures */}
-      {bpLoading ? (
-        <div className="space-y-3">
-          <Skeleton className="h-8 w-48 rounded-lg" />
-          <Skeleton className="h-24 rounded-card" />
-          <Skeleton className="h-24 rounded-card" />
-        </div>
-      ) : (racesWithCandidates.length > 0 || bpMeasures.length > 0) ? (
-        <BallotpediaSection racesWithCandidates={racesWithCandidates} measures={bpMeasures} />
-      ) : null}
-
-      {/* MO fallback */}
-      {showMoFallback && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Landmark className="h-5 w-5 text-primary" />
-            <h2 className="font-heading text-xl text-foreground">YOUR LOCAL RACES</h2>
-          </div>
-          <p className="text-xs text-muted-foreground">Key 2026 races for Missouri.</p>
-          {MO_2026_RACES.map((race) => (
-            <div key={race.office} className="rounded-card p-5 border-l-4 border-l-primary" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
-              <p className="text-sm font-bold text-foreground">{race.office}</p>
-              <p className="text-xs text-muted-foreground mt-1">Incumbent: {race.incumbent}</p>
-              <div className="flex flex-wrap gap-2 mt-2">
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">{race.competitiveness}</span>
+      {/* Contests / Ballot */}
+      {contests.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-widest text-primary">YOUR BALLOT</p>
+          {(["federal", "state", "local"] as const).map((level) =>
+            groupedContests[level]?.length > 0 ? (
+              <div key={level} className="space-y-2">
+                {groupedContests[level].map((contest, ci) => (
+                  <ContestRow key={ci} contest={contest} />
+                ))}
               </div>
-              <a href={race.ballotpedia} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline mt-2 inline-block">View on Ballotpedia ↗</a>
-            </div>
+            ) : null
+          )}
+          {!showAllContests && hiddenCount > 0 && (
+            <button onClick={() => setShowAllContests(true)} className="text-sm text-primary hover:underline">
+              Show {hiddenCount} more race{hiddenCount !== 1 ? "s" : ""} →
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Ballot measures */}
+      {measures.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-widest text-primary">BALLOT MEASURES</p>
+          {measures.map((m, mi) => (
+            <MeasureRow key={mi} measure={m} />
           ))}
+        </div>
+      )}
+
+      {/* Polling location */}
+      {polling && polling.address && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-widest text-primary">YOUR POLLING PLACE</p>
+          <div className="rounded-xl p-4 flex items-start gap-3" style={{ background: "#1a1a1a", border: "1px solid #2a2a2a", borderLeft: "3px solid hsl(var(--primary))" }}>
+            <MapPin className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+            <div className="space-y-1 flex-1 min-w-0">
+              {polling.name && <p className="text-base font-bold text-foreground">{polling.name}</p>}
+              <p className="text-sm text-[#888888]">{polling.address}</p>
+              {polling.hours && <p className="text-sm text-primary">{polling.hours}</p>}
+              {polling.notes && <p className="text-xs text-[#555555]">{polling.notes}</p>}
+              <a
+                href={`https://maps.google.com/?q=${encodeURIComponent(polling.address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-primary border border-primary/30 rounded-full px-3 py-1.5 hover:bg-primary/10 transition-colors"
+              >
+                Get Directions → <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Action buttons */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        <Button
+          variant="outline"
+          className="flex-1 rounded-full border-primary/30 text-primary hover:bg-primary/10 gap-1.5"
+          onClick={() => onCheckReg(election.checkRegistrationUrl || "")}
+        >
+          ✅ Check Registration
+        </Button>
+        {election.registrationUrl && (
+          <Button
+            className="flex-1 rounded-full bg-primary text-primary-foreground font-bold gap-1.5"
+            onClick={() => onRegister(election.registrationUrl!)}
+          >
+            📝 Register to Vote
+          </Button>
+        )}
+      </div>
+
+      {/* Coverage notice */}
+      {election.coverage && !election.coverage.hasLocalRaces && (
+        <p className="text-xs text-[#555555] italic flex items-start gap-1.5">
+          <AlertCircle className="h-3 w-3 shrink-0 mt-0.5" />
+          Local race coverage for your area may be limited. State and federal races shown are complete.
+        </p>
+      )}
+    </motion.div>
+  );
+}
+
+/* ─── Deadlines ─── */
+
+function DeadlinesSection({ deadlines }: { deadlines?: VoterElection["registrationDeadlines"] }) {
+  if (!deadlines) return null;
+  const items = [
+    { icon: "📱", label: "Online", date: deadlines.online },
+    { icon: "📬", label: "By Mail", date: deadlines.byMail },
+    { icon: "🏛️", label: "In Person", date: deadlines.inPerson },
+  ].filter((d) => d.date);
+
+  if (items.length === 0) {
+    return (
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-2">REGISTRATION DEADLINES</p>
+        <p className="text-xs text-[#888888]">Deadlines not yet announced</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-2">REGISTRATION DEADLINES</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        {items.map((item) => (
+          <DeadlineCard key={item.label} icon={item.icon} label={item.label} date={item.date!} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DeadlineCard({ icon, label, date }: { icon: string; label: string; date: string }) {
+  const past = isPast(date);
+  const today = isToday(date);
+  const days = daysUntil(date);
+
+  return (
+    <div className="rounded-xl p-3" style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}>
+      <div className="flex items-center gap-1.5 mb-1">
+        <span className="text-sm">{icon}</span>
+        <span className="text-xs text-[#888888]">{label}</span>
+      </div>
+      {today ? (
+        <p className="text-sm font-bold text-primary">TODAY</p>
+      ) : past ? (
+        <div>
+          <p className="text-sm text-[#888888] line-through">{formatShortDate(date)}</p>
+          <span className="text-[10px] text-destructive/70 font-semibold">Passed</span>
+        </div>
+      ) : (
+        <div>
+          <p className="text-sm font-semibold text-foreground">{formatShortDate(date)}</p>
+          <p className="text-xs text-primary">{days} day{days !== 1 ? "s" : ""} away</p>
         </div>
       )}
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════
-   TAB 3: Take Action
-   ═══════════════════════════════════════════════ */
+/* ─── Contest row ─── */
 
-function TakeActionTab({
-  stateCode, navigate, needsFullAddress, invalidVoterAddress, voterLoading,
-  hasPollingData, displayPolling, nextElection, copyAddress,
-  planElectionDate, setPlanElectionDate, planPollingName, setPlanPollingName,
-  planPollingAddress, setPlanPollingAddress, planTransport, setPlanTransport,
-  planReminder, setPlanReminder, planReminderDate, setPlanReminderDate,
-  datePickerOpen, setDatePickerOpen, reminderPickerOpen, setReminderPickerOpen,
-  existingPlan, handleSavePlan, savedBills,
-}: any) {
-  /* 2x2 action cards */
-  const actions = [
-    {
-      icon: ClipboardCheck,
-      title: "Check Registration",
-      desc: "Verify you're registered to vote",
-      onClick: () => {},
-      render: true,
-    },
-    {
-      icon: MapPin,
-      title: "Find Polling Place",
-      desc: "Locate your nearest polling location",
-      onClick: () => document.getElementById("polling-location-section")?.scrollIntoView({ behavior: "smooth" }),
-      render: true,
-    },
-    {
-      icon: Vote,
-      title: "Build Voting Plan",
-      desc: "Set a plan so you don't miss Election Day",
-      onClick: () => document.getElementById("voting-plan-builder")?.scrollIntoView({ behavior: "smooth" }),
-      render: true,
-    },
-    {
-      icon: Scale,
-      title: "Track Legislation",
-      desc: "Follow bills that affect your community",
-      onClick: () => navigate("/legislation"),
-      render: true,
-    },
-  ];
+function ContestRow({ contest }: { contest: VoterContest }) {
+  const [open, setOpen] = useState(false);
+  const levelLabel = contest.level?.toUpperCase() || "LOCAL";
+  const levelColor = contest.level === "federal" ? "text-[#60a5fa]" : contest.level === "state" ? "text-purple-400" : "text-primary";
 
   return (
-    <div className="space-y-6">
-      {/* Personalized voter action summary */}
-      <VoterActionSummary />
-
-      {/* 2x2 action grid */}
-      <div className="grid grid-cols-2 gap-3">
-        {actions.map((a) => (
-          <button
-            key={a.title}
-            onClick={a.onClick}
-            className="rounded-card p-5 text-left flex flex-col gap-2 hover:border-primary/30 transition-all"
-            style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle, hsl(var(--border)))" }}
-          >
-            <a.icon className="h-6 w-6 text-primary" />
-            <p className="text-sm font-bold text-foreground">{a.title}</p>
-            <p className="text-xs text-muted-foreground">{a.desc}</p>
-          </button>
-        ))}
-      </div>
-
-      {/* Registration check */}
-      
-
-      {/* Polling Location */}
-      <div id="polling-location-section" className="space-y-4">
-        <h2 className="font-heading text-xl text-foreground">YOUR POLLING LOCATION</h2>
-        {needsFullAddress ? (
-          <div className="rounded-card p-6 text-center space-y-3" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
-            <MapPin className="h-8 w-8 text-primary mx-auto" />
-            <h3 className="font-heading text-lg text-foreground">Add your address to find your polling location</h3>
-            <p className="text-sm text-muted-foreground">
-              {invalidVoterAddress ? "Your saved address could not be matched." : "We need your full street address."}
-            </p>
-            <Button onClick={() => navigate("/settings")} className="bg-primary text-primary-foreground">
-              {invalidVoterAddress ? "Update My Address →" : "Add My Address →"}
-            </Button>
-          </div>
-        ) : voterLoading ? (
-          <Skeleton className="h-28 rounded-card" />
-        ) : hasPollingData ? (
-          <div className="space-y-3">
-            {displayPolling.map((loc: any, i: number) => {
-              const addr = loc.address;
-              const fullAddr = addr ? [addr.line1, addr.city, addr.state, addr.zip].filter(Boolean).join(", ") : "";
-              return (
-                <div key={i} className="rounded-card p-5 border-l-4 border-l-primary" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
-                  <p className="text-sm font-bold text-foreground flex items-center gap-1.5"><MapPin className="h-4 w-4 text-primary" />{loc.locationName || "Polling Location"}</p>
-                  {fullAddr && <p className="text-xs text-muted-foreground">{fullAddr}</p>}
-                  <div className="flex gap-2 mt-3">
-                    <a href={`https://maps.google.com/?q=${encodeURIComponent(fullAddr)}`} target="_blank" rel="noopener noreferrer">
-                      <Button size="sm" className="bg-primary text-primary-foreground text-xs gap-1"><ExternalLink className="h-3 w-3" /> Directions</Button>
-                    </a>
-                    <Button size="sm" variant="outline" className="text-xs gap-1 border-border" onClick={() => copyAddress(fullAddr)}><Copy className="h-3 w-3" /> Copy</Button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="rounded-card p-6 text-center space-y-3" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
-            <MapPin className="h-8 w-8 text-muted-foreground mx-auto" />
-            <h3 className="font-heading text-lg text-foreground">Polling Locations Not Published Yet</h3>
-            <p className="text-sm text-muted-foreground">Check back closer to {new Date(`${nextElection.date}T00:00:00`).toLocaleDateString("en-US", { month: "long", year: "numeric" })}.</p>
-          </div>
-        )}
-      </div>
-
-      {/* Voting Plan Builder */}
-      <div id="voting-plan-builder" className="rounded-card p-6" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
-        <h2 className="font-heading text-xl text-foreground mb-6">VOTING PLAN BUILDER</h2>
-        <div className="space-y-6">
-          <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-card bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">01</div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-foreground mb-2">ELECTION DAY</p>
-              <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full md:w-auto justify-start text-left border-border">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    {planElectionDate ? format(planElectionDate, "PPP") : "Pick election date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarPicker mode="single" selected={planElectionDate} onSelect={(d: any) => { setPlanElectionDate(d); setDatePickerOpen(false); }} className={cn("p-3 pointer-events-auto")} />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-          <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-card bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">02</div>
-            <div className="flex-1 space-y-2">
-              <p className="text-sm font-bold text-foreground">YOUR POLLING PLACE</p>
-              <Input placeholder="Polling location name" value={planPollingName} onChange={(e: any) => setPlanPollingName(e.target.value)} className="bg-background border-border" />
-              <Input placeholder="Address" value={planPollingAddress} onChange={(e: any) => setPlanPollingAddress(e.target.value)} className="bg-background border-border" />
-            </div>
-          </div>
-          <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-card bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">03</div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-foreground mb-2">HOW ARE YOU GETTING THERE?</p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {transportOptions.map((opt) => (
-                  <button key={opt.value} onClick={() => setPlanTransport(opt.value)}
-                    className={`flex flex-col items-center gap-1.5 p-3 rounded-card border transition-all text-sm ${planTransport === opt.value ? "border-primary bg-primary/10 text-foreground" : "border-border hover:border-primary/30 text-muted-foreground"}`}>
-                    <opt.icon className="h-5 w-5" />
-                    <span className="text-xs font-medium">{opt.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-card bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">04</div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-foreground mb-2">SET A REMINDER</p>
-              <div className="flex items-center gap-3 mb-2">
-                <Switch checked={planReminder} onCheckedChange={setPlanReminder} />
-                <span className="text-sm text-muted-foreground">{planReminder ? "Reminder on" : "No reminder"}</span>
-              </div>
-              {planReminder && (
-                <Popover open={reminderPickerOpen} onOpenChange={setReminderPickerOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="border-border"><Bell className="h-4 w-4 mr-2" />{planReminderDate ? format(planReminderDate, "PPP") : "Set reminder date"}</Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarPicker mode="single" selected={planReminderDate} onSelect={(d: any) => { setPlanReminderDate(d); setReminderPickerOpen(false); }} className={cn("p-3 pointer-events-auto")} />
-                  </PopoverContent>
-                </Popover>
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger className="w-full rounded-xl p-3 flex items-center justify-between gap-2 hover:border-primary/30 transition-colors cursor-pointer" style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className={`text-[10px] font-bold uppercase tracking-wider ${levelColor}`}>{levelLabel}</span>
+          <span className="text-sm font-semibold text-foreground truncate">{contest.name}</span>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {contest.candidates && <span className="text-xs text-[#888888]">{contest.candidates.length} candidate{contest.candidates.length !== 1 ? "s" : ""}</span>}
+          <ChevronDown className={`h-4 w-4 text-[#888888] transition-transform ${open ? "rotate-180" : ""}`} />
+        </div>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="pl-4 space-y-1.5 py-2">
+          {contest.candidates?.map((c, ci) => (
+            <div key={ci} className="flex items-center gap-2 py-1.5">
+              <span className="text-sm text-foreground">{c.name}</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full border ${partyPillClass(c.party)}`}>
+                {c.party || "N/A"}
+              </span>
+              {c.incumbent && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full border border-primary/30 text-primary">Incumbent</span>
+              )}
+              {c.websiteUrl && (
+                <a href={c.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline ml-auto">
+                  Website →
+                </a>
               )}
             </div>
-          </div>
+          ))}
         </div>
-        <Button onClick={handleSavePlan} className="w-full mt-6 bg-primary text-primary-foreground text-base py-3 h-auto">
-          {existingPlan ? "UPDATE MY VOTING PLAN" : "SAVE MY VOTING PLAN"}
-        </Button>
-        {existingPlan?.plan_complete && (
-          <div className="flex items-center gap-2 mt-3 justify-center">
-            <CheckCircle className="h-4 w-4 text-primary" />
-            <p className="text-sm text-primary font-medium">Your voting plan is set! 🗳️</p>
-          </div>
-        )}
-      </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
 
-      {/* Bills to Watch */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Scale className="h-5 w-5 text-primary" />
-            <h2 className="font-heading text-xl text-foreground">BILLS TO WATCH</h2>
-          </div>
-          <Button variant="ghost" size="sm" className="text-xs text-primary" onClick={() => navigate("/legislation")}>Track More →</Button>
-        </div>
-        {savedBills && savedBills.length > 0 ? (
-          <div className="space-y-2">
-            {savedBills.map((bill: any) => (
-              <div key={bill.id} className="rounded-card p-4 flex items-center justify-between" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold text-primary">{bill.bill_id}</p>
-                  <p className="text-sm text-foreground truncate">{bill.bill_title || "Untitled Bill"}</p>
-                </div>
-                <Button variant="ghost" size="sm" className="text-xs text-primary h-7 shrink-0"
-                  onClick={() => navigate(`/ask?q=${encodeURIComponent(`Tell me about ${bill.bill_id}: ${bill.bill_title}`)}`)} >
-                  Ask Uwazi
-                </Button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-card p-6 text-center" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
-            <p className="text-sm text-muted-foreground mb-2">No bills tracked yet.</p>
-            <Button variant="outline" size="sm" className="text-xs border-border" onClick={() => navigate("/legislation")}>Browse Legislation →</Button>
-          </div>
-        )}
+/* ─── Ballot Measure row ─── */
+
+function MeasureRow({ measure }: { measure: BallotMeasure }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasSummary = measure.summary && measure.summary.length > 0;
+  const truncated = hasSummary && measure.summary!.length > 100;
+
+  return (
+    <div className="rounded-xl p-3 space-y-1.5" style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}>
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-semibold text-foreground">{measure.name}</span>
+        {measure.type && <span className="text-[10px] text-[#888888] px-1.5 py-0.5 rounded border border-[#2a2a2a]">{measure.type}</span>}
       </div>
+      {hasSummary && (
+        <p className="text-sm text-[#888888] leading-relaxed">
+          {expanded || !truncated ? measure.summary : `${measure.summary!.slice(0, 100)}…`}
+          {truncated && (
+            <button onClick={() => setExpanded(!expanded)} className="text-primary hover:underline ml-1 text-xs">
+              {expanded ? "Show less" : "Read more"}
+            </button>
+          )}
+        </p>
+      )}
     </div>
   );
 }
