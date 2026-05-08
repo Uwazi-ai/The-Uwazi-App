@@ -618,7 +618,7 @@ function TakeActionTab({
       </div>
 
       {/* Registration check */}
-      <RegistrationCheck stateCode={stateCode} />
+      
 
       {/* Polling Location */}
       <div id="polling-location-section" className="space-y-4">
