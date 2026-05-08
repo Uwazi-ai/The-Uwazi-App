@@ -50,6 +50,7 @@ import Welcome from "./pages/Welcome";
 import PartnerDashboardPage from "./pages/PartnerDashboardPage";
 import JoinPage from "./pages/JoinPage";
 import ImpactPage from "./pages/ImpactPage";
+import { PWAUpdateBanner } from "@/components/PWAUpdateBanner";
 import { useElectionDataRefresh } from "@/hooks/useElectionDataRefresh";
 
 const queryClient = new QueryClient();
