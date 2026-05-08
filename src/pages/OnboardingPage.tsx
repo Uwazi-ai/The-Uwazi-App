@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import uwaziLogo from "@/assets/uwazi-logo.png";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, BookOpen, Heart, Layers, Check, ChevronRight, ChevronLeft } from "lucide-react";
+import { MapPin, BookOpen, Heart, Layers, Check, ChevronRight, ChevronLeft, Vote } from "lucide-react";
 import AddressStep, { type AddressData } from "@/components/onboarding/AddressStep";
+import VoterAddressStep from "@/components/onboarding/VoterAddressStep";
 import { getStoredOrgSlug, clearStoredOrgSlug } from "@/hooks/useOrgTracking";
 
 const STEPS = [
   { id: "welcome", title: "Welcome to UWAZI.AI", subtitle: "Your personal civic intelligence companion. Let's personalize your experience.", icon: null },
   { id: "location", title: "Where do you vote?", subtitle: "Your address helps us find your exact polling location.", icon: MapPin },
+  { id: "voter-address", title: "Your Voting Address", subtitle: "We'll personalize your elections and ballot info.", icon: Vote },
   {
     id: "knowledge", title: "How would you describe your civic knowledge?", subtitle: "No wrong answers — we'll meet you where you are.", icon: BookOpen,
     field: "civic_knowledge_level",
@@ -200,7 +202,15 @@ export default function OnboardingPage() {
               />
             )}
 
-            {/* Choice step */}
+            {/* Voter Address / Democracy Works step */}
+            {currentStep.id === "voter-address" && (
+              <VoterAddressStep
+                onComplete={() => setStep((s) => s + 1)}
+                onSkip={() => setStep((s) => s + 1)}
+              />
+            )}
+
+
             {currentStep.type === "choice" && (
               <div className="space-y-5">
                 <div className="flex items-center gap-3">
@@ -271,7 +281,7 @@ export default function OnboardingPage() {
         </AnimatePresence>
 
         {/* Navigation — hide for location step (has its own buttons) */}
-        {currentStep.id !== "location" && (
+        {currentStep.id !== "location" && currentStep.id !== "voter-address" && (
           <div className="flex items-center justify-between">
             {step > 0 ? (
               <Button variant="ghost" onClick={handleBack} className="gap-1.5">
@@ -288,7 +298,7 @@ export default function OnboardingPage() {
         )}
 
         {/* Skip — hide for welcome and location steps */}
-        {step > 1 && !isLast && currentStep.id !== "location" && (
+        {step > 1 && !isLast && currentStep.id !== "location" && currentStep.id !== "voter-address" && (
           <button
             onClick={() => setStep((s) => s + 1)}
             className="block mx-auto text-xs text-muted-foreground hover:text-foreground transition-colors"

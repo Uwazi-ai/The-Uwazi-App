@@ -27,6 +27,7 @@ import BallotSection from "@/components/voting/BallotSection";
 import BallotpediaSection from "@/components/voting/BallotpediaSection";
 import RepresentativesSection from "@/components/voting/RepresentativesSection";
 import { useBallotpediaData } from "@/hooks/useBallotpediaData";
+import PersonalizedElections from "@/components/voting/PersonalizedElections";
 
 /* ─── 2026 election calendar ─── */
 const STATE_PRIMARY_DATES_2026: Record<string, string> = {
@@ -293,6 +294,7 @@ export default function VotingHubPage() {
 
         {/* ─── TAB 1: Elections 2026 ─── */}
         <TabsContent value="elections" className="space-y-6 mt-6">
+          <PersonalizedElections />
           <ElectionsTab
             stateCode={stateCode}
             racesWithCandidates={racesWithCandidates}
