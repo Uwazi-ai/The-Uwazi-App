@@ -14,6 +14,7 @@ import { getStoredOrgSlug, clearStoredOrgSlug } from "@/hooks/useOrgTracking";
 const STEPS = [
   { id: "welcome", title: "Welcome to UWAZI.AI", subtitle: "Your personal civic intelligence companion. Let's personalize your experience.", icon: null },
   { id: "location", title: "Where do you vote?", subtitle: "Your address helps us find your exact polling location.", icon: MapPin },
+  { id: "voter-address", title: "Your Voting Address", subtitle: "We'll personalize your elections and ballot info.", icon: Vote },
   {
     id: "knowledge", title: "How would you describe your civic knowledge?", subtitle: "No wrong answers — we'll meet you where you are.", icon: BookOpen,
     field: "civic_knowledge_level",
