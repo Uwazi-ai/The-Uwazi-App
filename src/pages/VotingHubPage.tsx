@@ -28,6 +28,7 @@ import BallotpediaSection from "@/components/voting/BallotpediaSection";
 import RepresentativesSection from "@/components/voting/RepresentativesSection";
 import { useBallotpediaData } from "@/hooks/useBallotpediaData";
 import PersonalizedElections from "@/components/voting/PersonalizedElections";
+import VoterActionSummary from "@/components/voting/VoterActionSummary";
 
 /* ─── 2026 election calendar ─── */
 const STATE_PRIMARY_DATES_2026: Record<string, string> = {
@@ -597,6 +598,9 @@ function TakeActionTab({
 
   return (
     <div className="space-y-6">
+      {/* Personalized voter action summary */}
+      <VoterActionSummary />
+
       {/* 2x2 action grid */}
       <div className="grid grid-cols-2 gap-3">
         {actions.map((a) => (
