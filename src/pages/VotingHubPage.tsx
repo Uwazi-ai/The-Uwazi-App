@@ -294,6 +294,7 @@ export default function VotingHubPage() {
 
         {/* ─── TAB 1: Elections 2026 ─── */}
         <TabsContent value="elections" className="space-y-6 mt-6">
+          <PersonalizedElections />
           <ElectionsTab
             stateCode={stateCode}
             racesWithCandidates={racesWithCandidates}
