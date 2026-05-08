@@ -298,7 +298,7 @@ export default function OnboardingPage() {
         )}
 
         {/* Skip — hide for welcome and location steps */}
-        {step > 1 && !isLast && currentStep.id !== "location" && (
+        {step > 1 && !isLast && currentStep.id !== "location" && currentStep.id !== "voter-address" && (
           <button
             onClick={() => setStep((s) => s + 1)}
             className="block mx-auto text-xs text-muted-foreground hover:text-foreground transition-colors"
