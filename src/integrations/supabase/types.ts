@@ -1433,6 +1433,8 @@ export type Database = {
           street_address: string | null
           updated_at: string
           user_id: string
+          voter_elections_cached_at: string | null
+          voter_elections_data: Json | null
           zip_code: string | null
         }
         Insert: {
@@ -1471,6 +1473,8 @@ export type Database = {
           street_address?: string | null
           updated_at?: string
           user_id: string
+          voter_elections_cached_at?: string | null
+          voter_elections_data?: Json | null
           zip_code?: string | null
         }
         Update: {
@@ -1509,6 +1513,8 @@ export type Database = {
           street_address?: string | null
           updated_at?: string
           user_id?: string
+          voter_elections_cached_at?: string | null
+          voter_elections_data?: Json | null
           zip_code?: string | null
         }
         Relationships: []
