@@ -202,7 +202,15 @@ export default function OnboardingPage() {
               />
             )}
 
-            {/* Choice step */}
+            {/* Voter Address / Democracy Works step */}
+            {currentStep.id === "voter-address" && (
+              <VoterAddressStep
+                onComplete={() => setStep((s) => s + 1)}
+                onSkip={() => setStep((s) => s + 1)}
+              />
+            )}
+
+
             {currentStep.type === "choice" && (
               <div className="space-y-5">
                 <div className="flex items-center gap-3">
