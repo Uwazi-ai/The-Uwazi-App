@@ -598,6 +598,9 @@ function TakeActionTab({
 
   return (
     <div className="space-y-6">
+      {/* Personalized voter action summary */}
+      <VoterActionSummary />
+
       {/* 2x2 action grid */}
       <div className="grid grid-cols-2 gap-3">
         {actions.map((a) => (
