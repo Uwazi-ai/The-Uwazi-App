@@ -281,7 +281,7 @@ export default function OnboardingPage() {
         </AnimatePresence>
 
         {/* Navigation — hide for location step (has its own buttons) */}
-        {currentStep.id !== "location" && (
+        {currentStep.id !== "location" && currentStep.id !== "voter-address" && (
           <div className="flex items-center justify-between">
             {step > 0 ? (
               <Button variant="ghost" onClick={handleBack} className="gap-1.5">
