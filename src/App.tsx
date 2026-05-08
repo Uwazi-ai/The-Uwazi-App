@@ -51,15 +51,8 @@ import PartnerDashboardPage from "./pages/PartnerDashboardPage";
 import JoinPage from "./pages/JoinPage";
 import ImpactPage from "./pages/ImpactPage";
 import { PWAUpdateBanner } from "@/components/PWAUpdateBanner";
-import { useElectionDataRefresh } from "@/hooks/useElectionDataRefresh";
 
 const queryClient = new QueryClient();
-
-function ElectionRefreshWrapper({ children }: { children: React.ReactNode }) {
-  useElectionDataRefresh();
-  return <>{children}</>;
-}
-
 
 const App = () => (
   <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange={false}>
@@ -70,7 +63,6 @@ const App = () => (
         <PWAUpdateBanner />
         <BrowserRouter>
           <AuthProvider>
-            <ElectionRefreshWrapper>
             <Routes>
               {/* Root redirect */}
               <Route path="/" element={<RootRedirect />} />
@@ -108,7 +100,7 @@ const App = () => (
                 <Route path="/app/upgrade" element={<UpgradePage />} />
                 <Route path="/app/checkout/return" element={<CheckoutReturnPage />} />
 
-                {/* Admin routes */}
+                {/* Admin routes — program_admin can access lessons, analytics, intelligence, surveys, crm, alerts, overview, content */}
                 <Route path="/app/admin" element={<AdminRoute allowProgramAdmin><AdminOverviewPage /></AdminRoute>} />
                 <Route path="/app/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
                 <Route path="/app/admin/analytics" element={<AdminRoute allowProgramAdmin><AdminAnalyticsPage /></AdminRoute>} />
@@ -123,7 +115,6 @@ const App = () => (
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
-            </ElectionRefreshWrapper>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
