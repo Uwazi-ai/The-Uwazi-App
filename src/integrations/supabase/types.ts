@@ -651,6 +651,102 @@ export type Database = {
         }
         Relationships: []
       }
+      civic_impact_summary: {
+        Row: {
+          generated_at: string
+          id: string
+          period_end: string
+          period_start: string
+          state_code: string | null
+          total_opt_ins: number
+          total_registration_clicks: number
+          total_registrations_completed: number
+          total_sessions: number
+          voter_file_matches: number
+        }
+        Insert: {
+          generated_at?: string
+          id?: string
+          period_end: string
+          period_start: string
+          state_code?: string | null
+          total_opt_ins?: number
+          total_registration_clicks?: number
+          total_registrations_completed?: number
+          total_sessions?: number
+          voter_file_matches?: number
+        }
+        Update: {
+          generated_at?: string
+          id?: string
+          period_end?: string
+          period_start?: string
+          state_code?: string | null
+          total_opt_ins?: number
+          total_registration_clicks?: number
+          total_registrations_completed?: number
+          total_sessions?: number
+          voter_file_matches?: number
+        }
+        Relationships: []
+      }
+      civic_registrants: {
+        Row: {
+          address: Json | null
+          created_at: string
+          date_of_birth: string | null
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          matched_voter_file: boolean
+          opt_in_partner: boolean
+          opt_in_uwazi: boolean
+          phone: string | null
+          registration_status: string | null
+          session_id: string | null
+          source: string | null
+          state_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: Json | null
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          matched_voter_file?: boolean
+          opt_in_partner?: boolean
+          opt_in_uwazi?: boolean
+          phone?: string | null
+          registration_status?: string | null
+          session_id?: string | null
+          source?: string | null
+          state_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: Json | null
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          matched_voter_file?: boolean
+          opt_in_partner?: boolean
+          opt_in_uwazi?: boolean
+          phone?: string | null
+          registration_status?: string | null
+          session_id?: string | null
+          source?: string | null
+          state_code?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       civic_scores: {
         Row: {
           civic_literacy_score: number | null
@@ -678,6 +774,51 @@ export type Database = {
           total_xp?: number | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      civic_sessions: {
+        Row: {
+          anonymous_id: string
+          completed_at: string | null
+          county: string | null
+          created_at: string
+          id: string
+          questions_asked: number
+          registration_link_clicked: boolean
+          registration_source: string | null
+          state_code: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          anonymous_id: string
+          completed_at?: string | null
+          county?: string | null
+          created_at?: string
+          id?: string
+          questions_asked?: number
+          registration_link_clicked?: boolean
+          registration_source?: string | null
+          state_code?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          anonymous_id?: string
+          completed_at?: string | null
+          county?: string | null
+          created_at?: string
+          id?: string
+          questions_asked?: number
+          registration_link_clicked?: boolean
+          registration_source?: string | null
+          state_code?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Relationships: []
       }
@@ -1433,6 +1574,10 @@ export type Database = {
           street_address: string | null
           updated_at: string
           user_id: string
+          voter_address_city: string | null
+          voter_address_state: string | null
+          voter_address_street: string | null
+          voter_address_zip: string | null
           voter_elections_cached_at: string | null
           voter_elections_data: Json | null
           zip_code: string | null
@@ -1473,6 +1618,10 @@ export type Database = {
           street_address?: string | null
           updated_at?: string
           user_id: string
+          voter_address_city?: string | null
+          voter_address_state?: string | null
+          voter_address_street?: string | null
+          voter_address_zip?: string | null
           voter_elections_cached_at?: string | null
           voter_elections_data?: Json | null
           zip_code?: string | null
@@ -1513,6 +1662,10 @@ export type Database = {
           street_address?: string | null
           updated_at?: string
           user_id?: string
+          voter_address_city?: string | null
+          voter_address_state?: string | null
+          voter_address_street?: string | null
+          voter_address_zip?: string | null
           voter_elections_cached_at?: string | null
           voter_elections_data?: Json | null
           zip_code?: string | null
