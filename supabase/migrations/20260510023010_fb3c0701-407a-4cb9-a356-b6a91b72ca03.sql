@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Anyone can update own session by id" ON public.civic_sessions;
