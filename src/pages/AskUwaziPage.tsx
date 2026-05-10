@@ -763,7 +763,16 @@ export default function AskUwaziPage() {
           ) : (
             <div className="max-w-3xl mx-auto px-3 sm:px-4 md:px-6 py-6 pb-[100px] md:pb-6 space-y-6">
               <AnimatePresence mode="popLayout">
-                {messages.map((msg) => (
+                {(() => {
+                  let userSeen = 0;
+                  return messages.map((msg) => {
+                    const isUser = msg.role === "user";
+                    if (isUser) userSeen += 1;
+                    const showOptInAfter = isUser && userSeen === 2 && !optInClosed;
+                    return (
+                      <div key={msg.id} className="space-y-6">
+                {(() => null)()}
+                {(() => null)()}
                   <motion.div key={msg.id}
                     initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
