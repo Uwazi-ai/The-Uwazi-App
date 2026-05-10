@@ -837,7 +837,16 @@ export default function AskUwaziPage() {
                       </div>
                     )}
                   </motion.div>
-                ))}
+                  {showOptInAfter && (
+                    <RegistrationOptInCard
+                      stateCode={ctx.state}
+                      onClose={() => setOptInClosed(true)}
+                    />
+                  )}
+                </div>
+                    );
+                  });
+                })()}
               </AnimatePresence>
 
               <AnimatePresence>
