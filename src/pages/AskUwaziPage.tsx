@@ -363,6 +363,9 @@ export default function AskUwaziPage() {
   const [dailyCount, setDailyCount] = useState(0);
   const [showBanner, setShowBanner] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [optInClosed, setOptInClosed] = useState(
+    () => typeof window !== "undefined" && !!sessionStorage.getItem("uwazi_reg_optin_status")
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
