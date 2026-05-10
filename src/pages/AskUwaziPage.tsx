@@ -22,6 +22,7 @@ import { isToday, isYesterday, differenceInDays } from "date-fns";
 import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle,
 } from "@/components/ui/drawer";
+import { RegistrationOptInCard } from "@/components/ask-uwazi/RegistrationOptInCard";
 
 interface Source {
   title: string;
@@ -363,6 +364,9 @@ export default function AskUwaziPage() {
   const [dailyCount, setDailyCount] = useState(0);
   const [showBanner, setShowBanner] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [optInClosed, setOptInClosed] = useState(
+    () => typeof window !== "undefined" && !!sessionStorage.getItem("uwazi_reg_optin_status")
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -759,8 +763,16 @@ export default function AskUwaziPage() {
           ) : (
             <div className="max-w-3xl mx-auto px-3 sm:px-4 md:px-6 py-6 pb-[100px] md:pb-6 space-y-6">
               <AnimatePresence mode="popLayout">
-                {messages.map((msg) => (
-                  <motion.div key={msg.id}
+                {(() => {
+                  let userSeen = 0;
+                  return messages.map((msg) => {
+                    const isUser = msg.role === "user";
+                    if (isUser) userSeen += 1;
+                    const showOptInAfter = isUser && userSeen === 2 && !optInClosed;
+                    return (
+                      <div key={msg.id} className="space-y-6">
+                  
+                  <motion.div
                     initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                     className={msg.role === "user" ? "flex justify-end" : "flex justify-start gap-2 sm:gap-3"}>
@@ -825,7 +837,16 @@ export default function AskUwaziPage() {
                       </div>
                     )}
                   </motion.div>
-                ))}
+                  {showOptInAfter && (
+                    <RegistrationOptInCard
+                      stateCode={ctx.state}
+                      onClose={() => setOptInClosed(true)}
+                    />
+                  )}
+                </div>
+                    );
+                  });
+                })()}
               </AnimatePresence>
 
               <AnimatePresence>
