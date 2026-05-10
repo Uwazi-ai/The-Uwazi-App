@@ -22,6 +22,7 @@ import { isToday, isYesterday, differenceInDays } from "date-fns";
 import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle,
 } from "@/components/ui/drawer";
+import { RegistrationOptInCard } from "@/components/ask-uwazi/RegistrationOptInCard";
 
 interface Source {
   title: string;
