@@ -1,0 +1,1 @@
+UPDATE public.profiles SET last_active = created_at WHERE last_active IS NULL;
