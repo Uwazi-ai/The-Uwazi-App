@@ -67,6 +67,16 @@ export default function HomePage() {
     };
   }, []);
 
+  // Auto-open the feature tour on first sign-in for this user
+  useEffect(() => {
+    if (!user?.id) return;
+    const key = `uwazi_tour_seen_${user.id}`;
+    if (!localStorage.getItem(key)) {
+      setTourOpen(true);
+      localStorage.setItem(key, "1");
+    }
+  }, [user?.id]);
+
   const { displayName: profileDisplayName } = useProfile();
   const displayName =
     profileDisplayName?.split(" ")[0] ||
