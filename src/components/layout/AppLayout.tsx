@@ -5,6 +5,7 @@ import { DesktopSidebar } from "./DesktopSidebar";
 import { TopBar } from "./TopBar";
 import { ScrollToTop } from "./ScrollToTop";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { FeedbackButton } from "@/components/FeedbackButton";
 import { ProfileProvider } from "@/contexts/ProfileContext";
 import { useForceRefresh } from "@/hooks/useForceRefresh";
 import { useOrgTracking } from "@/hooks/useOrgTracking";
