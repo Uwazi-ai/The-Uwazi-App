@@ -9,6 +9,7 @@ import { FeedbackButton } from "@/components/FeedbackButton";
 import { ProfileProvider } from "@/contexts/ProfileContext";
 import { useForceRefresh } from "@/hooks/useForceRefresh";
 import { useOrgTracking } from "@/hooks/useOrgTracking";
+import { useTrackActivity } from "@/hooks/useTrackActivity";
 
 const pageVariants = {
   initial: { opacity: 0, y: 8 },
@@ -29,6 +30,7 @@ export function AppLayout() {
   const isAskPage = location.pathname === "/app/ask";
   useForceRefresh();
   useOrgTracking();
+  useTrackActivity();
 
   return (
     <ProfileProvider>
