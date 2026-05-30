@@ -569,3 +569,10 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* ═══ Samsung tablet landscape support ═══ */
+@media (orientation: landscape) and (min-width: 768px) and (max-width: 1180px) {
+  body {
+    overflow-x: hidden;
+  }
+}
