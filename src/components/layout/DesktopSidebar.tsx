@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/contexts/ProfileContext";
 import { toast } from "sonner";
+import { Lock } from "lucide-react";
 import uwaziLogo from "@/assets/uwazi-app-logo.png";
 import {
   HomeIcon, AskUwaziIcon, LearnIcon, WatchIcon,
