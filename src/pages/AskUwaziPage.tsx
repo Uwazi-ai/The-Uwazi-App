@@ -23,6 +23,7 @@ import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle,
 } from "@/components/ui/drawer";
 import { RegistrationOptInCard } from "@/components/ask-uwazi/RegistrationOptInCard";
+import { AskLimitPill, AskLimitPaywall } from "@/components/ask-uwazi/AskLimitUI";
 
 interface Source {
   title: string;
@@ -364,6 +365,12 @@ export default function AskUwaziPage() {
   const [dailyCount, setDailyCount] = useState(0);
   const [showBanner, setShowBanner] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [limitInfo, setLimitInfo] = useState<{
+    is_plus: boolean;
+    remaining: number | null;
+    reset_at: string | null;
+  }>({ is_plus: false, remaining: null, reset_at: null });
+  const [limited, setLimited] = useState<{ reset_at: string } | null>(null);
   const [optInClosed, setOptInClosed] = useState(
     () => typeof window !== "undefined" && !!sessionStorage.getItem("uwazi_reg_optin_status")
   );
