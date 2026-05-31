@@ -445,7 +445,38 @@ export default function AskUwaziPage() {
 
   const handleSend = useCallback(async (text?: string) => {
     const msg = text || input.trim();
-    if (!msg || isStreaming) return;
+    if (!msg || isStreaming || limited) return;
+
+    // Server-side rate-limit check BEFORE anything else
+    if (session?.access_token) {
+      try {
+        const { data: limitData, error: limitErr } = await supabase.functions.invoke(
+          "check-ask-limit",
+          { body: {} },
+        );
+        // 429 surfaces as an error with context
+        const status = (limitErr as any)?.context?.status;
+        if (status === 429 || (limitData && limitData.allowed === false)) {
+          const payload = limitData ?? (await (limitErr as any)?.context?.json?.());
+          if (payload?.reset_at) setLimited({ reset_at: payload.reset_at });
+          setLimitInfo({ is_plus: false, remaining: 0, reset_at: payload?.reset_at ?? null });
+          return;
+        }
+        if (limitErr) {
+          toast.error("Unable to verify limit. Try again.");
+          return;
+        }
+        setLimitInfo({
+          is_plus: !!limitData.is_plus,
+          remaining: limitData.questions_remaining,
+          reset_at: limitData.reset_at,
+        });
+      } catch (e) {
+        toast.error("Unable to verify limit. Try again.");
+        return;
+      }
+    }
+
     const userMsg: Message = { id: Date.now().toString(), role: "user", content: msg };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
