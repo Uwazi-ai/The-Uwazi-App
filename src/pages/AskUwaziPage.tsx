@@ -1013,49 +1013,55 @@ export default function AskUwaziPage() {
           )}
         </AnimatePresence>
 
-        {/* ─── Input Area ─── */}
-        <div className="shrink-0 px-3 sm:px-6 py-3 md:py-4 border-t border-primary/10 bg-background/95 backdrop-blur-xl mb-16 md:mb-0"
-          style={{
-            paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
-          }}>
-          <div className="max-w-3xl mx-auto">
-            <div className="uwazi-input-container">
-              <form onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-                className="flex items-end gap-2 sm:gap-3 w-full">
-                <textarea ref={inputRef} rows={1} value={input}
-                  onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
-                  placeholder={isStreaming ? "Uwazi is typing…" : "Ask about elections, legislation, your rights..."}
-                  className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground/50 outline-none min-w-0 resize-none leading-relaxed disabled:cursor-not-allowed"
-                  style={{ maxHeight: "120px", fontSize: "16px" }}
-                  disabled={isStreaming}
-                  aria-busy={isStreaming} />
-                <motion.button type="submit" disabled={!input.trim() || isStreaming}
-                  whileHover={isStreaming ? undefined : { scale: 1.08 }}
-                  whileTap={isStreaming ? undefined : { scale: 0.92 }}
-                  aria-label={isStreaming ? "Uwazi is typing" : "Send message"}
-                  title={isStreaming ? "Wait for Uwazi to finish…" : "Send"}
-                  className={`h-9 w-9 sm:h-10 sm:w-10 rounded-full shrink-0 flex items-center justify-center transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
-                    isStreaming
-                      ? "bg-primary/15 text-primary border border-primary/30"
-                      : (!input.trim()
-                        ? "bg-muted text-muted-foreground"
-                        : "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.3)]")
-                  }`}>
-                  {isStreaming ? (
-                    <span className="typing-dots" aria-hidden="true">
-                      <span /><span /><span />
-                    </span>
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                </motion.button>
-              </form>
-            </div>
-            <p className="text-[10px] text-muted-foreground/30 text-center mt-2 hidden sm:block">
-              Ask Uwazi may make mistakes. Verify important civic information with official sources.
-            </p>
+        {/* ─── Input Area / Limit Paywall ─── */}
+        {limited ? (
+          <div className="shrink-0 mb-16 md:mb-0">
+            <AskLimitPaywall resetAt={limited.reset_at} onReset={recheckLimit} />
           </div>
-        </div>
+        ) : (
+          <div className="shrink-0 px-3 sm:px-6 py-3 md:py-4 border-t border-primary/10 bg-background/95 backdrop-blur-xl mb-16 md:mb-0"
+            style={{
+              paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
+            }}>
+            <div className="max-w-3xl mx-auto">
+              <div className="uwazi-input-container">
+                <form onSubmit={(e) => { e.preventDefault(); handleSend(); }}
+                  className="flex items-end gap-2 sm:gap-3 w-full">
+                  <textarea ref={inputRef} rows={1} value={input}
+                    onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
+                    placeholder={isStreaming ? "Uwazi is typing…" : "Ask about elections, legislation, your rights..."}
+                    className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground/50 outline-none min-w-0 resize-none leading-relaxed disabled:cursor-not-allowed"
+                    style={{ maxHeight: "120px", fontSize: "16px" }}
+                    disabled={isStreaming}
+                    aria-busy={isStreaming} />
+                  <motion.button type="submit" disabled={!input.trim() || isStreaming}
+                    whileHover={isStreaming ? undefined : { scale: 1.08 }}
+                    whileTap={isStreaming ? undefined : { scale: 0.92 }}
+                    aria-label={isStreaming ? "Uwazi is typing" : "Send message"}
+                    title={isStreaming ? "Wait for Uwazi to finish…" : "Send"}
+                    className={`h-9 w-9 sm:h-10 sm:w-10 rounded-full shrink-0 flex items-center justify-center transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
+                      isStreaming
+                        ? "bg-primary/15 text-primary border border-primary/30"
+                        : (!input.trim()
+                          ? "bg-muted text-muted-foreground"
+                          : "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.3)]")
+                    }`}>
+                    {isStreaming ? (
+                      <span className="typing-dots" aria-hidden="true">
+                        <span /><span /><span />
+                      </span>
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                  </motion.button>
+                </form>
+              </div>
+              <p className="text-[10px] text-muted-foreground/30 text-center mt-2 hidden sm:block">
+                Ask Uwazi may make mistakes. Verify important civic information with official sources.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
