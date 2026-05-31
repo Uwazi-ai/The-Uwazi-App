@@ -52,6 +52,7 @@ import JoinPage from "./pages/JoinPage";
 import ImpactPage from "./pages/ImpactPage";
 import { PWAUpdateBanner } from "@/components/PWAUpdateBanner";
 import AdminSecurityPage from "./pages/admin/AdminSecurityPage";
+import UnsubscribePage from "./pages/UnsubscribePage";
 
 const queryClient = new QueryClient();
 
