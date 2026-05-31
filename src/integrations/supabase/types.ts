@@ -1574,6 +1574,8 @@ export type Database = {
         Row: {
           address_line1: string | null
           address_line2: string | null
+          ask_uwazi_question_count: number
+          ask_uwazi_window_start: string | null
           avatar_url: string | null
           city: string | null
           civic_knowledge_level: string | null
@@ -1619,6 +1621,8 @@ export type Database = {
         Insert: {
           address_line1?: string | null
           address_line2?: string | null
+          ask_uwazi_question_count?: number
+          ask_uwazi_window_start?: string | null
           avatar_url?: string | null
           city?: string | null
           civic_knowledge_level?: string | null
@@ -1664,6 +1668,8 @@ export type Database = {
         Update: {
           address_line1?: string | null
           address_line2?: string | null
+          ask_uwazi_question_count?: number
+          ask_uwazi_window_start?: string | null
           avatar_url?: string | null
           city?: string | null
           civic_knowledge_level?: string | null
