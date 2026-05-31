@@ -541,7 +541,22 @@ export default function AskUwaziPage() {
       },
       onError: (err) => { toast.error(err); setIsStreaming(false); setIsSearching(false); },
     });
-  }, [input, isStreaming, messages, session, saveMessages, ctx.zipCode, isSubscribed, fetchDailyCount]);
+  }, [input, isStreaming, limited, messages, session, saveMessages, ctx.zipCode, isSubscribed, fetchDailyCount]);
+
+  // Recheck after window resets in the paywall countdown
+  const recheckLimit = useCallback(async () => {
+    if (!session?.access_token) return;
+    // Lightweight ping: try once; if allowed=true, drop paywall.
+    const { data } = await supabase.functions.invoke("check-ask-limit", { body: {} });
+    if (data?.allowed) {
+      setLimited(null);
+      setLimitInfo({
+        is_plus: !!data.is_plus,
+        remaining: data.questions_remaining,
+        reset_at: data.reset_at,
+      });
+    }
+  }, [session?.access_token]);
 
   // Auto-send when arriving with ?q= prefilled prompt (e.g. from candidate cards)
   const autoSentRef = useRef(false);
