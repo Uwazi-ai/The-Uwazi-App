@@ -105,7 +105,7 @@ export default function LearnPage() {
                   <span className="text-2xl sm:text-3xl leading-none mt-0.5 shrink-0">{track.emoji}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <h3 className="font-bold text-foreground text-sm sm:text-base break-words min-w-0">{track.name}</h3>
+                      <h2 className="font-bold text-foreground text-sm sm:text-base break-words min-w-0">{track.name}</h2>
                       <span className={`text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full border uppercase shrink-0 ${diff.class}`}>
                         {diff.label}
                       </span>

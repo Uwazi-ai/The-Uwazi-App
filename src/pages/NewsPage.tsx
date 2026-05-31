@@ -121,7 +121,7 @@ export default function NewsPage() {
               </div>
 
               {/* Content */}
-              <h3 className="text-base font-semibold text-foreground mb-1.5 leading-snug">{article.title}</h3>
+              <h2 className="text-base font-semibold text-foreground mb-1.5 leading-snug">{article.title}</h2>
               <p className="text-sm text-muted-foreground leading-relaxed mb-3">{article.excerpt}</p>
 
               {/* Footer */}
@@ -135,13 +135,13 @@ export default function NewsPage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+                  <button aria-label="Summarize article with AI" className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
                     <Sparkles className="h-3.5 w-3.5" />
                   </button>
-                  <button className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+                  <button aria-label="Save article" className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
                     <Bookmark className="h-3.5 w-3.5" />
                   </button>
-                  <button className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+                  <button aria-label="Share article" className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
                     <Share2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
