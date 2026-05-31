@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { Medal, Users, Vote, MapPin, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import uwaziLogo from "@/assets/uwazi-logo.png";
 import { useOrgTracking } from "@/hooks/useOrgTracking";
+
 
 export default function ImpactPage() {
   useOrgTracking();
@@ -44,10 +46,18 @@ export default function ImpactPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>UWAZI Impact — Partner organization leaderboard</title>
+        <meta name="description" content="Public leaderboard of UWAZI partner organizations driving civic engagement, voter registrations, and community impact." />
+        <link rel="canonical" href="https://uwaziapp.uwazi.ai/impact" />
+        <meta property="og:title" content="UWAZI Impact — Partner organization leaderboard" />
+        <meta property="og:description" content="See which UWAZI partner organizations are driving civic engagement in their communities." />
+        <meta property="og:url" content="https://uwaziapp.uwazi.ai/impact" />
+      </Helmet>
       {/* Header */}
       <div className="border-b border-border px-4 py-4">
         <div className="max-w-[1000px] mx-auto flex items-center gap-3">
-          <img src={uwaziLogo} alt="UWAZI" className="h-8" />
+          <img src={uwaziLogo} alt="UWAZI logo" className="h-8" />
         </div>
       </div>
 

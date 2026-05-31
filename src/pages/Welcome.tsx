@@ -126,6 +126,14 @@ export default function Welcome() {
 
   return (
     <>
+      <Helmet>
+        <title>UWAZI — Build your civic freedom</title>
+        <meta name="description" content="Nonpartisan civic intelligence: Ask Uwazi, earn XP through civic lessons, track legislation, and never miss your vote." />
+        <link rel="canonical" href="https://uwaziapp.uwazi.ai/welcome" />
+        <meta property="og:title" content="UWAZI — Build your civic freedom" />
+        <meta property="og:description" content="Nonpartisan civic intelligence: Ask Uwazi, earn XP through civic lessons, track legislation, and never miss your vote." />
+        <meta property="og:url" content="https://uwaziapp.uwazi.ai/welcome" />
+      </Helmet>
       <style>{`@keyframes gridScroll { from { background-position: 0 0; } to { background-position: 48px 48px; } }`}</style>
       <div className="min-h-screen w-full bg-[#0a0a0a] text-white flex flex-col lg:flex-row">
         {/* ─── LEFT PANEL ─── */}
