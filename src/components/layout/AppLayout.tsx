@@ -10,6 +10,7 @@ import { ProfileProvider } from "@/contexts/ProfileContext";
 import { useForceRefresh } from "@/hooks/useForceRefresh";
 import { useOrgTracking } from "@/hooks/useOrgTracking";
 import { useTrackActivity } from "@/hooks/useTrackActivity";
+import { MyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
 
 const pageVariants = {
   initial: { opacity: 0, y: 8 },
