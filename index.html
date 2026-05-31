@@ -48,6 +48,33 @@
     <meta name="twitter:title" content="UWAZI — Civic Intelligence" />
     <meta name="twitter:description" content="The Duolingo of civic education. Know your government. Use your voice." />
     <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/DrPayZ25vecg9CmzvWnvhFWvfW83/social-images/social-1776943614830-Beta_web_graphic.webp" />
+
+    <!-- Structured data: Organization + WebSite -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "name": "UWAZI",
+            "url": "https://uwaziapp.uwazi.ai",
+            "logo": "https://uwaziapp.uwazi.ai/icons/icon-512x512.png",
+            "description": "Nonpartisan, AI-powered civic intelligence platform that helps people learn how their government works, track legislation, and vote informed.",
+            "sameAs": []
+          },
+          {
+            "@type": "WebSite",
+            "name": "UWAZI",
+            "url": "https://uwaziapp.uwazi.ai",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": "https://uwaziapp.uwazi.ai/app/ask?q={search_term_string}",
+              "query-input": "required name=search_term_string"
+            }
+          }
+        ]
+      }
+    </script>
   </head>
 
   <body>
