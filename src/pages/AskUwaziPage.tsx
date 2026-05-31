@@ -291,7 +291,7 @@ function HistoryList({
                       <p className={`flex-1 text-[13px] truncate min-w-0 ${isActive ? "text-primary font-medium" : "text-foreground"}`}>
                         {chat.firstMessage.substring(0, 40)}
                       </p>
-                      <button onClick={(e) => { e.stopPropagation(); onDeleteSession(chat.id); }}
+                      <button aria-label="Delete chat session" onClick={(e) => { e.stopPropagation(); onDeleteSession(chat.id); }}
                         className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-all shrink-0">
                         <Trash2 className="h-3 w-3" />
                       </button>
@@ -682,7 +682,7 @@ export default function AskUwaziPage() {
                 <img src={uwaziLogo} alt="UWAZI" className="h-4 w-4" />
                 <h2 className="text-sm font-heading tracking-wide text-foreground">HISTORY</h2>
               </div>
-              <button onClick={() => setHistoryOpen(false)}
+              <button aria-label="Close chat history" onClick={() => setHistoryOpen(false)}
                 className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition-colors">
                 <X className="h-4 w-4" />
               </button>
@@ -702,7 +702,7 @@ export default function AskUwaziPage() {
                   <img src={uwaziLogo} alt="UWAZI" className="h-4 w-4" />
                   <DrawerTitle className="text-sm font-heading tracking-wide">HISTORY</DrawerTitle>
                 </div>
-                <button onClick={() => setHistoryOpen(false)}
+                <button aria-label="Close chat history" onClick={() => setHistoryOpen(false)}
                   className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition-colors">
                   <X className="h-4 w-4" />
                 </button>
@@ -722,11 +722,11 @@ export default function AskUwaziPage() {
         <div className="flex items-center justify-between px-3 md:px-5 py-2.5 shrink-0 z-10 topbar-safe border-b border-primary/10 bg-background/90 backdrop-blur-xl">
           {/* Left: Back + History */}
           <div className="flex items-center gap-1">
-            <button onClick={() => navigate(-1)}
+            <button aria-label="Go back" onClick={() => navigate(-1)}
               className="p-2 rounded-xl hover:bg-muted text-muted-foreground transition-colors" title="Go back">
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <button onClick={() => setHistoryOpen(true)}
+            <button aria-label="Open chat history" onClick={() => setHistoryOpen(true)}
               className="flex items-center gap-1.5 p-2 rounded-xl hover:bg-muted text-primary transition-colors" title="Chat History">
               <Clock className="h-5 w-5" />
               <span className="text-[13px] font-medium md:hidden">Chats</span>
@@ -748,7 +748,7 @@ export default function AskUwaziPage() {
           </div>
 
           {/* Right: New Chat */}
-          <button onClick={handleNewChat}
+          <button aria-label="Start new chat" onClick={handleNewChat}
             className="p-2 rounded-xl hover:bg-muted text-primary transition-colors" title="New Chat">
             <Plus className="h-5 w-5" />
           </button>
