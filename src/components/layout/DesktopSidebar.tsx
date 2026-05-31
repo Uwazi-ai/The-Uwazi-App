@@ -38,6 +38,7 @@ const adminNav: AdminNavItem[] = [
   { to: "/app/admin/surveys", icon: SurveysIcon, label: "Surveys", programAdmin: true },
   { to: "/app/admin/platform", icon: PlatformSettingsIcon, label: "Platform Settings" },
   { to: "/app/admin/partner-orgs", icon: PartnerOrgsIcon, label: "Partner Orgs" },
+  { to: "/app/admin/security", icon: Lock, label: "Security" },
 ];
 
 const bottomNav = [
