@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { lovable } from "@/integrations/lovable/index";
@@ -166,6 +167,14 @@ export default function JoinPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <Helmet>
+        <title>Join {org?.name ?? "UWAZI"} — Accept your invite</title>
+        <meta name="description" content={`Accept your invitation to join ${org?.name ?? "a UWAZI partner organization"} and start engaging with your community.`} />
+        <link rel="canonical" href="https://uwaziapp.uwazi.ai/join" />
+        <meta property="og:title" content={`Join ${org?.name ?? "UWAZI"} — Accept your invite`} />
+        <meta property="og:description" content="Accept your invite to a UWAZI partner organization." />
+        <meta property="og:url" content="https://uwaziapp.uwazi.ai/join" />
+      </Helmet>
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md space-y-6">
         <div className="text-center space-y-3">
           <img src={uwaziLogo} alt="UWAZI.AI" className="h-12 mx-auto" />

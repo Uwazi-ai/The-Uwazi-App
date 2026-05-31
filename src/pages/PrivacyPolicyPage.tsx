@@ -1,9 +1,18 @@
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { ArrowLeft } from "lucide-react";
 
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-background text-foreground px-4 py-8 max-w-3xl mx-auto">
+      <Helmet>
+        <title>Privacy Policy — UWAZI</title>
+        <meta name="description" content="How UWAZI collects, uses, and protects user data across the civic intelligence platform." />
+        <link rel="canonical" href="https://uwaziapp.uwazi.ai/privacy" />
+        <meta property="og:title" content="Privacy Policy — UWAZI" />
+        <meta property="og:description" content="How UWAZI collects, uses, and protects user data." />
+        <meta property="og:url" content="https://uwaziapp.uwazi.ai/privacy" />
+      </Helmet>
       <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
         <ArrowLeft size={16} />
         Back
