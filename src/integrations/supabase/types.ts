@@ -2637,6 +2637,20 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_invite_by_token: {
+        Args: { _token: string }
+        Returns: {
+          accepted_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          org_id: string
+          org_name: string
+          org_slug: string
+          role: string
+        }[]
+      }
       get_state_from_zip: { Args: { zip: string }; Returns: string }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
