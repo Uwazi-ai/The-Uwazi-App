@@ -14,6 +14,7 @@ const navItems = [
   { to: "/app", icon: HomeIcon, label: "Home" },
   { to: "/app/learn", icon: LearnIcon, label: "Learn" },
   { to: "/app/watch", icon: WatchIcon, label: "Watch" },
+  { to: "/app/ask", icon: AskUwaziIcon, label: "Ask" },
   { to: "/app/vote", icon: VotingHubIcon, label: "Vote" },
   { to: "/app/my-city", icon: Building2, label: "My City", premium: true },
 ];
@@ -29,6 +30,7 @@ const drawerItems = [
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const { displayName, avatarUrl } = useProfile();
+  const { isPremium } = useSubscription();
   const initial = (displayName?.[0] || "U").toUpperCase();
 
   return (
