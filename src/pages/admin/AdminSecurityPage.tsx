@@ -589,9 +589,16 @@ function LogIncidentDialog({ onSaved }: { onSaved: () => void }) {
   const [form, setForm] = useState({ title: "", severity: "medium", description: "" });
   const submit = async () => {
     if (!form.title.trim()) return toast.error("Title required");
-    const { error } = await supabase.from("security_incidents").insert(form);
+    const { data, error } = await supabase.from("security_incidents").insert(form).select().single();
     if (error) return toast.error(error.message);
-    toast.success("Incident logged");
+    toast.success("Incident logged — notifying Myke@uwazi.ai");
+    notifyIncident("logged", {
+      title: form.title,
+      severity: form.severity,
+      status: "open",
+      description: form.description,
+      detected_at: data?.detected_at,
+    });
     setOpen(false);
     setForm({ title: "", severity: "medium", description: "" });
     onSaved();
