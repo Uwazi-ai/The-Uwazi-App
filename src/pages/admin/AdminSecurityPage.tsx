@@ -484,6 +484,32 @@ function AddTaskDialog({ onSaved }: { onSaved: () => void }) {
 }
 
 /* ---------------- Incidents ---------------- */
+async function notifyIncident(
+  action: "logged" | "contained" | "resolved",
+  i: { title: string; severity: string; status: string; description?: string | null; detected_at?: string; resolved_at?: string | null },
+) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    await supabase.functions.invoke("send-transactional-email", {
+      body: {
+        templateName: "security-incident",
+        templateData: {
+          action,
+          title: i.title,
+          severity: i.severity,
+          status: i.status,
+          description: i.description ?? undefined,
+          detectedAt: i.detected_at,
+          resolvedAt: i.resolved_at ?? undefined,
+          actor: user?.email,
+        },
+      },
+    });
+  } catch (e) {
+    console.error("Failed to send incident notification", e);
+  }
+}
+
 function IncidentsTab({ incidents, onChange }: { incidents: SecurityIncident[]; onChange: () => void }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -491,7 +517,12 @@ function IncidentsTab({ incidents, onChange }: { incidents: SecurityIncident[]; 
     const patch: Partial<SecurityIncident> = { status };
     if (status === "resolved") patch.resolved_at = new Date().toISOString();
     const { error } = await supabase.from("security_incidents").update(patch).eq("id", i.id);
-    if (error) toast.error("Update failed"); else onChange();
+    if (error) { toast.error("Update failed"); return; }
+    onChange();
+    if (status === "contained" || status === "resolved") {
+      notifyIncident(status, { ...i, status, resolved_at: patch.resolved_at ?? i.resolved_at });
+      toast.success(`Notification sent to Myke@uwazi.ai`);
+    }
   };
 
   return (
