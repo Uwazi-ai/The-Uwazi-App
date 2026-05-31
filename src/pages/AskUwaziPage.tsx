@@ -450,19 +450,25 @@ export default function AskUwaziPage() {
     // Server-side rate-limit check BEFORE anything else
     if (session?.access_token) {
       try {
-        const { data: limitData, error: limitErr } = await supabase.functions.invoke(
-          "check-ask-limit",
-          { body: {} },
+        const resp = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-ask-limit`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.access_token}`,
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            },
+            body: "{}",
+          },
         );
-        // 429 surfaces as an error with context
-        const status = (limitErr as any)?.context?.status;
-        if (status === 429 || (limitData && limitData.allowed === false)) {
-          const payload = limitData ?? (await (limitErr as any)?.context?.json?.());
-          if (payload?.reset_at) setLimited({ reset_at: payload.reset_at });
-          setLimitInfo({ is_plus: false, remaining: 0, reset_at: payload?.reset_at ?? null });
+        const limitData = await resp.json().catch(() => ({}));
+        if (resp.status === 429 || limitData?.allowed === false) {
+          if (limitData?.reset_at) setLimited({ reset_at: limitData.reset_at });
+          setLimitInfo({ is_plus: false, remaining: 0, reset_at: limitData?.reset_at ?? null });
           return;
         }
-        if (limitErr) {
+        if (!resp.ok) {
           toast.error("Unable to verify limit. Try again.");
           return;
         }
@@ -471,7 +477,7 @@ export default function AskUwaziPage() {
           remaining: limitData.questions_remaining,
           reset_at: limitData.reset_at,
         });
-      } catch (e) {
+      } catch {
         toast.error("Unable to verify limit. Try again.");
         return;
       }
@@ -546,9 +552,20 @@ export default function AskUwaziPage() {
   // Recheck after window resets in the paywall countdown
   const recheckLimit = useCallback(async () => {
     if (!session?.access_token) return;
-    // Lightweight ping: try once; if allowed=true, drop paywall.
-    const { data } = await supabase.functions.invoke("check-ask-limit", { body: {} });
-    if (data?.allowed) {
+    const resp = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-ask-limit`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: "{}",
+      },
+    );
+    const data = await resp.json().catch(() => ({}));
+    if (resp.ok && data?.allowed) {
       setLimited(null);
       setLimitInfo({
         is_plus: !!data.is_plus,
