@@ -10,6 +10,7 @@ const corsHeaders = {
 };
 
 const BodySchema = z.object({ address: z.string().min(5).max(300) });
+const ZIP_PATTERN = /\b\d{5}(?:-\d{4})?\b/;
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -18,15 +19,25 @@ function json(body: unknown, status = 200) {
   });
 }
 
-function getGoogleKey() {
+function getMapsKey() {
   return (
     Deno.env.get("GOOGLE_API_KEY") ||
     Deno.env.get("GOOGLE_MAPS_API_KEY") ||
     Deno.env.get("VITE_GOOGLE_MAPS_API_KEY") ||
+    ""
+  );
+}
+
+function getCivicKey() {
+  return (
     Deno.env.get("GOOGLE_CIVIC_API_KEY") ||
     Deno.env.get("VITE_GOOGLE_CIVIC_API_KEY") ||
     ""
   );
+}
+
+function extractZip(value: string) {
+  return value.match(ZIP_PATTERN)?.[0]?.slice(0, 5) ?? null;
 }
 
 Deno.serve(async (req) => {
@@ -52,26 +63,54 @@ Deno.serve(async (req) => {
     if (!parsed.success) return json({ error: parsed.error.flatten() }, 400);
     const { address } = parsed.data;
 
-    const googleKey = getGoogleKey();
-    if (!googleKey) return json({ error: "GOOGLE_API_KEY_MISSING" }, 503);
+    const admin = createClient(supabaseUrl, serviceKey);
+    const { data: existingProfile } = await admin
+      .from("profiles")
+      .select("zip_code, state_code")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    const mapsKey = getMapsKey();
+    const civicKey = getCivicKey();
+    const fallbackZip = extractZip(address) ?? existingProfile?.zip_code ?? null;
 
     // STEP A — Geocode
-    const geoUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-      address,
-    )}&key=${googleKey}`;
-    const geoRes = await fetch(geoUrl);
-    const geoData = await geoRes.json();
-    if (geoData.status !== "OK" || !geoData.results?.length) {
-      return json({ error: "ADDRESS_NOT_FOUND", message: "Could not geocode address" }, 422);
+    let lat: number | null = null;
+    let lng: number | null = null;
+    let zip: string | null = fallbackZip;
+    let state: string | null = existingProfile?.state_code ?? null;
+    let geocodingStatus: string | null = mapsKey ? null : "MAPS_API_KEY_MISSING";
+
+    if (mapsKey) {
+      const geoUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+        address,
+      )}&key=${mapsKey}`;
+      const geoRes = await fetch(geoUrl);
+      const geoData = await geoRes.json().catch(() => ({}));
+      geocodingStatus = geoData.status ?? `HTTP_${geoRes.status}`;
+
+      if (geoRes.ok && geoData.status === "OK" && geoData.results?.length) {
+        const top = geoData.results[0];
+        lat = top.geometry?.location?.lat ?? null;
+        lng = top.geometry?.location?.lng ?? null;
+        const comps: Array<{ types: string[]; long_name: string; short_name: string }> =
+          top.address_components || [];
+        const findComp = (t: string) => comps.find((c) => c.types.includes(t));
+        zip = findComp("postal_code")?.long_name?.slice(0, 5) ?? zip;
+        state = findComp("administrative_area_level_1")?.short_name ?? state;
+      } else {
+        console.warn("Geocoding unavailable:", geocodingStatus, geoData.error_message ?? "No details");
+      }
     }
-    const top = geoData.results[0];
-    const lat = top.geometry?.location?.lat ?? null;
-    const lng = top.geometry?.location?.lng ?? null;
-    const comps: Array<{ types: string[]; long_name: string; short_name: string }> =
-      top.address_components || [];
-    const findComp = (t: string) => comps.find((c) => c.types.includes(t));
-    const zip = findComp("postal_code")?.long_name ?? null;
-    const state = findComp("administrative_area_level_1")?.short_name ?? null;
+
+    if (!zip) {
+      return json({
+        error: "ADDRESS_NOT_FOUND",
+        message: "Could not geocode address",
+        fallback: true,
+        geocoding_status: geocodingStatus,
+      });
+    }
 
     // STEP B — Districts (best effort)
     let cityCouncil: string | null = null;
@@ -79,11 +118,12 @@ Deno.serve(async (req) => {
     let moSenate: string | null = null;
     let usCongress: string | null = null;
     try {
-      const civicUrl = `https://www.googleapis.com/civicinfo/v2/representatives?address=${encodeURIComponent(
-        address,
-      )}&key=${googleKey}`;
-      const civicRes = await fetch(civicUrl);
-      if (civicRes.ok) {
+      if (civicKey) {
+        const civicUrl = `https://www.googleapis.com/civicinfo/v2/representatives?address=${encodeURIComponent(
+          address,
+        )}&key=${civicKey}`;
+        const civicRes = await fetch(civicUrl);
+        if (civicRes.ok) {
         const civicData = await civicRes.json();
         const officials = civicData.officials || [];
         const offices = civicData.offices || [];
@@ -111,6 +151,7 @@ Deno.serve(async (req) => {
             !moSenate
           )
             moSenate = labelFor(office);
+          }
         }
       }
     } catch (e) {
@@ -118,7 +159,6 @@ Deno.serve(async (req) => {
     }
 
     // STEP C — write to profiles
-    const admin = createClient(supabaseUrl, serviceKey);
     await admin
       .from("profiles")
       .update({
