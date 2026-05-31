@@ -33,23 +33,21 @@ export default function JoinPage() {
   useEffect(() => {
     async function validate() {
       if (!token) { setStatus("invalid"); return; }
-      const { data: inv } = await supabase
-        .from("org_invites" as any)
-        .select("*, partner_orgs:org_id(*)")
-        .eq("token", token)
-        .maybeSingle();
+      const { data } = await supabase.rpc("get_invite_by_token" as any, { _token: token });
+      const inv: any = Array.isArray(data) ? data[0] : data;
 
       if (!inv) { setStatus("invalid"); return; }
-      if ((inv as any).accepted_at) { setStatus("expired"); return; }
-      if (new Date((inv as any).expires_at) < new Date()) { setStatus("expired"); return; }
+      if (inv.accepted_at) { setStatus("expired"); return; }
+      if (new Date(inv.expires_at) < new Date()) { setStatus("expired"); return; }
 
       setInvite(inv);
-      setOrg((inv as any).partner_orgs);
-      setEmail((inv as any).email || "");
+      setOrg({ id: inv.org_id, name: inv.org_name, slug: inv.org_slug });
+      setEmail(inv.email || "");
       setStatus("valid");
     }
     validate();
   }, [token]);
+
 
   // If user is already logged in, complete join
   useEffect(() => {
