@@ -722,6 +722,12 @@ export default function AskUwaziPage() {
               <img src={uwaziLogo} alt="UWAZI" className="h-3.5 w-3.5" />
             </div>
             <span className="text-sm font-heading tracking-wide text-foreground">Ask Uwazi</span>
+            <AskLimitPill
+              isPlus={isSubscribed || limitInfo.is_plus}
+              remaining={limitInfo.remaining}
+              resetAt={limited?.reset_at ?? limitInfo.reset_at}
+              limited={!!limited}
+            />
           </div>
 
           {/* Right: New Chat */}
