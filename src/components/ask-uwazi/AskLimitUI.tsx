@@ -99,28 +99,30 @@ export function AskLimitPill({
   isPlus,
   remaining,
   resetAt,
+  limited,
 }: {
   isPlus: boolean;
   remaining: number | null;
   resetAt: string | null;
+  limited: boolean;
 }) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
-    if (remaining !== 0 || !resetAt) return;
+    if (!limited || !resetAt) return;
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
-  }, [remaining, resetAt]);
+  }, [limited, resetAt]);
 
   if (isPlus) return null;
-  if (remaining === null) return null;
+  if (remaining === null && !limited) return null;
 
   let content: React.ReactNode;
   let color = "#aaa";
 
-  if (remaining === 0 && resetAt) {
-    const ms = new Date(resetAt).getTime() - now;
+  if (limited && resetAt) {
+    const ms = Math.max(0, new Date(resetAt).getTime() - now);
     color = "#E24B4A";
-    const total = Math.max(0, Math.floor(ms / 1000));
+    const total = Math.floor(ms / 1000);
     const h = Math.floor(total / 3600);
     const m = Math.floor((total % 3600) / 60);
     content = <>⏱ Resets in {h}:{m.toString().padStart(2, "0")}:{(total % 60).toString().padStart(2, "0")}</>;
@@ -148,3 +150,4 @@ export function AskLimitPill({
     </span>
   );
 }
+
