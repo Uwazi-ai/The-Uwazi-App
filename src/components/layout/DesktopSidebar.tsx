@@ -13,6 +13,8 @@ import {
   CRMIcon, SurveysIcon, PlatformSettingsIcon,
   PartnerOrgsIcon,
 } from "@/components/icons/UwaziIcons";
+import { useSubscription } from "@/hooks/useSubscription";
+import { openMyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
 
 import { Building2 } from "lucide-react";
 
@@ -51,6 +53,7 @@ const bottomNav = [
 export function DesktopSidebar() {
   const { user, signOut } = useAuth();
   const { displayName, avatarUrl, isAdmin, isProgramAdmin } = useProfile();
+  const { isPremium } = useSubscription();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -79,7 +82,18 @@ export function DesktopSidebar() {
 
       <nav className="flex-1 flex flex-col py-2 gap-0 overflow-y-auto">
         {mainNav.map((item) => (
-          <NavLink key={item.to} to={item.to} end={item.to === "/app"} className={linkClass}>
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.to === "/app"}
+            className={linkClass}
+            onClick={(e) => {
+              if (item.to === "/app/my-city" && !isPremium) {
+                e.preventDefault();
+                openMyCityUnlockModal();
+              }
+            }}
+          >
             <div className="nav-icon-wrap">
               <item.icon size={18} />
             </div>

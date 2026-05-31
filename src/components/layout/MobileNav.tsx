@@ -4,6 +4,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/co
 import { Building2, ChevronRight, User } from "lucide-react";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useSubscription } from "@/hooks/useSubscription";
+import { openMyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
 import {
   HomeIcon, LearnIcon, WatchIcon, AskUwaziIcon, VotingHubIcon,
   LegislationIcon, ProgressIcon,
@@ -50,6 +51,12 @@ export function MobileNav() {
             key={item.to}
             to={item.to}
             end={item.to === "/app"}
+            onClick={(e) => {
+              if (item.premium && !isPremium) {
+                e.preventDefault();
+                openMyCityUnlockModal();
+              }
+            }}
             className={({ isActive }) =>
               `bottom-nav-item flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-medium tracking-[0.02em] transition-all duration-150 ${
                 isActive ? "active text-primary" : "text-muted-foreground"
