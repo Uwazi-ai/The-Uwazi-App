@@ -38,12 +38,14 @@ export function FeedbackButton() {
     setSubmitting(true);
     const { error } = await supabase.from("beta_feedback").insert({
       user_id: user?.id ?? null,
-      email: user?.email ?? email.trim() ?? null,
+      // Only attach email when authenticated (uses verified auth email); anon submissions stay anonymous per RLS
+      email: user?.email ?? null,
       category,
       message: message.trim(),
       page_url: location.pathname,
       user_agent: navigator.userAgent,
     });
+
     setSubmitting(false);
     if (!error) {
       setSent(true);
