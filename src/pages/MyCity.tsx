@@ -1,9 +1,17 @@
+import { useEffect } from "react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { MyCityDashboard } from "@/components/my-city/MyCityDashboard";
 import { MyCityPaywall } from "@/components/my-city/MyCityPaywall";
+import { openMyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
 
 export default function MyCity() {
   const { isPremium, loading } = useSubscription();
+
+  useEffect(() => {
+    if (!loading && !isPremium) {
+      openMyCityUnlockModal();
+    }
+  }, [loading, isPremium]);
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center" style={{ background: "#080808" }} />;
