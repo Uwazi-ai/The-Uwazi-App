@@ -218,6 +218,16 @@ export default function SettingsPage() {
     if (!user || !isZipValid || !addressLine1.trim() || !addressCity.trim() || !addressState) return;
     setSavingAddress(true);
     const fullAddr = `${addressLine1.trim()}${addressLine2.trim() ? " " + addressLine2.trim() : ""}, ${addressCity.trim()}, ${addressState} ${addressZip.trim()}`;
+
+    // Capture previous values for logging / cache invalidation
+    const { data: prev } = await supabase
+      .from("profiles")
+      .select("address, full_address, zip_code")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const oldAddress = (prev as any)?.address || (prev as any)?.full_address || null;
+    const oldZip = (prev as any)?.zip_code || null;
+
     await supabase.from("profiles").update({
       address_line1: addressLine1.trim(),
       address_line2: addressLine2.trim() || null,
@@ -226,11 +236,49 @@ export default function SettingsPage() {
       zip_code: addressZip.trim(),
       full_address: fullAddr,
       street_address: addressLine1.trim(),
-    }).eq("user_id", user.id);
+      // Free-form address used by My City resolve flow
+      address: fullAddr,
+      // Force re-resolution of districts + cached spending data
+      districts_resolved_at: null,
+    } as any).eq("user_id", user.id);
+
+    // Log the change
+    await supabase.from("address_update_log" as any).insert({
+      user_id: user.id,
+      old_address: oldAddress,
+      new_address: fullAddr,
+      old_zip: oldZip,
+      new_zip: addressZip.trim(),
+    } as any);
+
+    // If ZIP changed, clear cache for the old ZIP so My City re-fetches
+    if (oldZip && oldZip !== addressZip.trim()) {
+      await supabase
+        .from("zip_investment_cache" as any)
+        .delete()
+        .eq("zip_code", oldZip);
+    }
+
+    // Trigger geocoding + investment data fetch in background
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/resolve-address`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+          "Content-Type": "application/json",
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ address: fullAddr }),
+      }).catch((err) => console.error("resolve-address failed:", err));
+    } catch (err) {
+      console.error("resolve-address invoke failed:", err);
+    }
+
     setCurrentFullAddress(fullAddr);
     setSavingAddress(false);
     setEditingAddress(false);
-    toast.success("Voting address updated ✓");
+    toast.success("Address updated ✓ — fetching your neighborhood data");
     refreshProfile();
   };
 
