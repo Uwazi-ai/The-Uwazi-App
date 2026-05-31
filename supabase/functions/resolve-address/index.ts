@@ -82,24 +82,29 @@ Deno.serve(async (req) => {
     let geocodingStatus: string | null = mapsKey ? null : "MAPS_API_KEY_MISSING";
 
     if (mapsKey) {
-      const geoUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-        address,
-      )}&key=${mapsKey}`;
-      const geoRes = await fetch(geoUrl);
-      const geoData = await geoRes.json().catch(() => ({}));
-      geocodingStatus = geoData.status ?? `HTTP_${geoRes.status}`;
+      try {
+        const geoUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+          address,
+        )}&key=${mapsKey}`;
+        const geoRes = await fetch(geoUrl);
+        const geoData = await geoRes.json().catch(() => ({}));
+        geocodingStatus = geoData.status ?? `HTTP_${geoRes.status}`;
 
-      if (geoRes.ok && geoData.status === "OK" && geoData.results?.length) {
-        const top = geoData.results[0];
-        lat = top.geometry?.location?.lat ?? null;
-        lng = top.geometry?.location?.lng ?? null;
-        const comps: Array<{ types: string[]; long_name: string; short_name: string }> =
-          top.address_components || [];
-        const findComp = (t: string) => comps.find((c) => c.types.includes(t));
-        zip = findComp("postal_code")?.long_name?.slice(0, 5) ?? zip;
-        state = findComp("administrative_area_level_1")?.short_name ?? state;
-      } else {
-        console.warn("Geocoding unavailable:", geocodingStatus, geoData.error_message ?? "No details");
+        if (geoRes.ok && geoData.status === "OK" && geoData.results?.length) {
+          const top = geoData.results[0];
+          lat = top.geometry?.location?.lat ?? null;
+          lng = top.geometry?.location?.lng ?? null;
+          const comps: Array<{ types: string[]; long_name: string; short_name: string }> =
+            top.address_components || [];
+          const findComp = (t: string) => comps.find((c) => c.types.includes(t));
+          zip = findComp("postal_code")?.long_name?.slice(0, 5) ?? zip;
+          state = findComp("administrative_area_level_1")?.short_name ?? state;
+        } else {
+          console.warn("Geocoding unavailable:", geocodingStatus, geoData.error_message ?? "No details");
+        }
+      } catch (e) {
+        geocodingStatus = "GEOCODING_REQUEST_FAILED";
+        console.warn("Geocoding request failed:", e);
       }
     }
 
@@ -124,33 +129,33 @@ Deno.serve(async (req) => {
         )}&key=${civicKey}`;
         const civicRes = await fetch(civicUrl);
         if (civicRes.ok) {
-        const civicData = await civicRes.json();
-        const officials = civicData.officials || [];
-        const offices = civicData.offices || [];
-        const labelFor = (office: any) => {
-          const idx = office.officialIndices?.[0];
-          const name = idx != null ? officials[idx]?.name : null;
-          return name ? `${office.name} — ${name}` : office.name;
-        };
-        for (const office of offices) {
-          const name: string = office.name || "";
-          const levels: string[] = office.levels || [];
-          const roles: string[] = office.roles || [];
-          if (/city council|alderman/i.test(name) && !cityCouncil) cityCouncil = labelFor(office);
-          if (levels.includes("country") && roles.includes("legislatorLowerBody") && !usCongress)
-            usCongress = labelFor(office);
-          if (
-            levels.includes("administrativeArea1") &&
-            roles.includes("legislatorLowerBody") &&
-            !moHouse
-          )
-            moHouse = labelFor(office);
-          if (
-            levels.includes("administrativeArea1") &&
-            roles.includes("legislatorUpperBody") &&
-            !moSenate
-          )
-            moSenate = labelFor(office);
+          const civicData = await civicRes.json();
+          const officials = civicData.officials || [];
+          const offices = civicData.offices || [];
+          const labelFor = (office: any) => {
+            const idx = office.officialIndices?.[0];
+            const name = idx != null ? officials[idx]?.name : null;
+            return name ? `${office.name} — ${name}` : office.name;
+          };
+          for (const office of offices) {
+            const name: string = office.name || "";
+            const levels: string[] = office.levels || [];
+            const roles: string[] = office.roles || [];
+            if (/city council|alderman/i.test(name) && !cityCouncil) cityCouncil = labelFor(office);
+            if (levels.includes("country") && roles.includes("legislatorLowerBody") && !usCongress)
+              usCongress = labelFor(office);
+            if (
+              levels.includes("administrativeArea1") &&
+              roles.includes("legislatorLowerBody") &&
+              !moHouse
+            )
+              moHouse = labelFor(office);
+            if (
+              levels.includes("administrativeArea1") &&
+              roles.includes("legislatorUpperBody") &&
+              !moSenate
+            )
+              moSenate = labelFor(office);
           }
         }
       }
