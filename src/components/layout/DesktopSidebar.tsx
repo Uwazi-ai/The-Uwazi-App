@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/contexts/ProfileContext";
 import { toast } from "sonner";
+import { Lock } from "lucide-react";
 import uwaziLogo from "@/assets/uwazi-app-logo.png";
 import {
   HomeIcon, AskUwaziIcon, LearnIcon, WatchIcon,
@@ -37,6 +38,7 @@ const adminNav: AdminNavItem[] = [
   { to: "/app/admin/surveys", icon: SurveysIcon, label: "Surveys", programAdmin: true },
   { to: "/app/admin/platform", icon: PlatformSettingsIcon, label: "Platform Settings" },
   { to: "/app/admin/partner-orgs", icon: PartnerOrgsIcon, label: "Partner Orgs" },
+  { to: "/app/admin/security", icon: Lock, label: "Security" },
 ];
 
 const bottomNav = [
