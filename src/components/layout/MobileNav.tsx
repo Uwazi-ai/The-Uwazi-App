@@ -13,7 +13,7 @@ import {
 const navItems = [
   { to: "/app", icon: HomeIcon, label: "Home" },
   { to: "/app/learn", icon: LearnIcon, label: "Learn" },
-  { to: "/app/ask", icon: AskUwaziIcon, label: "Ask" },
+  { to: "/app/watch", icon: WatchIcon, label: "Watch" },
   { to: "/app/vote", icon: VotingHubIcon, label: "Vote" },
   { to: "/app/my-city", icon: Building2, label: "My City", premium: true },
 ];
