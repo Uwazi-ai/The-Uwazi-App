@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      address_update_log: {
+        Row: {
+          created_at: string | null
+          id: string
+          new_address: string | null
+          new_zip: string | null
+          old_address: string | null
+          old_zip: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          new_address?: string | null
+          new_zip?: string | null
+          old_address?: string | null
+          old_zip?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          new_address?: string | null
+          new_zip?: string | null
+          old_address?: string | null
+          old_zip?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_chats: {
         Row: {
           confidence_score: number | null
@@ -1572,12 +1602,14 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
           address_line1: string | null
           address_line2: string | null
           ask_uwazi_question_count: number
           ask_uwazi_window_start: string | null
           avatar_url: string | null
           city: string | null
+          city_council_district: string | null
           civic_knowledge_level: string | null
           contact_score: number | null
           contact_tags: Json | null
@@ -1585,6 +1617,7 @@ export type Database = {
           crm_notes: string | null
           display_name: string | null
           district: string | null
+          districts_resolved_at: string | null
           email_opt_in: boolean | null
           full_address: string | null
           id: string
@@ -1592,7 +1625,11 @@ export type Database = {
           is_suspended: boolean | null
           last_active: string | null
           last_contacted_at: string | null
+          lat: number | null
+          lng: number | null
           location: string | null
+          mo_house_district: string | null
+          mo_senate_district: string | null
           my_city_enabled: boolean
           notify_civic_alerts: boolean
           notify_elections: boolean
@@ -1602,13 +1639,16 @@ export type Database = {
           org_role: string | null
           phone_number: string | null
           phone_verified: boolean | null
+          precinct_id: string | null
           push_opt_in: boolean | null
           push_token: string | null
           referred_by_org: string | null
+          school_district: string | null
           sms_opt_in: boolean | null
           state_code: string | null
           street_address: string | null
           updated_at: string
+          us_congressional_district: string | null
           user_id: string
           voter_address_city: string | null
           voter_address_state: string | null
@@ -1619,12 +1659,14 @@ export type Database = {
           zip_code: string | null
         }
         Insert: {
+          address?: string | null
           address_line1?: string | null
           address_line2?: string | null
           ask_uwazi_question_count?: number
           ask_uwazi_window_start?: string | null
           avatar_url?: string | null
           city?: string | null
+          city_council_district?: string | null
           civic_knowledge_level?: string | null
           contact_score?: number | null
           contact_tags?: Json | null
@@ -1632,6 +1674,7 @@ export type Database = {
           crm_notes?: string | null
           display_name?: string | null
           district?: string | null
+          districts_resolved_at?: string | null
           email_opt_in?: boolean | null
           full_address?: string | null
           id?: string
@@ -1639,7 +1682,11 @@ export type Database = {
           is_suspended?: boolean | null
           last_active?: string | null
           last_contacted_at?: string | null
+          lat?: number | null
+          lng?: number | null
           location?: string | null
+          mo_house_district?: string | null
+          mo_senate_district?: string | null
           my_city_enabled?: boolean
           notify_civic_alerts?: boolean
           notify_elections?: boolean
@@ -1649,13 +1696,16 @@ export type Database = {
           org_role?: string | null
           phone_number?: string | null
           phone_verified?: boolean | null
+          precinct_id?: string | null
           push_opt_in?: boolean | null
           push_token?: string | null
           referred_by_org?: string | null
+          school_district?: string | null
           sms_opt_in?: boolean | null
           state_code?: string | null
           street_address?: string | null
           updated_at?: string
+          us_congressional_district?: string | null
           user_id: string
           voter_address_city?: string | null
           voter_address_state?: string | null
@@ -1666,12 +1716,14 @@ export type Database = {
           zip_code?: string | null
         }
         Update: {
+          address?: string | null
           address_line1?: string | null
           address_line2?: string | null
           ask_uwazi_question_count?: number
           ask_uwazi_window_start?: string | null
           avatar_url?: string | null
           city?: string | null
+          city_council_district?: string | null
           civic_knowledge_level?: string | null
           contact_score?: number | null
           contact_tags?: Json | null
@@ -1679,6 +1731,7 @@ export type Database = {
           crm_notes?: string | null
           display_name?: string | null
           district?: string | null
+          districts_resolved_at?: string | null
           email_opt_in?: boolean | null
           full_address?: string | null
           id?: string
@@ -1686,7 +1739,11 @@ export type Database = {
           is_suspended?: boolean | null
           last_active?: string | null
           last_contacted_at?: string | null
+          lat?: number | null
+          lng?: number | null
           location?: string | null
+          mo_house_district?: string | null
+          mo_senate_district?: string | null
           my_city_enabled?: boolean
           notify_civic_alerts?: boolean
           notify_elections?: boolean
@@ -1696,13 +1753,16 @@ export type Database = {
           org_role?: string | null
           phone_number?: string | null
           phone_verified?: boolean | null
+          precinct_id?: string | null
           push_opt_in?: boolean | null
           push_token?: string | null
           referred_by_org?: string | null
+          school_district?: string | null
           sms_opt_in?: boolean | null
           state_code?: string | null
           street_address?: string | null
           updated_at?: string
+          us_congressional_district?: string | null
           user_id?: string
           voter_address_city?: string | null
           voter_address_state?: string | null
@@ -2710,6 +2770,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      zip_investment_cache: {
+        Row: {
+          created_at: string | null
+          data_sources: string[] | null
+          fiscal_year: string
+          flags_json: Json | null
+          id: string
+          level: string
+          meta_json: Json | null
+          projects_json: Json | null
+          refreshed_at: string | null
+          total_investment: number | null
+          vendors_json: Json | null
+          zip_code: string
+        }
+        Insert: {
+          created_at?: string | null
+          data_sources?: string[] | null
+          fiscal_year?: string
+          flags_json?: Json | null
+          id?: string
+          level: string
+          meta_json?: Json | null
+          projects_json?: Json | null
+          refreshed_at?: string | null
+          total_investment?: number | null
+          vendors_json?: Json | null
+          zip_code: string
+        }
+        Update: {
+          created_at?: string | null
+          data_sources?: string[] | null
+          fiscal_year?: string
+          flags_json?: Json | null
+          id?: string
+          level?: string
+          meta_json?: Json | null
+          projects_json?: Json | null
+          refreshed_at?: string | null
+          total_investment?: number | null
+          vendors_json?: Json | null
+          zip_code?: string
+        }
+        Relationships: []
       }
     }
     Views: {
