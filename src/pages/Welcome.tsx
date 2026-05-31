@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import uwaziPinwheel from '@/assets/uwazi-pinwheel.png'
 import uwaziAppWordmark from '@/assets/uwazi-app-wordmark.png'
+
 
 const SLIDES = [
   {
@@ -124,6 +126,14 @@ export default function Welcome() {
 
   return (
     <>
+      <Helmet>
+        <title>UWAZI — Build your civic freedom</title>
+        <meta name="description" content="Nonpartisan civic intelligence: Ask Uwazi, earn XP through civic lessons, track legislation, and never miss your vote." />
+        <link rel="canonical" href="https://uwaziapp.uwazi.ai/welcome" />
+        <meta property="og:title" content="UWAZI — Build your civic freedom" />
+        <meta property="og:description" content="Nonpartisan civic intelligence: Ask Uwazi, earn XP through civic lessons, track legislation, and never miss your vote." />
+        <meta property="og:url" content="https://uwaziapp.uwazi.ai/welcome" />
+      </Helmet>
       <style>{`@keyframes gridScroll { from { background-position: 0 0; } to { background-position: 48px 48px; } }`}</style>
       <div className="min-h-screen w-full bg-[#0a0a0a] text-white flex flex-col lg:flex-row">
         {/* ─── LEFT PANEL ─── */}
@@ -269,8 +279,8 @@ export default function Welcome() {
           <div className="w-full px-8 sm:px-10 py-10 lg:py-14 space-y-7">
             {/* Logo */}
             <div className="flex items-center gap-2.5">
-              <img src={uwaziPinwheel} alt="UWAZI" className="w-8 h-8 object-contain" />
-              <img src={uwaziAppWordmark} alt="UWAZI.APP" className="h-5 object-contain" />
+              <img src={uwaziPinwheel} alt="UWAZI pinwheel logo" className="w-8 h-8 object-contain" />
+              <img src={uwaziAppWordmark} alt="UWAZI.APP wordmark" className="h-5 object-contain" />
             </div>
 
             {/* Feature peek cards */}

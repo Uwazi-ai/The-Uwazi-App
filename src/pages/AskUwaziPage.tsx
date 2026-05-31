@@ -291,7 +291,7 @@ function HistoryList({
                       <p className={`flex-1 text-[13px] truncate min-w-0 ${isActive ? "text-primary font-medium" : "text-foreground"}`}>
                         {chat.firstMessage.substring(0, 40)}
                       </p>
-                      <button onClick={(e) => { e.stopPropagation(); onDeleteSession(chat.id); }}
+                      <button aria-label="Delete chat session" onClick={(e) => { e.stopPropagation(); onDeleteSession(chat.id); }}
                         className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-all shrink-0">
                         <Trash2 className="h-3 w-3" />
                       </button>
@@ -614,7 +614,7 @@ export default function AskUwaziPage() {
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
             <div className="h-12 w-12 rounded-2xl glass flex items-center justify-center">
-              <img src={uwaziLogo} alt="UWAZI" className="h-6 w-6" />
+              <img src={uwaziLogo} alt="UWAZI logo" className="h-6 w-6" />
             </div>
             <motion.div className="absolute inset-0 rounded-2xl border-2 border-primary/30"
               animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
@@ -679,10 +679,10 @@ export default function AskUwaziPage() {
             className="hidden md:flex relative z-40 w-[260px] h-full flex-col shrink-0 bg-card/80 backdrop-blur-xl border-r border-primary/10">
             <div className="flex items-center justify-between px-4 py-4 border-b border-primary/10">
               <div className="flex items-center gap-2">
-                <img src={uwaziLogo} alt="UWAZI" className="h-4 w-4" />
+                <img src={uwaziLogo} alt="UWAZI logo" className="h-4 w-4" />
                 <h2 className="text-sm font-heading tracking-wide text-foreground">HISTORY</h2>
               </div>
-              <button onClick={() => setHistoryOpen(false)}
+              <button aria-label="Close chat history" onClick={() => setHistoryOpen(false)}
                 className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition-colors">
                 <X className="h-4 w-4" />
               </button>
@@ -699,10 +699,10 @@ export default function AskUwaziPage() {
             <DrawerHeader className="pb-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <img src={uwaziLogo} alt="UWAZI" className="h-4 w-4" />
+                  <img src={uwaziLogo} alt="UWAZI logo" className="h-4 w-4" />
                   <DrawerTitle className="text-sm font-heading tracking-wide">HISTORY</DrawerTitle>
                 </div>
-                <button onClick={() => setHistoryOpen(false)}
+                <button aria-label="Close chat history" onClick={() => setHistoryOpen(false)}
                   className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition-colors">
                   <X className="h-4 w-4" />
                 </button>
@@ -722,11 +722,11 @@ export default function AskUwaziPage() {
         <div className="flex items-center justify-between px-3 md:px-5 py-2.5 shrink-0 z-10 topbar-safe border-b border-primary/10 bg-background/90 backdrop-blur-xl">
           {/* Left: Back + History */}
           <div className="flex items-center gap-1">
-            <button onClick={() => navigate(-1)}
+            <button aria-label="Go back" onClick={() => navigate(-1)}
               className="p-2 rounded-xl hover:bg-muted text-muted-foreground transition-colors" title="Go back">
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <button onClick={() => setHistoryOpen(true)}
+            <button aria-label="Open chat history" onClick={() => setHistoryOpen(true)}
               className="flex items-center gap-1.5 p-2 rounded-xl hover:bg-muted text-primary transition-colors" title="Chat History">
               <Clock className="h-5 w-5" />
               <span className="text-[13px] font-medium md:hidden">Chats</span>
@@ -736,7 +736,7 @@ export default function AskUwaziPage() {
           {/* Center: Logo + title */}
           <div className="flex items-center gap-2">
             <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center">
-              <img src={uwaziLogo} alt="UWAZI" className="h-3.5 w-3.5" />
+              <img src={uwaziLogo} alt="UWAZI logo" className="h-3.5 w-3.5" />
             </div>
             <span className="text-sm font-heading tracking-wide text-foreground">Ask Uwazi</span>
             <AskLimitPill
@@ -748,7 +748,7 @@ export default function AskUwaziPage() {
           </div>
 
           {/* Right: New Chat */}
-          <button onClick={handleNewChat}
+          <button aria-label="Start new chat" onClick={handleNewChat}
             className="p-2 rounded-xl hover:bg-muted text-primary transition-colors" title="New Chat">
             <Plus className="h-5 w-5" />
           </button>
@@ -763,7 +763,7 @@ export default function AskUwaziPage() {
                 <div className="relative mx-auto mb-4 sm:mb-6 w-16 h-16">
                   <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-2xl" />
                   <div className="relative h-16 w-16 rounded-2xl glass-strong flex items-center justify-center border border-primary/20">
-                    <img src={uwaziLogo} alt="UWAZI" className="h-8 w-8" />
+                    <img src={uwaziLogo} alt="UWAZI logo" className="h-8 w-8" />
                   </div>
                 </div>
                 <h1 className="font-heading text-[28px] sm:text-4xl md:text-5xl text-foreground leading-none mb-2 tracking-tight">
@@ -855,7 +855,7 @@ export default function AskUwaziPage() {
                     {msg.role === "assistant" && (
                       <div className="shrink-0 mt-1">
                         <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-lg bg-primary/15 flex items-center justify-center">
-                          <img src={uwaziLogo} alt="UWAZI" className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                          <img src={uwaziLogo} alt="UWAZI logo" className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                         </div>
                       </div>
                     )}
@@ -875,7 +875,7 @@ export default function AskUwaziPage() {
                             borderRadius: "4px 18px 18px 18px",
                           }}>
                           <div className="flex items-center gap-2 mb-2">
-                            <img src={uwaziLogo} alt="UWAZI" className="h-3 w-3" />
+                            <img src={uwaziLogo} alt="UWAZI logo" className="h-3 w-3" />
                             <span className="text-[10px] font-heading tracking-wide text-primary/70">UWAZI</span>
                             {msg.didSearch && (
                               <span className="flex items-center gap-1 text-[10px] text-primary/50 ml-1">
@@ -933,7 +933,7 @@ export default function AskUwaziPage() {
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                   className="flex items-start gap-2 sm:gap-3 py-3">
                   <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
-                    <img src={uwaziLogo} alt="UWAZI" className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                    <img src={uwaziLogo} alt="UWAZI logo" className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                   </div>
                   <div className="p-3 sm:p-4 rounded-[4px_18px_18px_18px] bg-card/60 backdrop-blur border border-border">
                     <div className="flex items-center gap-2">

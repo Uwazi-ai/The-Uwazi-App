@@ -83,6 +83,8 @@ export default function WatchPage() {
 
   return (
     <div className="fixed inset-0 z-40 bg-black flex flex-col md:relative md:inset-auto md:z-auto md:rounded-xl md:overflow-hidden" style={{ height: "100dvh" }}>
+      {/* Visually hidden page heading for accessibility */}
+      <h1 className="sr-only">Uwazi+ Video Feed</h1>
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 z-20 px-4 pt-[max(12px,env(safe-area-inset-top))] pb-2"
         style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)" }}>
@@ -450,13 +452,13 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
 
           <div className="absolute right-3 bottom-[104px] md:bottom-28 z-10 flex flex-col items-center gap-5">
             <LikeButton episodeId={episode.id} />
-            <button onClick={() => setMuted(!muted)} className="p-2 rounded-full bg-black/40 text-white">
+            <button onClick={() => setMuted(!muted)} className="p-2 rounded-full bg-black/40 text-white" aria-label={muted ? "Unmute video" : "Mute video"}>
               {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
             </button>
-            <button onClick={onShare} className="p-2 rounded-full bg-black/40 text-white">
+            <button onClick={onShare} className="p-2 rounded-full bg-black/40 text-white" aria-label="Share episode">
               <Share2 size={20} />
             </button>
-            <button onClick={toggleInfo} className="p-2 rounded-full bg-black/40 text-white">
+            <button onClick={toggleInfo} className="p-2 rounded-full bg-black/40 text-white" aria-label="Toggle episode info">
               <Info size={20} />
             </button>
             <button

@@ -1,9 +1,18 @@
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { ArrowLeft } from "lucide-react";
 
 export default function TermsOfServicePage() {
   return (
     <div className="min-h-screen bg-background text-foreground px-4 py-8 max-w-3xl mx-auto">
+      <Helmet>
+        <title>Terms of Service — UWAZI</title>
+        <meta name="description" content="Terms and conditions governing use of UWAZI's civic intelligence platform and services." />
+        <link rel="canonical" href="https://uwaziapp.uwazi.ai/terms" />
+        <meta property="og:title" content="Terms of Service — UWAZI" />
+        <meta property="og:description" content="Terms governing use of UWAZI." />
+        <meta property="og:url" content="https://uwaziapp.uwazi.ai/terms" />
+      </Helmet>
       <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
         <ArrowLeft size={16} />
         Back

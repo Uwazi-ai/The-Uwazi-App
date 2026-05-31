@@ -1,0 +1,16 @@
+# UWAZI
+
+> Nonpartisan, AI-powered civic intelligence platform. UWAZI helps people learn how their government works, track legislation, research candidates, and build a voting plan — all in one place.
+
+UWAZI is a 501(c)(3) civic education project. It pairs a Duolingo-style lesson system with an AI assistant ("Ask Uwazi"), localized legislation and election tracking, and a community impact leaderboard for partner organizations.
+
+## Pages
+
+- [Welcome](/welcome): Product overview, key features, and how UWAZI works.
+- [Impact](/impact): Public leaderboard of partner organizations driving civic engagement.
+- [Join](/join): Accept a partner organization invite and create an account.
+
+## Optional
+
+- [Privacy Policy](/privacy): How user data is collected, used, and protected.
+- [Terms of Service](/terms): Terms governing use of UWAZI.

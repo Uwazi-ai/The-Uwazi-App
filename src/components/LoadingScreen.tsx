@@ -20,7 +20,7 @@ export function LoadingScreen() {
         />
         <img
           src={logoSrc}
-          alt="UWAZI"
+          alt="UWAZI logo"
           width={80}
           height={80}
           className="animate-spin relative z-10"
