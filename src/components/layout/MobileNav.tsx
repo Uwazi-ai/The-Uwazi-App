@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { ChevronRight, User } from "lucide-react";
+import { Building2, ChevronRight, User } from "lucide-react";
 import { useProfile } from "@/contexts/ProfileContext";
+import { useSubscription } from "@/hooks/useSubscription";
 import {
   HomeIcon, LearnIcon, WatchIcon, AskUwaziIcon, VotingHubIcon,
   LegislationIcon, ProgressIcon,
@@ -12,9 +13,9 @@ import {
 const navItems = [
   { to: "/app", icon: HomeIcon, label: "Home" },
   { to: "/app/learn", icon: LearnIcon, label: "Learn" },
-  { to: "/app/watch", icon: WatchIcon, label: "Watch" },
   { to: "/app/ask", icon: AskUwaziIcon, label: "Ask" },
   { to: "/app/vote", icon: VotingHubIcon, label: "Vote" },
+  { to: "/app/my-city", icon: Building2, label: "My City", premium: true },
 ];
 
 const drawerItems = [
