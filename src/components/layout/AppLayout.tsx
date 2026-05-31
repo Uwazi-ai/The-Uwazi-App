@@ -65,6 +65,7 @@ export function AppLayout() {
         {!isAskPage && <ScrollToTop />}
         <PWAInstallPrompt />
         {!isAskPage && <FeedbackButton />}
+        <MyCityUnlockModal />
       </div>
     </ProfileProvider>
   );
