@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { ChevronRight, User } from "lucide-react";
+import { Building2, ChevronRight, User } from "lucide-react";
 import { useProfile } from "@/contexts/ProfileContext";
+import { useSubscription } from "@/hooks/useSubscription";
 import {
   HomeIcon, LearnIcon, WatchIcon, AskUwaziIcon, VotingHubIcon,
   LegislationIcon, ProgressIcon,
@@ -15,6 +16,7 @@ const navItems = [
   { to: "/app/watch", icon: WatchIcon, label: "Watch" },
   { to: "/app/ask", icon: AskUwaziIcon, label: "Ask" },
   { to: "/app/vote", icon: VotingHubIcon, label: "Vote" },
+  { to: "/app/my-city", icon: Building2, label: "My City", premium: true },
 ];
 
 const drawerItems = [
@@ -28,6 +30,7 @@ const drawerItems = [
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const { displayName, avatarUrl } = useProfile();
+  const { isPremium } = useSubscription();
   const initial = (displayName?.[0] || "U").toUpperCase();
 
   return (
@@ -55,8 +58,15 @@ export function MobileNav() {
           >
             {({ isActive }) => (
               <>
-                <div className={`p-1 rounded-lg transition-colors ${isActive ? "bg-primary/[0.12]" : ""}`}>
+                <div className={`relative p-1 rounded-lg transition-colors ${isActive ? "bg-primary/[0.12]" : ""}`}>
                   <item.icon size={22} />
+                  {item.premium && !isPremium && (
+                    <span
+                      className="absolute top-0 right-0"
+                      style={{ width: 8, height: 8, borderRadius: "50%", background: "#9BD34B" }}
+                      aria-label="Premium feature"
+                    />
+                  )}
                 </div>
                 <span>{item.label}</span>
               </>

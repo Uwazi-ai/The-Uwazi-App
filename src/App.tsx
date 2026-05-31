@@ -53,6 +53,7 @@ import ImpactPage from "./pages/ImpactPage";
 import { PWAUpdateBanner } from "@/components/PWAUpdateBanner";
 import AdminSecurityPage from "./pages/admin/AdminSecurityPage";
 import UnsubscribePage from "./pages/UnsubscribePage";
+import MyCity from "./pages/MyCity";
 
 const queryClient = new QueryClient();
 
@@ -88,6 +89,7 @@ const App = () => (
                 <Route index element={<HomePage />} />
                 <Route path="/app/ask" element={<AskUwaziPage />} />
                 <Route path="/app/vote" element={<VotingHubPage />} />
+                <Route path="/app/my-city" element={<MyCity />} />
                 <Route path="/app/vote/candidates" element={<CandidatesPage />} />
                 <Route path="/app/vote/candidates/:id" element={<CandidateDetailPage />} />
                 <Route path="/app/news" element={<NewsPage />} />

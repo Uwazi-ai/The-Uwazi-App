@@ -14,12 +14,15 @@ import {
   PartnerOrgsIcon,
 } from "@/components/icons/UwaziIcons";
 
+import { Building2 } from "lucide-react";
+
 const mainNav = [
   { to: "/app", icon: HomeIcon, label: "Home" },
   { to: "/app/ask", icon: AskUwaziIcon, label: "Ask Uwazi" },
   { to: "/app/learn", icon: LearnIcon, label: "Learn" },
   { to: "/app/watch", icon: WatchIcon, label: "Watch" },
   { to: "/app/vote", icon: VotingHubIcon, label: "Voting Hub" },
+  { to: "/app/my-city", icon: Building2, label: "My City" },
   { to: "/app/legislation", icon: LegislationIcon, label: "Legislation" },
   { to: "/app/progress", icon: ProgressIcon, label: "Progress" },
 ];
