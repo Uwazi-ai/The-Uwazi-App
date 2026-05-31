@@ -58,8 +58,15 @@ export function MobileNav() {
           >
             {({ isActive }) => (
               <>
-                <div className={`p-1 rounded-lg transition-colors ${isActive ? "bg-primary/[0.12]" : ""}`}>
+                <div className={`relative p-1 rounded-lg transition-colors ${isActive ? "bg-primary/[0.12]" : ""}`}>
                   <item.icon size={22} />
+                  {item.premium && !isPremium && (
+                    <span
+                      className="absolute top-0 right-0"
+                      style={{ width: 8, height: 8, borderRadius: "50%", background: "#9BD34B" }}
+                      aria-label="Premium feature"
+                    />
+                  )}
                 </div>
                 <span>{item.label}</span>
               </>
