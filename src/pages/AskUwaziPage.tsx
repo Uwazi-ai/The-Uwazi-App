@@ -23,6 +23,7 @@ import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle,
 } from "@/components/ui/drawer";
 import { RegistrationOptInCard } from "@/components/ask-uwazi/RegistrationOptInCard";
+import { AskLimitPill, AskLimitPaywall } from "@/components/ask-uwazi/AskLimitUI";
 
 interface Source {
   title: string;
@@ -364,6 +365,12 @@ export default function AskUwaziPage() {
   const [dailyCount, setDailyCount] = useState(0);
   const [showBanner, setShowBanner] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [limitInfo, setLimitInfo] = useState<{
+    is_plus: boolean;
+    remaining: number | null;
+    reset_at: string | null;
+  }>({ is_plus: false, remaining: null, reset_at: null });
+  const [limited, setLimited] = useState<{ reset_at: string } | null>(null);
   const [optInClosed, setOptInClosed] = useState(
     () => typeof window !== "undefined" && !!sessionStorage.getItem("uwazi_reg_optin_status")
   );
@@ -438,7 +445,44 @@ export default function AskUwaziPage() {
 
   const handleSend = useCallback(async (text?: string) => {
     const msg = text || input.trim();
-    if (!msg || isStreaming) return;
+    if (!msg || isStreaming || limited) return;
+
+    // Server-side rate-limit check BEFORE anything else
+    if (session?.access_token) {
+      try {
+        const resp = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-ask-limit`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.access_token}`,
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            },
+            body: "{}",
+          },
+        );
+        const limitData = await resp.json().catch(() => ({}));
+        if (resp.status === 429 || limitData?.allowed === false) {
+          if (limitData?.reset_at) setLimited({ reset_at: limitData.reset_at });
+          setLimitInfo({ is_plus: false, remaining: 0, reset_at: limitData?.reset_at ?? null });
+          return;
+        }
+        if (!resp.ok) {
+          toast.error("Unable to verify limit. Try again.");
+          return;
+        }
+        setLimitInfo({
+          is_plus: !!limitData.is_plus,
+          remaining: limitData.questions_remaining,
+          reset_at: limitData.reset_at,
+        });
+      } catch {
+        toast.error("Unable to verify limit. Try again.");
+        return;
+      }
+    }
+
     const userMsg: Message = { id: Date.now().toString(), role: "user", content: msg };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
@@ -503,7 +547,33 @@ export default function AskUwaziPage() {
       },
       onError: (err) => { toast.error(err); setIsStreaming(false); setIsSearching(false); },
     });
-  }, [input, isStreaming, messages, session, saveMessages, ctx.zipCode, isSubscribed, fetchDailyCount]);
+  }, [input, isStreaming, limited, messages, session, saveMessages, ctx.zipCode, isSubscribed, fetchDailyCount]);
+
+  // Recheck after window resets in the paywall countdown
+  const recheckLimit = useCallback(async () => {
+    if (!session?.access_token) return;
+    const resp = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-ask-limit`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: "{}",
+      },
+    );
+    const data = await resp.json().catch(() => ({}));
+    if (resp.ok && data?.allowed) {
+      setLimited(null);
+      setLimitInfo({
+        is_plus: !!data.is_plus,
+        remaining: data.questions_remaining,
+        reset_at: data.reset_at,
+      });
+    }
+  }, [session?.access_token]);
 
   // Auto-send when arriving with ?q= prefilled prompt (e.g. from candidate cards)
   const autoSentRef = useRef(false);
@@ -669,6 +739,12 @@ export default function AskUwaziPage() {
               <img src={uwaziLogo} alt="UWAZI" className="h-3.5 w-3.5" />
             </div>
             <span className="text-sm font-heading tracking-wide text-foreground">Ask Uwazi</span>
+            <AskLimitPill
+              isPlus={isSubscribed || limitInfo.is_plus}
+              remaining={limitInfo.remaining}
+              resetAt={limited?.reset_at ?? limitInfo.reset_at}
+              limited={!!limited}
+            />
           </div>
 
           {/* Right: New Chat */}
@@ -954,49 +1030,55 @@ export default function AskUwaziPage() {
           )}
         </AnimatePresence>
 
-        {/* ─── Input Area ─── */}
-        <div className="shrink-0 px-3 sm:px-6 py-3 md:py-4 border-t border-primary/10 bg-background/95 backdrop-blur-xl mb-16 md:mb-0"
-          style={{
-            paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
-          }}>
-          <div className="max-w-3xl mx-auto">
-            <div className="uwazi-input-container">
-              <form onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-                className="flex items-end gap-2 sm:gap-3 w-full">
-                <textarea ref={inputRef} rows={1} value={input}
-                  onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
-                  placeholder={isStreaming ? "Uwazi is typing…" : "Ask about elections, legislation, your rights..."}
-                  className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground/50 outline-none min-w-0 resize-none leading-relaxed disabled:cursor-not-allowed"
-                  style={{ maxHeight: "120px", fontSize: "16px" }}
-                  disabled={isStreaming}
-                  aria-busy={isStreaming} />
-                <motion.button type="submit" disabled={!input.trim() || isStreaming}
-                  whileHover={isStreaming ? undefined : { scale: 1.08 }}
-                  whileTap={isStreaming ? undefined : { scale: 0.92 }}
-                  aria-label={isStreaming ? "Uwazi is typing" : "Send message"}
-                  title={isStreaming ? "Wait for Uwazi to finish…" : "Send"}
-                  className={`h-9 w-9 sm:h-10 sm:w-10 rounded-full shrink-0 flex items-center justify-center transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
-                    isStreaming
-                      ? "bg-primary/15 text-primary border border-primary/30"
-                      : (!input.trim()
-                        ? "bg-muted text-muted-foreground"
-                        : "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.3)]")
-                  }`}>
-                  {isStreaming ? (
-                    <span className="typing-dots" aria-hidden="true">
-                      <span /><span /><span />
-                    </span>
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                </motion.button>
-              </form>
-            </div>
-            <p className="text-[10px] text-muted-foreground/30 text-center mt-2 hidden sm:block">
-              Ask Uwazi may make mistakes. Verify important civic information with official sources.
-            </p>
+        {/* ─── Input Area / Limit Paywall ─── */}
+        {limited ? (
+          <div className="shrink-0 mb-16 md:mb-0">
+            <AskLimitPaywall resetAt={limited.reset_at} onReset={recheckLimit} />
           </div>
-        </div>
+        ) : (
+          <div className="shrink-0 px-3 sm:px-6 py-3 md:py-4 border-t border-primary/10 bg-background/95 backdrop-blur-xl mb-16 md:mb-0"
+            style={{
+              paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
+            }}>
+            <div className="max-w-3xl mx-auto">
+              <div className="uwazi-input-container">
+                <form onSubmit={(e) => { e.preventDefault(); handleSend(); }}
+                  className="flex items-end gap-2 sm:gap-3 w-full">
+                  <textarea ref={inputRef} rows={1} value={input}
+                    onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
+                    placeholder={isStreaming ? "Uwazi is typing…" : "Ask about elections, legislation, your rights..."}
+                    className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground/50 outline-none min-w-0 resize-none leading-relaxed disabled:cursor-not-allowed"
+                    style={{ maxHeight: "120px", fontSize: "16px" }}
+                    disabled={isStreaming}
+                    aria-busy={isStreaming} />
+                  <motion.button type="submit" disabled={!input.trim() || isStreaming}
+                    whileHover={isStreaming ? undefined : { scale: 1.08 }}
+                    whileTap={isStreaming ? undefined : { scale: 0.92 }}
+                    aria-label={isStreaming ? "Uwazi is typing" : "Send message"}
+                    title={isStreaming ? "Wait for Uwazi to finish…" : "Send"}
+                    className={`h-9 w-9 sm:h-10 sm:w-10 rounded-full shrink-0 flex items-center justify-center transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
+                      isStreaming
+                        ? "bg-primary/15 text-primary border border-primary/30"
+                        : (!input.trim()
+                          ? "bg-muted text-muted-foreground"
+                          : "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.3)]")
+                    }`}>
+                    {isStreaming ? (
+                      <span className="typing-dots" aria-hidden="true">
+                        <span /><span /><span />
+                      </span>
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                  </motion.button>
+                </form>
+              </div>
+              <p className="text-[10px] text-muted-foreground/30 text-center mt-2 hidden sm:block">
+                Ask Uwazi may make mistakes. Verify important civic information with official sources.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
