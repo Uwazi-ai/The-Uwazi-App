@@ -13,6 +13,8 @@ import {
   CRMIcon, SurveysIcon, PlatformSettingsIcon,
   PartnerOrgsIcon,
 } from "@/components/icons/UwaziIcons";
+import { useSubscription } from "@/hooks/useSubscription";
+import { openMyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
 
 import { Building2 } from "lucide-react";
 
