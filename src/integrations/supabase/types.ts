@@ -1591,6 +1591,7 @@ export type Database = {
           last_active: string | null
           last_contacted_at: string | null
           location: string | null
+          my_city_enabled: boolean
           notify_civic_alerts: boolean
           notify_elections: boolean
           notify_new_lessons: boolean
@@ -1635,6 +1636,7 @@ export type Database = {
           last_active?: string | null
           last_contacted_at?: string | null
           location?: string | null
+          my_city_enabled?: boolean
           notify_civic_alerts?: boolean
           notify_elections?: boolean
           notify_new_lessons?: boolean
@@ -1679,6 +1681,7 @@ export type Database = {
           last_active?: string | null
           last_contacted_at?: string | null
           location?: string | null
+          my_city_enabled?: boolean
           notify_civic_alerts?: boolean
           notify_elections?: boolean
           notify_new_lessons?: boolean
