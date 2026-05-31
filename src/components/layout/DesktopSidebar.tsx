@@ -53,6 +53,7 @@ const bottomNav = [
 export function DesktopSidebar() {
   const { user, signOut } = useAuth();
   const { displayName, avatarUrl, isAdmin, isProgramAdmin } = useProfile();
+  const { isPremium } = useSubscription();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
