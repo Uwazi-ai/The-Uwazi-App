@@ -4,6 +4,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/co
 import { Building2, ChevronRight, User } from "lucide-react";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useSubscription } from "@/hooks/useSubscription";
+import { openMyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
 import {
   HomeIcon, LearnIcon, WatchIcon, AskUwaziIcon, VotingHubIcon,
   LegislationIcon, ProgressIcon,
