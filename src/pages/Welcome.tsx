@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import uwaziPinwheel from '@/assets/uwazi-pinwheel.png'
 import uwaziAppWordmark from '@/assets/uwazi-app-wordmark.png'
+
 
 const SLIDES = [
   {
@@ -269,8 +271,8 @@ export default function Welcome() {
           <div className="w-full px-8 sm:px-10 py-10 lg:py-14 space-y-7">
             {/* Logo */}
             <div className="flex items-center gap-2.5">
-              <img src={uwaziPinwheel} alt="UWAZI" className="w-8 h-8 object-contain" />
-              <img src={uwaziAppWordmark} alt="UWAZI.APP" className="h-5 object-contain" />
+              <img src={uwaziPinwheel} alt="UWAZI pinwheel logo" className="w-8 h-8 object-contain" />
+              <img src={uwaziAppWordmark} alt="UWAZI.APP wordmark" className="h-5 object-contain" />
             </div>
 
             {/* Feature peek cards */}
