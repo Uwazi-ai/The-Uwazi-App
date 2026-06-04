@@ -52,6 +52,7 @@ import JoinPage from "./pages/JoinPage";
 import ImpactPage from "./pages/ImpactPage";
 import { PWAUpdateBanner } from "@/components/PWAUpdateBanner";
 import AdminSecurityPage from "./pages/admin/AdminSecurityPage";
+import AdminSEOPage from "./pages/admin/AdminSEOPage";
 import UnsubscribePage from "./pages/UnsubscribePage";
 import MyCity from "./pages/MyCity";
 
@@ -118,6 +119,7 @@ const App = () => (
                 <Route path="/app/admin/surveys" element={<AdminRoute allowProgramAdmin><AdminSurveysPage /></AdminRoute>} />
                 <Route path="/app/admin/partner-orgs" element={<AdminRoute><AdminPartnerOrgsPage /></AdminRoute>} />
                 <Route path="/app/admin/security" element={<AdminRoute><AdminSecurityPage /></AdminRoute>} />
+                <Route path="/app/admin/seo" element={<AdminRoute><AdminSEOPage /></AdminRoute>} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
