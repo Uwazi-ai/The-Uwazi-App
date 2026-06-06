@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Download, Lightbulb, BookOpen, TrendingUp, AlertCircle, ChevronDown, ChevronRight, ExternalLink, Bug, Loader2 } from "lucide-react";
+import { Shield, Download, Lightbulb, BookOpen, TrendingUp, AlertCircle, ChevronDown, ChevronRight, ExternalLink, Bug, Loader2, RefreshCw, Users, DollarSign, MessageCircleQuestion } from "lucide-react";
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip as RTooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,6 +53,28 @@ export default function AdminIntelligencePage() {
   const [scrapeCity, setScrapeCity] = useState("Kansas City");
   const [scrapeType, setScrapeType] = useState("all");
   const [isRunning, setIsRunning] = useState(false);
+  const [metricsPeriod, setMetricsPeriod] = useState<7 | 30 | 90>(30);
+
+  // ─── Intelligence Metrics ───
+  const {
+    data: metrics,
+    isLoading: metricsLoading,
+    isFetching: metricsFetching,
+    refetch: refetchMetrics,
+    dataUpdatedAt: metricsUpdatedAt,
+  } = useQuery({
+    queryKey: ["admin-intel-metrics", metricsPeriod],
+    queryFn: async () => {
+      const session = (await supabase.auth.getSession()).data.session;
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-intelligence-metrics?period=${metricsPeriod}`;
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${session?.access_token ?? ""}` },
+      });
+      if (!res.ok) throw new Error(`Metrics fetch failed (${res.status})`);
+      return res.json();
+    },
+  });
+
 
   // ─── Existing data ───
   const { data: raiaData, isLoading: raiaLoading } = useQuery({
@@ -226,14 +249,242 @@ export default function AdminIntelligencePage() {
 
   return (
     <div className="p-4 md:p-8 space-y-8 max-w-[1400px] mx-auto">
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <Shield className="h-4 w-4 text-primary" />
-          <span className="text-xs font-semibold tracking-[0.2em] text-primary uppercase font-axis">SUPER ADMIN</span>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Shield className="h-4 w-4 text-primary" />
+            <span className="text-xs font-semibold tracking-[0.2em] text-primary uppercase font-axis">SUPER ADMIN</span>
+          </div>
+          <h1 className="text-3xl md:text-5xl font-axis uppercase text-foreground">BUSINESS INTELLIGENCE</h1>
+          <p className="text-muted-foreground mt-1">Strategic insights powering UWAZI's growth and impact</p>
         </div>
-        <h1 className="text-3xl md:text-5xl font-axis uppercase text-foreground">BUSINESS INTELLIGENCE</h1>
-        <p className="text-muted-foreground mt-1">Strategic insights powering UWAZI's growth and impact</p>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 bg-muted/40 rounded-lg p-1">
+            {([7, 30, 90] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setMetricsPeriod(p)}
+                className={`px-3 py-1.5 rounded-md text-xs font-mono transition-all ${
+                  metricsPeriod === p ? "bg-primary text-primary-foreground font-bold" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {p}D
+              </button>
+            ))}
+          </div>
+          <Button variant="outline" size="sm" onClick={() => refetchMetrics()} disabled={metricsFetching}>
+            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${metricsFetching ? "animate-spin" : ""}`} />
+            {metricsUpdatedAt ? `${Math.max(0, Math.round((Date.now() - metricsUpdatedAt) / 60000))}m ago` : "Refresh"}
+          </Button>
+        </div>
       </div>
+
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* ═══ GROWTH & USERS ═══ */}
+      {/* ═══════════════════════════════════════════════════════ */}
+      <section className="border-l-2 border-primary pl-4 space-y-4">
+        <div className="flex items-center gap-2">
+          <Users className="h-5 w-5 text-primary" />
+          <h2 className="text-xl md:text-2xl font-axis uppercase text-foreground">GROWTH & USERS</h2>
+          <span className="text-xs text-muted-foreground ml-2">Last {metricsPeriod} days</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {metricsLoading
+            ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />)
+            : [
+                { label: "Total Users", value: metrics?.growth?.total_users ?? 0 },
+                { label: `New (${metricsPeriod}d)`, value: metrics?.growth?.new_signups_period ?? 0 },
+                { label: "New (7d)", value: metrics?.growth?.new_signups_7d ?? 0 },
+                { label: "Today", value: metrics?.growth?.new_signups_today ?? 0 },
+              ].map((s) => (
+                <Card key={s.label} className="p-4">
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{s.label}</p>
+                  <p className="text-2xl font-axis text-foreground mt-2">{Number(s.value).toLocaleString()}</p>
+                </Card>
+              ))}
+        </div>
+        {!metricsLoading && (metrics?.growth?.signups_by_day?.length ?? 0) > 0 && (
+          <Card className="p-4">
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3">Signups per day</p>
+            <div className="h-[180px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={metrics.growth.signups_by_day}>
+                  <CartesianGrid stroke="hsl(var(--border))" strokeOpacity={0.3} vertical={false} />
+                  <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={10} tickFormatter={(v: string) => v?.slice(5)} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={10} allowDecimals={false} />
+                  <RTooltip
+                    contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                    labelStyle={{ color: "hsl(var(--foreground))" }}
+                  />
+                  <Line type="monotone" dataKey="count" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+        )}
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* ═══ REVENUE INTELLIGENCE ═══ */}
+      {/* ═══════════════════════════════════════════════════════ */}
+      <section className="border-l-2 border-primary pl-4 space-y-4">
+        <div className="flex items-center gap-2">
+          <DollarSign className="h-5 w-5 text-primary" />
+          <h2 className="text-xl md:text-2xl font-axis uppercase text-foreground">REVENUE INTELLIGENCE</h2>
+          <span className="text-xs text-muted-foreground ml-2">$4.99 / mo assumed per active sub</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {metricsLoading
+            ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />)
+            : [
+                { label: "MRR", value: `$${(metrics?.revenue?.mrr_current ?? 0).toLocaleString()}` },
+                { label: "Active Paid", value: metrics?.revenue?.total_paid ?? 0 },
+                { label: `New Paid (${metricsPeriod}d)`, value: metrics?.revenue?.new_paid_period ?? 0 },
+                {
+                  label: `Canceled (${metricsPeriod}d)`,
+                  value: metrics?.revenue?.canceled_period ?? 0,
+                  danger: (metrics?.revenue?.canceled_period ?? 0) > 0,
+                },
+              ].map((s: any) => (
+                <Card key={s.label} className="p-4">
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{s.label}</p>
+                  <p className={`text-2xl font-axis mt-2 ${s.danger ? "text-destructive" : "text-foreground"}`}>
+                    {typeof s.value === "number" ? s.value.toLocaleString() : s.value}
+                  </p>
+                </Card>
+              ))}
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {metricsLoading
+            ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />)
+            : [
+                { label: "Free → Paid", value: `${metrics?.revenue?.free_to_paid_rate ?? 0}%` },
+                { label: "ARPU", value: `$${(metrics?.revenue?.arpu ?? 0).toFixed(2)}` },
+                { label: "Est. LTV", value: `$${(metrics?.revenue?.ltv_estimate ?? 0).toLocaleString()}` },
+                { label: "LTV : CAC", value: `${(metrics?.revenue?.ltv_cac_ratio ?? 0).toFixed(1)}x` },
+              ].map((s) => (
+                <Card key={s.label} className="p-4">
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{s.label}</p>
+                  <p className="text-2xl font-axis text-foreground mt-2">{s.value}</p>
+                </Card>
+              ))}
+        </div>
+        {!metricsLoading && metrics?.revenue && (
+          (() => {
+            const ratio = metrics.revenue.ltv_cac_ratio ?? 0;
+            const payback = metrics.revenue.payback_months ?? 0;
+            const tone =
+              ratio >= 3
+                ? "bg-primary/10 border-primary/30 text-primary"
+                : ratio >= 1
+                ? "bg-amber-400/10 border-amber-400/30 text-amber-400"
+                : "bg-destructive/10 border-destructive/30 text-destructive";
+            const msg =
+              ratio >= 3
+                ? `✓ Healthy unit economics — ${ratio.toFixed(1)}x LTV:CAC with ${payback.toFixed(1)}-month payback. Investor benchmark cleared.`
+                : ratio >= 1
+                ? `⚠ LTV:CAC at ${ratio.toFixed(1)}x — below the 3x benchmark. Improve conversion or reduce CAC to strengthen.`
+                : `🔴 LTV:CAC below 1x — acquisition cost exceeds lifetime value. Raise price, reduce churn, or cut spend.`;
+            return <div className={`text-sm rounded-xl border p-3 ${tone}`}>{msg}</div>;
+          })()
+        )}
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* ═══ ASK UWAZI INTELLIGENCE ═══ */}
+      {/* ═══════════════════════════════════════════════════════ */}
+      <section className="border-l-2 border-primary pl-4 space-y-4">
+        <div className="flex items-center gap-2">
+          <MessageCircleQuestion className="h-5 w-5 text-primary" />
+          <h2 className="text-xl md:text-2xl font-axis uppercase text-foreground">ASK UWAZI INTELLIGENCE</h2>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {metricsLoading
+            ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />)
+            : [
+                { label: `Questions (${metricsPeriod}d)`, value: metrics?.ask_intel?.questions_period ?? 0 },
+                { label: "Last 7d", value: metrics?.ask_intel?.questions_7d ?? 0 },
+                { label: "Today", value: metrics?.ask_intel?.questions_today ?? 0 },
+                {
+                  label: "Rate-Limit Hits Today",
+                  value: metrics?.ask_intel?.rate_limit_hits_today ?? 0,
+                  warn: (metrics?.ask_intel?.rate_limit_hits_today ?? 0) > 0,
+                },
+              ].map((s: any) => (
+                <Card key={s.label} className="p-4">
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{s.label}</p>
+                  <p className={`text-2xl font-axis mt-2 ${s.warn ? "text-amber-400" : "text-foreground"}`}>
+                    {Number(s.value).toLocaleString()}
+                  </p>
+                </Card>
+              ))}
+        </div>
+        {!metricsLoading && (metrics?.ask_intel?.rate_limit_hit_rate ?? 0) >= 15 && (
+          <div className="text-sm rounded-xl border border-primary/30 bg-primary/10 text-primary p-3">
+            ⚡ {metrics.ask_intel.rate_limit_hit_rate.toFixed(0)}% of today's Ask Uwazi questions hit the cap — strong upgrade-intent signal. Consider an in-app paywall nudge on the limit screen.
+          </div>
+        )}
+        <div className="grid md:grid-cols-2 gap-3">
+          <Card className="p-4">
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3">
+              Questions by category ({metricsPeriod}d)
+            </p>
+            {metricsLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-6" />)}
+              </div>
+            ) : (metrics?.ask_intel?.top_categories?.length ?? 0) > 0 ? (
+              <div className="h-[240px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={metrics.ask_intel.top_categories} layout="vertical" margin={{ left: 30 }}>
+                    <CartesianGrid stroke="hsl(var(--border))" strokeOpacity={0.3} horizontal={false} />
+                    <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={10} allowDecimals={false} />
+                    <YAxis dataKey="category" type="category" stroke="hsl(var(--muted-foreground))" fontSize={10} width={90} />
+                    <RTooltip
+                      contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                    />
+                    <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No question data in this period yet.</p>
+            )}
+          </Card>
+
+          <Card className="p-4">
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1">
+              Top ZIP codes by volume ({metricsPeriod}d)
+            </p>
+            <p className="text-xs text-muted-foreground mb-3">High-volume ZIPs = Jamii prospecting targets</p>
+            {metricsLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-6" />)}
+              </div>
+            ) : (metrics?.ask_intel?.top_zips?.length ?? 0) > 0 ? (
+              <div className="space-y-2">
+                {metrics.ask_intel.top_zips.map((z: any, i: number) => {
+                  const max = metrics.ask_intel.top_zips[0]?.count ?? 1;
+                  const pct = Math.max(4, Math.round((Number(z.count) / Number(max)) * 100));
+                  return (
+                    <div key={z.zip_code} className="flex items-center gap-3 text-sm">
+                      <span className="w-5 text-xs text-muted-foreground font-mono">{i + 1}</span>
+                      <span className="w-14 font-mono text-foreground">{z.zip_code}</span>
+                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                        <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="w-10 text-right font-mono text-xs text-muted-foreground">{z.count}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No ZIP data in this period yet.</p>
+            )}
+          </Card>
+        </div>
+      </section>
+
 
       {/* ═══════════════════════════════════════════════════════ */}
       {/* ═══ LESSON GAP ENGINE ═══ */}

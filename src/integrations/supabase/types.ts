@@ -2595,6 +2595,7 @@ export type Database = {
           suggested_lesson_title: string | null
           topic_category: string | null
           user_id: string | null
+          was_rate_limited: boolean
           week_number: number | null
           zip_code: string | null
         }
@@ -2618,6 +2619,7 @@ export type Database = {
           suggested_lesson_title?: string | null
           topic_category?: string | null
           user_id?: string | null
+          was_rate_limited?: boolean
           week_number?: number | null
           zip_code?: string | null
         }
@@ -2641,6 +2643,7 @@ export type Database = {
           suggested_lesson_title?: string | null
           topic_category?: string | null
           user_id?: string | null
+          was_rate_limited?: boolean
           week_number?: number | null
           zip_code?: string | null
         }
@@ -2821,6 +2824,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ask_categories_summary: {
+        Args: { period_days: number }
+        Returns: {
+          category: string
+          count: number
+        }[]
+      }
+      ask_top_zips: {
+        Args: { limit_count?: number; period_days: number }
+        Returns: {
+          count: number
+          zip_code: string
+        }[]
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -2889,6 +2906,13 @@ export type Database = {
           message: Json
           msg_id: number
           read_ct: number
+        }[]
+      }
+      signups_by_day: {
+        Args: { period_days: number }
+        Returns: {
+          count: number
+          date: string
         }[]
       }
     }

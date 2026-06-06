@@ -96,6 +96,12 @@ Deno.serve(async (req) => {
 
     // CASE C — limit reached
     if (count >= FREE_LIMIT) {
+      // Log the rate-limit hit so Intelligence dashboard can surface upgrade intent
+      await admin.from("uwazi_question_log").insert({
+        user_id: userId,
+        question_text: "[rate_limited]",
+        was_rate_limited: true,
+      });
       return json(429, {
         allowed: false,
         is_plus: false,
