@@ -53,6 +53,28 @@ export default function AdminIntelligencePage() {
   const [scrapeCity, setScrapeCity] = useState("Kansas City");
   const [scrapeType, setScrapeType] = useState("all");
   const [isRunning, setIsRunning] = useState(false);
+  const [metricsPeriod, setMetricsPeriod] = useState<7 | 30 | 90>(30);
+
+  // ─── Intelligence Metrics ───
+  const {
+    data: metrics,
+    isLoading: metricsLoading,
+    isFetching: metricsFetching,
+    refetch: refetchMetrics,
+    dataUpdatedAt: metricsUpdatedAt,
+  } = useQuery({
+    queryKey: ["admin-intel-metrics", metricsPeriod],
+    queryFn: async () => {
+      const session = (await supabase.auth.getSession()).data.session;
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-intelligence-metrics?period=${metricsPeriod}`;
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${session?.access_token ?? ""}` },
+      });
+      if (!res.ok) throw new Error(`Metrics fetch failed (${res.status})`);
+      return res.json();
+    },
+  });
+
 
   // ─── Existing data ───
   const { data: raiaData, isLoading: raiaLoading } = useQuery({
