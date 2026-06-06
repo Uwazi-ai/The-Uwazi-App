@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Download, Lightbulb, BookOpen, TrendingUp, AlertCircle, ChevronDown, ChevronRight, ExternalLink, Bug, Loader2 } from "lucide-react";
+import { Shield, Download, Lightbulb, BookOpen, TrendingUp, AlertCircle, ChevronDown, ChevronRight, ExternalLink, Bug, Loader2, RefreshCw, Users, DollarSign, MessageCircleQuestion } from "lucide-react";
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip as RTooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
