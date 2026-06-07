@@ -1643,6 +1643,7 @@ export type Database = {
           push_opt_in: boolean | null
           push_token: string | null
           referred_by_org: string | null
+          registration_checked_at: string | null
           school_district: string | null
           sms_opt_in: boolean | null
           state_code: string | null
@@ -1700,6 +1701,7 @@ export type Database = {
           push_opt_in?: boolean | null
           push_token?: string | null
           referred_by_org?: string | null
+          registration_checked_at?: string | null
           school_district?: string | null
           sms_opt_in?: boolean | null
           state_code?: string | null
@@ -1757,6 +1759,7 @@ export type Database = {
           push_opt_in?: boolean | null
           push_token?: string | null
           referred_by_org?: string | null
+          registration_checked_at?: string | null
           school_district?: string | null
           sms_opt_in?: boolean | null
           state_code?: string | null
