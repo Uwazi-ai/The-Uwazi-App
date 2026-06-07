@@ -8,32 +8,34 @@ import { LoadingScreen } from "@/components/LoadingScreen";
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const location = useLocation();
-  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
-  const [onboardingComplete, setOnboardingComplete] = useState(true);
+  const [checking, setChecking] = useState(true);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
   useEffect(() => {
     if (!user) {
-      setCheckingOnboarding(false);
+      setChecking(false);
       return;
     }
-    supabase
-      .from("profiles")
-      .select("onboarding_complete")
+    (supabase.from("profiles") as any)
+      .select("onboarding_complete, zip_code")
       .eq("user_id", user.id)
       .maybeSingle()
-      .then(({ data }) => {
-        setOnboardingComplete(data?.onboarding_complete ?? false);
-        setCheckingOnboarding(false);
+      .then(({ data }: { data: any }) => {
+        const complete = data?.onboarding_complete === true;
+        const zip = (data?.zip_code ?? "").toString().trim();
+        // Strengthened: missing flag OR missing ZIP forces onboarding
+        setNeedsOnboarding(!complete || zip === "");
+        setChecking(false);
       });
-  }, [user]);
+  }, [user, location.pathname]);
 
-  const isLoading = loading || checkingOnboarding;
+  const isLoading = loading || checking;
 
   if (!isLoading && !user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!isLoading && !onboardingComplete && location.pathname !== "/onboarding") {
+  if (!isLoading && needsOnboarding && location.pathname !== "/onboarding") {
     return <Navigate to="/onboarding" replace />;
   }
 
