@@ -57,38 +57,13 @@ export default function JoinPage() {
     }
   }, [user, status, invite]);
 
-  const completeJoin = async (userId: string) => {
+  const completeJoin = async (_userId: string) => {
     try {
-      // Mark invite accepted
-      await supabase
-        .from("org_invites" as any)
-        .update({ accepted_at: new Date().toISOString() })
-        .eq("id", invite.id);
-
-      // Create membership
-      await supabase.from("org_members" as any).upsert({
-        org_id: invite.org_id,
-        user_id: userId,
-        role: invite.role || "member",
-        status: "active",
-        invited_by: invite.invited_by,
-      }, { onConflict: "org_id,user_id" });
-
-      // Set profile org_role via raw fetch — SDK strips unknown typed keys
-      const orgRole = invite.role === "admin" ? "org_admin" : "org_member";
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const { data: { session } } = await supabase.auth.getSession();
-      await fetch(`${supabaseUrl}/rest/v1/profiles?user_id=eq.${userId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${session?.access_token}`,
-          Prefer: "return=minimal",
-        },
-        body: JSON.stringify({ org_role: orgRole }),
-      });
-
+      const { error } = await supabase.rpc("accept_org_invite" as any, { _token: token });
+      if (error) {
+        toast.error(error.message || "Something went wrong joining the organization");
+        return;
+      }
       toast.success(`Welcome to ${org?.name}!`);
       navigate("/partner-dashboard");
     } catch {
