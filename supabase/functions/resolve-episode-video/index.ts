@@ -66,9 +66,18 @@ Deno.serve(async (req) => {
 
     let url = ep.video_url as string | null;
     if (url) {
-      const match = url.match(SUPABASE_PUBLIC_RE);
-      if (match) {
-        const path = match[1];
+      // Determine storage path:
+      //  - legacy:  https://.../storage/v1/object/public/episode-videos/<path>
+      //  - current: <path> (no scheme) — preferred; bucket privacy is enforced
+      //  - external (e.g. Cloudinary): returned as-is
+      let path: string | null = null;
+      const legacy = url.match(SUPABASE_PUBLIC_RE);
+      if (legacy) {
+        path = legacy[1];
+      } else if (!/^https?:\/\//i.test(url)) {
+        path = url.replace(/^\/+/, "");
+      }
+      if (path) {
         const { data: signed, error: signErr } = await admin.storage
           .from("episode-videos")
           .createSignedUrl(path, 60 * 60); // 1 hour
