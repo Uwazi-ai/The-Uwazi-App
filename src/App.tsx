@@ -55,6 +55,7 @@ import AdminSecurityPage from "./pages/admin/AdminSecurityPage";
 import AdminSEOPage from "./pages/admin/AdminSEOPage";
 import UnsubscribePage from "./pages/UnsubscribePage";
 import MyCity from "./pages/MyCity";
+import { InAppBrowserProvider } from "@/contexts/InAppBrowserContext";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ const App = () => (
         <PWAUpdateBanner />
         <BrowserRouter>
           <AuthProvider>
+            <InAppBrowserProvider>
             <Routes>
               {/* Root redirect */}
               <Route path="/" element={<RootRedirect />} />
@@ -123,6 +125,7 @@ const App = () => (
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </InAppBrowserProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
