@@ -187,12 +187,6 @@ export default function AddressStep({ onSubmit, onSkip, loading, initial }: Addr
         </Button>
       </form>
 
-      <button
-        onClick={onSkip}
-        className="block mx-auto text-xs text-muted-foreground hover:text-foreground transition-colors"
-      >
-        I'll add this later →
-      </button>
     </motion.div>
   );
 }
