@@ -125,6 +125,7 @@ const App = () => (
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </InAppBrowserProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
