@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const SUPABASE_PUBLIC_RE = /\/storage\/v1\/object\/public\/episode-videos\//;
+const EXTERNAL_URL_RE = /^https?:\/\//i;
 
 /**
  * Resolves a playable URL for an episode. For Supabase-stored videos we always
