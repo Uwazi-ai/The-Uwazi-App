@@ -2824,6 +2824,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_org_invite: {
+        Args: { _token: string }
+        Returns: {
+          invite_id: string
+          org_id: string
+          org_name: string
+          org_slug: string
+          role: string
+        }[]
+      }
       ask_categories_summary: {
         Args: { period_days: number }
         Returns: {
