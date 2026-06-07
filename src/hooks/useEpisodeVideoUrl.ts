@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const SUPABASE_PUBLIC_RE = /\/storage\/v1\/object\/public\/episode-videos\//;
+const EXTERNAL_URL_RE = /^https?:\/\//i;
 
 /**
  * Resolves a playable URL for an episode. For Supabase-stored videos we always
@@ -22,8 +23,14 @@ export function useEpisodeVideoUrl(episode: {
       setUrl(null);
       return;
     }
-    // Only round-trip when the file lives in our private bucket.
-    if (!SUPABASE_PUBLIC_RE.test(episode.video_url)) {
+    // Round-trip through the gated resolver for any Supabase-stored asset:
+    //  - legacy public URL (/object/public/episode-videos/...)
+    //  - path-only values (no scheme) — current storage format
+    // External URLs (e.g. Cloudinary) are returned as-is.
+    const isSupabaseStored =
+      SUPABASE_PUBLIC_RE.test(episode.video_url) ||
+      !EXTERNAL_URL_RE.test(episode.video_url);
+    if (!isSupabaseStored) {
       setUrl(episode.video_url);
       return;
     }
