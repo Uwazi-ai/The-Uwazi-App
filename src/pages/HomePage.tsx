@@ -19,6 +19,32 @@ import { useProfile } from "@/contexts/ProfileContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import FeatureTour from "@/components/home/FeatureTour";
+import { useEpisodeVideoUrl } from "@/hooks/useEpisodeVideoUrl";
+
+function EpisodeVideoThumb({
+  episode,
+  className,
+  appendHash,
+}: {
+  episode: { id: string; video_url: string | null; is_free: boolean };
+  className: string;
+  appendHash?: string;
+}) {
+  const { url } = useEpisodeVideoUrl(episode);
+  if (!url) return null;
+  return (
+    <video
+      src={`${url}${appendHash ?? ""}`}
+      className={className}
+      autoPlay
+      loop
+      muted
+      playsInline
+      preload="auto"
+      disableRemotePlayback
+    />
+  );
+}
 
 interface Episode {
   id: string;
