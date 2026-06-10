@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useEpisodeVideoUrl } from "@/hooks/useEpisodeVideoUrl";
 
 interface Episode {
   id: string;
@@ -268,6 +269,7 @@ function LikeButton({ episodeId }: { episodeId: string }) {
 }
 
 function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, toggleInfo, locked, onPaywall, onUpgrade }: VideoCardProps) {
+  const { url: playableUrl } = useEpisodeVideoUrl(episode);
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -332,7 +334,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
     obs.observe(el);
     return () => obs.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locked, episode.video_url, episode.title]);
+  }, [locked, episode.video_url, episode.title, playableUrl]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -365,7 +367,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
       {episode.video_url ? (
         <video
           ref={videoRef}
-          src={episode.video_url}
+          src={playableUrl ?? undefined}
           className={`absolute inset-0 w-full h-full object-cover md:object-contain ${locked ? "blur-lg scale-105" : ""}`}
           muted={muted}
           loop
