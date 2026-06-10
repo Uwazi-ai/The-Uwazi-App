@@ -268,6 +268,7 @@ function LikeButton({ episodeId }: { episodeId: string }) {
 }
 
 function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, toggleInfo, locked, onPaywall, onUpgrade }: VideoCardProps) {
+  const { url: playableUrl } = useEpisodeVideoUrl(episode);
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
