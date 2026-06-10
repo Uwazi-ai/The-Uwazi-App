@@ -367,7 +367,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
       {episode.video_url ? (
         <video
           ref={videoRef}
-          src={episode.video_url}
+          src={playableUrl ?? undefined}
           className={`absolute inset-0 w-full h-full object-cover md:object-contain ${locked ? "blur-lg scale-105" : ""}`}
           muted={muted}
           loop
