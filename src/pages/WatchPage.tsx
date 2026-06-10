@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useEpisodeVideoUrl } from "@/hooks/useEpisodeVideoUrl";
 
 interface Episode {
   id: string;
