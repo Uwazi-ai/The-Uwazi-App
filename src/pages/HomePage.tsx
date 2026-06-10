@@ -166,15 +166,9 @@ export default function HomePage() {
           {/* Top visual area */}
           <div className="h-56 relative bg-gradient-to-br from-primary/20 to-background overflow-hidden">
             {featured.video_url && (
-              <video
-                src={featured.video_url}
+              <EpisodeVideoThumb
+                episode={featured}
                 className="absolute inset-0 w-full h-full object-cover opacity-80"
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="auto"
-                disableRemotePlayback
               />
             )}
 
