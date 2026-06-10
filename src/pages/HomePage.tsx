@@ -289,15 +289,10 @@ export default function HomePage() {
                 >
                   <div className="h-[90px] relative bg-gradient-to-br from-primary/20 to-background overflow-hidden">
                     {ep.video_url && (
-                      <video
-                        src={`${ep.video_url}#t=0.1`}
+                      <EpisodeVideoThumb
+                        episode={ep}
+                        appendHash="#t=0.1"
                         className="absolute inset-0 w-full h-full object-cover opacity-70"
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        preload="auto"
-                        disableRemotePlayback
                       />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
