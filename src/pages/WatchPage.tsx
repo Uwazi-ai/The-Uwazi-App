@@ -334,7 +334,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
     obs.observe(el);
     return () => obs.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locked, episode.video_url, episode.title]);
+  }, [locked, episode.video_url, episode.title, playableUrl]);
 
   useEffect(() => {
     const video = videoRef.current;
