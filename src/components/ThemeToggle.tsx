@@ -8,13 +8,18 @@ export function ThemeToggle() {
 
   useEffect(() => setMounted(true), []);
 
-  // Update meta theme-color for PWA
+  // Update meta theme-color for PWA / Android address bar
   useEffect(() => {
     if (!mounted) return;
     const themeColor = resolvedTheme === "dark" ? "#080808" : "#f5f5f7";
-    document
-      .querySelector('meta[name="theme-color"]')
-      ?.setAttribute("content", themeColor);
+    // Update ALL theme-color metas (Android Chrome picks the media-matching one first)
+    document.querySelectorAll('meta[name="theme-color"]').forEach((el) => {
+      el.setAttribute("content", themeColor);
+      // Strip any media attribute so our chosen color is always used
+      if (el.hasAttribute("media")) el.removeAttribute("media");
+    });
+    // Hint native UI (scrollbars, form controls) to follow the active theme
+    document.documentElement.style.colorScheme = resolvedTheme === "dark" ? "dark" : "light";
   }, [resolvedTheme, mounted]);
 
   if (!mounted) return <div className="w-[44px] h-[24px]" />;
