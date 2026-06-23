@@ -68,73 +68,32 @@ export default function LessonPlayer({ lesson, onClose, onComplete }: LessonPlay
       ? Math.round((correctCount / quizQuestions.length) * 100)
       : 100;
 
-    // Upsert progress
+    // Persist current-slide progress (non-privileged columns only).
     await supabase.from("user_lesson_progress").upsert(
       {
         user_id: user.id,
         lesson_id: lesson.id,
-        status: "completed",
-        score,
-        quiz_score: score,
         current_slide: slides.length,
         last_slide_seen: slides.length,
-        time_spent_seconds: timeSpent,
-        quiz_attempts: 1,
-        completed_at: new Date().toISOString(),
       },
       { onConflict: "user_id,lesson_id" }
     );
 
-    // Update civic score
-    const { data: existing } = await supabase
-      .from("civic_scores")
-      .select("*")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    const xp = lesson.xp_reward || 0;
-    if (existing) {
-      await supabase.from("civic_scores").update({
-        total_xp: (existing.total_xp || 0) + xp,
-        lessons_completed: (existing.lessons_completed || 0) + 1,
-        quizzes_passed: (existing.quizzes_passed || 0) + (score >= 75 ? 1 : 0),
-        civic_literacy_score: Math.min(100, (existing.civic_literacy_score || 0) + 5),
-      }).eq("user_id", user.id);
-    } else {
-      await supabase.from("civic_scores").insert({
-        user_id: user.id,
-        total_xp: xp,
-        lessons_completed: 1,
-        quizzes_passed: score >= 75 ? 1 : 0,
-        civic_literacy_score: 5,
-      });
+    // Server-side awarder: reads xp_reward from the lessons row, records
+    // completion, increments civic_scores, and updates streak atomically.
+    const { data: awarded, error: awardErr } = await supabase.rpc(
+      "award_lesson_completion",
+      {
+        _lesson_id: lesson.id,
+        _quiz_score: score,
+        _time_spent_seconds: timeSpent,
+      },
+    );
+    if (awardErr) {
+      toast.error("Couldn't save lesson completion");
+      return;
     }
-
-    // Update streak
-    const today = new Date().toISOString().split("T")[0];
-    const { data: streak } = await supabase
-      .from("streaks")
-      .select("*")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (streak) {
-      const lastDate = streak.last_active_date;
-      const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
-      const newStreak = lastDate === yesterday ? (streak.current_streak || 0) + 1 : lastDate === today ? streak.current_streak : 1;
-      await supabase.from("streaks").update({
-        current_streak: newStreak,
-        longest_streak: Math.max(newStreak, streak.longest_streak || 0),
-        last_active_date: today,
-      }).eq("user_id", user.id);
-    } else {
-      await supabase.from("streaks").insert({
-        user_id: user.id,
-        current_streak: 1,
-        longest_streak: 1,
-        last_active_date: today,
-      });
-    }
+    const xp = Array.isArray(awarded) ? awarded[0]?.xp_awarded ?? 0 : 0;
 
     toast.success(`+${xp} XP earned! 🎓`);
     onComplete();
