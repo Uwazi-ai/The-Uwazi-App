@@ -2851,6 +2851,18 @@ export type Database = {
           zip_code: string
         }[]
       }
+      award_lesson_completion: {
+        Args: {
+          _lesson_id: string
+          _quiz_score: number
+          _time_spent_seconds: number
+        }
+        Returns: {
+          new_streak: number
+          new_total_xp: number
+          xp_awarded: number
+        }[]
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -2859,6 +2871,14 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_bill_upvote_counts: {
+        Args: { _bill_ids: string[] }
+        Returns: {
+          bill_id: string
+          count: number
+        }[]
+      }
+      get_episode_like_count: { Args: { _episode_id: string }; Returns: number }
       get_invite_by_token: {
         Args: { _token: string }
         Returns: {
