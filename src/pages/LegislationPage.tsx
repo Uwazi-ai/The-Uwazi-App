@@ -90,15 +90,21 @@ export default function LegislationPage() {
 
   const savedBillIds = new Set((savedBills || []).map((b: any) => b.bill_id));
 
-  // Upvotes
+  // Upvotes — totals come from a SECURITY DEFINER RPC so user_ids
+  // are not exposed across users. We pass the currently-loaded bill IDs.
+  const billIdsForCounts = (bills || []).map((b: any) => `${b.type}-${b.number}-${b.congress}`);
   const { data: upvoteCounts } = useQuery({
-    queryKey: ["bill_upvotes_counts"],
+    queryKey: ["bill_upvotes_counts", billIdsForCounts.join(",")],
     queryFn: async () => {
-      const { data } = await supabase.from("bill_upvotes" as any).select("bill_id");
+      if (billIdsForCounts.length === 0) return {} as Record<string, number>;
+      const { data } = await supabase.rpc("get_bill_upvote_counts", {
+        _bill_ids: billIdsForCounts,
+      });
       const counts: Record<string, number> = {};
-      (data || []).forEach((r: any) => { counts[r.bill_id] = (counts[r.bill_id] || 0) + 1; });
+      (data || []).forEach((r: any) => { counts[r.bill_id] = Number(r.count) || 0; });
       return counts;
     },
+    enabled: billIdsForCounts.length > 0,
   });
 
   const { data: myUpvotes } = useQuery({
