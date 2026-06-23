@@ -202,11 +202,11 @@ function LikeButton({ episodeId }: { episodeId: string }) {
       if (cancelled) return;
       setUserId(user?.id ?? null);
 
-      const { count: total } = await supabase
-        .from("episode_likes")
-        .select("*", { count: "exact", head: true })
-        .eq("episode_id", episodeId);
-      if (!cancelled) setCount(total ?? 0);
+      // Total like count via SECURITY DEFINER RPC (avoids exposing user_id rows).
+      const { data: totalCount } = await supabase.rpc("get_episode_like_count", {
+        _episode_id: episodeId,
+      });
+      if (!cancelled) setCount(Number(totalCount ?? 0));
 
       if (user) {
         const { data } = await supabase
