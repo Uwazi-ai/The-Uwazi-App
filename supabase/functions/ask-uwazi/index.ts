@@ -32,16 +32,25 @@ function getStateFromZip(zip: string): string | null {
 
 // ═══ Web Search ═══
 const SEARCH_TRIGGERS = [
-  'who is', 'candidate', 'running for', 'voting record',
-  'campaign', 'donated', 'endorsed', 'stance on',
-  'bill', 'hr ', 'sb ', 'hb ', 'senate bill', 'house bill',
-  'passed', 'signed', 'vetoed', 'status of',
+  // Candidates & people
+  'who is', 'candidate', 'candidates', 'running for', 'voting record',
+  'campaign', 'donated', 'endorsed', 'stance on', 'position on',
+  // Legislation
+  'bill', 'hr ', 'sb ', 'hb ', 's.', 'h.r.', 'senate bill', 'house bill',
+  'passed', 'signed', 'vetoed', 'status of', 'legislation', 'law',
+  // Time-sensitive
   'latest', 'recent', 'today', 'this week', 'just happened',
-  'current', 'now', 'update', 'news',
+  'current', 'now', 'update', 'news', 'this year', '2026', '2025',
+  // Elections
   'city council', 'mayor', 'school board', 'election results',
-  'won', 'lost', 'primary', 'general election',
+  'won', 'lost', 'primary', 'general election', 'midterm', 'midterms',
+  'ballot', 'race', 'poll', 'polls', 'senate race', 'house race',
+  'governor', 'senator', 'congressman', 'representative',
+  // Research intent
   'tell me about', 'research', 'find out', 'look up',
-  'search for', 'what happened',
+  'search for', 'what happened', 'who represents', 'my rep',
+  'register', 'registration deadline', 'polling place', 'polling location',
+  'vote by mail', 'absentee', 'early voting',
 ];
 
 function shouldSearch(message: string): boolean {
@@ -65,40 +74,141 @@ function buildSearchQuery(message: string, state: string | null, zipCode: string
 }
 
 async function searchWeb(query: string): Promise<SearchResult[]> {
-  try {
-    const resp = await fetch('https://html.duckduckgo.com/html/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      },
-      body: `q=${encodeURIComponent(query)}&kl=us-en`,
-    });
-    const html = await resp.text();
-    const results: SearchResult[] = [];
-    const linkRegex = /<a\s+[^>]*class="result__a"[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi;
-    const snippetRegex = /<a\s+[^>]*class="result__snippet"[^>]*>([\s\S]*?)<\/a>/gi;
-    const links: { url: string; title: string }[] = [];
-    const snippets: string[] = [];
-    let m;
-    while ((m = linkRegex.exec(html)) !== null) {
-      let url = m[1];
-      const uddgMatch = url.match(/uddg=([^&]*)/);
-      if (uddgMatch) url = decodeURIComponent(uddgMatch[1]);
-      const title = m[2].replace(/<[^>]*>/g, '').trim();
-      if (url && title && url.startsWith('http')) links.push({ url, title });
+
+  const BRAVE_API_KEY = Deno.env.get("BRAVE_SEARCH_API_KEY");
+
+  
+
+  // Try Brave Search first (reliable, real-time)
+
+  if (BRAVE_API_KEY) {
+
+    try {
+
+      const resp = await fetch(
+
+        `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=6&search_lang=en&country=us&freshness=pw`,
+
+        {
+
+          headers: {
+
+            'Accept': 'application/json',
+
+            'Accept-Encoding': 'gzip',
+
+            'X-Subscription-Token': BRAVE_API_KEY,
+
+          },
+
+        }
+
+      );
+
+      if (resp.ok) {
+
+        const data = await resp.json();
+
+        const results: SearchResult[] = (data.web?.results || []).slice(0, 6).map((r: any) => ({
+
+          title: r.title || '',
+
+          url: r.url || '',
+
+          snippet: r.description || '',
+
+        }));
+
+        if (results.length > 0) {
+
+          console.log(`[ask-uwazi] Brave Search returned ${results.length} results`);
+
+          return results;
+
+        }
+
+      }
+
+    } catch (e) {
+
+      console.error('Brave Search failed, falling back to DDG:', e);
+
     }
-    while ((m = snippetRegex.exec(html)) !== null) {
-      snippets.push(m[1].replace(/<[^>]*>/g, '').trim());
-    }
-    for (let i = 0; i < Math.min(links.length, 6); i++) {
-      results.push({ title: links[i].title, url: links[i].url, snippet: snippets[i] || '' });
-    }
-    return results;
-  } catch (e) {
-    console.error('Web search failed:', e);
-    return [];
+
   }
+
+  // Fallback: DuckDuckGo scrape (existing logic)
+
+  try {
+
+    const resp = await fetch('https://html.duckduckgo.com/html/', {
+
+      method: 'POST',
+
+      headers: {
+
+        'Content-Type': 'application/x-www-form-urlencoded',
+
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+
+      },
+
+      body: `q=${encodeURIComponent(query)}&kl=us-en`,
+
+    });
+
+    const html = await resp.text();
+
+    const results: SearchResult[] = [];
+
+    const linkRegex = /<a\s+[^>]*class="result__a"[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi;
+
+    const snippetRegex = /<a\s+[^>]*class="result__snippet"[^>]*>([\s\S]*?)<\/a>/gi;
+
+    const links: { url: string; title: string }[] = [];
+
+    const snippets: string[] = [];
+
+    let m;
+
+    while ((m = linkRegex.exec(html)) !== null) {
+
+      let url = m[1];
+
+      const uddgMatch = url.match(/uddg=([^&]*)/);
+
+      if (uddgMatch) url = decodeURIComponent(uddgMatch[1]);
+
+      const title = m[2].replace(/<[^>]*>/g, '').trim();
+
+      if (url && title && url.startsWith('http')) links.push({ url, title });
+
+    }
+
+    while ((m = snippetRegex.exec(html)) !== null) {
+
+      snippets.push(m[1].replace(/<[^>]*>/g, '').trim());
+
+    }
+
+    for (let i = 0; i < Math.min(links.length, 6); i++) {
+
+      results.push({ title: links[i].title, url: links[i].url, snippet: snippets[i] || '' });
+
+    }
+
+    console.log(`[ask-uwazi] DDG fallback returned ${results.length} results`);
+
+    return results;
+
+  } catch (e) {
+
+    console.error('All search methods failed:', e);
+
+    return [];
+
+  }
+
 }
 
 // ═══ Question Intelligence Logger ═══
@@ -243,6 +353,12 @@ WHEN USING SEARCH RESULTS:
 ` : '';
 
   return `You are Ask Uwazi — a nonpartisan, AI-powered civic intelligence assistant built by UWAZI.AI and powered by Raia G1.0.
+TODAY: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+
+ELECTION CONTEXT: The 2026 U.S. midterm elections are November 3, 2026. We are in active midterms season.
+
+CRITICAL: For any question about candidates, races, results, or bill status — always use current search results. Never rely on training data for time-sensitive civic information.
+
 Your mission is to make democracy accessible, understandable, and actionable for every American — especially communities that have been historically underrepresented in civic life.
 
 ═══════════════════════════════════
