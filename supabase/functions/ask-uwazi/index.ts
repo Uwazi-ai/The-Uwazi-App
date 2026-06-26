@@ -211,6 +211,105 @@ async function searchWeb(query: string): Promise<SearchResult[]> {
 
 }
 
+async function fetchZipCivicContext(
+  supabase: any,
+  stateCode: string | null,
+  zipCode: string | null
+): Promise<string> {
+  if (!supabase || !stateCode) return '';
+
+  const year = 2026;
+  const sections: string[] = [];
+
+  try {
+    // 1. Upcoming races in user's state
+    const { data: races } = await supabase
+      .from('ballotpedia_candidates')
+      .select('name, party, office, office_level, incumbent, election_date, election_type')
+      .eq('state_code', stateCode)
+      .eq('election_year', year)
+      .order('office_level', { ascending: true })
+      .limit(40);
+
+    if (races && races.length > 0) {
+      // Group by office
+      const byOffice: Record<string, any[]> = {};
+      for (const r of races) {
+        if (!byOffice[r.office]) byOffice[r.office] = [];
+        byOffice[r.office].push(r);
+      }
+
+      const raceLines = Object.entries(byOffice).map(([office, candidates]) => {
+        const names = candidates.map(c =>
+          `${c.name} (${c.party}${c.incumbent ? ', Incumbent' : ''})`
+        ).join(', ');
+        return `• ${office}: ${names}`;
+      });
+
+      sections.push(`CANDIDATES ON THE BALLOT IN ${stateCode} — ${year}:\n${raceLines.join('\n')}`);
+    }
+
+    // 2. Ballot measures in user's state
+    const { data: measures } = await supabase
+      .from('ballotpedia_ballot_measures')
+      .select('title, summary, measure_type')
+      .eq('state_code', stateCode)
+      .eq('election_year', year)
+      .limit(10);
+
+    if (measures && measures.length > 0) {
+      const measureLines = measures.map(m =>
+        `• ${m.title}${m.summary ? ': ' + m.summary.slice(0, 150) : ''}`
+      );
+      sections.push(`BALLOT MEASURES IN ${stateCode} — ${year}:\n${measureLines.join('\n')}`);
+    }
+
+    // 3. Local officials if city known from profile
+    const { data: officials } = await supabase
+      .from('ballotpedia_officials')
+      .select('name, office, city')
+      .eq('state_code', stateCode)
+      .limit(10);
+
+    if (officials && officials.length > 0) {
+      const officialLines = officials.map(o =>
+        `• ${o.office}: ${o.name}${o.city ? ' (' + o.city + ')' : ''}`
+      );
+      sections.push(`CURRENT LOCAL OFFICIALS IN ${stateCode}:\n${officialLines.join('\n')}`);
+    }
+
+    // 4. Upcoming elections
+    const { data: elections } = await supabase
+      .from('ballotpedia_elections')
+      .select('election_name, election_date, election_type')
+      .eq('state_code', stateCode)
+      .eq('is_upcoming', true)
+      .order('election_date', { ascending: true })
+      .limit(5);
+
+    if (elections && elections.length > 0) {
+      const electionLines = elections.map(e =>
+        `• ${e.election_name} — ${e.election_date} (${e.election_type})`
+      );
+      sections.push(`UPCOMING ELECTIONS IN ${stateCode}:\n${electionLines.join('\n')}`);
+    }
+  } catch (e) {
+    console.error('[ask-uwazi] fetchZipCivicContext error:', e);
+  }
+
+  if (sections.length === 0) return '';
+
+  return `
+
+═══════════════════════════════════
+LIVE CIVIC DATA — ${stateCode}${zipCode ? ' · ZIP ' + zipCode : ''}
+(Sourced from UWAZI database — use this as authoritative local context)
+═══════════════════════════════════
+
+${sections.join('\n\n')}`;
+}
+
+
 // ═══ Question Intelligence Logger ═══
 async function logQuestion(
   supabase: any,
@@ -334,7 +433,7 @@ interface UserProfile {
   saved_bills: string[];
 }
 
-function buildSystemPrompt(profile: UserProfile, searchResults: SearchResult[] | null): string {
+function buildSystemPrompt(profile: UserProfile, searchResults: SearchResult[] | null, zipCivicContext: string = ''): string {
   const searchSection = searchResults && searchResults.length > 0 ? `
 
 ═══════════════════════════════════
@@ -390,6 +489,7 @@ ${profile.civic_score !== null ? `Civic Literacy Score: ${profile.civic_score}/1
 ${profile.lessons_completed ? `Lessons completed: ${profile.lessons_completed}` : ""}
 ${profile.voting_plan ? "Has voting plan: Yes" : ""}
 ${profile.saved_bills.length ? `Tracking bills: ${profile.saved_bills.join(", ")}` : ""}
+${zipCivicContext}
 ${searchSection}
 
 ═══════════════════════════════════
@@ -498,6 +598,9 @@ serve(async (req) => {
       }
     }
 
+    // Fetch zip-specific civic context from database
+    const zipCivicContext = await fetchZipCivicContext(supabase, userProfile.state, userProfile.zip_code);
+
     // Web Search
     const lastUserMessage = messages[messages.length - 1]?.content || '';
     const performSearch = shouldSearch(lastUserMessage);
@@ -511,7 +614,7 @@ serve(async (req) => {
       console.log(`[ask-uwazi] Found ${searchResults.length} results`);
     }
 
-    const systemPrompt = buildSystemPrompt(userProfile, searchResults.length > 0 ? searchResults : null);
+    const systemPrompt = buildSystemPrompt(userProfile, searchResults.length > 0 ? searchResults : null, zipCivicContext);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
