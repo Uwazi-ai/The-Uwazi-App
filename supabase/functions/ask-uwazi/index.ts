@@ -433,7 +433,7 @@ interface UserProfile {
   saved_bills: string[];
 }
 
-function buildSystemPrompt(profile: UserProfile, searchResults: SearchResult[] | null): string {
+function buildSystemPrompt(profile: UserProfile, searchResults: SearchResult[] | null, zipCivicContext: string = ''): string {
   const searchSection = searchResults && searchResults.length > 0 ? `
 
 ═══════════════════════════════════
@@ -489,6 +489,7 @@ ${profile.civic_score !== null ? `Civic Literacy Score: ${profile.civic_score}/1
 ${profile.lessons_completed ? `Lessons completed: ${profile.lessons_completed}` : ""}
 ${profile.voting_plan ? "Has voting plan: Yes" : ""}
 ${profile.saved_bills.length ? `Tracking bills: ${profile.saved_bills.join(", ")}` : ""}
+${zipCivicContext}
 ${searchSection}
 
 ═══════════════════════════════════
@@ -597,6 +598,9 @@ serve(async (req) => {
       }
     }
 
+    // Fetch zip-specific civic context from database
+    const zipCivicContext = await fetchZipCivicContext(supabase, userProfile.state, userProfile.zip_code);
+
     // Web Search
     const lastUserMessage = messages[messages.length - 1]?.content || '';
     const performSearch = shouldSearch(lastUserMessage);
@@ -610,7 +614,7 @@ serve(async (req) => {
       console.log(`[ask-uwazi] Found ${searchResults.length} results`);
     }
 
-    const systemPrompt = buildSystemPrompt(userProfile, searchResults.length > 0 ? searchResults : null);
+    const systemPrompt = buildSystemPrompt(userProfile, searchResults.length > 0 ? searchResults : null, zipCivicContext);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
