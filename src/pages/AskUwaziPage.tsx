@@ -39,7 +39,7 @@ interface Message {
   didSearch?: boolean;
 }
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ask-uwazi`;
+
 
 const SEARCH_TRIGGERS = [
   'who is', 'candidate', 'running for', 'voting record',
@@ -75,61 +75,40 @@ function groupChatsByDate(chats: ChatSession[]): { label: string; chats: ChatSes
   return order.map((label) => ({ label, chats: groups[label] }));
 }
 
-async function streamChat({ messages, token, onDelta, onDone, onError, onSearchMeta }: {
+async function streamChat({ messages, onDelta, onDone, onError }: {
   messages: { role: string; content: string }[];
-  token: string;
   onDelta: (text: string) => void;
   onDone: () => void;
   onError: (msg: string) => void;
-  onSearchMeta?: (meta: { sources: Source[]; queries: string[]; didSearch: boolean }) => void;
 }) {
-  const resp = await fetch(CHAT_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ messages }),
-  });
-
-  if (!resp.ok) {
-    const data = await resp.json().catch(() => ({}));
-    if (resp.status === 429) { onError("Rate limit exceeded. Please try again in a moment."); return; }
-    if (resp.status === 402) { onError("AI credits exhausted. Please add funds in Settings."); return; }
-    onError(data.error || `Error ${resp.status}`); return;
+  const userQuestion = messages[messages.length - 1]?.content || "";
+  if (!userQuestion) {
+    onError("No question provided");
+    return;
   }
-  if (!resp.body) { onError("No response stream"); return; }
 
-  const reader = resp.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
+  try {
+    const response = await supabase.functions.invoke('ask-uwazi', {
+      body: { question: userQuestion },
+    });
+    const answer = response.data?.answer;
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    let idx: number;
-    while ((idx = buffer.indexOf("\n")) !== -1) {
-      let line = buffer.slice(0, idx);
-      buffer = buffer.slice(idx + 1);
-      if (line.endsWith("\r")) line = line.slice(0, -1);
-      if (line.startsWith(":") || line.trim() === "") continue;
-      if (!line.startsWith("data: ")) continue;
-      const json = line.slice(6).trim();
-      if (json === "[DONE]") { onDone(); return; }
-      try {
-        const parsed = JSON.parse(json);
-        if (parsed.type === "search_meta" && onSearchMeta) {
-          onSearchMeta(parsed);
-          continue;
-        }
-        const content = parsed.choices?.[0]?.delta?.content;
-        if (content) onDelta(content);
-      } catch {
-        buffer = line + "\n" + buffer;
-        break;
-      }
+    if (response.error) {
+      onError(response.error.message || "Ask UWAZI failed");
+      return;
     }
+    if (!answer) {
+      onError("No answer returned");
+      return;
+    }
+
+    onDelta(answer);
+    onDone();
+  } catch (err) {
+    onError(err instanceof Error ? err.message : "Unknown error");
   }
-  onDone();
 }
+
 
 // Strips a trailing <followups>...</followups> block from the model output
 // and returns { clean, pills }. Pills are pipe-separated short questions.
@@ -517,16 +496,8 @@ export default function AskUwaziPage() {
       });
     };
 
-    const token = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
     await streamChat({
       messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
-      token,
-      onSearchMeta: (meta) => {
-        searchSources = meta.sources || [];
-        didSearch = meta.didSearch || false;
-        setCurrentSources(searchSources);
-        setIsSearching(false);
-      },
       onDelta: (chunk) => {
         if (isSearching) setIsSearching(false);
         upsertAssistant(chunk);
@@ -547,6 +518,7 @@ export default function AskUwaziPage() {
       },
       onError: (err) => { toast.error(err); setIsStreaming(false); setIsSearching(false); },
     });
+
   }, [input, isStreaming, limited, messages, session, saveMessages, ctx.zipCode, isSubscribed, fetchDailyCount]);
 
   // Recheck after window resets in the paywall countdown
