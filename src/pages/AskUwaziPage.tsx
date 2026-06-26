@@ -496,16 +496,8 @@ export default function AskUwaziPage() {
       });
     };
 
-    const token = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
     await streamChat({
       messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
-      token,
-      onSearchMeta: (meta) => {
-        searchSources = meta.sources || [];
-        didSearch = meta.didSearch || false;
-        setCurrentSources(searchSources);
-        setIsSearching(false);
-      },
       onDelta: (chunk) => {
         if (isSearching) setIsSearching(false);
         upsertAssistant(chunk);
@@ -526,6 +518,7 @@ export default function AskUwaziPage() {
       },
       onError: (err) => { toast.error(err); setIsStreaming(false); setIsSearching(false); },
     });
+
   }, [input, isStreaming, limited, messages, session, saveMessages, ctx.zipCode, isSubscribed, fetchDailyCount]);
 
   // Recheck after window resets in the paywall countdown
