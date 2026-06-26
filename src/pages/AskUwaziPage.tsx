@@ -39,7 +39,7 @@ interface Message {
   didSearch?: boolean;
 }
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ask-uwazi`;
+
 
 const SEARCH_TRIGGERS = [
   'who is', 'candidate', 'running for', 'voting record',
