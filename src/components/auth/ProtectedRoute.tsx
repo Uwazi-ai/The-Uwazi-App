@@ -16,6 +16,12 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
       setChecking(false);
       return;
     }
+    // While the user is actively on /onboarding, don't re-query — a stale read
+    // mid-save can bounce them back here right after handleComplete navigates away.
+    if (location.pathname === "/onboarding") {
+      setChecking(false);
+      return;
+    }
     (supabase.from("profiles") as any)
       .select("onboarding_complete, zip_code")
       .eq("user_id", user.id)
@@ -23,7 +29,6 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
       .then(({ data }: { data: any }) => {
         const complete = data?.onboarding_complete === true;
         const zip = (data?.zip_code ?? "").toString().trim();
-        // Strengthened: missing flag OR missing ZIP forces onboarding
         setNeedsOnboarding(!complete || zip === "");
         setChecking(false);
       });

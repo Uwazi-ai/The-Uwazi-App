@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,13 +13,29 @@ export default function RegistrationCheckStep({ onContinue, loading }: Props) {
   const [confirmed, setConfirmed] = useState(false);
   const { openInAppBrowser } = useInAppBrowser();
 
-  const open = (url: string) => {
+  useEffect(() => {
+    console.info("[Onboarding] registration step shown");
+  }, []);
+
+  const open = (url: string, kind: "check" | "register") => {
+    console.info("[Onboarding] registration external tap", kind);
+    // Auto-tick: taking the action counts as confirming you've done it.
+    setConfirmed(true);
     try {
       openInAppBrowser(url);
     } catch {
-      // TODO: Switch to InAppBrowser when available
       window.open(url, "_blank", "noopener,noreferrer");
     }
+  };
+
+  const handleContinue = () => {
+    console.info("[Onboarding] registration continue tap", { confirmed });
+    onContinue();
+  };
+
+  const handleLater = () => {
+    console.info("[Onboarding] registration skip-later tap");
+    onContinue();
   };
 
   return (
@@ -54,18 +70,58 @@ export default function RegistrationCheckStep({ onContinue, loading }: Props) {
         </p>
       </div>
 
+      {/* Primary continue path FIRST so users always see an exit */}
+      <div className="space-y-3 pt-2">
+        <label className="flex items-center justify-center gap-3 cursor-pointer select-none">
+          <Checkbox
+            checked={confirmed}
+            onCheckedChange={(v) => setConfirmed(!!v)}
+            className="border-[#9BD34B] data-[state=checked]:bg-[#9BD34B] data-[state=checked]:text-[#080808]"
+          />
+          <span style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 14, color: "#fff" }}>
+            I've checked my voter registration
+          </span>
+        </label>
+
+        <button
+          type="button"
+          disabled={!confirmed || loading}
+          onClick={handleContinue}
+          className="w-full rounded-lg py-3 transition-opacity"
+          style={
+            confirmed && !loading
+              ? { background: "#9BD34B", color: "#080808", fontWeight: 600, opacity: 1 }
+              : {
+                  background: "#333",
+                  color: "#666",
+                  fontWeight: 600,
+                  opacity: 0.4,
+                  pointerEvents: "none",
+                }
+          }
+        >
+          {loading ? "Saving…" : "Continue →"}
+        </button>
+      </div>
+
+      {/* External actions */}
       <div className="space-y-3 pt-2">
         <button
           type="button"
-          onClick={() => open("https://www.vote.org/am-i-registered-to-vote/")}
+          onClick={() => open("https://www.vote.org/am-i-registered-to-vote/", "check")}
           className="w-full rounded-lg py-3 font-semibold"
-          style={{ background: "#9BD34B", color: "#080808", fontWeight: 600 }}
+          style={{
+            background: "transparent",
+            border: "1px solid rgba(155, 211, 75, 0.4)",
+            color: "#9BD34B",
+            fontWeight: 600,
+          }}
         >
-          Check My Registration →
+          Check My Registration ↗
         </button>
         <button
           type="button"
-          onClick={() => open("https://www.vote.org/register-to-vote/")}
+          onClick={() => open("https://www.vote.org/register-to-vote/", "register")}
           className="w-full rounded-lg py-3"
           style={{
             background: "transparent",
@@ -74,42 +130,26 @@ export default function RegistrationCheckStep({ onContinue, loading }: Props) {
             fontWeight: 600,
           }}
         >
-          Register to Vote →
+          Register to Vote ↗
         </button>
       </div>
 
-      <label
-        className="mt-6 flex items-center justify-center gap-3 cursor-pointer select-none"
-        style={{ marginTop: 24 }}
-      >
-        <Checkbox
-          checked={confirmed}
-          onCheckedChange={(v) => setConfirmed(!!v)}
-          className="border-[#9BD34B] data-[state=checked]:bg-[#9BD34B] data-[state=checked]:text-[#080808]"
-        />
-        <span style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 14, color: "#fff" }}>
-          I've confirmed my voter registration status
-        </span>
-      </label>
-
+      {/* Always-available escape hatch */}
       <button
         type="button"
-        disabled={!confirmed || loading}
-        onClick={onContinue}
-        className="w-full rounded-lg py-3 transition-opacity"
-        style={
-          confirmed && !loading
-            ? { background: "#9BD34B", color: "#080808", fontWeight: 600, opacity: 1 }
-            : {
-                background: "#333",
-                color: "#666",
-                fontWeight: 600,
-                opacity: 0.4,
-                pointerEvents: "none",
-              }
-        }
+        onClick={handleLater}
+        disabled={loading}
+        className="w-full py-2 text-center"
+        style={{
+          background: "transparent",
+          color: "#888",
+          fontFamily: "'IBM Plex Sans', sans-serif",
+          fontSize: 13,
+          textDecoration: "underline",
+          textUnderlineOffset: 4,
+        }}
       >
-        {loading ? "Saving…" : "Continue →"}
+        I'll check this later — continue to UWAZI
       </button>
 
       <p

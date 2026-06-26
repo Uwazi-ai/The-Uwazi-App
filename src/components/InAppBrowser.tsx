@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, ExternalLink as ExternalLinkIcon, Globe } from "lucide-react";
 import { toast } from "sonner";
@@ -8,47 +8,72 @@ interface InAppBrowserProps {
   onClose: () => void;
 }
 
+// Domains known to block iframe embedding via X-Frame-Options / CSP.
+// For these we skip the iframe attempt entirely and show the "Open in Browser" card.
+const ALWAYS_EXTERNAL_HOSTS = [
+  "vote.org",
+  "vote.gov",
+  "usa.gov",
+  "irs.gov",
+  "ssa.gov",
+  "congress.gov",
+  "google.com",
+  "accounts.google.com",
+];
+
+function isAlwaysExternal(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, "").toLowerCase();
+    return ALWAYS_EXTERNAL_HOSTS.some((h) => host === h || host.endsWith("." + h)) || host.endsWith(".gov");
+  } catch {
+    return false;
+  }
+}
+
 export function InAppBrowser({ url, onClose }: InAppBrowserProps) {
   const [loading, setLoading] = useState(true);
   const [errored, setErrored] = useState(false);
   const timeoutRef = useRef<number | null>(null);
 
+  const forceExternal = useMemo(() => (url ? isAlwaysExternal(url) : false), [url]);
+
   useEffect(() => {
     if (!url) return;
-    setLoading(true);
-    setErrored(false);
+    console.info("[InAppBrowser] open", { url, forceExternal });
+    setLoading(!forceExternal);
+    setErrored(forceExternal);
 
-    // Scroll lock
+    // Scroll lock only — no history manipulation (history hacks were popping
+    // the parent route during onboarding and stranding users).
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    // Back-button support: push a history entry, pop on close
-    try {
-      window.history.pushState({ inAppBrowser: true }, "");
-    } catch {}
-    const onPop = () => onClose();
-    window.addEventListener("popstate", onPop);
+    // ESC to close
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
 
-    // 10s timeout → error state
-    timeoutRef.current = window.setTimeout(() => {
-      setLoading((l) => {
-        if (l) setErrored(true);
-        return l;
-      });
-    }, 10000);
+    // 4s loading timeout → error state with "Open in Browser" CTA
+    if (!forceExternal) {
+      timeoutRef.current = window.setTimeout(() => {
+        setLoading((l) => {
+          if (l) {
+            console.info("[InAppBrowser] timeout → error");
+            setErrored(true);
+          }
+          return l;
+        });
+      }, 4000);
+    }
 
     return () => {
       document.body.style.overflow = prevOverflow;
-      window.removeEventListener("popstate", onPop);
+      window.removeEventListener("keydown", onKey);
       if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
-      // Pop our dummy history entry if still present
-      if (window.history.state?.inAppBrowser) {
-        try {
-          window.history.back();
-        } catch {}
-      }
+      console.info("[InAppBrowser] close");
     };
-  }, [url, onClose]);
+  }, [url, onClose, forceExternal]);
 
   const hostname = (() => {
     if (!url) return "";
@@ -151,6 +176,7 @@ export function InAppBrowser({ url, onClose }: InAppBrowserProps) {
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                   onLoad={() => setLoading(false)}
                   onError={() => {
+                    console.info("[InAppBrowser] iframe error");
                     setLoading(false);
                     setErrored(true);
                   }}
@@ -164,7 +190,9 @@ export function InAppBrowser({ url, onClose }: InAppBrowserProps) {
                       className="mt-4 text-white"
                       style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 16 }}
                     >
-                      This site can't be displayed in-app
+                      {forceExternal
+                        ? "This site opens best in your browser"
+                        : "This site can't be displayed in-app"}
                     </p>
                     <p
                       className="mt-2"
@@ -174,7 +202,7 @@ export function InAppBrowser({ url, onClose }: InAppBrowserProps) {
                         color: "#888",
                       }}
                     >
-                      Some websites block embedded viewing
+                      We'll open {hostname} in a new tab. Come back here when you're done.
                     </p>
                     <button
                       onClick={() => {
@@ -185,6 +213,17 @@ export function InAppBrowser({ url, onClose }: InAppBrowserProps) {
                       style={{ background: "#9BD34B", color: "#080808" }}
                     >
                       Open in Browser
+                    </button>
+                    <button
+                      onClick={onClose}
+                      className="mt-3 w-full rounded-lg py-3 font-medium"
+                      style={{
+                        background: "transparent",
+                        border: "1px solid rgba(255,255,255,0.15)",
+                        color: "#fff",
+                      }}
+                    >
+                      Back to UWAZI
                     </button>
                   </div>
                 </div>
