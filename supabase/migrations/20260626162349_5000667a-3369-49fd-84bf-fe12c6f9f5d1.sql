@@ -1,0 +1,1 @@
+GRANT UPDATE (registration_checked_at, referred_by_org) ON public.profiles TO authenticated;
