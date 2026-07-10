@@ -543,9 +543,10 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
-    if (!messages || !Array.isArray(messages)) {
-      return new Response(JSON.stringify({ error: "messages array is required" }), {
+    const body = await req.json();
+    const question: string = (body?.question ?? '').toString().trim();
+    if (!question) {
+      return new Response(JSON.stringify({ error: "question is required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -602,13 +603,12 @@ serve(async (req) => {
     const zipCivicContext = await fetchZipCivicContext(supabase, userProfile.state, userProfile.zip_code);
 
     // Web Search
-    const lastUserMessage = messages[messages.length - 1]?.content || '';
-    const performSearch = shouldSearch(lastUserMessage);
+    const performSearch = shouldSearch(question);
     let searchResults: SearchResult[] = [];
     let searchQuery = '';
 
     if (performSearch) {
-      searchQuery = buildSearchQuery(lastUserMessage, userProfile.state, userProfile.zip_code);
+      searchQuery = buildSearchQuery(question, userProfile.state, userProfile.zip_code);
       console.log(`[ask-uwazi] Web search: "${searchQuery}"`);
       searchResults = await searchWeb(searchQuery);
       console.log(`[ask-uwazi] Found ${searchResults.length} results`);
@@ -624,8 +624,10 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-pro",
-        messages: [{ role: "system", content: systemPrompt }, ...messages],
-        stream: true,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: question },
+        ],
       }),
     });
 
@@ -647,46 +649,26 @@ serve(async (req) => {
       });
     }
 
+    const aiJson = await response.json();
+    const answer: string = aiJson?.choices?.[0]?.message?.content ?? '';
+
     // ═══ Fire-and-forget question logging ═══
-    if (supabase && lastUserMessage.trim()) {
+    if (supabase) {
       logQuestion(
         supabase, LOVABLE_API_KEY, userId,
-        lastUserMessage, userProfile.zip_code, userProfile.state,
+        question, userProfile.zip_code, userProfile.state,
         performSearch,
       ).catch(err => console.error('[question-log] Async error:', err));
     }
 
-    // Custom stream with search metadata
-    const encoder = new TextEncoder();
-    const aiStream = response.body!;
-    const customStream = new ReadableStream({
-      async start(controller) {
-        if (searchResults.length > 0) {
-          const meta = JSON.stringify({
-            type: "search_meta",
-            sources: searchResults.map(r => ({ title: r.title, url: r.url })),
-            queries: [searchQuery],
-            didSearch: true,
-          });
-          controller.enqueue(encoder.encode(`data: ${meta}\n\n`));
-        }
-        const reader = aiStream.getReader();
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            controller.enqueue(value);
-          }
-        } catch (e) {
-          console.error("Stream pipe error:", e);
-        }
-        controller.close();
-      },
-    });
-
-    return new Response(customStream, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-    });
+    return new Response(
+      JSON.stringify({
+        answer,
+        sources: searchResults.map(r => ({ title: r.title, url: r.url })),
+        didSearch: performSearch,
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   } catch (e) {
     console.error("ask-uwazi error:", e);
     return new Response(
@@ -695,3 +677,4 @@ serve(async (req) => {
     );
   }
 });
+
