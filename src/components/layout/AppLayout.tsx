@@ -33,6 +33,7 @@ export function AppLayout() {
   useForceRefresh();
   useOrgTracking();
   useTrackActivity();
+  useNativePush();
 
   return (
     <ProfileProvider>
