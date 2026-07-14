@@ -10,6 +10,7 @@ import { ProfileProvider } from "@/contexts/ProfileContext";
 import { useForceRefresh } from "@/hooks/useForceRefresh";
 import { useOrgTracking } from "@/hooks/useOrgTracking";
 import { useTrackActivity } from "@/hooks/useTrackActivity";
+import { useNativePush } from "@/hooks/useNativePush";
 import { MyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
 
 const pageVariants = {
@@ -32,6 +33,7 @@ export function AppLayout() {
   useForceRefresh();
   useOrgTracking();
   useTrackActivity();
+  useNativePush();
 
   return (
     <ProfileProvider>

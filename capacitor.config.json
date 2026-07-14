@@ -1,16 +1,12 @@
 {
-  "appId": "app.lovable.f95162a1a53e4cec85191a8d83421a63",
-  "appName": "uwaziapp",
+  "appId": "ai.uwazi.app",
+  "appName": "UWAZI",
   "webDir": "dist",
-  "server": {
-    "url": "https://f95162a1-a53e-4cec-8519-1a8d83421a63.lovableproject.com?forceHideBadge=true",
-    "cleartext": true
-  },
   "plugins": {
     "SplashScreen": {
       "launchShowDuration": 3000,
       "launchAutoHide": true,
-      "backgroundColor": "#0a0a0a",
+      "backgroundColor": "#080808",
       "androidSplashResourceName": "splash",
       "androidScaleType": "CENTER_CROP",
       "showSpinner": false,
@@ -21,17 +17,20 @@
       "style": "DARK",
       "backgroundColor": "#080808",
       "overlaysWebView": true
+    },
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
     }
   },
   "android": {
-    "allowMixedContent": true,
-    "captureConsole": true,
-    "webContentsDebuggingEnabled": true
+    "allowMixedContent": false,
+    "captureConsole": false,
+    "webContentsDebuggingEnabled": false
   },
   "ios": {
     "contentInset": "always",
     "allowsLinkPreview": false,
     "scrollEnabled": true,
-    "webContentsDebuggingEnabled": true
+    "webContentsDebuggingEnabled": false
   }
 }
