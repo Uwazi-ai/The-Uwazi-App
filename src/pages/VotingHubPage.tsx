@@ -15,6 +15,7 @@ import { useProfile } from "@/contexts/ProfileContext";
 import { useInAppBrowser } from "@/contexts/InAppBrowserContext";
 import { cn } from "@/lib/utils";
 import { MyBallotCard } from "@/components/ballot/MyBallotCard";
+import { CandidateRacesSection } from "@/components/voting/CandidateRacesSection";
 
 /* ══════════════════════════════════════════════════════
    CONSTANTS
