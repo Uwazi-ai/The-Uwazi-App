@@ -116,6 +116,7 @@ const App = () => (
                 <Route path="/app/settings" element={<SettingsPage />} />
                 <Route path="/app/settings/subscription" element={<ManageSubscriptionPage />} />
                 <Route path="/app/upgrade" element={<UpgradePage />} />
+                <Route path="/app/redeem" element={<RedeemPage />} />
                 <Route path="/app/checkout/return" element={<CheckoutReturnPage />} />
 
                 {/* Admin routes — program_admin can access lessons, analytics, intelligence, surveys, crm, alerts, overview, content */}
