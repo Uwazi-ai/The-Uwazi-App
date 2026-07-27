@@ -146,6 +146,66 @@ export type Database = {
         }
         Relationships: []
       }
+      ballot_contests: {
+        Row: {
+          contest_type: string
+          created_at: string
+          election_date: string
+          id: string
+          measure_full_text_url: string | null
+          measure_summary: string | null
+          measure_title: string
+          no_means: string | null
+          opponents_say: string | null
+          plain_summary: string | null
+          sort_order: number
+          source_name: string | null
+          source_url: string | null
+          state: string
+          supporters_say: string | null
+          updated_at: string
+          yes_means: string | null
+        }
+        Insert: {
+          contest_type?: string
+          created_at?: string
+          election_date: string
+          id?: string
+          measure_full_text_url?: string | null
+          measure_summary?: string | null
+          measure_title: string
+          no_means?: string | null
+          opponents_say?: string | null
+          plain_summary?: string | null
+          sort_order?: number
+          source_name?: string | null
+          source_url?: string | null
+          state: string
+          supporters_say?: string | null
+          updated_at?: string
+          yes_means?: string | null
+        }
+        Update: {
+          contest_type?: string
+          created_at?: string
+          election_date?: string
+          id?: string
+          measure_full_text_url?: string | null
+          measure_summary?: string | null
+          measure_title?: string
+          no_means?: string | null
+          opponents_say?: string | null
+          plain_summary?: string | null
+          sort_order?: number
+          source_name?: string | null
+          source_url?: string | null
+          state?: string
+          supporters_say?: string | null
+          updated_at?: string
+          yes_means?: string | null
+        }
+        Relationships: []
+      }
       ballot_items: {
         Row: {
           created_at: string
@@ -885,6 +945,51 @@ export type Database = {
         }
         Relationships: []
       }
+      election_authorities: {
+        Row: {
+          county_name: string | null
+          covers_note: string | null
+          created_at: string
+          display_name: string
+          id: string
+          key: string
+          lookup_url: string | null
+          phone: string | null
+          poll_hours: string | null
+          state: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          county_name?: string | null
+          covers_note?: string | null
+          created_at?: string
+          display_name: string
+          id?: string
+          key: string
+          lookup_url?: string | null
+          phone?: string | null
+          poll_hours?: string | null
+          state: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          county_name?: string | null
+          covers_note?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          key?: string
+          lookup_url?: string | null
+          phone?: string | null
+          poll_hours?: string | null
+          state?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       election_races: {
         Row: {
           ballotpedia_url: string | null
@@ -965,6 +1070,39 @@ export type Database = {
           jurisdiction?: string
           registration_deadline?: string | null
           type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      elections_published: {
+        Row: {
+          created_at: string
+          election_date: string
+          election_name: string
+          id: string
+          is_published: boolean
+          sample_ballot_url: string | null
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          election_date: string
+          election_name: string
+          id?: string
+          is_published?: boolean
+          sample_ballot_url?: string | null
+          state: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          election_date?: string
+          election_name?: string
+          id?: string
+          is_published?: boolean
+          sample_ballot_url?: string | null
+          state?: string
           updated_at?: string
         }
         Relationships: []
@@ -1613,11 +1751,13 @@ export type Database = {
           civic_knowledge_level: string | null
           contact_score: number | null
           contact_tags: Json | null
+          county_name: string | null
           created_at: string
           crm_notes: string | null
           display_name: string | null
           district: string | null
           districts_resolved_at: string | null
+          election_authority_key: string | null
           email_opt_in: boolean | null
           full_address: string | null
           id: string
@@ -1637,6 +1777,7 @@ export type Database = {
           notify_streak_reminders: boolean
           onboarding_complete: boolean
           org_role: string | null
+          party_preference: string | null
           phone_number: string | null
           phone_verified: boolean | null
           precinct_id: string | null
@@ -1644,6 +1785,7 @@ export type Database = {
           push_token: string | null
           referred_by_org: string | null
           registration_checked_at: string | null
+          registration_verified_at: string | null
           school_district: string | null
           sms_opt_in: boolean | null
           state_code: string | null
@@ -1671,11 +1813,13 @@ export type Database = {
           civic_knowledge_level?: string | null
           contact_score?: number | null
           contact_tags?: Json | null
+          county_name?: string | null
           created_at?: string
           crm_notes?: string | null
           display_name?: string | null
           district?: string | null
           districts_resolved_at?: string | null
+          election_authority_key?: string | null
           email_opt_in?: boolean | null
           full_address?: string | null
           id?: string
@@ -1695,6 +1839,7 @@ export type Database = {
           notify_streak_reminders?: boolean
           onboarding_complete?: boolean
           org_role?: string | null
+          party_preference?: string | null
           phone_number?: string | null
           phone_verified?: boolean | null
           precinct_id?: string | null
@@ -1702,6 +1847,7 @@ export type Database = {
           push_token?: string | null
           referred_by_org?: string | null
           registration_checked_at?: string | null
+          registration_verified_at?: string | null
           school_district?: string | null
           sms_opt_in?: boolean | null
           state_code?: string | null
@@ -1729,11 +1875,13 @@ export type Database = {
           civic_knowledge_level?: string | null
           contact_score?: number | null
           contact_tags?: Json | null
+          county_name?: string | null
           created_at?: string
           crm_notes?: string | null
           display_name?: string | null
           district?: string | null
           districts_resolved_at?: string | null
+          election_authority_key?: string | null
           email_opt_in?: boolean | null
           full_address?: string | null
           id?: string
@@ -1753,6 +1901,7 @@ export type Database = {
           notify_streak_reminders?: boolean
           onboarding_complete?: boolean
           org_role?: string | null
+          party_preference?: string | null
           phone_number?: string | null
           phone_verified?: boolean | null
           precinct_id?: string | null
@@ -1760,6 +1909,7 @@ export type Database = {
           push_token?: string | null
           referred_by_org?: string | null
           registration_checked_at?: string | null
+          registration_verified_at?: string | null
           school_district?: string | null
           sms_opt_in?: boolean | null
           state_code?: string | null
