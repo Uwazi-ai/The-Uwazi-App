@@ -98,6 +98,10 @@ const App = () => (
                 <Route path="/app/ask" element={<AskUwaziPage />} />
                 <Route path="/app/vote" element={<VotingHubPage />} />
                 <Route path="/app/my-city" element={<MyCity />} />
+                <Route path="/app/my-ballot" element={<MyBallotEntryPage />} />
+                <Route path="/app/my-ballot/walkthrough" element={<MyBallotWalkthroughPage />} />
+                <Route path="/app/my-ballot/review" element={<MyBallotReviewPage />} />
+                <Route path="/app/my-ballot/export" element={<MyBallotExportPage />} />
                 <Route path="/app/vote/candidates" element={<CandidatesPage />} />
                 <Route path="/app/vote/candidates/:id" element={<CandidateDetailPage />} />
                 <Route path="/app/news" element={<NewsPage />} />

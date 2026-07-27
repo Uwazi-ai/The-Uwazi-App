@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useInAppBrowser } from "@/contexts/InAppBrowserContext";
 import { cn } from "@/lib/utils";
+import { MyBallotCard } from "@/components/ballot/MyBallotCard";
 
 /* ══════════════════════════════════════════════════════
    CONSTANTS
@@ -248,6 +249,7 @@ export default function VotingHubPage() {
 
       {(hubState === "READY" || hubState === "BALLOT_PENDING") && profile?.state_code && (
         <>
+          <MyBallotCard state={profile.state_code} partyPreference={profile.party_preference} />
           <RegistrationCheckCard profile={profile} />
           <BallotMeasuresSection
             state={profile.state_code}
