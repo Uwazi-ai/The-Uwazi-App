@@ -46,6 +46,7 @@ import AdminPartnerOrgsPage from "./pages/admin/AdminPartnerOrgsPage";
 import UpgradePage from "./pages/UpgradePage";
 import CheckoutReturnPage from "./pages/CheckoutReturnPage";
 import ManageSubscriptionPage from "./pages/ManageSubscriptionPage";
+import RedeemPage from "./pages/RedeemPage";
 import Welcome from "./pages/Welcome";
 import PartnerDashboardPage from "./pages/PartnerDashboardPage";
 import JoinPage from "./pages/JoinPage";
@@ -115,6 +116,7 @@ const App = () => (
                 <Route path="/app/settings" element={<SettingsPage />} />
                 <Route path="/app/settings/subscription" element={<ManageSubscriptionPage />} />
                 <Route path="/app/upgrade" element={<UpgradePage />} />
+                <Route path="/app/redeem" element={<RedeemPage />} />
                 <Route path="/app/checkout/return" element={<CheckoutReturnPage />} />
 
                 {/* Admin routes — program_admin can access lessons, analytics, intelligence, surveys, crm, alerts, overview, content */}
