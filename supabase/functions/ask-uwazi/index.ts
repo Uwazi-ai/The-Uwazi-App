@@ -1,680 +1,449 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// ============================================================
+// ask-uwazi — Supabase Edge Function (Deno)
+//
+// Grounded civic chatbot. Model routing + prompt caching +
+// domain-locked server-side web search + local tool execution.
+//
+// Deploy: supabase functions deploy ask-uwazi
+// Secrets: ANTHROPIC_API_KEY
+// ============================================================
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { SYSTEM_PROMPT } from "./prompt.ts";
 
-function getStateFromZip(zip: string): string | null {
-  const prefix = parseInt(zip.substring(0, 3), 10);
-  const map: [number, number, string][] = [
-    [995, 999, "AK"], [350, 369, "AL"], [716, 729, "AR"], [850, 865, "AZ"],
-    [900, 961, "CA"], [800, 816, "CO"], [60, 69, "CT"], [197, 199, "DE"],
-    [200, 205, "DC"], [320, 349, "FL"], [300, 319, "GA"], [967, 968, "HI"],
-    [500, 528, "IA"], [832, 838, "ID"], [600, 629, "IL"], [460, 479, "IN"],
-    [660, 679, "KS"], [400, 427, "KY"], [700, 714, "LA"], [10, 27, "MA"],
-    [206, 219, "MD"], [39, 49, "ME"], [480, 499, "MI"], [550, 567, "MN"],
-    [630, 658, "MO"], [386, 397, "MS"], [590, 599, "MT"], [270, 289, "NC"],
-    [580, 588, "ND"], [680, 693, "NE"], [30, 38, "NH"], [70, 89, "NJ"],
-    [870, 884, "NM"], [889, 898, "NV"], [100, 149, "NY"], [430, 459, "OH"],
-    [730, 749, "OK"], [970, 979, "OR"], [150, 196, "PA"], [28, 29, "RI"],
-    [290, 299, "SC"], [570, 577, "SD"], [370, 385, "TN"], [750, 799, "TX"],
-    [840, 847, "UT"], [220, 246, "VA"], [50, 59, "VT"], [980, 994, "WA"],
-    [530, 549, "WI"], [247, 268, "WV"], [820, 831, "WY"],
-  ];
-  for (const [lo, hi, st] of map) {
-    if (prefix >= lo && prefix <= hi) return st;
-  }
-  return null;
-}
+const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 
-// ═══ Web Search ═══
-const SEARCH_TRIGGERS = [
-  // Candidates & people
-  'who is', 'candidate', 'candidates', 'running for', 'voting record',
-  'campaign', 'donated', 'endorsed', 'stance on', 'position on',
-  // Legislation
-  'bill', 'hr ', 'sb ', 'hb ', 's.', 'h.r.', 'senate bill', 'house bill',
-  'passed', 'signed', 'vetoed', 'status of', 'legislation', 'law',
-  // Time-sensitive
-  'latest', 'recent', 'today', 'this week', 'just happened',
-  'current', 'now', 'update', 'news', 'this year', '2026', '2025',
-  // Elections
-  'city council', 'mayor', 'school board', 'election results',
-  'won', 'lost', 'primary', 'general election', 'midterm', 'midterms',
-  'ballot', 'race', 'poll', 'polls', 'senate race', 'house race',
-  'governor', 'senator', 'congressman', 'representative',
-  // Research intent
-  'tell me about', 'research', 'find out', 'look up',
-  'search for', 'what happened', 'who represents', 'my rep',
-  'register', 'registration deadline', 'polling place', 'polling location',
-  'vote by mail', 'absentee', 'early voting',
+const MODELS = {
+  route: "claude-haiku-4-5-20251001", // classify + extract
+  chat: "claude-sonnet-5",            // default civic Q&A
+  deep: "claude-opus-5",              // multi-part ballot reasoning
+} as const;
+
+// Server-side web search is locked to official election sources.
+// Anything not on this list cannot enter the model's context.
+// Note: allowed_domains and blocked_domains cannot both be set.
+const OFFICIAL_DOMAINS = [
+  // Missouri
+  "sos.mo.gov",
+  "mo.gov",
+  "kceb.org",              // Kansas City Election Board
+  "jacksongov.org",
+  "claycountymo.gov",
+  "co.platte.mo.us",
+  "casscounty.com",
+  "mec.mo.gov",            // Missouri Ethics Commission
+  // Kansas
+  "sos.ks.gov",
+  "ksvotes.org",
+  "voteks.org",
+  "jocoelection.org",      // Johnson County
+  "wycokck.org",           // Wyandotte County
+  // Federal
+  "congress.gov",
+  "fec.gov",
+  "vote.gov",
+  "census.gov",
 ];
 
-function shouldSearch(message: string): boolean {
-  const lower = message.toLowerCase();
-  return SEARCH_TRIGGERS.some(t => lower.includes(t));
-}
-
-interface SearchResult {
-  title: string;
-  url: string;
-  snippet: string;
-}
-
-function buildSearchQuery(message: string, state: string | null, zipCode: string | null): string {
-  let query = message;
-  if (query.length > 120) query = query.substring(0, 120);
-  if (state) query += ` ${state}`;
-  else if (zipCode) query += ` ${zipCode}`;
-  query += ` ${new Date().getFullYear()}`;
-  return query;
-}
-
-async function searchWeb(query: string): Promise<SearchResult[]> {
-
-  const BRAVE_API_KEY = Deno.env.get("BRAVE_SEARCH_API_KEY");
-
-  
-
-  // Try Brave Search first (reliable, real-time)
-
-  if (BRAVE_API_KEY) {
-
-    try {
-
-      const resp = await fetch(
-
-        `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=6&search_lang=en&country=us&freshness=pw`,
-
-        {
-
-          headers: {
-
-            'Accept': 'application/json',
-
-            'Accept-Encoding': 'gzip',
-
-            'X-Subscription-Token': BRAVE_API_KEY,
-
-          },
-
-        }
-
-      );
-
-      if (resp.ok) {
-
-        const data = await resp.json();
-
-        const results: SearchResult[] = (data.web?.results || []).slice(0, 6).map((r: any) => ({
-
-          title: r.title || '',
-
-          url: r.url || '',
-
-          snippet: r.description || '',
-
-        }));
-
-        if (results.length > 0) {
-
-          console.log(`[ask-uwazi] Brave Search returned ${results.length} results`);
-
-          return results;
-
-        }
-
-      }
-
-    } catch (e) {
-
-      console.error('Brave Search failed, falling back to DDG:', e);
-
-    }
-
-  }
-
-  // Fallback: DuckDuckGo scrape (existing logic)
-
-  try {
-
-    const resp = await fetch('https://html.duckduckgo.com/html/', {
-
-      method: 'POST',
-
-      headers: {
-
-        'Content-Type': 'application/x-www-form-urlencoded',
-
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-
-      },
-
-      body: `q=${encodeURIComponent(query)}&kl=us-en`,
-
-    });
-
-    const html = await resp.text();
-
-    const results: SearchResult[] = [];
-
-    const linkRegex = /<a\s+[^>]*class="result__a"[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi;
-
-    const snippetRegex = /<a\s+[^>]*class="result__snippet"[^>]*>([\s\S]*?)<\/a>/gi;
-
-    const links: { url: string; title: string }[] = [];
-
-    const snippets: string[] = [];
-
-    let m;
-
-    while ((m = linkRegex.exec(html)) !== null) {
-
-      let url = m[1];
-
-      const uddgMatch = url.match(/uddg=([^&]*)/);
-
-      if (uddgMatch) url = decodeURIComponent(uddgMatch[1]);
-
-      const title = m[2].replace(/<[^>]*>/g, '').trim();
-
-      if (url && title && url.startsWith('http')) links.push({ url, title });
-
-    }
-
-    while ((m = snippetRegex.exec(html)) !== null) {
-
-      snippets.push(m[1].replace(/<[^>]*>/g, '').trim());
-
-    }
-
-    for (let i = 0; i < Math.min(links.length, 6); i++) {
-
-      results.push({ title: links[i].title, url: links[i].url, snippet: snippets[i] || '' });
-
-    }
-
-    console.log(`[ask-uwazi] DDG fallback returned ${results.length} results`);
-
-    return results;
-
-  } catch (e) {
-
-    console.error('All search methods failed:', e);
-
-    return [];
-
-  }
-
-}
-
-async function fetchZipCivicContext(
-  supabase: any,
-  stateCode: string | null,
-  zipCode: string | null
-): Promise<string> {
-  if (!supabase || !stateCode) return '';
-
-  const year = 2026;
-  const sections: string[] = [];
-
-  try {
-    // 1. Upcoming races in user's state
-    const { data: races } = await supabase
-      .from('ballotpedia_candidates')
-      .select('name, party, office, office_level, incumbent, election_date, election_type')
-      .eq('state_code', stateCode)
-      .eq('election_year', year)
-      .order('office_level', { ascending: true })
-      .limit(40);
-
-    if (races && races.length > 0) {
-      // Group by office
-      const byOffice: Record<string, any[]> = {};
-      for (const r of races) {
-        if (!byOffice[r.office]) byOffice[r.office] = [];
-        byOffice[r.office].push(r);
-      }
-
-      const raceLines = Object.entries(byOffice).map(([office, candidates]) => {
-        const names = candidates.map(c =>
-          `${c.name} (${c.party}${c.incumbent ? ', Incumbent' : ''})`
-        ).join(', ');
-        return `• ${office}: ${names}`;
-      });
-
-      sections.push(`CANDIDATES ON THE BALLOT IN ${stateCode} — ${year}:\n${raceLines.join('\n')}`);
-    }
-
-    // 2. Ballot measures in user's state
-    const { data: measures } = await supabase
-      .from('ballotpedia_ballot_measures')
-      .select('title, summary, measure_type')
-      .eq('state_code', stateCode)
-      .eq('election_year', year)
-      .limit(10);
-
-    if (measures && measures.length > 0) {
-      const measureLines = measures.map(m =>
-        `• ${m.title}${m.summary ? ': ' + m.summary.slice(0, 150) : ''}`
-      );
-      sections.push(`BALLOT MEASURES IN ${stateCode} — ${year}:\n${measureLines.join('\n')}`);
-    }
-
-    // 3. Local officials if city known from profile
-    const { data: officials } = await supabase
-      .from('ballotpedia_officials')
-      .select('name, office, city')
-      .eq('state_code', stateCode)
-      .limit(10);
-
-    if (officials && officials.length > 0) {
-      const officialLines = officials.map(o =>
-        `• ${o.office}: ${o.name}${o.city ? ' (' + o.city + ')' : ''}`
-      );
-      sections.push(`CURRENT LOCAL OFFICIALS IN ${stateCode}:\n${officialLines.join('\n')}`);
-    }
-
-    // 4. Upcoming elections
-    const { data: elections } = await supabase
-      .from('ballotpedia_elections')
-      .select('election_name, election_date, election_type')
-      .eq('state_code', stateCode)
-      .eq('is_upcoming', true)
-      .order('election_date', { ascending: true })
-      .limit(5);
-
-    if (elections && elections.length > 0) {
-      const electionLines = elections.map(e =>
-        `• ${e.election_name} — ${e.election_date} (${e.election_type})`
-      );
-      sections.push(`UPCOMING ELECTIONS IN ${stateCode}:\n${electionLines.join('\n')}`);
-    }
-  } catch (e) {
-    console.error('[ask-uwazi] fetchZipCivicContext error:', e);
-  }
-
-  if (sections.length === 0) return '';
-
-  return `
-
-═══════════════════════════════════
-LIVE CIVIC DATA — ${stateCode}${zipCode ? ' · ZIP ' + zipCode : ''}
-(Sourced from UWAZI database — use this as authoritative local context)
-═══════════════════════════════════
-
-${sections.join('\n\n')}`;
-}
-
-
-// ═══ Question Intelligence Logger ═══
-async function logQuestion(
-  supabase: any,
-  apiKey: string,
-  userId: string | null,
-  questionText: string,
-  zipCode: string | null,
-  stateCode: string | null,
-  didSearch: boolean,
-) {
-  try {
-    // Step 1: Classify using Lovable AI (fast model)
-    let classData: any = { topic_category: 'general', intent_type: 'education' };
-    try {
-      const classResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+// ------------------------------------------------------------
+// Tool definitions
+// ------------------------------------------------------------
+
+const LOCAL_TOOLS = [
+  {
+    name: "get_voter_profile",
+    description:
+      "Get the signed-in user's resolved voting districts and local election " +
+      "authority. Call this FIRST for any question that depends on where the " +
+      "user lives (ballot contents, polling place, local deadlines). Returns " +
+      "address_complete: false if the user has not finished their address — " +
+      "in that case ask them to complete it rather than guessing.",
+    input_schema: { type: "object", properties: {}, required: [] },
+  },
+  {
+    name: "get_user_ballot",
+    description:
+      "Get the contests and candidates on the signed-in user's ballot for an " +
+      "election. Only returns data verified against official sources. If the " +
+      "user's address is unresolved this returns an error — do not work around " +
+      "it by guessing from ZIP code.",
+    input_schema: {
+      type: "object",
+      properties: {
+        election_date: {
+          type: "string",
+          description: "ISO date, e.g. 2026-08-04",
         },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash-lite",
-          messages: [{
-            role: "user",
-            content: `Classify this civic question for research purposes.
-Question: "${questionText}"
+        party: {
+          type: "string",
+          description:
+            "Party ballot to show. Required in Missouri (open primary — voter " +
+            "picks one party's ballot at the polls). In Kansas, pass " +
+            "UNAFFILIATED to get the amendment-only ballot.",
+          enum: ["DEM", "REP", "LIB", "GRN", "CST", "UNAFFILIATED"],
+        },
+      },
+      required: ["election_date"],
+    },
+  },
+  {
+    name: "get_election_authority",
+    description:
+      "Get official contact info, registration lookup URL, and sample ballot " +
+      "URL for a local election authority. Use this for every handoff and for " +
+      "any registration-status question. Prefer the key from get_voter_profile.",
+    input_schema: {
+      type: "object",
+      properties: {
+        authority_key: {
+          type: "string",
+          description: "e.g. mo-kansas-city, ks-johnson",
+        },
+        state: {
+          type: "string",
+          description: "Two-letter state code, if authority_key is unknown",
+        },
+      },
+      required: [],
+    },
+  },
+];
 
-Respond with ONLY valid JSON, no markdown:
-{
-  "topic_category": "voting|legislation|local_gov|candidates|rights|policy|civic_process|general|other",
-  "sub_topic": "specific sub-topic in 3-5 words",
-  "intent_type": "research|education|action|confusion|verification|comparison",
-  "complexity_level": "beginner|intermediate|advanced",
-  "is_local_question": true or false,
-  "suggested_lesson_title": "If this reveals a lesson gap, suggest a lesson title. Otherwise null"
-}`
-          }],
-        }),
-      });
-      if (classResp.ok) {
-        const classJson = await classResp.json();
-        const text = classJson.choices?.[0]?.message?.content || '{}';
-        classData = JSON.parse(text.replace(/```json|```/g, '').trim());
-      }
-    } catch (e) {
-      console.error("[question-log] Classification failed:", e);
-    }
-
-    // Step 2: Check if existing lesson covers this topic
-    const { data: existingLessons } = await supabase
-      .from('lessons')
-      .select('id, title, category')
-      .eq('is_published', true)
-      .ilike('category', `%${classData.topic_category || 'general'}%`);
-    const hasMatchingLesson = (existingLessons?.length ?? 0) > 0;
-
-    // Step 3: Log to database
-    await supabase.from('uwazi_question_log').insert({
-      user_id: userId,
-      question_text: questionText,
-      question_length: questionText.length,
-      topic_category: classData.topic_category || 'general',
-      sub_topic: classData.sub_topic || null,
-      intent_type: classData.intent_type || 'education',
-      complexity_level: classData.complexity_level || 'beginner',
-      is_local_question: classData.is_local_question || false,
-      zip_code: zipCode,
-      state_code: stateCode,
-      required_web_search: didSearch,
-      has_matching_lesson: hasMatchingLesson,
-      suggested_lesson_title: classData.suggested_lesson_title || null,
-      lesson_gap_priority: !hasMatchingLesson ? 'high' : 'low',
+function buildTools(includeSearch: boolean) {
+  const tools: unknown[] = [...LOCAL_TOOLS];
+  if (includeSearch) {
+    tools.push({
+      type: "web_search_20250305",
+      name: "web_search",
+      max_uses: 4,
+      allowed_domains: OFFICIAL_DOMAINS,
     });
+  }
+  return tools;
+}
 
-    // Step 4: Upsert lesson gap recommendation if needed
-    if (!hasMatchingLesson && classData.suggested_lesson_title) {
-      const { data: existing } = await supabase
-        .from('lesson_gap_recommendations')
-        .select('id, question_count, example_questions')
-        .eq('suggested_title', classData.suggested_lesson_title)
-        .maybeSingle();
+// ------------------------------------------------------------
+// Local tool execution
+// ------------------------------------------------------------
 
-      if (existing) {
-        const examples = Array.isArray(existing.example_questions) ? existing.example_questions : [];
-        if (examples.length < 5) examples.push(questionText);
-        await supabase
-          .from('lesson_gap_recommendations')
-          .update({
-            question_count: (existing.question_count || 0) + 1,
-            example_questions: examples,
-            priority_score: (existing.question_count || 0) + 1,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existing.id);
-      } else {
-        await supabase.from('lesson_gap_recommendations').insert({
-          suggested_title: classData.suggested_lesson_title,
-          suggested_category: classData.topic_category,
-          suggested_difficulty: classData.complexity_level || 'beginner',
-          question_count: 1,
-          example_questions: [questionText],
-          priority_score: 1,
-        });
-      }
+async function runLocalTool(
+  name: string,
+  input: Record<string, unknown>,
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string> {
+  if (name === "get_voter_profile") {
+    const { data, error } = await supabase
+      .from("voter_profiles")
+      .select(
+        "address_complete, city, state, county_name, cd, sldu, sldl, " +
+        "election_authority_key, party_preference, geocode_source",
+      )
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error) return JSON.stringify({ error: error.message });
+    if (!data || !data.address_complete) {
+      return JSON.stringify({
+        address_complete: false,
+        note:
+          "User has not completed their address. Ask them to add it in the " +
+          "app. Do not infer districts from ZIP code.",
+      });
     }
-
-    console.log(`[question-log] Logged: ${classData.topic_category}/${classData.sub_topic}`);
-  } catch (e) {
-    console.error("[question-log] Error:", e);
-  }
-}
-
-// ═══ User Profile ═══
-interface UserProfile {
-  full_name: string | null;
-  zip_code: string | null;
-  state: string | null;
-  civic_score: number | null;
-  lessons_completed: number | null;
-  voting_plan: boolean;
-  saved_bills: string[];
-}
-
-function buildSystemPrompt(profile: UserProfile, searchResults: SearchResult[] | null, zipCivicContext: string = ''): string {
-  const searchSection = searchResults && searchResults.length > 0 ? `
-
-═══════════════════════════════════
-WEB SEARCH RESULTS (LIVE DATA)
-═══════════════════════════════════
-You performed a web search. Here are the results — use them to provide current, accurate information.
-Cite your sources by referencing the source number [1], [2], etc.
-
-${searchResults.map((r, i) => `[${i + 1}] ${r.title}\nURL: ${r.url}\n${r.snippet}`).join('\n\n')}
-
-WHEN USING SEARCH RESULTS:
-- Be transparent: mention that you searched for current information
-- Cite sources using [1], [2] etc. notation
-- Prioritize official government sites and reputable news
-- If reporting on candidates, always note: "This is factual information. UWAZI does not endorse any candidate."
-` : '';
-
-  return `You are Ask Uwazi — a nonpartisan, AI-powered civic intelligence assistant built by UWAZI.AI and powered by Raia G1.0.
-TODAY: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-
-ELECTION CONTEXT: The 2026 U.S. midterm elections are November 3, 2026. We are in active midterms season.
-
-CRITICAL: For any question about candidates, races, results, or bill status — always use current search results. Never rely on training data for time-sensitive civic information.
-
-Your mission is to make democracy accessible, understandable, and actionable for every American — especially communities that have been historically underrepresented in civic life.
-
-═══════════════════════════════════
-IDENTITY & VOICE
-═══════════════════════════════════
-- Name: Ask Uwazi ("Uwazi" means transparency/clarity in Swahili)
-- Tone: Warm, direct, empowering — like a knowledgeable friend who happens to know everything about civics
-- Never condescending, never partisan, never preachy
-- Use plain language. Break down complex policy into real impact.
-- Use "you" and "your community" language
-- Celebrate civic action — voting, learning, tracking bills
-- Short answers for simple questions. Detailed for complex ones.
-
-═══════════════════════════════════
-STRICT NONPARTISAN RULES
-═══════════════════════════════════
-- NEVER endorse, favor, or criticize any political party, candidate, or ideology
-- NEVER predict election outcomes
-- NEVER use loaded political language
-- When asked "who should I vote for?" → Explain how to research candidates
-- When covering controversial policy → Present multiple perspectives fairly
-
-═══════════════════════════════════
-USER CONTEXT
-═══════════════════════════════════
-${profile.full_name ? `User's name: ${profile.full_name}` : ""}
-${profile.zip_code ? `ZIP code: ${profile.zip_code}\nState: ${profile.state || "Unknown"}` : "Location: Not set"}
-${profile.civic_score !== null ? `Civic Literacy Score: ${profile.civic_score}/100` : ""}
-${profile.lessons_completed ? `Lessons completed: ${profile.lessons_completed}` : ""}
-${profile.voting_plan ? "Has voting plan: Yes" : ""}
-${profile.saved_bills.length ? `Tracking bills: ${profile.saved_bills.join(", ")}` : ""}
-${zipCivicContext}
-${searchSection}
-
-═══════════════════════════════════
-CIVIC KNOWLEDGE BASE
-═══════════════════════════════════
-You are an expert on: elections & voting, ballot comprehension, legislation & policy, local government, civic rights & participation, and policy impact areas (housing, education, healthcare, criminal justice, environment, economy, immigration).
-
-═══════════════════════════════════
-RESPONSE PATTERNS
-═══════════════════════════════════
-- Direct answer first, then context
-- Specific to user's state/ZIP when known
-- End civic action responses with next steps referencing UWAZI tools
-
-═══════════════════════════════════
-WHAT UWAZI IS
-═══════════════════════════════════
-If asked: "UWAZI.AI is a nonpartisan civic education platform built to make democracy accessible to everyone. We're powered by Raia G1.0 and backed by the Raia Institute — a 501c3 nonprofit."
-If asked who built it: "UWAZI was founded by Mychal Shaw and built by the team at the Raia Institute, a nonprofit based in Kansas City, MO."
-
-Format responses using markdown with headers, bullet points, and bold text for clarity.
-
-═══════════════════════════════════
-RESPONSE LENGTH — KEEP IT SHORT
-═══════════════════════════════════
-- Default to SHORT, scannable answers (2–5 sentences, or a tight bulleted list).
-- Lead with the direct answer in the first sentence. No preamble, no throat-clearing.
-- Only go longer when the user explicitly asks for "details", "explain in depth", or the question genuinely requires it (e.g. multi-step process, complex bill breakdown).
-- Prefer 1–2 short bullets over a long paragraph. Cut anything that isn't useful.
-- No "I hope this helps" or sign-offs.
-
-═══════════════════════════════════
-SUGGESTED FOLLOW-UP QUESTIONS — REQUIRED
-═══════════════════════════════════
-At the very end of EVERY response, append a single line in this exact format:
-
-<followups>Question one? | Question two? | Question three?</followups>
-
-Rules:
-- ALWAYS include this block. No exceptions.
-- Provide 3 (max 4) short follow-up questions the user is likely to ask next, given the topic and their context (ZIP, state, civic score).
-- Each question must be under 60 characters, written from the USER's perspective ("How do I…", "Who is…", "What's…").
-- Make them specific and actionable — not generic ("Tell me more" is forbidden).
-- Pipe-separated (|), no numbering, no bullets, no quotes.
-- Place this on its own final line. Do not wrap it in code fences. Do not add anything after it.`;
-}
-
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return JSON.stringify(data);
   }
 
-  try {
-    const body = await req.json();
-    const question: string = (body?.question ?? '').toString().trim();
-    if (!question) {
-      return new Response(JSON.stringify({ error: "question is required" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+  if (name === "get_user_ballot") {
+    const { data: profile } = await supabase
+      .from("voter_profiles")
+      .select("state, county_fips, cd, sldu, sldl, address_complete")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!profile?.address_complete || !profile.cd) {
+      return JSON.stringify({
+        error: "unresolved_address",
+        note:
+          "Cannot build a ballot without resolved districts. Ask the user to " +
+          "complete or correct their address.",
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const electionDate = String(input.election_date ?? "2026-08-04");
+    const party = input.party ? String(input.party) : null;
 
-    const userProfile: UserProfile = {
-      full_name: null, zip_code: null, state: null,
-      civic_score: null, lessons_completed: null,
-      voting_plan: false, saved_bills: [],
-    };
+    const { data: election } = await supabase
+      .from("elections")
+      .select("id, name, polls_open, polls_close")
+      .eq("election_date", electionDate)
+      .eq("state", profile.state)
+      .eq("is_published", true)
+      .maybeSingle();
 
-    let userId: string | null = null;
-    let supabase: any = null;
-
-    const authHeader = req.headers.get("authorization");
-    if (authHeader) {
-      try {
-        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-        supabase = createClient(supabaseUrl, supabaseServiceKey);
-        const token = authHeader.replace("Bearer ", "");
-        const { data: { user } } = await supabase.auth.getUser(token);
-
-        if (user) {
-          userId = user.id;
-          const [profileRes, scoreRes, planRes, billsRes] = await Promise.all([
-            supabase.from("profiles").select("display_name, zip_code, street_address, location").eq("user_id", user.id).single(),
-            supabase.from("civic_scores").select("civic_literacy_score, lessons_completed").eq("user_id", user.id).maybeSingle(),
-            supabase.from("voting_plans").select("id").eq("user_id", user.id).limit(1),
-            supabase.from("saved_legislation").select("bill_title").eq("user_id", user.id).limit(10),
-          ]);
-          if (profileRes.data) {
-            userProfile.full_name = profileRes.data.display_name;
-            userProfile.zip_code = profileRes.data.zip_code;
-            if (profileRes.data.zip_code) {
-              userProfile.state = profileRes.data.location || getStateFromZip(profileRes.data.zip_code);
-            }
-          }
-          if (scoreRes.data) {
-            userProfile.civic_score = scoreRes.data.civic_literacy_score;
-            userProfile.lessons_completed = scoreRes.data.lessons_completed;
-          }
-          userProfile.voting_plan = (planRes.data?.length ?? 0) > 0;
-          userProfile.saved_bills = (billsRes.data || []).map((b: any) => b.bill_title).filter(Boolean);
-        }
-      } catch (e) {
-        console.error("Failed to fetch user context:", e);
-      }
+    if (!election) {
+      return JSON.stringify({
+        error: "no_published_election",
+        note: "No verified ballot data for that date. Hand off to the county board.",
+      });
     }
 
-    // Fetch zip-specific civic context from database
-    const zipCivicContext = await fetchZipCivicContext(supabase, userProfile.state, userProfile.zip_code);
+    let q = supabase
+      .from("ballot_contests")
+      .select(
+        "id, contest_type, office_name, measure_title, measure_summary, " +
+        "measure_full_text_url, party, source_name, source_url, verified_at, " +
+        "sort_order, ballot_candidates(id, name, party, is_incumbent, website, source_url)",
+      )
+      .eq("election_id", election.id)
+      .or(`cd.is.null,cd.eq.${profile.cd}`)
+      .order("sort_order");
 
-    // Web Search
-    const performSearch = shouldSearch(question);
-    let searchResults: SearchResult[] = [];
-    let searchQuery = '';
-
-    if (performSearch) {
-      searchQuery = buildSearchQuery(question, userProfile.state, userProfile.zip_code);
-      console.log(`[ask-uwazi] Web search: "${searchQuery}"`);
-      searchResults = await searchWeb(searchQuery);
-      console.log(`[ask-uwazi] Found ${searchResults.length} results`);
+    if (party) {
+      q = q.or(`party.is.null,party.eq.${party}`);
+    } else {
+      q = q.is("party", null);
     }
 
-    const systemPrompt = buildSystemPrompt(userProfile, searchResults.length > 0 ? searchResults : null, zipCivicContext);
+    const { data: contests, error } = await q;
+    if (error) return JSON.stringify({ error: error.message });
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    return JSON.stringify({
+      election: election.name,
+      polls_open: election.polls_open,
+      polls_close: election.polls_close,
+      party_ballot: party,
+      contest_count: contests?.length ?? 0,
+      contests: contests ?? [],
+      note:
+        "Only present contests returned here. If a user asks about a race not " +
+        "in this list, say you don't have verified data and hand off.",
+    });
+  }
+
+  if (name === "get_election_authority") {
+    let q = supabase
+      .from("election_authorities")
+      .select("key, display_name, covers_note, phone, website, lookup_url, sample_ballot_url, verified_at");
+
+    if (input.authority_key) q = q.eq("key", String(input.authority_key));
+    else if (input.state) q = q.eq("state", String(input.state).toUpperCase());
+    else return JSON.stringify({ error: "need authority_key or state" });
+
+    const { data, error } = await q;
+    if (error) return JSON.stringify({ error: error.message });
+    if (!data?.length) {
+      return JSON.stringify({
+        error: "not_found",
+        fallback: "Direct the user to vote.gov to find their local election office.",
+      });
+    }
+    return JSON.stringify(data);
+  }
+
+  return JSON.stringify({ error: `unknown tool: ${name}` });
+}
+
+// ------------------------------------------------------------
+// Model routing — cheap classifier picks the tier
+// ------------------------------------------------------------
+
+async function pickModel(question: string, apiKey: string): Promise<string> {
+  try {
+    const res = await fetch(ANTHROPIC_URL, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: question },
-        ],
+        model: MODELS.route,
+        max_tokens: 8,
+        system:
+          "Classify the civic question. Reply with exactly one word.\n" +
+          "SIMPLE = one fact (a date, a time, a link, a yes/no).\n" +
+          "COMPLEX = comparing candidates, explaining a ballot measure, " +
+          "multi-part, or anything needing several sources.",
+        messages: [{ role: "user", content: question }],
       }),
+      signal: AbortSignal.timeout(6000),
     });
+    const j = await res.json();
+    const label = j?.content?.[0]?.text?.trim().toUpperCase() ?? "";
+    return label.startsWith("COMPLEX") ? MODELS.deep : MODELS.chat;
+  } catch {
+    return MODELS.chat;
+  }
+}
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI usage credits exhausted. Please add funds in Settings." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const text = await response.text();
-      console.error("AI gateway error:", response.status, text);
-      return new Response(JSON.stringify({ error: "AI service temporarily unavailable" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+// ------------------------------------------------------------
+// Handler
+// ------------------------------------------------------------
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+
+  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
+  if (!apiKey) return json({ error: "missing_api_key" }, 500);
+
+  try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) return json({ error: "unauthorized" }, 401);
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return json({ error: "unauthorized" }, 401);
+
+    const { message, history = [], session_id } = await req.json();
+    if (!message?.trim()) return json({ error: "empty_message" }, 400);
+
+    const model = await pickModel(message, apiKey);
+
+    const system = [
+      {
+        type: "text",
+        text: SYSTEM_PROMPT,
+        cache_control: { type: "ephemeral" },
+      },
+    ];
+
+    const messages: Record<string, unknown>[] = [
+      ...history,
+      { role: "user", content: message },
+    ];
+
+    let finalText = "";
+    const citations: unknown[] = [];
+    const toolsUsed: string[] = [];
+    let usage: Record<string, number> = {};
+
+    for (let turn = 0; turn < 6; turn++) {
+      const res = await fetch(ANTHROPIC_URL, {
+        method: "POST",
+        headers: {
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: 2048,
+          system,
+          messages,
+          tools: buildTools(true),
+        }),
+        signal: AbortSignal.timeout(60000),
       });
+
+      if (!res.ok) {
+        const detail = await res.text();
+        console.error("anthropic error", res.status, detail);
+        return json({ error: "upstream_error", status: res.status }, 502);
+      }
+
+      const data = await res.json();
+      usage = {
+        input_tokens: data.usage?.input_tokens ?? 0,
+        output_tokens: data.usage?.output_tokens ?? 0,
+        cache_read_tokens: data.usage?.cache_read_input_tokens ?? 0,
+        cache_write_tokens: data.usage?.cache_creation_input_tokens ?? 0,
+      };
+
+      messages.push({ role: "assistant", content: data.content });
+
+      if (data.stop_reason === "pause_turn") continue;
+
+      if (data.stop_reason === "tool_use") {
+        const results = [];
+        for (const block of data.content ?? []) {
+          if (block.type !== "tool_use") continue;
+          toolsUsed.push(block.name);
+          const out = await runLocalTool(
+            block.name,
+            block.input ?? {},
+            supabase,
+            user.id,
+          );
+          results.push({
+            type: "tool_result",
+            tool_use_id: block.id,
+            content: out,
+          });
+        }
+        if (results.length === 0) break;
+        messages.push({ role: "user", content: results });
+        continue;
+      }
+
+      for (const block of data.content ?? []) {
+        if (block.type === "text") {
+          finalText += block.text;
+          if (block.citations?.length) citations.push(...block.citations);
+        }
+        if (block.type === "web_search_tool_result") {
+          toolsUsed.push("web_search");
+        }
+      }
+      break;
     }
 
-    const aiJson = await response.json();
-    const answer: string = aiJson?.choices?.[0]?.message?.content ?? '';
-
-    // ═══ Fire-and-forget question logging ═══
-    if (supabase) {
-      logQuestion(
-        supabase, LOVABLE_API_KEY, userId,
-        question, userProfile.zip_code, userProfile.state,
-        performSearch,
-      ).catch(err => console.error('[question-log] Async error:', err));
+    if (!finalText) {
+      finalText =
+        "I wasn't able to get a verified answer to that. Your county " +
+        "election board can help — you can find them at vote.gov.";
     }
 
-    return new Response(
-      JSON.stringify({
-        answer,
-        sources: searchResults.map(r => ({ title: r.title, url: r.url })),
-        didSearch: performSearch,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (e) {
-    console.error("ask-uwazi error:", e);
-    return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    const escalated = /county election board|vote\.gov|election office/i
+      .test(finalText);
+
+    await supabase.from("chat_messages").insert([
+      {
+        user_id: user.id,
+        session_id,
+        role: "user",
+        content: message,
+      },
+      {
+        user_id: user.id,
+        session_id,
+        role: "assistant",
+        content: finalText,
+        model,
+        tools_used: toolsUsed,
+        citations,
+        was_escalated: escalated,
+        input_tokens: usage.input_tokens,
+        output_tokens: usage.output_tokens,
+        cache_read_tokens: usage.cache_read_tokens,
+      },
+    ]);
+
+    return json({
+      reply: finalText,
+      citations,
+      model,
+      tools_used: [...new Set(toolsUsed)],
+      usage,
+    }, 200);
+  } catch (err) {
+    console.error("ask-uwazi error", err);
+    return json({ error: "internal_error" }, 500);
   }
 });
 
+function json(body: unknown, status: number) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...CORS, "Content-Type": "application/json" },
+  });
+}
