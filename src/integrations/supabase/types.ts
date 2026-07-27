@@ -995,6 +995,38 @@ export type Database = {
         }
         Relationships: []
       }
+      code_redemptions: {
+        Row: {
+          access_until: string
+          code: string
+          id: string
+          redeemed_at: string
+          user_id: string
+        }
+        Insert: {
+          access_until: string
+          code: string
+          id?: string
+          redeemed_at?: string
+          user_id: string
+        }
+        Update: {
+          access_until?: string
+          code?: string
+          id?: string
+          redeemed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "code_redemptions_code_fkey"
+            columns: ["code"]
+            isOneToOne: false
+            referencedRelation: "redemption_codes"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       election_authorities: {
         Row: {
           county_name: string | null
@@ -2162,6 +2194,45 @@ export type Database = {
         }
         Relationships: []
       }
+      redemption_codes: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          expires_at: string | null
+          grant_days: number | null
+          grant_until: string | null
+          label: string
+          max_redemptions: number | null
+          redeemed_count: number
+          starts_at: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          expires_at?: string | null
+          grant_days?: number | null
+          grant_until?: string | null
+          label: string
+          max_redemptions?: number | null
+          redeemed_count?: number
+          starts_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          expires_at?: string | null
+          grant_days?: number | null
+          grant_until?: string | null
+          label?: string
+          max_redemptions?: number | null
+          redeemed_count?: number
+          starts_at?: string
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
           content_id: string
@@ -3190,6 +3261,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      redeem_code: { Args: { p_code: string }; Returns: Json }
       signups_by_day: {
         Args: { period_days: number }
         Returns: {
