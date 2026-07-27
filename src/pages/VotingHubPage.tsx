@@ -252,6 +252,10 @@ export default function VotingHubPage() {
         <>
           <MyBallotCard state={profile.state_code} partyPreference={profile.party_preference} />
           <RegistrationCheckCard profile={profile} />
+          <CandidateRacesSection
+            state={profile.state_code}
+            partyPreference={profile.party_preference}
+          />
           <BallotMeasuresSection
             state={profile.state_code}
             partyPreference={profile.party_preference}
