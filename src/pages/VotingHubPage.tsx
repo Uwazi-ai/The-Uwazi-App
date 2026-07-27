@@ -563,6 +563,8 @@ function MeasureDetailSheet({ contest, onClose }: { contest: any | null; onClose
               </SheetTitle>
             </SheetHeader>
 
+            <MeasureVoteChooser contestId={contest.id} />
+
             {/* 2. Plain-language summary — UWAZI voice */}
             <section
               className="rounded-2xl p-5"
