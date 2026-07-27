@@ -15,6 +15,8 @@ import { useProfile } from "@/contexts/ProfileContext";
 import { useInAppBrowser } from "@/contexts/InAppBrowserContext";
 import { cn } from "@/lib/utils";
 import { MyBallotCard } from "@/components/ballot/MyBallotCard";
+import { CandidateRacesSection } from "@/components/voting/CandidateRacesSection";
+import { useMyBallotSelections, useSaveSelection } from "@/hooks/useMyBallot";
 
 /* ══════════════════════════════════════════════════════
    CONSTANTS
@@ -251,6 +253,10 @@ export default function VotingHubPage() {
         <>
           <MyBallotCard state={profile.state_code} partyPreference={profile.party_preference} />
           <RegistrationCheckCard profile={profile} />
+          <CandidateRacesSection
+            state={profile.state_code}
+            partyPreference={profile.party_preference}
+          />
           <BallotMeasuresSection
             state={profile.state_code}
             partyPreference={profile.party_preference}
@@ -558,6 +564,8 @@ function MeasureDetailSheet({ contest, onClose }: { contest: any | null; onClose
               </SheetTitle>
             </SheetHeader>
 
+            <MeasureVoteChooser contestId={contest.id} />
+
             {/* 2. Plain-language summary — UWAZI voice */}
             <section
               className="rounded-2xl p-5"
@@ -626,6 +634,52 @@ function MeasureDetailSheet({ contest, onClose }: { contest: any | null; onClose
         )}
       </SheetContent>
     </Sheet>
+  );
+}
+
+function MeasureVoteChooser({ contestId }: { contestId: string }) {
+  const { data: selections = [] } = useMyBallotSelections();
+  const save = useSaveSelection();
+  const current = selections.find((s) => s.contest_id === contestId)?.measure_vote || null;
+  const choose = (v: "yes" | "no" | "undecided") => {
+    save.mutate({ contest_id: contestId, candidate_id: null, measure_vote: v });
+  };
+  const opts: Array<{ v: "yes" | "no" | "undecided"; label: string }> = [
+    { v: "yes", label: "YES" },
+    { v: "no", label: "NO" },
+    { v: "undecided", label: "Still deciding" },
+  ];
+  return (
+    <section
+      className="rounded-2xl p-4"
+      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.10)" }}
+    >
+      <p className="text-xs tracking-widest uppercase text-muted-foreground mb-3">Your choice (saved to your ballot)</p>
+      <div className="grid grid-cols-3 gap-2">
+        {opts.map((o) => {
+          const selected = current === o.v;
+          return (
+            <button
+              key={o.v}
+              onClick={() => choose(o.v)}
+              className={cn(
+                "rounded-xl py-3 text-sm font-semibold border transition-colors",
+                selected
+                  ? "border-primary text-primary bg-primary/10"
+                  : "border-white/10 text-foreground hover:border-white/25 bg-white/[0.02]",
+              )}
+            >
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+      {current && (
+        <p className="text-[11px] text-muted-foreground mt-2">
+          Synced with your printable ballot at /my-ballot.
+        </p>
+      )}
+    </section>
   );
 }
 
