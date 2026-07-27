@@ -1,45 +1,50 @@
-## Problem
+## Voting Hub rebuild — `/vote`
 
-On the final onboarding step (`RegistrationCheckStep`), users tap "Check My Registration" → vote.org opens in the in-app browser → they get stuck and can't return to finish onboarding.
+This is a large sprint (8 prompts, ~2 new DB tables, 1 new route, 6+ components, 1 detail sheet, election-authority lookup). I'll ship it in ordered phases so each renders and can be verified before the next lands. Everything uses the existing UWAZI dark theme (#040404 / #9BD34B / AXIS headings) and mobile-first Capacitor layout.
 
-Likely causes (all contribute):
+### Route decision
+The app already has `/app/vote` (VotingHubPage). I'll wire the new hub at `/vote` as an alias that renders the same page, so existing links keep working and the requested URL matches the prompts. Confirm if you'd rather I move it entirely off `/app`.
 
-1. **Vote.org blocks iframe embedding** (`X-Frame-Options: DENY`). The `InAppBrowser` `<iframe>` `onError` rarely fires for X-Frame blocks — instead the iframe stays blank and the 10s timeout fires, but during those 10s the user sees a blank black panel and assumes the app is broken.
-2. **The "Continue →" button is gated behind a checkbox** the user hasn't seen yet (they're staring at the blank iframe), and there's no path forward without ticking it.
-3. **`InAppBrowser` history hack interferes with onboarding.** It calls `window.history.pushState` on open and `window.history.back()` on close. If the browser fires `popstate` for any reason (Android system back, swipe-back gesture), `onClose` runs — but the dummy entry cleanup can also pop the *real* onboarding route, kicking the user off the page or to `/app` before `onboarding_complete=true` is saved, which then bounces them back to `/onboarding` via `ProtectedRoute` and feels like a loop.
-4. **No visible "I'll do this later / Skip" affordance** on the registration step, so a user who can't or won't verify right now has zero exit.
+### Phase 1 — Data foundation (before any UI)
+New tables (with GRANTs + RLS):
+- `voter_profiles` — extends `profiles`: `address_complete`, `state`, `city`, `county_name`, `election_authority_key`, `party_preference`, `cd`, `registration_verified_at`. (Some fields already exist on `profiles` — I'll reuse those and add only what's missing.)
+- `elections_published` — `state`, `election_date`, `is_published`, `sample_ballot_url`. Seeded with MO + KS for 2026-08-04.
+- `ballot_contests` — `state`, `election_date`, `contest_type`, `sort_order`, `measure_title`, `measure_summary`, `plain_summary`, `yes_means`, `no_means`, `supporters_say`, `opponents_say`, `measure_full_text_url`, `source_name`, `source_url`.
+- `election_authorities` — `key`, `state`, `county_name`, `display_name`, `covers_note`, `phone`, `website`, `lookup_url`, `poll_hours`.
 
-## Fix Plan
+Seeds: KC Election Board, Jackson County Election Board, Johnson County KS, plus statewide SOS fallbacks. Measure seeds: 4 MO amendments + 1 KS amendment (titles + official language placeholders — I'll flag which fields need editorial review before launch).
 
-### 1. Make the registration step always escapable
-In `src/components/onboarding/RegistrationCheckStep.tsx`:
-- Keep the checkbox + "Continue" primary path, but **also** show a secondary text button "I'll check this later — continue" that calls the same `onContinue`. This guarantees no user is trapped. It still marks `registration_checked_at` server-side so analytics know the step was shown.
-- Move the checkbox + Continue **above** the two external link buttons (or make them sticky at the bottom) so users see the exit before tapping out to vote.org.
-- Auto-tick the checkbox when the user taps either "Check" or "Register" button (they've taken the action — don't make them come back and tick a box too).
+### Phase 2 — Hub shell + state machine (Prompt 1)
+Single `useVotingHubState()` hook returns `NO_ADDRESS | OUT_OF_AREA | READY | BALLOT_PENDING`. `VotingHubPage` switches on it. Every branch renders real content, never a bare spinner.
 
-### 2. Harden `InAppBrowser` so it never strands users
-In `src/components/InAppBrowser.tsx`:
-- **Detect iframe-block faster.** Shorten the "still loading" timeout from 10s → 4s and immediately show the error card with the "Open in Browser" CTA. For known-blocking domains (`vote.org`, `vote.gov`, `usa.gov`, `irs.gov`, `*.gov`), skip the iframe entirely and go straight to the "Open in Browser" card on open.
-- **Fix the history-stack side effect.** Remove the `window.history.pushState` / `window.history.back()` dance. Use a plain ESC keydown + backdrop click + explicit close button (already present). The current implementation can pop the parent route on cleanup, which is the most plausible cause of users landing back at `/onboarding` mid-flow.
-- Ensure `onClose` runs cleanly when the user taps "Open in Browser" from the error card (already does — keep).
+### Phase 3 — Header + next-action (Prompt 2)
+`ElectionCountdown` (already exists) extended for "Tomorrow" / "Today" / election-day green mode. New `NextActionCard` computes the single action from `{state, today}` via a pure function so it's unit-testable.
 
-### 3. Don't bounce users mid-save
-In `src/components/auth/ProtectedRoute.tsx`:
-- The profile lookup re-runs on every `location.pathname` change. While `handleComplete` is saving, a transient navigation can read the old `onboarding_complete=false` and redirect back. Gate the redirect on `!loading && !checking` (already there) but also skip the recheck when already on `/onboarding`, so a quick `navigate("/app")` after save isn't undone by a stale in-flight query.
+### Phase 4 — Registration check (Prompt 3)
+`RegistrationCheck` (exists) rewired to use the matched `election_authorities.lookup_url` via Capacitor Browser, with the Yes/Not-sure follow-up writing `registration_verified_at`. Copy hardened: never claims UWAZI checked anything.
 
-### 4. Telemetry to confirm
-Add a one-line `console.info` (or existing analytics call if present) on:
-- `RegistrationCheckStep` mount, "Check" tap, "Register" tap, "Continue" tap, "Skip later" tap.
-- `InAppBrowser` open / error / close.
+### Phase 5 — Ballot measures list + detail sheet (Prompts 4 & 5)
+- `BallotMeasuresList` — fetches contests, renders cards, adaptive MO/KS intro, honest empty state.
+- `MeasureDetailSheet` — full-screen sheet with the six required blocks. `SupportersOpponents` is a single component that renders both or neither (contract, not convention). Official ballot language rendered in a distinct monospace bordered block on a lighter surface so it can never be confused with UWAZI's plain-language summary.
 
-This lets us verify in the next session-replay where users actually drop off.
+### Phase 6 — Kansas unaffiliated path (Prompt 6)
+`PartyPreferenceCard` for KS users; on "Unaffiliated" shows the green "You can still vote" card linking directly into the amendment sheet. "Not sure" links to registration lookup.
 
-### Out of scope
-- No backend / RLS / schema changes.
-- No changes to other onboarding steps, routes, theme, or nav.
-- No new packages.
+### Phase 7 — Where to vote (Prompt 7)
+`WhereToVoteCard` pulls the user's authority row + state-specific voting-options copy. KS poll hours only shown when sourced; otherwise directs to the county with a tap-to-call.
 
-### Files touched
-- `src/components/onboarding/RegistrationCheckStep.tsx` — reorder, auto-tick, add skip-later.
-- `src/components/InAppBrowser.tsx` — drop history hack, faster timeout, gov-domain shortcut.
-- `src/components/auth/ProtectedRoute.tsx` — guard against transient re-redirect during save.
+### Phase 8 — Ask Uwazi entry (Prompt 8)
+`VoteAskUwaziCard` at the bottom with 4 suggested questions (Amendment 4 shown for MO, generic amendment for KS). Tapping navigates to `/app/ask` with the question pre-sent.
+
+### Guardrails baked in
+- Supporters/opponents = single component, both-or-neither.
+- Plain-language vs. official ballot language: different surfaces, different type treatment, explicit labels.
+- Nonpartisan disclaimer on the "what each side says" block.
+- Every empty state has real copy + a next step.
+
+### What I'd like confirmed before I start
+1. Keep the hub at `/app/vote` (with `/vote` as an alias), or fully move to `/vote`?
+2. For the 4 MO amendments + 1 KS amendment: do you have the plain-language summaries, yes_means/no_means, and supporters/opponents copy ready to paste in, or should I seed with `NULL` placeholders and let the honest "still confirming" empty state show until you fill them via admin?
+3. Is there existing editorial content anywhere in the repo I should pull from, or is this all new?
+
+Once you confirm, I'll ship Phase 1 (migration + seeds) and Phase 2 (shell) in the first pass, then work through the remaining phases.
