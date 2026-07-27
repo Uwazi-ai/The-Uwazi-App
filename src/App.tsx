@@ -55,6 +55,10 @@ import AdminSecurityPage from "./pages/admin/AdminSecurityPage";
 import AdminSEOPage from "./pages/admin/AdminSEOPage";
 import UnsubscribePage from "./pages/UnsubscribePage";
 import MyCity from "./pages/MyCity";
+import MyBallotEntryPage from "./pages/MyBallotEntryPage";
+import MyBallotWalkthroughPage from "./pages/MyBallotWalkthroughPage";
+import MyBallotReviewPage from "./pages/MyBallotReviewPage";
+import MyBallotExportPage from "./pages/MyBallotExportPage";
 import { InAppBrowserProvider } from "@/contexts/InAppBrowserContext";
 
 const queryClient = new QueryClient();
@@ -94,6 +98,10 @@ const App = () => (
                 <Route path="/app/ask" element={<AskUwaziPage />} />
                 <Route path="/app/vote" element={<VotingHubPage />} />
                 <Route path="/app/my-city" element={<MyCity />} />
+                <Route path="/app/my-ballot" element={<MyBallotEntryPage />} />
+                <Route path="/app/my-ballot/walkthrough" element={<MyBallotWalkthroughPage />} />
+                <Route path="/app/my-ballot/review" element={<MyBallotReviewPage />} />
+                <Route path="/app/my-ballot/export" element={<MyBallotExportPage />} />
                 <Route path="/app/vote/candidates" element={<CandidatesPage />} />
                 <Route path="/app/vote/candidates/:id" element={<CandidateDetailPage />} />
                 <Route path="/app/news" element={<NewsPage />} />
