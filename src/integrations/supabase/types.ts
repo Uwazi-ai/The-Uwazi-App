@@ -146,6 +146,56 @@ export type Database = {
         }
         Relationships: []
       }
+      ballot_candidates: {
+        Row: {
+          bio: string | null
+          contest_id: string
+          created_at: string
+          id: string
+          is_incumbent: boolean | null
+          name: string
+          party: string | null
+          sort_order: number
+          source_url: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          bio?: string | null
+          contest_id: string
+          created_at?: string
+          id?: string
+          is_incumbent?: boolean | null
+          name: string
+          party?: string | null
+          sort_order?: number
+          source_url: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          bio?: string | null
+          contest_id?: string
+          created_at?: string
+          id?: string
+          is_incumbent?: boolean | null
+          name?: string
+          party?: string | null
+          sort_order?: number
+          source_url?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ballot_candidates_contest_id_fkey"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "ballot_contests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ballot_contests: {
         Row: {
           contest_type: string
