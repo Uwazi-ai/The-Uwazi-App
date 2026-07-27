@@ -2595,6 +2595,54 @@ export type Database = {
           },
         ]
       }
+      user_ballot_selections: {
+        Row: {
+          candidate_id: string | null
+          contest_id: string
+          created_at: string
+          id: string
+          measure_vote: string | null
+          party_snapshot: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          candidate_id?: string | null
+          contest_id: string
+          created_at?: string
+          id?: string
+          measure_vote?: string | null
+          party_snapshot?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          candidate_id?: string | null
+          contest_id?: string
+          created_at?: string
+          id?: string
+          measure_vote?: string | null
+          party_snapshot?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_ballot_selections_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "ballot_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_ballot_selections_contest_id_fkey"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "ballot_contests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_civic_stats: {
         Row: {
           bills_tracked_count: number
