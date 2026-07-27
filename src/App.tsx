@@ -46,6 +46,7 @@ import AdminPartnerOrgsPage from "./pages/admin/AdminPartnerOrgsPage";
 import UpgradePage from "./pages/UpgradePage";
 import CheckoutReturnPage from "./pages/CheckoutReturnPage";
 import ManageSubscriptionPage from "./pages/ManageSubscriptionPage";
+import RedeemPage from "./pages/RedeemPage";
 import Welcome from "./pages/Welcome";
 import PartnerDashboardPage from "./pages/PartnerDashboardPage";
 import JoinPage from "./pages/JoinPage";
