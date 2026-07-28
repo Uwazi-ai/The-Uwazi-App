@@ -44,6 +44,7 @@ import AdminSurveysPage from "./pages/admin/AdminSurveysPage";
 import AdminEpisodesPage from "./pages/admin/AdminEpisodesPage";
 import AdminPartnerOrgsPage from "./pages/admin/AdminPartnerOrgsPage";
 import UpgradePage from "./pages/UpgradePage";
+import AdminCodesPage from "./pages/admin/AdminCodesPage";
 import CheckoutReturnPage from "./pages/CheckoutReturnPage";
 import ManageSubscriptionPage from "./pages/ManageSubscriptionPage";
 import RedeemPage from "./pages/RedeemPage";
@@ -131,6 +132,7 @@ const App = () => (
                 <Route path="/app/admin/crm" element={<AdminRoute allowProgramAdmin><AdminCRMPage /></AdminRoute>} />
                 <Route path="/app/admin/surveys" element={<AdminRoute allowProgramAdmin><AdminSurveysPage /></AdminRoute>} />
                 <Route path="/app/admin/partner-orgs" element={<AdminRoute><AdminPartnerOrgsPage /></AdminRoute>} />
+                <Route path="/app/admin/codes" element={<AdminRoute><AdminCodesPage /></AdminRoute>} />
                 <Route path="/app/admin/security" element={<AdminRoute><AdminSecurityPage /></AdminRoute>} />
                 <Route path="/app/admin/seo" element={<AdminRoute><AdminSEOPage /></AdminRoute>} />
               </Route>
