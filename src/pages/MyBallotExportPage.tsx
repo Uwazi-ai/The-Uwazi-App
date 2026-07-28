@@ -18,6 +18,7 @@ import {
   PartyKey,
 } from "@/hooks/useMyBallot";
 import { Capacitor } from "@capacitor/core";
+import uwaziPinwheel from "@/assets/uwazi-pinwheel.png";
 
 interface ExportPayload {
   city: string | null;
@@ -191,20 +192,29 @@ export default function MyBallotExportPage() {
 
       {/* Paper */}
       <div ref={paperRef} className="ballot-paper">
-        <header className="pb-4 border-b border-black/20">
-          <div className="flex items-start justify-between">
+        {/* Watermark */}
+        <div className="ballot-watermark" aria-hidden="true">
+          <img src={uwaziPinwheel} alt="" />
+        </div>
+
+        <header className="pb-4 border-b border-black/20 relative z-10">
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="ballot-title">MY BALLOT NOTES</h1>
+              <h1 className="ballot-title">MY PRACTICE BALLOT</h1>
               <div className="ballot-sub">
                 {active.city ? `${active.city}, ` : ""}{active.state} ·{" "}
                 {active.county ? `${active.county} · ` : ""}
                 {active.party ? `${PARTY_LABEL[active.party]} ballot` : ""} · {ELECTION_LABEL}
               </div>
             </div>
-            <div className="ballot-brand">UWAZI</div>
+            <div className="ballot-brand-lockup">
+              <img src={uwaziPinwheel} alt="" className="ballot-brand-mark" />
+              <span>UWAZI</span>
+            </div>
           </div>
           <div className="ballot-banner">
-            PRACTICE BALLOT — NOT AN OFFICIAL BALLOT. These are your personal notes.
+            <span className="ballot-banner-title">Unofficial · For Personal Use Only</span>
+            <span className="ballot-banner-sub">This is not an official ballot. Use it as a study guide — do not present it at your polling place.</span>
           </div>
         </header>
 
@@ -249,6 +259,7 @@ export default function MyBallotExportPage() {
 
       <style>{`
         .ballot-paper {
+          position: relative;
           background: #ffffff;
           color: #000000;
           padding: 0.5in;
@@ -257,7 +268,24 @@ export default function MyBallotExportPage() {
           font-size: 11pt;
           line-height: 1.35;
           box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+          overflow: hidden;
         }
+        .ballot-watermark {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          pointer-events: none;
+          z-index: 0;
+        }
+        .ballot-watermark img {
+          width: 62%;
+          max-width: 5.5in;
+          opacity: 0.06;
+          transform: rotate(-18deg);
+        }
+        .ballot-paper > *:not(.ballot-watermark) { position: relative; z-index: 1; }
         .ballot-title {
           font-family: Arial, Helvetica, sans-serif;
           font-weight: 900;
@@ -265,7 +293,10 @@ export default function MyBallotExportPage() {
           font-size: 18pt;
           margin: 0;
         }
-        .ballot-brand {
+        .ballot-brand-lockup {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
           font-family: Arial, Helvetica, sans-serif;
           font-weight: 800;
           letter-spacing: 0.28em;
@@ -273,17 +304,32 @@ export default function MyBallotExportPage() {
           border: 1.5px solid #000;
           padding: 3px 8px;
         }
+        .ballot-brand-mark { width: 14px; height: 14px; }
         .ballot-sub { font-size: 10pt; margin-top: 4px; }
         .ballot-banner {
           margin-top: 10px;
-          border: 1.5px solid #000;
-          padding: 6px 10px;
+          border: 2px solid #b45309;
+          background: #fff7ed;
+          padding: 8px 12px;
           font-family: Arial, Helvetica, sans-serif;
-          font-size: 9pt;
-          font-weight: 700;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
           text-align: center;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .ballot-banner-title {
+          font-size: 10pt;
+          font-weight: 800;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #7c2d12;
+        }
+        .ballot-banner-sub {
+          font-size: 8.5pt;
+          font-weight: 500;
+          color: #7c2d12;
+          font-family: Georgia, 'Times New Roman', serif;
+          font-style: italic;
         }
         .ballot-row {
           padding: 8px 0;
