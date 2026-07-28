@@ -3182,6 +3182,26 @@ export type Database = {
           xp_awarded: number
         }[]
       }
+      code_redemption_stats: {
+        Args: never
+        Returns: {
+          active: boolean
+          code: string
+          early_signups: number
+          first_redemption: string
+          label: string
+          last_redemption: string
+          max_redemptions: number
+          redeemed_count: number
+        }[]
+      }
+      code_redemptions_by_day: {
+        Args: { period_days: number }
+        Returns: {
+          count: number
+          date: string
+        }[]
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean

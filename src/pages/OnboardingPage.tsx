@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -8,14 +8,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import AddressStep, { type AddressData } from "@/components/onboarding/AddressStep";
 import NameStep from "@/components/onboarding/NameStep";
 import RegistrationCheckStep from "@/components/onboarding/RegistrationCheckStep";
+import RedemptionCodeStep from "@/components/onboarding/RedemptionCodeStep";
 import { TrustBanner } from "@/components/onboarding/TrustBanner";
 import { getStoredOrgSlug, clearStoredOrgSlug } from "@/hooks/useOrgTracking";
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4;
 
 export default function OnboardingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const prefilledCode = searchParams.get("code") || "";
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [returning, setReturning] = useState(false);
@@ -185,6 +188,13 @@ export default function OnboardingPage() {
                   />
                 )}
                 {step === 2 && (
+                  <RedemptionCodeStep
+                    initial={prefilledCode}
+                    onDone={goNext}
+                    loading={loading}
+                  />
+                )}
+                {step === 3 && (
                   <RegistrationCheckStep onContinue={handleComplete} loading={loading} />
                 )}
               </motion.div>

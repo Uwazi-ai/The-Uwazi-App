@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { RedemptionCodesSection } from "@/components/admin/RedemptionCodesSection";
 
 const CATEGORY_COLORS: Record<string, string> = {
   voting: "#9bd34b", legislation: "#6366f1", local_gov: "#f59e0b",
@@ -278,6 +279,9 @@ export default function AdminIntelligencePage() {
           </Button>
         </div>
       </div>
+
+      {/* ═══ REDEMPTION CODES ═══ */}
+      <RedemptionCodesSection />
 
       {/* ═══════════════════════════════════════════════════════ */}
       {/* ═══ GROWTH & USERS ═══ */}
