@@ -93,7 +93,9 @@ const App = () => (
               <Route path="/join" element={<JoinPage />} />
               <Route path="/unsubscribe" element={<UnsubscribePage />} />
               <Route path="/impact" element={<ImpactPage />} />
-              <Route path="/redeem" element={<RedeemLandingPage />} />
+              <Route path="/redeem" element={<PromoRedeemPage />} />
+              <Route path="/backpack-rules" element={<BackpackRulesPage />} />
+
               <Route path="/vote" element={<Navigate to="/app/vote" replace />} />
               <Route path="/partner-dashboard" element={<ProtectedRoute><PartnerDashboardPage /></ProtectedRoute>} />
 
