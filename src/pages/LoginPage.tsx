@@ -30,7 +30,7 @@ export default function LoginPage() {
     if (error) {
       toast.error(error.message);
     } else {
-      navigate("/app");
+      navigate(promoReturnPath("/app"));
     }
   };
 
