@@ -48,6 +48,7 @@ import AdminCodesPage from "./pages/admin/AdminCodesPage";
 import CheckoutReturnPage from "./pages/CheckoutReturnPage";
 import ManageSubscriptionPage from "./pages/ManageSubscriptionPage";
 import RedeemPage from "./pages/RedeemPage";
+import RedeemLandingPage from "./pages/RedeemLandingPage";
 import Welcome from "./pages/Welcome";
 import PartnerDashboardPage from "./pages/PartnerDashboardPage";
 import JoinPage from "./pages/JoinPage";
@@ -91,6 +92,7 @@ const App = () => (
               <Route path="/join" element={<JoinPage />} />
               <Route path="/unsubscribe" element={<UnsubscribePage />} />
               <Route path="/impact" element={<ImpactPage />} />
+              <Route path="/redeem" element={<RedeemLandingPage />} />
               <Route path="/vote" element={<Navigate to="/app/vote" replace />} />
               <Route path="/partner-dashboard" element={<ProtectedRoute><PartnerDashboardPage /></ProtectedRoute>} />
 
