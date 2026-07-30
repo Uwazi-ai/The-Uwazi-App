@@ -2009,6 +2009,74 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_codes: {
+        Row: {
+          campaign: string
+          code: string
+          created_at: string
+          grant_months: number
+          redeem_by: string
+          redeemed_at: string | null
+          redeemed_by: string | null
+          serial: number | null
+        }
+        Insert: {
+          campaign: string
+          code: string
+          created_at?: string
+          grant_months?: number
+          redeem_by: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          serial?: number | null
+        }
+        Update: {
+          campaign?: string
+          code?: string
+          created_at?: string
+          grant_months?: number
+          redeem_by?: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          serial?: number | null
+        }
+        Relationships: []
+      }
+      promo_redemptions: {
+        Row: {
+          campaign: string
+          code: string
+          granted_until: string
+          id: string
+          redeemed_at: string
+          user_id: string
+        }
+        Insert: {
+          campaign: string
+          code: string
+          granted_until: string
+          id?: string
+          redeemed_at?: string
+          user_id: string
+        }
+        Update: {
+          campaign?: string
+          code?: string
+          granted_until?: string
+          id?: string
+          redeemed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_redemptions_code_fkey"
+            columns: ["code"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       push_subscriptions: {
         Row: {
           auth_key: string
@@ -3181,6 +3249,10 @@ export type Database = {
           new_total_xp: number
           xp_awarded: number
         }[]
+      }
+      claim_promo_code: {
+        Args: { _code: string; _user_id: string }
+        Returns: Json
       }
       code_redemption_stats: {
         Args: never
