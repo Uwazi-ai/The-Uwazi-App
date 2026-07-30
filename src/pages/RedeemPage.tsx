@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,8 @@ import { useSubscription } from "@/hooks/useSubscription";
 export default function RedeemPage() {
   const navigate = useNavigate();
   const { refresh } = useSubscription();
-  const [code, setCode] = useState("");
+  const [params] = useSearchParams();
+  const [code, setCode] = useState((params.get("code") || "").toUpperCase());
   const [busy, setBusy] = useState(false);
 
   const handleRedeem = async (e: React.FormEvent) => {
