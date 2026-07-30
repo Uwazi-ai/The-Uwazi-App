@@ -48,7 +48,8 @@ import AdminCodesPage from "./pages/admin/AdminCodesPage";
 import CheckoutReturnPage from "./pages/CheckoutReturnPage";
 import ManageSubscriptionPage from "./pages/ManageSubscriptionPage";
 import RedeemPage from "./pages/RedeemPage";
-import RedeemLandingPage from "./pages/RedeemLandingPage";
+import PromoRedeemPage from "./pages/PromoRedeemPage";
+import BackpackRulesPage from "./pages/BackpackRulesPage";
 import Welcome from "./pages/Welcome";
 import PartnerDashboardPage from "./pages/PartnerDashboardPage";
 import JoinPage from "./pages/JoinPage";
@@ -92,7 +93,9 @@ const App = () => (
               <Route path="/join" element={<JoinPage />} />
               <Route path="/unsubscribe" element={<UnsubscribePage />} />
               <Route path="/impact" element={<ImpactPage />} />
-              <Route path="/redeem" element={<RedeemLandingPage />} />
+              <Route path="/redeem" element={<PromoRedeemPage />} />
+              <Route path="/backpack-rules" element={<BackpackRulesPage />} />
+
               <Route path="/vote" element={<Navigate to="/app/vote" replace />} />
               <Route path="/partner-dashboard" element={<ProtectedRoute><PartnerDashboardPage /></ProtectedRoute>} />
 

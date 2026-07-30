@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { promoReturnPath } from "@/lib/pendingPromo";
 import uwaziLogo from "@/assets/uwazi-logo.png";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
@@ -29,7 +30,7 @@ export default function LoginPage() {
     if (error) {
       toast.error(error.message);
     } else {
-      navigate("/app");
+      navigate(promoReturnPath("/app"));
     }
   };
 
