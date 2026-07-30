@@ -131,7 +131,7 @@ export default function OnboardingPage() {
       }
 
       toast.success("You're all set! Welcome to UWAZI.AI 🗳️");
-      navigate("/app");
+      navigate(promoReturnPath("/app"));
     } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
