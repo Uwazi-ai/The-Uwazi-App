@@ -57,6 +57,7 @@ import ImpactPage from "./pages/ImpactPage";
 import { PWAUpdateBanner } from "@/components/PWAUpdateBanner";
 import AdminSecurityPage from "./pages/admin/AdminSecurityPage";
 import AdminSEOPage from "./pages/admin/AdminSEOPage";
+import AdminBallotReviewPage from "./pages/admin/AdminBallotReviewPage";
 import UnsubscribePage from "./pages/UnsubscribePage";
 import MyCity from "./pages/MyCity";
 import MyBallotEntryPage from "./pages/MyBallotEntryPage";
@@ -142,6 +143,7 @@ const App = () => (
                 <Route path="/app/admin/codes" element={<AdminRoute><AdminCodesPage /></AdminRoute>} />
                 <Route path="/app/admin/security" element={<AdminRoute><AdminSecurityPage /></AdminRoute>} />
                 <Route path="/app/admin/seo" element={<AdminRoute><AdminSEOPage /></AdminRoute>} />
+                <Route path="/app/admin/ballot-review" element={<AdminRoute><AdminBallotReviewPage /></AdminRoute>} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

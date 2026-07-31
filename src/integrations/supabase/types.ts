@@ -214,6 +214,7 @@ export type Database = {
           opponents_say: string | null
           party: string | null
           plain_summary: string | null
+          review_note: string | null
           sort_order: number
           source_name: string | null
           source_url: string | null
@@ -222,6 +223,8 @@ export type Database = {
           supporters_say: string | null
           updated_at: string
           verification_status: string
+          verified_at: string | null
+          verified_by: string | null
           vote_for: number
           yes_means: string | null
         }
@@ -242,6 +245,7 @@ export type Database = {
           opponents_say?: string | null
           party?: string | null
           plain_summary?: string | null
+          review_note?: string | null
           sort_order?: number
           source_name?: string | null
           source_url?: string | null
@@ -250,6 +254,8 @@ export type Database = {
           supporters_say?: string | null
           updated_at?: string
           verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
           vote_for?: number
           yes_means?: string | null
         }
@@ -270,6 +276,7 @@ export type Database = {
           opponents_say?: string | null
           party?: string | null
           plain_summary?: string | null
+          review_note?: string | null
           sort_order?: number
           source_name?: string | null
           source_url?: string | null
@@ -278,6 +285,8 @@ export type Database = {
           supporters_say?: string | null
           updated_at?: string
           verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
           vote_for?: number
           yes_means?: string | null
         }
@@ -365,6 +374,44 @@ export type Database = {
           zip_code?: string | null
         }
         Relationships: []
+      }
+      ballot_verification_log: {
+        Row: {
+          actor_id: string
+          contest_id: string
+          created_at: string
+          id: string
+          new_status: string
+          note: string | null
+          old_status: string | null
+        }
+        Insert: {
+          actor_id: string
+          contest_id: string
+          created_at?: string
+          id?: string
+          new_status: string
+          note?: string | null
+          old_status?: string | null
+        }
+        Update: {
+          actor_id?: string
+          contest_id?: string
+          created_at?: string
+          id?: string
+          new_status?: string
+          note?: string | null
+          old_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ballot_verification_log_contest_id_fkey"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "ballot_contests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ballotpedia_ballot_measures: {
         Row: {
@@ -3381,6 +3428,14 @@ export type Database = {
         }[]
       }
       redeem_code: { Args: { p_code: string }; Returns: Json }
+      set_contest_verification: {
+        Args: { _contest_ids: string[]; _note?: string; _status: string }
+        Returns: {
+          contest_id: string
+          new_status: string
+          old_status: string
+        }[]
+      }
       signups_by_day: {
         Args: { period_days: number }
         Returns: {
