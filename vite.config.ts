@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { componentTagger } from "lovable-tagger";
+import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/supabase/vite";
 
 // Injects a unique CACHE_VERSION into dist/sw.js after each production build
 // so browsers always pick up the new service worker on deploy.
@@ -45,6 +46,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     injectSWVersion(),
+    mcpPlugin(),
   ].filter(Boolean),
   resolve: {
     alias: {
