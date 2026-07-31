@@ -1,0 +1,161 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.1",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://zigemhmhbzegwbgvvmpc.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "the-uwazi-app",
+      "version": "0.1.0",
+      "title": "The Uwazi App"
+    },
+    "tools": [
+      {
+        "name": "get_my_civic_profile",
+        "title": "Get my civic profile",
+        "description": "Get the signed-in UWAZI user's civic profile: city/state, ZIP, resolved districts, county election authority, and civic XP/streak stats.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_elections",
+        "title": "List elections",
+        "description": "List upcoming or recent elections tracked by UWAZI, with registration deadlines, early-voting windows, and absentee deadlines.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "jurisdiction": {
+              "description": "Filter by jurisdiction name, e.g. Missouri or Kansas.",
+              "type": "string"
+            },
+            "from_date": {
+              "description": "ISO date; only elections on or after this date. Defaults to today.",
+              "type": "string"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_ballot",
+        "title": "Get ballot contests",
+        "description": "Get the verified contests on a ballot — races with their candidates, plus ballot measures with plain-English summaries — for a state and election date.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "description": "Two-letter state code, e.g. MO or KS."
+            },
+            "election_date": {
+              "type": "string",
+              "description": "ISO election date, e.g. 2026-08-04."
+            }
+          },
+          "required": [
+            "state",
+            "election_date"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_my_ballot_selections",
+        "title": "Get my practice ballot",
+        "description": "Get the signed-in user's saved practice-ballot selections (chosen candidates and yes/no measure votes). This is a personal practice ballot, never an official one.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "find_election_authority",
+        "title": "Find election authority",
+        "description": "Look up the official local election authority for a state or county: display name, phone, website, registration lookup URL, and poll hours.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "state": {
+              "description": "Two-letter state code, e.g. MO.",
+              "type": "string"
+            },
+            "county": {
+              "description": "County name, e.g. Jackson.",
+              "type": "string"
+            },
+            "key": {
+              "description": "Known authority key, e.g. mo-kansas-city.",
+              "type": "string"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "search_lessons",
+        "title": "Search civic lessons",
+        "description": "Search UWAZI's published civic-education lessons by keyword or track. Returns titles, tracks, difficulty, XP, and key takeaways.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "query": {
+              "description": "Keyword to match in lesson title or description.",
+              "type": "string"
+            },
+            "track": {
+              "description": "Track name, e.g. Voting Basics.",
+              "type": "string"
+            }
+          }
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
