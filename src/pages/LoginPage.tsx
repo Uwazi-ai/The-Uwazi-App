@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,17 @@ import uwaziLogo from "@/assets/uwazi-logo.png";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
+/** Only allow same-origin relative paths as a post-login redirect. */
+function safeNext(value: string | null): string | null {
+  if (!value) return null;
+  if (!value.startsWith("/") || value.startsWith("//")) return null;
+  return value;
+}
+
 export default function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const next = safeNext(searchParams.get("next"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -30,14 +39,18 @@ export default function LoginPage() {
     if (error) {
       toast.error(error.message);
     } else {
-      navigate(promoReturnPath("/app"));
+      navigate(next ?? promoReturnPath("/app"));
     }
   };
+
+  const socialRedirectUri = next
+    ? `${window.location.origin}${next}`
+    : window.location.origin;
 
   const handleAppleSignIn = async () => {
     setLoading(true);
     const result = await lovable.auth.signInWithOAuth("apple", {
-      redirect_uri: window.location.origin,
+      redirect_uri: socialRedirectUri,
     });
     if (result.error) {
       toast.error("Apple sign-in failed");
@@ -45,13 +58,13 @@ export default function LoginPage() {
       return;
     }
     if (result.redirected) return;
-    navigate("/");
+    navigate(next ?? "/");
   };
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: socialRedirectUri,
     });
     if (result.error) {
       toast.error("Google sign-in failed");
@@ -59,7 +72,7 @@ export default function LoginPage() {
       return;
     }
     if (result.redirected) return;
-    navigate("/");
+    navigate(next ?? "/");
   };
 
   return (

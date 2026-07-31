@@ -64,6 +64,7 @@ import MyBallotWalkthroughPage from "./pages/MyBallotWalkthroughPage";
 import MyBallotReviewPage from "./pages/MyBallotReviewPage";
 import MyBallotExportPage from "./pages/MyBallotExportPage";
 import { InAppBrowserProvider } from "@/contexts/InAppBrowserContext";
+import OAuthConsentPage from "./pages/OAuthConsentPage";
 
 const queryClient = new QueryClient();
 
@@ -95,6 +96,7 @@ const App = () => (
               <Route path="/impact" element={<ImpactPage />} />
               <Route path="/redeem" element={<PromoRedeemPage />} />
               <Route path="/backpack-rules" element={<BackpackRulesPage />} />
+              <Route path="/.lovable/oauth/consent" element={<OAuthConsentPage />} />
 
               <Route path="/vote" element={<Navigate to="/app/vote" replace />} />
               <Route path="/partner-dashboard" element={<ProtectedRoute><PartnerDashboardPage /></ProtectedRoute>} />
