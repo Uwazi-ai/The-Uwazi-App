@@ -142,7 +142,7 @@ const App = () => (
                 <Route path="/app/admin/partner-orgs" element={<AdminRoute><AdminPartnerOrgsPage /></AdminRoute>} />
                 <Route path="/app/admin/codes" element={<AdminRoute><AdminCodesPage /></AdminRoute>} />
                 <Route path="/app/admin/security" element={<AdminRoute><AdminSecurityPage /></AdminRoute>} />
-                <Route path="/app/admin/seo" element={<AdminRoute><AdminSEOPage /></AdminRoute>} />
+                <Route path="/app/admin/ballot-review" element={<AdminRoute><AdminBallotReviewPage /></AdminRoute>} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
