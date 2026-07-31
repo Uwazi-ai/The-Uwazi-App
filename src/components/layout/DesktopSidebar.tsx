@@ -16,7 +16,7 @@ import {
 import { useSubscription } from "@/hooks/useSubscription";
 import { openMyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
 
-import { Building2, Ticket } from "lucide-react";
+import { Building2, Ticket, ShieldCheck } from "lucide-react";
 
 const mainNav = [
   { to: "/app", icon: HomeIcon, label: "Home" },
