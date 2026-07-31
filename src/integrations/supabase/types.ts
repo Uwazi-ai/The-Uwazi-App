@@ -198,60 +198,87 @@ export type Database = {
       }
       ballot_contests: {
         Row: {
+          authority_key: string | null
           contest_type: string
           created_at: string
+          district_id: string | null
+          district_type: string | null
           election_date: string
+          fiscal_note: string | null
           id: string
           measure_full_text_url: string | null
           measure_summary: string | null
           measure_title: string
           no_means: string | null
+          office_name: string | null
           opponents_say: string | null
+          party: string | null
           plain_summary: string | null
           sort_order: number
           source_name: string | null
           source_url: string | null
           state: string
+          status_note: string | null
           supporters_say: string | null
           updated_at: string
+          verification_status: string
+          vote_for: number
           yes_means: string | null
         }
         Insert: {
+          authority_key?: string | null
           contest_type?: string
           created_at?: string
+          district_id?: string | null
+          district_type?: string | null
           election_date: string
+          fiscal_note?: string | null
           id?: string
           measure_full_text_url?: string | null
           measure_summary?: string | null
           measure_title: string
           no_means?: string | null
+          office_name?: string | null
           opponents_say?: string | null
+          party?: string | null
           plain_summary?: string | null
           sort_order?: number
           source_name?: string | null
           source_url?: string | null
           state: string
+          status_note?: string | null
           supporters_say?: string | null
           updated_at?: string
+          verification_status?: string
+          vote_for?: number
           yes_means?: string | null
         }
         Update: {
+          authority_key?: string | null
           contest_type?: string
           created_at?: string
+          district_id?: string | null
+          district_type?: string | null
           election_date?: string
+          fiscal_note?: string | null
           id?: string
           measure_full_text_url?: string | null
           measure_summary?: string | null
           measure_title?: string
           no_means?: string | null
+          office_name?: string | null
           opponents_say?: string | null
+          party?: string | null
           plain_summary?: string | null
           sort_order?: number
           source_name?: string | null
           source_url?: string | null
           state?: string
+          status_note?: string | null
           supporters_say?: string | null
           updated_at?: string
+          verification_status?: string
+          vote_for?: number
           yes_means?: string | null
         }
         Relationships: []
