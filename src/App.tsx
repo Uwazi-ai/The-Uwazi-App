@@ -57,6 +57,7 @@ import ImpactPage from "./pages/ImpactPage";
 import { PWAUpdateBanner } from "@/components/PWAUpdateBanner";
 import AdminSecurityPage from "./pages/admin/AdminSecurityPage";
 import AdminSEOPage from "./pages/admin/AdminSEOPage";
+import AdminBallotReviewPage from "./pages/admin/AdminBallotReviewPage";
 import UnsubscribePage from "./pages/UnsubscribePage";
 import MyCity from "./pages/MyCity";
 import MyBallotEntryPage from "./pages/MyBallotEntryPage";
