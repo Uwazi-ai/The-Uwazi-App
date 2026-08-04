@@ -515,7 +515,9 @@ export default function AskUwaziPage() {
         if (isSearching) setIsSearching(false);
         upsertAssistant(chunk);
       },
-      onDone: () => {
+      onDone: (meta) => {
+        searchSources = meta.sources;
+        didSearch = meta.didSearch;
         setMessages((prev) => {
           const final = prev.map((m) =>
             m.id === "streaming"
