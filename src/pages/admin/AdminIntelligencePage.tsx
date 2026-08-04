@@ -283,6 +283,11 @@ export default function AdminIntelligencePage() {
       {/* ═══ REDEMPTION CODES ═══ */}
       <RedemptionCodesSection />
 
+      {/* ═══ ASK UWAZI MODEL LOG ═══ */}
+      <AskModelLogSection />
+
+
+
       {/* ═══════════════════════════════════════════════════════ */}
       {/* ═══ GROWTH & USERS ═══ */}
       {/* ═══════════════════════════════════════════════════════ */}
