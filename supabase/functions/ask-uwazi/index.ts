@@ -350,6 +350,12 @@ Deno.serve(async (req) => {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
   if (!apiKey) return json({ error: "missing_api_key" }, 500);
 
+  const startedAt = Date.now();
+  let logUserId: string | null = null;
+  let logSessionId: string | null = null;
+  let logModel: string | null = null;
+  let logSource = "auto";
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return json({ error: "unauthorized" }, 401);
@@ -361,14 +367,20 @@ Deno.serve(async (req) => {
     );
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return json({ error: "unauthorized" }, 401);
+    logUserId = user.id;
 
     const { message, history = [], session_id } = await req.json();
+    logSessionId = session_id ?? null;
     if (!message?.trim()) return json({ error: "empty_message" }, 400);
 
     const override = await getModelSetting();
     const model = override === "auto"
       ? await pickModel(message, apiKey)
       : override;
+    logModel = model;
+    logSource = override === "auto" ? "auto" : "admin_override";
+
+
 
 
     const system = [
