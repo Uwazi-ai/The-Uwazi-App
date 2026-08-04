@@ -422,6 +422,18 @@ Deno.serve(async (req) => {
       if (!res.ok) {
         const detail = await res.text();
         console.error("anthropic error", res.status, detail);
+        await logModelUse({
+          user_id: logUserId,
+          session_id: logSessionId,
+          model_id: logModel,
+          model_source: logSource,
+          success: false,
+          error_type: "upstream_error",
+          error_message: detail,
+          upstream_status: res.status,
+          tools_used: [...new Set(toolsUsed)],
+          duration_ms: Date.now() - startedAt,
+        });
         return json({ error: "upstream_error", status: res.status }, 502);
       }
 
