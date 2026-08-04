@@ -77,6 +77,57 @@ export type Database = {
         }
         Relationships: []
       }
+      ask_uwazi_model_log: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          error_type: string | null
+          id: string
+          input_tokens: number
+          model_id: string | null
+          model_source: string
+          output_tokens: number
+          session_id: string | null
+          success: boolean
+          tools_used: string[]
+          upstream_status: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          error_type?: string | null
+          id?: string
+          input_tokens?: number
+          model_id?: string | null
+          model_source?: string
+          output_tokens?: number
+          session_id?: string | null
+          success?: boolean
+          tools_used?: string[]
+          upstream_status?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          error_type?: string | null
+          id?: string
+          input_tokens?: number
+          model_id?: string | null
+          model_source?: string
+          output_tokens?: number
+          session_id?: string | null
+          success?: boolean
+          tools_used?: string[]
+          upstream_status?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       ask_uwazi_sessions: {
         Row: {
           created_at: string | null
