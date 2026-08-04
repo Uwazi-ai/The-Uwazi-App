@@ -48,6 +48,41 @@ async function getModelSetting(): Promise<string> {
   }
 }
 
+// Server-side log of which model answered each chat and how it ended.
+type ModelLog = {
+  user_id: string | null;
+  session_id: string | null;
+  model_id: string | null;
+  model_source: string;
+  success: boolean;
+  error_type?: string | null;
+  error_message?: string | null;
+  upstream_status?: number | null;
+  tools_used?: string[];
+  input_tokens?: number;
+  output_tokens?: number;
+  duration_ms?: number;
+};
+
+async function logModelUse(entry: ModelLog) {
+  try {
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    await admin.from("ask_uwazi_model_log").insert({
+      ...entry,
+      error_message: entry.error_message
+        ? String(entry.error_message).slice(0, 500)
+        : null,
+    });
+  } catch (e) {
+    console.error("model log insert failed", e);
+  }
+}
+
+
+
 
 // Server-side web search is locked to official election sources.
 // Anything not on this list cannot enter the model's context.
@@ -315,6 +350,12 @@ Deno.serve(async (req) => {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
   if (!apiKey) return json({ error: "missing_api_key" }, 500);
 
+  const startedAt = Date.now();
+  let logUserId: string | null = null;
+  let logSessionId: string | null = null;
+  let logModel: string | null = null;
+  let logSource = "auto";
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return json({ error: "unauthorized" }, 401);
@@ -326,14 +367,20 @@ Deno.serve(async (req) => {
     );
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return json({ error: "unauthorized" }, 401);
+    logUserId = user.id;
 
     const { message, history = [], session_id } = await req.json();
+    logSessionId = session_id ?? null;
     if (!message?.trim()) return json({ error: "empty_message" }, 400);
 
     const override = await getModelSetting();
     const model = override === "auto"
       ? await pickModel(message, apiKey)
       : override;
+    logModel = model;
+    logSource = override === "auto" ? "auto" : "admin_override";
+
+
 
 
     const system = [
@@ -375,6 +422,18 @@ Deno.serve(async (req) => {
       if (!res.ok) {
         const detail = await res.text();
         console.error("anthropic error", res.status, detail);
+        await logModelUse({
+          user_id: logUserId,
+          session_id: logSessionId,
+          model_id: logModel,
+          model_source: logSource,
+          success: false,
+          error_type: "upstream_error",
+          error_message: detail,
+          upstream_status: res.status,
+          tools_used: [...new Set(toolsUsed)],
+          duration_ms: Date.now() - startedAt,
+        });
         return json({ error: "upstream_error", status: res.status }, 502);
       }
 
@@ -433,6 +492,18 @@ Deno.serve(async (req) => {
     // Conversation persistence is handled client-side in ask_uwazi_sessions.
     void session_id;
 
+    await logModelUse({
+      user_id: logUserId,
+      session_id: logSessionId,
+      model_id: logModel,
+      model_source: logSource,
+      success: true,
+      tools_used: [...new Set(toolsUsed)],
+      input_tokens: usage.input_tokens ?? 0,
+      output_tokens: usage.output_tokens ?? 0,
+      duration_ms: Date.now() - startedAt,
+    });
+
     return json({
       reply: finalText,
       citations,
@@ -442,6 +513,16 @@ Deno.serve(async (req) => {
     }, 200);
   } catch (err) {
     console.error("ask-uwazi error", err);
+    await logModelUse({
+      user_id: logUserId,
+      session_id: logSessionId,
+      model_id: logModel,
+      model_source: logSource,
+      success: false,
+      error_type: "internal_error",
+      error_message: err instanceof Error ? err.message : String(err),
+      duration_ms: Date.now() - startedAt,
+    });
     return json({ error: "internal_error" }, 500);
   }
 });

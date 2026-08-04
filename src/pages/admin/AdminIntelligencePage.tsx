@@ -13,6 +13,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { RedemptionCodesSection } from "@/components/admin/RedemptionCodesSection";
+import { AskModelLogSection } from "@/components/admin/AskModelLogSection";
 
 const CATEGORY_COLORS: Record<string, string> = {
   voting: "#9bd34b", legislation: "#6366f1", local_gov: "#f59e0b",
@@ -282,6 +283,11 @@ export default function AdminIntelligencePage() {
 
       {/* ═══ REDEMPTION CODES ═══ */}
       <RedemptionCodesSection />
+
+      {/* ═══ ASK UWAZI MODEL LOG ═══ */}
+      <AskModelLogSection />
+
+
 
       {/* ═══════════════════════════════════════════════════════ */}
       {/* ═══ GROWTH & USERS ═══ */}
