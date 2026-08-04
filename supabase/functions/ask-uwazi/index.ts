@@ -139,87 +139,80 @@ async function runLocalTool(
 ): Promise<string> {
   if (name === "get_voter_profile") {
     const { data, error } = await supabase
-      .from("voter_profiles")
+      .from("profiles")
       .select(
-        "address_complete, city, state, county_name, cd, sldu, sldl, " +
-        "election_authority_key, party_preference, geocode_source",
+        "full_address, city, location, zip_code, county_name, " +
+        "election_authority_key, party_preference",
       )
       .eq("user_id", userId)
       .maybeSingle();
 
     if (error) return JSON.stringify({ error: error.message });
-    if (!data || !data.address_complete) {
+    if (!data || !data.full_address) {
       return JSON.stringify({
         address_complete: false,
+        state: data?.location ?? null,
+        zip_code: data?.zip_code ?? null,
         note:
           "User has not completed their address. Ask them to add it in the " +
           "app. Do not infer districts from ZIP code.",
       });
     }
-    return JSON.stringify(data);
+    return JSON.stringify({ address_complete: true, ...data, state: data.location });
   }
 
   if (name === "get_user_ballot") {
     const { data: profile } = await supabase
-      .from("voter_profiles")
-      .select("state, county_fips, cd, sldu, sldl, address_complete")
+      .from("profiles")
+      .select("location, zip_code, county_name, election_authority_key")
       .eq("user_id", userId)
       .maybeSingle();
 
-    if (!profile?.address_complete || !profile.cd) {
+    const state = profile?.location;
+    if (!state) {
       return JSON.stringify({
         error: "unresolved_address",
         note:
-          "Cannot build a ballot without resolved districts. Ask the user to " +
-          "complete or correct their address.",
+          "Cannot build a ballot without a resolved state. Ask the user to " +
+          "complete or correct their address in the app.",
       });
     }
 
     const electionDate = String(input.election_date ?? "2026-08-04");
-    const party = input.party ? String(input.party) : null;
+    const party = input.party ? String(input.party).toUpperCase() : null;
 
-    const { data: election } = await supabase
-      .from("elections")
-      .select("id, name, polls_open, polls_close")
+    let q = supabase
+      .from("ballot_contests")
+      .select(
+        "id, contest_type, office_name, measure_title, measure_summary, " +
+        "measure_full_text_url, party, district_type, district_id, " +
+        "source_name, source_url, verified_at, sort_order, " +
+        "ballot_candidates(id, name, party, is_incumbent, website, source_url)",
+      )
       .eq("election_date", electionDate)
-      .eq("state", profile.state)
-      .eq("is_published", true)
-      .maybeSingle();
+      .eq("state", state)
+      .eq("verification_status", "verified")
+      .order("sort_order");
 
-    if (!election) {
+    if (party) q = q.or(`party.is.null,party.eq.${party}`);
+    else q = q.is("party", null);
+
+    const { data: contests, error } = await q;
+    if (error) return JSON.stringify({ error: error.message });
+
+    if (!contests?.length) {
       return JSON.stringify({
         error: "no_published_election",
         note: "No verified ballot data for that date. Hand off to the county board.",
       });
     }
 
-    let q = supabase
-      .from("ballot_contests")
-      .select(
-        "id, contest_type, office_name, measure_title, measure_summary, " +
-        "measure_full_text_url, party, source_name, source_url, verified_at, " +
-        "sort_order, ballot_candidates(id, name, party, is_incumbent, website, source_url)",
-      )
-      .eq("election_id", election.id)
-      .or(`cd.is.null,cd.eq.${profile.cd}`)
-      .order("sort_order");
-
-    if (party) {
-      q = q.or(`party.is.null,party.eq.${party}`);
-    } else {
-      q = q.is("party", null);
-    }
-
-    const { data: contests, error } = await q;
-    if (error) return JSON.stringify({ error: error.message });
-
     return JSON.stringify({
-      election: election.name,
-      polls_open: election.polls_open,
-      polls_close: election.polls_close,
+      election_date: electionDate,
+      state,
       party_ballot: party,
-      contest_count: contests?.length ?? 0,
-      contests: contests ?? [],
+      contest_count: contests.length,
+      contests,
       note:
         "Only present contests returned here. If a user asks about a race not " +
         "in this list, say you don't have verified data and hand off.",
@@ -229,7 +222,7 @@ async function runLocalTool(
   if (name === "get_election_authority") {
     let q = supabase
       .from("election_authorities")
-      .select("key, display_name, covers_note, phone, website, lookup_url, sample_ballot_url, verified_at");
+      .select("key, display_name, covers_note, county_name, phone, website, lookup_url, poll_hours");
 
     if (input.authority_key) q = q.eq("key", String(input.authority_key));
     else if (input.state) q = q.eq("state", String(input.state).toUpperCase());
@@ -403,30 +396,8 @@ Deno.serve(async (req) => {
         "election board can help — you can find them at vote.gov.";
     }
 
-    const escalated = /county election board|vote\.gov|election office/i
-      .test(finalText);
-
-    await supabase.from("chat_messages").insert([
-      {
-        user_id: user.id,
-        session_id,
-        role: "user",
-        content: message,
-      },
-      {
-        user_id: user.id,
-        session_id,
-        role: "assistant",
-        content: finalText,
-        model,
-        tools_used: toolsUsed,
-        citations,
-        was_escalated: escalated,
-        input_tokens: usage.input_tokens,
-        output_tokens: usage.output_tokens,
-        cache_read_tokens: usage.cache_read_tokens,
-      },
-    ]);
+    // Conversation persistence is handled client-side in ask_uwazi_sessions.
+    void session_id;
 
     return json({
       reply: finalText,

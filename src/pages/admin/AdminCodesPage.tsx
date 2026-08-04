@@ -208,7 +208,7 @@ function CreateCodeModal({
   const buildRow = (theCode: string) => ({
     code: theCode.toUpperCase(),
     label: label || theCode.toUpperCase(),
-    grant_days: strategy === "days" ? grantDays : 0,
+    grant_days: strategy === "days" ? grantDays : null,
     grant_until: strategy === "until" && grantUntil ? new Date(grantUntil).toISOString() : null,
     max_redemptions: maxRedemptions ? parseInt(maxRedemptions, 10) : null,
     expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,

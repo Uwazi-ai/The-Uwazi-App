@@ -32,10 +32,11 @@ export default function PromoRedeemPage() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ResultState | null>(null);
 
-  // Keep the code alive across the auth hop — this is the main failure mode.
+  // Keep the code alive across the auth hop, but only for codes that arrived
+  // from a card link — typing in the box must not pin future logins to /redeem.
   useEffect(() => {
-    if (code) savePendingPromo({ code, campaign: campaign || undefined });
-  }, [code, campaign]);
+    if (urlCode) savePendingPromo({ code: urlCode, campaign: campaign || undefined });
+  }, [urlCode, campaign]);
 
   const goAuth = (path: string) => {
     savePendingPromo({ code: code.trim().toUpperCase(), campaign: campaign || undefined });
@@ -62,10 +63,10 @@ export default function PromoRedeemPage() {
       if (res?.ok && res.granted_until) {
         clearPendingPromo();
         setResult({ kind: "success", grantedUntil: res.granted_until });
-      } else if (res?.error === "not_found") setResult({ kind: "not_found" });
-      else if (res?.error === "already_redeemed") setResult({ kind: "already_redeemed" });
-      else if (res?.error === "expired") setResult({ kind: "expired", redeemBy: res.redeem_by });
-      else if (res?.error === "already_claimed_by_user") setResult({ kind: "already_claimed_by_user" });
+      } else if (res?.error === "not_found") { clearPendingPromo(); setResult({ kind: "not_found" }); }
+      else if (res?.error === "already_redeemed") { clearPendingPromo(); setResult({ kind: "already_redeemed" }); }
+      else if (res?.error === "expired") { clearPendingPromo(); setResult({ kind: "expired", redeemBy: res.redeem_by }); }
+      else if (res?.error === "already_claimed_by_user") { clearPendingPromo(); setResult({ kind: "already_claimed_by_user" }); }
       else if (res?.error === "not_signed_in") goAuth("/login");
       else setResult({ kind: "unknown" });
     } catch {

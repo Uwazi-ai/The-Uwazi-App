@@ -78,9 +78,10 @@ function groupChatsByDate(chats: ChatSession[]): { label: string; chats: ChatSes
 async function streamChat({ messages, onDelta, onDone, onError }: {
   messages: { role: string; content: string }[];
   onDelta: (text: string) => void;
-  onDone: () => void;
+  onDone: (meta: { sources: Source[]; didSearch: boolean }) => void;
   onError: (msg: string) => void;
 }) {
+  const history = messages.slice(0, -1).map((m) => ({ role: m.role, content: m.content }));
   const userQuestion = messages[messages.length - 1]?.content || "";
   if (!userQuestion) {
     onError("No question provided");
@@ -89,21 +90,33 @@ async function streamChat({ messages, onDelta, onDone, onError }: {
 
   try {
     const response = await supabase.functions.invoke('ask-uwazi', {
-      body: { question: userQuestion },
+      body: { message: userQuestion, history },
     });
-    const answer = response.data?.answer;
 
     if (response.error) {
       onError(response.error.message || "Ask UWAZI failed");
       return;
     }
-    if (!answer) {
+
+    const data = response.data as {
+      reply?: string;
+      citations?: { title?: string; url?: string }[];
+      tools_used?: string[];
+    } | null;
+
+    const reply = data?.reply;
+    if (!reply) {
       onError("No answer returned");
       return;
     }
 
-    onDelta(answer);
-    onDone();
+    const seen = new Set<string>();
+    const sources: Source[] = (data?.citations ?? [])
+      .filter((c) => c?.url && !seen.has(c.url) && seen.add(c.url))
+      .map((c) => ({ title: c.title || c.url!, url: c.url! }));
+
+    onDelta(reply);
+    onDone({ sources, didSearch: (data?.tools_used ?? []).includes("web_search") || sources.length > 0 });
   } catch (err) {
     onError(err instanceof Error ? err.message : "Unknown error");
   }
@@ -502,7 +515,9 @@ export default function AskUwaziPage() {
         if (isSearching) setIsSearching(false);
         upsertAssistant(chunk);
       },
-      onDone: () => {
+      onDone: (meta) => {
+        searchSources = meta.sources;
+        didSearch = meta.didSearch;
         setMessages((prev) => {
           const final = prev.map((m) =>
             m.id === "streaming"
