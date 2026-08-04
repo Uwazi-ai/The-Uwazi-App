@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Shield, Copy, Download, RefreshCw } from "lucide-react";
+import { Shield, Copy, Download, RefreshCw, Bot } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +21,13 @@ const flags = [
   { key: "voting_hub_enabled", label: "Voting Hub", desc: "Voting plan features" },
 ];
 
+const MODEL_CHOICES = [
+  { value: "auto", label: "Auto (recommended)", desc: "Routes simple → Sonnet, complex → Opus" },
+  { value: "claude-haiku-4-5-20251001", label: "Haiku 4.5", desc: "Fastest and cheapest" },
+  { value: "claude-sonnet-5", label: "Sonnet 5", desc: "Balanced quality and cost" },
+  { value: "claude-opus-5", label: "Opus 5", desc: "Highest quality, most expensive" },
+];
+
 export default function AdminPlatformPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -33,6 +42,31 @@ export default function AdminPlatformPage() {
       return map;
     },
   });
+
+  const { data: chatModel, isLoading: modelLoading } = useQuery({
+    queryKey: ["admin-ask-uwazi-model"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("platform_settings")
+        .select("value")
+        .eq("key", "ask_uwazi_model")
+        .maybeSingle();
+      const raw = typeof data?.value === "string" ? data.value : JSON.stringify(data?.value ?? "");
+      const val = raw.replace(/^"|"$/g, "").trim();
+      return MODEL_CHOICES.some(m => m.value === val) ? val : "auto";
+    },
+  });
+
+  const saveChatModel = async (value: string) => {
+    const { error } = await supabase
+      .from("platform_settings")
+      .upsert({ key: "ask_uwazi_model", value: value as any, updated_at: new Date().toISOString() }, { onConflict: "key" });
+    if (error) { toast.error("Could not save model"); return; }
+    queryClient.invalidateQueries({ queryKey: ["admin-ask-uwazi-model"] });
+    toast.success(`Ask UWAZI model set to ${MODEL_CHOICES.find(m => m.value === value)?.label}`);
+  };
+
+
 
   const { data: admins, isLoading: adminsLoading } = useQuery({
     queryKey: ["admin-list"],
@@ -155,6 +189,39 @@ export default function AdminPlatformPage() {
           </div>
         ))}
       </Card>
+
+      {/* Chat Model */}
+      <Card className="bg-card border-border p-4 space-y-4">
+        <div>
+          <h3 className="text-sm font-axis uppercase text-foreground flex items-center gap-2">
+            <Bot className="h-4 w-4 text-primary" /> UWAZI AI CHAT MODEL
+          </h3>
+          <p className="text-xs text-muted-foreground mt-1 max-w-lg">
+            Choose which model answers Ask UWAZI questions. "Auto" lets the cheap
+            classifier route simple questions to Sonnet and complex ballot
+            reasoning to Opus. Applies instantly — no redeploy needed.
+          </p>
+        </div>
+        {modelLoading ? <Skeleton className="h-10 w-full max-w-sm" /> : (
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={chatModel ?? "auto"} onValueChange={saveChatModel}>
+              <SelectTrigger className="w-full max-w-sm bg-background border-border">
+                <SelectValue placeholder="Select model" />
+              </SelectTrigger>
+              <SelectContent>
+                {MODEL_CHOICES.map(m => (
+                  <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="text-xs text-muted-foreground">
+              {MODEL_CHOICES.find(m => m.value === (chatModel ?? "auto"))?.desc}
+            </span>
+          </div>
+        )}
+      </Card>
+
+
 
       {/* Admin Management */}
       <Card className="bg-card border-border p-4 space-y-4">

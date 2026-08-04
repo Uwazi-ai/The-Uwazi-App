@@ -19,6 +19,36 @@ const MODELS = {
   deep: "claude-opus-5",              // multi-part ballot reasoning
 } as const;
 
+// Admin-selectable model override (platform_settings.ask_uwazi_model).
+// "auto" keeps the cheap classifier routing between chat/deep.
+const ALLOWED_MODELS = [
+  "claude-haiku-4-5-20251001",
+  "claude-sonnet-5",
+  "claude-opus-5",
+] as const;
+
+async function getModelSetting(): Promise<string> {
+  try {
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    const { data } = await admin
+      .from("platform_settings")
+      .select("value")
+      .eq("key", "ask_uwazi_model")
+      .maybeSingle();
+    const raw = typeof data?.value === "string"
+      ? data.value
+      : JSON.stringify(data?.value ?? "");
+    const val = raw.replace(/^"|"$/g, "").trim();
+    return (ALLOWED_MODELS as readonly string[]).includes(val) ? val : "auto";
+  } catch {
+    return "auto";
+  }
+}
+
+
 // Server-side web search is locked to official election sources.
 // Anything not on this list cannot enter the model's context.
 // Note: allowed_domains and blocked_domains cannot both be set.
@@ -300,7 +330,11 @@ Deno.serve(async (req) => {
     const { message, history = [], session_id } = await req.json();
     if (!message?.trim()) return json({ error: "empty_message" }, 400);
 
-    const model = await pickModel(message, apiKey);
+    const override = await getModelSetting();
+    const model = override === "auto"
+      ? await pickModel(message, apiKey)
+      : override;
+
 
     const system = [
       {
