@@ -156,6 +156,39 @@ export default function AdminPlatformPage() {
         ))}
       </Card>
 
+      {/* Chat Model */}
+      <Card className="bg-card border-border p-4 space-y-4">
+        <div>
+          <h3 className="text-sm font-axis uppercase text-foreground flex items-center gap-2">
+            <Bot className="h-4 w-4 text-primary" /> UWAZI AI CHAT MODEL
+          </h3>
+          <p className="text-xs text-muted-foreground mt-1 max-w-lg">
+            Choose which model answers Ask UWAZI questions. "Auto" lets the cheap
+            classifier route simple questions to Sonnet and complex ballot
+            reasoning to Opus. Applies instantly — no redeploy needed.
+          </p>
+        </div>
+        {modelLoading ? <Skeleton className="h-10 w-full max-w-sm" /> : (
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={chatModel ?? "auto"} onValueChange={saveChatModel}>
+              <SelectTrigger className="w-full max-w-sm bg-background border-border">
+                <SelectValue placeholder="Select model" />
+              </SelectTrigger>
+              <SelectContent>
+                {MODEL_CHOICES.map(m => (
+                  <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="text-xs text-muted-foreground">
+              {MODEL_CHOICES.find(m => m.value === (chatModel ?? "auto"))?.desc}
+            </span>
+          </div>
+        )}
+      </Card>
+
+
+
       {/* Admin Management */}
       <Card className="bg-card border-border p-4 space-y-4">
         <h3 className="text-sm font-axis uppercase text-foreground">ADMIN MANAGEMENT</h3>
