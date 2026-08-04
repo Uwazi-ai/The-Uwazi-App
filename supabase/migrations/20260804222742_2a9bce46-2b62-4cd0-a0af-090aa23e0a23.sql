@@ -1,0 +1,1 @@
+INSERT INTO public.platform_settings (key, value) VALUES ('ask_uwazi_model', '"auto"'::jsonb) ON CONFLICT (key) DO NOTHING;
