@@ -396,30 +396,8 @@ Deno.serve(async (req) => {
         "election board can help — you can find them at vote.gov.";
     }
 
-    const escalated = /county election board|vote\.gov|election office/i
-      .test(finalText);
-
-    await supabase.from("chat_messages").insert([
-      {
-        user_id: user.id,
-        session_id,
-        role: "user",
-        content: message,
-      },
-      {
-        user_id: user.id,
-        session_id,
-        role: "assistant",
-        content: finalText,
-        model,
-        tools_used: toolsUsed,
-        citations,
-        was_escalated: escalated,
-        input_tokens: usage.input_tokens,
-        output_tokens: usage.output_tokens,
-        cache_read_tokens: usage.cache_read_tokens,
-      },
-    ]);
+    // Conversation persistence is handled client-side in ask_uwazi_sessions.
+    void session_id;
 
     return json({
       reply: finalText,
