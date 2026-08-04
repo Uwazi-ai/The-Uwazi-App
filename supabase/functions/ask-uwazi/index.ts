@@ -48,6 +48,41 @@ async function getModelSetting(): Promise<string> {
   }
 }
 
+// Server-side log of which model answered each chat and how it ended.
+type ModelLog = {
+  user_id: string | null;
+  session_id: string | null;
+  model_id: string | null;
+  model_source: string;
+  success: boolean;
+  error_type?: string | null;
+  error_message?: string | null;
+  upstream_status?: number | null;
+  tools_used?: string[];
+  input_tokens?: number;
+  output_tokens?: number;
+  duration_ms?: number;
+};
+
+async function logModelUse(entry: ModelLog) {
+  try {
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    await admin.from("ask_uwazi_model_log").insert({
+      ...entry,
+      error_message: entry.error_message
+        ? String(entry.error_message).slice(0, 500)
+        : null,
+    });
+  } catch (e) {
+    console.error("model log insert failed", e);
+  }
+}
+
+
+
 
 // Server-side web search is locked to official election sources.
 // Anything not on this list cannot enter the model's context.
