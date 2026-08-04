@@ -492,6 +492,18 @@ Deno.serve(async (req) => {
     // Conversation persistence is handled client-side in ask_uwazi_sessions.
     void session_id;
 
+    await logModelUse({
+      user_id: logUserId,
+      session_id: logSessionId,
+      model_id: logModel,
+      model_source: logSource,
+      success: true,
+      tools_used: [...new Set(toolsUsed)],
+      input_tokens: usage.input_tokens ?? 0,
+      output_tokens: usage.output_tokens ?? 0,
+      duration_ms: Date.now() - startedAt,
+    });
+
     return json({
       reply: finalText,
       citations,
@@ -501,6 +513,16 @@ Deno.serve(async (req) => {
     }, 200);
   } catch (err) {
     console.error("ask-uwazi error", err);
+    await logModelUse({
+      user_id: logUserId,
+      session_id: logSessionId,
+      model_id: logModel,
+      model_source: logSource,
+      success: false,
+      error_type: "internal_error",
+      error_message: err instanceof Error ? err.message : String(err),
+      duration_ms: Date.now() - startedAt,
+    });
     return json({ error: "internal_error" }, 500);
   }
 });
