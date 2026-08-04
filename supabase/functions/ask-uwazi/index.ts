@@ -330,7 +330,11 @@ Deno.serve(async (req) => {
     const { message, history = [], session_id } = await req.json();
     if (!message?.trim()) return json({ error: "empty_message" }, 400);
 
-    const model = await pickModel(message, apiKey);
+    const override = await getModelSetting();
+    const model = override === "auto"
+      ? await pickModel(message, apiKey)
+      : override;
+
 
     const system = [
       {
