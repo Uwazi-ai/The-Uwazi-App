@@ -32,10 +32,11 @@ export default function PromoRedeemPage() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ResultState | null>(null);
 
-  // Keep the code alive across the auth hop — this is the main failure mode.
+  // Keep the code alive across the auth hop, but only for codes that arrived
+  // from a card link — typing in the box must not pin future logins to /redeem.
   useEffect(() => {
-    if (code) savePendingPromo({ code, campaign: campaign || undefined });
-  }, [code, campaign]);
+    if (urlCode) savePendingPromo({ code: urlCode, campaign: campaign || undefined });
+  }, [urlCode, campaign]);
 
   const goAuth = (path: string) => {
     savePendingPromo({ code: code.trim().toUpperCase(), campaign: campaign || undefined });
