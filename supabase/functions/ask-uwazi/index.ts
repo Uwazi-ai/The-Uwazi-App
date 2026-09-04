@@ -325,6 +325,7 @@ async function pickModel(question: string, apiKey: string): Promise<string> {
         "x-api-key": apiKey,
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
+        ...WORKSPACE_HEADER,
       },
       body: JSON.stringify({
         model: MODELS.route,
@@ -414,6 +415,7 @@ Deno.serve(async (req) => {
           "x-api-key": apiKey,
           "anthropic-version": "2023-06-01",
           "content-type": "application/json",
+        ...WORKSPACE_HEADER,
         },
         body: JSON.stringify({
           model,
