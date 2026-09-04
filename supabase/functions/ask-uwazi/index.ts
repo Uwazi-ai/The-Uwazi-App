@@ -13,6 +13,12 @@ import { SYSTEM_PROMPT } from "./prompt.ts";
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 
+// Org-level (non workspace-scoped) keys require this header.
+const WORKSPACE_ID = Deno.env.get("ANTHROPIC_WORKSPACE_ID");
+const WORKSPACE_HEADER: Record<string, string> = WORKSPACE_ID
+  ? { "anthropic-workspace-id": WORKSPACE_ID }
+  : {};
+
 const MODELS = {
   route: "claude-haiku-4-5-20251001", // classify + extract
   chat: "claude-sonnet-5",            // default civic Q&A
