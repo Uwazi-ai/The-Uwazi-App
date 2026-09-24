@@ -22,8 +22,8 @@ import { useMyBallotSelections, useSaveSelection } from "@/hooks/useMyBallot";
    CONSTANTS
    ══════════════════════════════════════════════════════ */
 
-const ELECTION_DATE = "2026-08-04";
-const ELECTION_LABEL = "August 4, 2026";
+const ELECTION_DATE = "2026-11-03";
+const ELECTION_LABEL = "November 3, 2026";
 const GENERAL_DATE = "2026-11-03";
 const SUPPORTED_STATES = ["MO", "KS"];
 
@@ -368,7 +368,7 @@ function NoAddressCard() {
     >
       <h2 className="font-heading text-xl md:text-2xl text-foreground">See what's on your ballot</h2>
       <p className="text-sm text-muted-foreground mt-2">
-        Add your address and we'll show you your exact ballot for August 4. ZIP codes split across voting districts,
+        Add your address and we'll show you your exact ballot for November 3. ZIP codes split across voting districts,
         so we need your full address to get it right. Your address is private and never shared.
       </p>
       <Link to="/app/settings">
@@ -462,7 +462,7 @@ function RegistrationCheckCard({ profile }: { profile: any }) {
         Check your registration
       </h2>
       <p className="text-sm text-muted-foreground mt-2">
-        Registration for the August 4 election has closed, but you can still confirm you're registered and find
+        Confirm you're registered at your current address and find
         where you vote. We'll hand you off to your state's official voter lookup.
       </p>
       <Button onClick={handleCheck} className="mt-4 bg-primary text-primary-foreground gap-1.5">
@@ -792,7 +792,7 @@ function KansasPartyPathCard({ profile }: { profile: any }) {
             border: "1px solid rgba(155,211,75,0.35)",
           }}
         >
-          <h3 className="font-heading text-xl text-foreground">You can still vote on August 4</h3>
+          <h3 className="font-heading text-xl text-foreground">You can vote on November 3</h3>
           <p className="text-sm text-foreground/90 mt-2">
             Unaffiliated voters in Kansas receive a ballot with the statewide constitutional amendment. You don't
             need to join a party to vote on it.
@@ -827,8 +827,8 @@ function WhereToVoteCard({ profile }: { profile: any }) {
 
   const optionsCopy =
     state === "MO"
-      ? "In-person early voting runs through August 3. No excuse needed. On August 4, polls are open 6:00 AM to 7:00 PM."
-      : "In-person advance voting runs through noon on August 3. Mail ballots must be received by your county election office by Election Day — if you're within a week, hand-deliver it.";
+      ? "No-excuse in-person early voting runs October 20 – November 2. On November 3, polls are open 6:00 AM to 7:00 PM. Bring a photo ID."
+      : "In-person advance voting runs through noon on November 2. Mail ballots must be received by your county election office by Election Day — if you're within a week, hand-deliver it.";
 
   return (
     <section>
