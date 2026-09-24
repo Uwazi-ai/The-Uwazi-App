@@ -118,7 +118,7 @@ var get_ballot_default = defineTool3({
   description: "Get the verified contests on a ballot \u2014 races with their candidates, plus ballot measures with plain-English summaries \u2014 for a state and election date.",
   inputSchema: {
     state: z2.string().describe("Two-letter state code, e.g. MO or KS."),
-    election_date: z2.string().describe("ISO election date, e.g. 2026-08-04.")
+    election_date: z2.string().describe("ISO election date, e.g. 2026-11-03.")
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ state, election_date }, ctx) => {

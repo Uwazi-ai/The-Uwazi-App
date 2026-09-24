@@ -14,7 +14,7 @@ import { SYSTEM_PROMPT } from "./prompt.ts";
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 
 // Org-level (non workspace-scoped) keys require this header.
-const WORKSPACE_ID = Deno.env.get("ANTHROPIC_WORKSPACE_ID");
+const WORKSPACE_ID = Deno.env.get("ANTHROPIC_WORKSPACE_ID")?.trim().replace(/^"|"$/g, "");
 const WORKSPACE_HEADER: Record<string, string> = WORKSPACE_ID
   ? { "anthropic-workspace-id": WORKSPACE_ID }
   : {};
@@ -148,7 +148,7 @@ const LOCAL_TOOLS = [
       properties: {
         election_date: {
           type: "string",
-          description: "ISO date, e.g. 2026-08-04",
+          description: "ISO date, e.g. 2026-11-03",
         },
         party: {
           type: "string",
@@ -249,7 +249,7 @@ async function runLocalTool(
       });
     }
 
-    const electionDate = String(input.election_date ?? "2026-08-04");
+    const electionDate = String(input.election_date ?? "2026-11-03");
     const party = input.party ? String(input.party).toUpperCase() : null;
 
     let q = supabase
@@ -408,24 +408,37 @@ Deno.serve(async (req) => {
     const toolsUsed: string[] = [];
     let usage: Record<string, number> = {};
 
+    const BUDGET_MS = 90000;
+    let timedOut = false;
     for (let turn = 0; turn < 6; turn++) {
-      const res = await fetch(ANTHROPIC_URL, {
-        method: "POST",
-        headers: {
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-          "content-type": "application/json",
-        ...WORKSPACE_HEADER,
-        },
-        body: JSON.stringify({
-          model,
-          max_tokens: 2048,
-          system,
-          messages,
-          tools: buildTools(true),
-        }),
-        signal: AbortSignal.timeout(60000),
-      });
+      const remaining = BUDGET_MS - (Date.now() - startedAt);
+      if (remaining < 5000) { timedOut = true; break; }
+      let res: Response;
+      try {
+        res = await fetch(ANTHROPIC_URL, {
+          method: "POST",
+          headers: {
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+            ...WORKSPACE_HEADER,
+          },
+          body: JSON.stringify({
+            model,
+            max_tokens: 2048,
+            system,
+            messages,
+            tools: buildTools(turn < 4),
+          }),
+          signal: AbortSignal.timeout(Math.min(45000, remaining)),
+        });
+      } catch (e) {
+        if (e instanceof DOMException && (e.name === "TimeoutError" || e.name === "AbortError")) {
+          timedOut = true;
+          break;
+        }
+        throw e;
+      }
 
       if (!res.ok) {
         const detail = await res.text();
@@ -505,7 +518,8 @@ Deno.serve(async (req) => {
       session_id: logSessionId,
       model_id: logModel,
       model_source: logSource,
-      success: true,
+      success: !timedOut,
+      error_type: timedOut ? "timeout" : null,
       tools_used: [...new Set(toolsUsed)],
       input_tokens: usage.input_tokens ?? 0,
       output_tokens: usage.output_tokens ?? 0,
