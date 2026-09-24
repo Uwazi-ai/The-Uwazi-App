@@ -408,24 +408,37 @@ Deno.serve(async (req) => {
     const toolsUsed: string[] = [];
     let usage: Record<string, number> = {};
 
+    const BUDGET_MS = 90000;
+    let timedOut = false;
     for (let turn = 0; turn < 6; turn++) {
-      const res = await fetch(ANTHROPIC_URL, {
-        method: "POST",
-        headers: {
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-          "content-type": "application/json",
-        ...WORKSPACE_HEADER,
-        },
-        body: JSON.stringify({
-          model,
-          max_tokens: 2048,
-          system,
-          messages,
-          tools: buildTools(true),
-        }),
-        signal: AbortSignal.timeout(60000),
-      });
+      const remaining = BUDGET_MS - (Date.now() - startedAt);
+      if (remaining < 5000) { timedOut = true; break; }
+      let res: Response;
+      try {
+        res = await fetch(ANTHROPIC_URL, {
+          method: "POST",
+          headers: {
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+            ...WORKSPACE_HEADER,
+          },
+          body: JSON.stringify({
+            model,
+            max_tokens: 2048,
+            system,
+            messages,
+            tools: buildTools(turn < 4),
+          }),
+          signal: AbortSignal.timeout(Math.min(45000, remaining)),
+        });
+      } catch (e) {
+        if (e instanceof DOMException && (e.name === "TimeoutError" || e.name === "AbortError")) {
+          timedOut = true;
+          break;
+        }
+        throw e;
+      }
 
       if (!res.ok) {
         const detail = await res.text();
