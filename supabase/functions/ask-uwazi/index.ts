@@ -14,7 +14,7 @@ import { SYSTEM_PROMPT } from "./prompt.ts";
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 
 // Org-level (non workspace-scoped) keys require this header.
-const WORKSPACE_ID = Deno.env.get("ANTHROPIC_WORKSPACE_ID");
+const WORKSPACE_ID = Deno.env.get("ANTHROPIC_WORKSPACE_ID")?.trim().replace(/^"|"$/g, "");
 const WORKSPACE_HEADER: Record<string, string> = WORKSPACE_ID
   ? { "anthropic-workspace-id": WORKSPACE_ID }
   : {};
