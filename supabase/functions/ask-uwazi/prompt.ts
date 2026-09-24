@@ -7,56 +7,43 @@
 // goes in the messages array.
 //
 // EVERY FACT BELOW MUST BE RE-VERIFIED BEFORE EACH ELECTION.
-// Verified 2026-07-26 against MO SOS, KS SOS, Fair Elections Center.
+// Updated 2026-09-24 for the November 3 general. Human re-verification
+// against MO SOS and KS SOS is required before launch.
 // ============================================================
 
 export const ELECTION_FACTS = `
-## Verified election facts — August 4, 2026 primary
-(Last human verification: 2026-07-26)
+## Election facts — November 3, 2026 general election
+(The August 4, 2026 primary is OVER. Never describe it as upcoming.)
 
 ### Missouri
-- Election Day: Tuesday, August 4, 2026. Polls open 6:00 AM, close 7:00 PM.
-- Voter registration for this election CLOSED on July 8, 2026.
-  Missouri has NO same-day registration. Someone not registered by
-  July 8 cannot vote on August 4. They CAN register now for the
-  November 3, 2026 general (deadline October 7, 2026).
-- Mail absentee ballot request deadline: July 22, 2026 — PASSED.
-- No-excuse IN-PERSON absentee voting: July 21 through August 3, 2026,
+- Election Day: Tuesday, November 3, 2026. Polls open 6:00 AM, close 7:00 PM.
+- Voter registration deadline: Wednesday, October 7, 2026. Missouri has
+  NO same-day registration.
+- Mail absentee ballot request deadline: Wednesday, October 21, 2026.
+- No-excuse IN-PERSON absentee voting: October 20 through November 2, 2026,
   at locations set by the local election authority.
-- Missouri runs an OPEN primary. Voters do not register by party.
-  At the polls you request a specific party's ballot, and you may only
-  vote in that one party's contests.
+- The general election has ONE ballot for every voter — no party choice.
 - Missouri requires a valid government-issued PHOTO ID. Voters without
   one may cast a provisional ballot.
-- Four statewide constitutional amendments are on the ballot.
-  DO NOT summarize any amendment from memory. Use the search_official_sources
-  tool and quote the official ballot summary, or link the voter to
-  sos.mo.gov.
+- DO NOT summarize any ballot measure from memory. Use get_user_ballot or
+  official sources and quote the official ballot summary, or link sos.mo.gov.
 
 ### Kansas
-- Election Day: Tuesday, August 4, 2026.
-  Poll hours vary by county — do not state hours without a source.
-- Voter registration for this election CLOSED on July 14, 2026.
-  Kansas has NO same-day registration.
-- Advance (mail) ballot APPLICATION deadline: July 28, 2026 at ksvotes.org.
-  This is still open as of late July — it is the most time-sensitive
-  action a Kansas voter can take right now.
-- In-person advance voting: from July 15 (county-dependent; all counties
-  by July 28) through 12:00 PM on August 3, 2026.
-- NEW IN 2026: mail ballots must be RECEIVED by the county election
-  office by Election Day. The old post-election grace period is gone.
-  Tell voters to hand-deliver if they are within a week of the election.
-- Kansas registers voters by party. The deadline to CHANGE party
-  affiliation was June 1, 2026.
-- Unaffiliated Kansas voters CAN still vote in this election. They
-  receive a ballot containing the statewide constitutional amendment
-  even if they do not participate in a partisan primary. Never tell an
-  unaffiliated Kansas voter they have nothing to vote on.
+- Election Day: Tuesday, November 3, 2026. Polls generally 7:00 AM – 7:00 PM;
+  counties may vary — confirm with the county when possible.
+- Voter registration deadline: Tuesday, October 13, 2026. NO same-day registration.
+- Advance (mail) ballot APPLICATION deadline: Tuesday, October 27, 2026 (ksvotes.org).
+- In-person advance voting: begins as early as October 14 (county-dependent)
+  and ends at 12:00 PM on Monday, November 2, 2026.
+- Mail ballots must be RECEIVED by the county election office by Election
+  Day. Tell voters to hand-deliver if they are within a week of the election.
+- The general election has ONE ballot for every voter, regardless of party
+  affiliation. Unaffiliated voters vote on every contest.
+- Kansas requires photo ID at the polls.
 
 ### Both states
-- The November 3, 2026 general election registration deadlines are
-  October 7 (MO) and October 13 (KS). If a user missed August, redirect
-  them to register for November — that is the useful next action.
+- If a user missed the registration deadline, say so plainly and point
+  them to their county election office; do not suggest same-day registration.
 `.trim();
 
 export const SYSTEM_PROMPT = `
