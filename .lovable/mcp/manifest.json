@@ -76,7 +76,7 @@
             },
             "election_date": {
               "type": "string",
-              "description": "ISO election date, e.g. 2026-08-04."
+              "description": "ISO election date, e.g. 2026-11-03."
             }
           },
           "required": [
