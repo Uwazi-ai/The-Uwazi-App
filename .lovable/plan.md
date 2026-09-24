@@ -1,55 +1,38 @@
-# Redemption Codes: Onboarding + Admin Builder + BI
+# November 3 Election Readiness Plan
 
-## 1. Onboarding — Optional Redemption Code Step
+## What I need from you
+1. **Anthropic workspace ID** (or a new workspace-scoped API key) so Ask UWAZI works again.
+2. **Official November 3 ballot data**, from Kansas City Election Board, Jackson/Clay/Platte/Cass counties, and Johnson/Wyandotte counties in Kansas. A sample ballot PDF or JSON, like the primary data, works.
+3. **Primary results**: who won each August race. A list or links are fine. I can also mark the primary contests as finished without results if you prefer.
+4. After loading, **you review and verify** the November contests on the Ballot Review admin screen. Nothing shows to voters until it's verified.
 
-Add a new **step 3 "Have a code?"** to the onboarding wizard (before the Registration Check, which becomes step 4). Total steps: 3 → 4.
+## Phase 1: Get Ask UWAZI working again (today)
+- Attach the workspace ID or the new key, then send test questions: simple, complex and ballot-specific.
+- Stop long questions from failing. Set a total time budget, cap the rounds of web search, and return a friendly "check with your county board" answer instead of an error.
+- Log timeouts separately in the Model Log so you can see them.
 
-- New component `RedemptionCodeStep.tsx`:
-  - Input field (auto-uppercase, e.g. `BACKPACK`), "Redeem" button, and a prominent **Skip** link ("I don't have a code").
-  - Calls existing `redeem_code(p_code)` RPC.
-  - On success: toast confirming access length, then advance to Registration Check.
-  - On error: inline message, allow retry or skip.
-- Prefill from URL param `?code=BACKPACK` so partner cards / QR links land users pre-filled.
-- `BACKPACK` is already seeded — no data changes needed for it to work.
+## Phase 2: Switch the app from the August primary to the November 3 general
+- Add November 3, 2026 general election rows for Missouri and Kansas: registration deadlines (MO Oct 7, KS Oct 13), early and absentee voting windows, and polling hours.
+- Replace every hard-coded "August 4" with "the next upcoming election", pulled from the elections list. This covers the Voting Hub, My Ballot, the practice ballot card, the chatbot and the agent tools.
+- The general election has one ballot for everyone, so there's no party picker. The primary party-ballot flow stays only for past primaries.
+- Update the chatbot's election facts for the general election: deadlines, absentee and photo ID rules, polling hours, and what to do if you're not registered.
 
-## 2. Super Admin — Coupon / Code Builder
+## Phase 3: Clean up primary data
+- Mark the August contests as past, so they drop out of "upcoming" views but stay in the database for reference.
+- If you supply results, mark each candidate as having won or lost the primary, and carry the winners into the November races.
 
-New page `/app/admin/codes` (`AdminCodesPage.tsx`), linked from admin nav. Super-admin only (not program_admin).
+## Phase 4: Load and verify the November ballot
+- Load the November contests and measures as unverified. Then you verify them in Ballot Review.
+- Show a clear empty state until verification: "Your November ballot is being verified; check back soon."
 
-**Features:**
-- Table of all `redemption_codes`: code, label, grant length, redeemed / max, starts/expires, active toggle.
-- **Create Code** modal with pricing strategies:
-  - *Time grant*: X days of UWAZI+
-  - *Fixed end date*: through YYYY-MM-DD
-  - *Redemption cap*: unlimited or N uses
-  - *Validity window*: starts_at / expires_at
-  - *Active toggle*
-- **Bulk generate** (optional v1): generate N random codes with a shared label/prefix (e.g. `PARTNER-XXXX`).
-- Edit / deactivate existing codes.
-- Copy-to-clipboard for share links: `https://uwazi.ai/onboarding?code=CODE`.
+## Phase 5: Final checks
+- Run a fresh security scan and fix what it finds.
+- Walk through the whole voter path in the browser: sign up, check registration, view your ballot, fill in a practice ballot, print it, and ask the chatbot.
+- Check how the chatbot's daily limits and address lookup hold up under heavy traffic.
 
-**Backend:** All writes gated by a new `is_super_admin` check via existing `has_role(_, 'super_admin')` in RLS policies on `redemption_codes` (currently locked down — needs admin INSERT/UPDATE policies).
-
-## 3. Business Intelligence — Code Performance
-
-Add a **"Redemption Codes"** section to `AdminIntelligencePage`:
-- KPIs: total redemptions (all-time / 7d / 30d), unique redeemers, active codes count.
-- Table per-code: redemptions, conversion (redeemed / cap), first & last redemption timestamps.
-- Chart: redemptions per day (line, last 30d) grouped by code.
-- "Early signup impact": how many redeemers signed up within 24h of redeeming (join `code_redemptions` → `profiles.created_at`).
-
-Backend: new SECURITY DEFINER RPCs `code_redemption_stats()` and `code_redemptions_by_day(period_days)` — admin-gated via `is_admin(auth.uid())`.
-
-## Technical Notes
-
-- Schema: add admin INSERT/UPDATE/DELETE RLS on `redemption_codes`; no new tables needed.
-- New RPCs: `code_redemption_stats`, `code_redemptions_by_day`.
-- New files: `RedemptionCodeStep.tsx`, `AdminCodesPage.tsx`, `RedemptionCodesSection.tsx` (BI), route in `App.tsx`.
-- Onboarding page bumps `TOTAL_STEPS` to 4 and reorders `AnimatePresence` cases.
-- No changes to existing `redeem_code` RPC or `subscriptions` table.
-
-## Out of Scope (flag for later)
-
-- Partner-org attribution on redemptions (would need `org_id` column on `redemption_codes`).
-- % discount codes tied to Stripe coupons (this system grants free access; Stripe discounts are separate).
-- Email delivery of generated codes.
+## Technical details
+- `ask-uwazi`: per-turn timeout of 25s, total budget of about 90s, a `max_uses` limit on search, catching `TimeoutError` and returning a 200 fallback plus a `timeout` log entry.
+- A new `useNextElection()` hook querying `elections` where `election_date >= today`, replacing literals in `VotingHubPage`, `useMyBallot`, `MyBallotEntryPage`, `MyBallotCard`, `get-voter-elections`, `mcp` and `get-ballot`.
+- In `ask-uwazi`, `get_user_ballot` defaults to the next election. When the election type is general, it skips the party filter.
+- `prompt.ts`: ELECTION_FACTS rewritten for the general election.
+- A migration inserting the general election rows. Candidate status uses the existing `won_primary` and `lost_primary` values.
