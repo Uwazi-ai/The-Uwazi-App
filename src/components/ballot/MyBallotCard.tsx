@@ -49,7 +49,7 @@ export function MyBallotCard({
           <div className="flex-1">
             <h2 className="font-heading text-lg md:text-xl text-foreground">Build your ballot</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Walk through your August 4 ballot and print it to take with you.
+              Walk through your November 3 ballot and print it to take with you.
             </p>
             <Link to="/app/my-ballot">
               <Button className="mt-4 bg-primary text-primary-foreground gap-1.5">

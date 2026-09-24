@@ -148,7 +148,7 @@ const LOCAL_TOOLS = [
       properties: {
         election_date: {
           type: "string",
-          description: "ISO date, e.g. 2026-08-04",
+          description: "ISO date, e.g. 2026-11-03",
         },
         party: {
           type: "string",
@@ -249,7 +249,7 @@ async function runLocalTool(
       });
     }
 
-    const electionDate = String(input.election_date ?? "2026-08-04");
+    const electionDate = String(input.election_date ?? "2026-11-03");
     const party = input.party ? String(input.party).toUpperCase() : null;
 
     let q = supabase

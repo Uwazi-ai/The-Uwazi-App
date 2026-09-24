@@ -62,43 +62,61 @@ function computeNextAction(state: string | null, today: Date): NextAction {
   const target = new Date(`${ELECTION_DATE}T00:00:00`);
   const days = daysBetween(new Date(today), new Date(target));
 
-  // Post-election
   if (days < 0) {
-    const dl = state ? REG_DEADLINES[state] : null;
     return {
-      headline: "Next up: the general election on November 3",
-      detail: dl ? `Registration deadline: ${dl}.` : "Check your state registration deadline.",
+      headline: "The November 3 general election has passed",
+      detail: "Thanks for voting. Results are certified by your county election authority.",
     };
   }
 
-  // Election day
   if (days === 0) {
     return {
       headline: "Polls are open today",
-      detail: state === "MO" ? "Missouri polls: 6:00 AM – 7:00 PM." : "Check your county for local poll hours.",
+      detail: state === "MO" ? "Missouri polls: 6:00 AM – 7:00 PM." : "Kansas polls: 7:00 AM – 7:00 PM (check your county).",
+    };
+  }
+
+  if (state === "MO") {
+    if (today <= new Date("2026-10-07T23:59:59")) {
+      return {
+        headline: "Register to vote by October 7",
+        detail: "Missouri has no same-day registration. Register or update your address by Wednesday, October 7.",
+        ctaLabel: "Register at sos.mo.gov",
+        ctaUrl: "https://s1.sos.mo.gov/elections/goVoteMissouri/register",
+      };
+    }
+    if (today < new Date("2026-10-20T00:00:00")) {
+      return {
+        headline: "No-excuse early voting starts October 20",
+        detail: "Missouri in-person absentee voting runs October 20 – November 2. Mail ballot requests are due October 21.",
+      };
+    }
+    return {
+      headline: "Vote early in person — no excuse needed, through November 2",
+      detail: "Missouri no-excuse in-person absentee voting runs through Monday, November 2.",
     };
   }
 
   if (state === "KS") {
-    const applyDeadline = new Date("2026-07-28T23:59:59");
-    if (today <= applyDeadline) {
+    if (today <= new Date("2026-10-13T23:59:59")) {
       return {
-        headline: "Apply for a mail ballot by July 28",
-        detail: "Your application must be received by your county election office by July 28.",
+        headline: "Register to vote by October 13",
+        detail: "Kansas has no same-day registration. Register or update your address by Tuesday, October 13.",
+        ctaLabel: "Register at ksvotes.org",
+        ctaUrl: "https://ksvotes.org",
+      };
+    }
+    if (today <= new Date("2026-10-27T23:59:59")) {
+      return {
+        headline: "Apply for a mail ballot by October 27",
+        detail: "Mail ballots must be received by your county by Election Day — apply early.",
         ctaLabel: "Apply at ksvotes.org",
         ctaUrl: "https://ksvotes.org",
       };
     }
     return {
-      headline: "Vote early in person — ends noon on August 3",
-      detail: "Kansas advance in-person voting ends at 12:00 PM on Monday, August 3.",
-    };
-  }
-
-  if (state === "MO") {
-    return {
-      headline: "Vote early in person — no excuse needed, through August 3",
-      detail: "Missouri no-excuse in-person absentee voting runs through Monday, August 3.",
+      headline: "Vote early in person — ends noon on November 2",
+      detail: "Kansas advance in-person voting ends at 12:00 PM on Monday, November 2.",
     };
   }
 

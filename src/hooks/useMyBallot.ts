@@ -2,8 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-export const ELECTION_DATE = "2026-08-04";
-export const ELECTION_LABEL = "Tuesday, August 4, 2026";
+export const ELECTION_DATE = "2026-11-03";
+export const ELECTION_LABEL = "Tuesday, November 3, 2026";
 
 export type PartyKey =
   | "democratic"

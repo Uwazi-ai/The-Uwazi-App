@@ -62,7 +62,7 @@ export default function MyBallotEntryPage() {
     <div className="max-w-2xl mx-auto px-4 md:px-6 py-6 pb-24 md:pb-10 space-y-5">
       <Helmet>
         <title>Build My Ballot — UWAZI</title>
-        <meta name="description" content="Walk through your August 4, 2026 ballot and print it for the polls." />
+        <meta name="description" content="Walk through your November 3, 2026 ballot and print it for the polls." />
       </Helmet>
 
       <PracticeBanner />
@@ -73,7 +73,7 @@ export default function MyBallotEntryPage() {
           Build My Ballot
         </h1>
         <p className="text-sm text-muted-foreground mt-2">
-          We'll walk you through every contest on your August 4 ballot, then help you print or save it to take with you.
+          We'll walk you through every contest on your November 3 ballot, then help you print or save it to take with you.
         </p>
       </header>
 
@@ -203,7 +203,7 @@ function PartyPicker({
           style={{ background: "rgba(155,211,75,0.08)", border: "1px solid rgba(155,211,75,0.28)" }}
         >
           If you pick Unaffiliated, your ballot will have the statewide constitutional amendment. You can still vote
-          on August 4.
+          on November 3.
         </div>
       )}
 
