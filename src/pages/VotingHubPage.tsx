@@ -301,9 +301,22 @@ function HeaderCountdown({ state }: { state: string | null }) {
     return () => clearInterval(id);
   }, []);
 
-  const target = new Date(`${ELECTION_DATE}T00:00:00`);
+  const { data: election } = useNextElection(state);
+  const electionDate = election?.election_date ?? ELECTION_DATE;
+  const electionLabel = formatElectionDate(electionDate, { month: "long", day: "numeric", year: "numeric" }) ?? ELECTION_LABEL;
+
+  const target = new Date(`${electionDate}T00:00:00`);
   const { headline, isElectionDay } = computeCountdownLabel(new Date(now), new Date(target));
   const nextAction = computeNextAction(state, new Date(now));
+
+  const keyDates: { label: string; value: string }[] = [];
+  const regDeadline = formatElectionDate(election?.registration_deadline, { month: "long", day: "numeric" });
+  const earlyStart = formatElectionDate(election?.early_voting_start, { month: "long", day: "numeric" });
+  const earlyEnd = formatElectionDate(election?.early_voting_end, { month: "long", day: "numeric" });
+  const absenteeDeadline = formatElectionDate(election?.absentee_deadline, { month: "long", day: "numeric" });
+  if (regDeadline) keyDates.push({ label: "Registration deadline", value: regDeadline });
+  if (earlyStart && earlyEnd) keyDates.push({ label: "Early voting", value: `${earlyStart} – ${earlyEnd}` });
+  if (absenteeDeadline) keyDates.push({ label: "Mail ballot request by", value: absenteeDeadline });
 
   return (
     <motion.section
