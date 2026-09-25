@@ -8,6 +8,8 @@ import { PracticeBanner } from "@/components/ballot/PracticeBanner";
 import {
   useVoterProfile,
   useSaveParty,
+  useSavePrecinct,
+  lookupPrecinct,
   isAddressComplete,
   SUPPORTED_STATES,
   PartyKey,
@@ -110,43 +112,18 @@ export default function MyBallotEntryPage() {
         </div>
       )}
 
-      {addressOk && state === "MO" && (
-        <PartyPicker
-          heading="Which ballot will you request?"
-          body="Missouri has an open primary. You'll tell the poll worker which party's ballot you want. You don't need to be registered with that party, and you can choose a different one next election."
-          options={MO_PARTIES}
-          saving={saving}
-          onPick={handlePick}
-          footer={
-            <div className="mt-4">
-              <button
-                type="button"
-                onClick={() => setAmendmentsOpen((v) => !v)}
-                className="text-sm text-primary hover:underline inline-flex items-center gap-1"
-              >
-                What if I only want to vote on the amendments?{" "}
-                <ChevronDown className={`h-4 w-4 transition-transform ${amendmentsOpen ? "rotate-180" : ""}`} />
-              </button>
-              {amendmentsOpen && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  The four constitutional amendments appear on every party ballot. If amendments are all you want to
-                  vote on, request the party ballot you're most comfortable with — the amendments will be there.
-                </p>
-              )}
-            </div>
-          }
-        />
-      )}
+      {addressOk && state === "MO" && <PrecinctStep profile={profile} onDone={() => navigate("/app/my-ballot/walkthrough")} />}
 
       {addressOk && state === "KS" && (
-        <PartyPicker
-          heading="Are you registered with a party?"
-          body="In Kansas, only voters registered with a party can vote in that party's primary. Unaffiliated voters can still vote on statewide constitutional amendments."
-          options={KS_PARTIES}
-          saving={saving}
-          onPick={handlePick}
-          unaffiliatedNote
-        />
+        <div className="rounded-2xl p-6 border border-border bg-card">
+          <h2 className="font-heading text-xl text-foreground">One ballot for everyone</h2>
+          <p className="text-sm text-muted-foreground mt-2">
+            November 3 is a general election — every voter gets the same ballot for their area, no matter their party.
+          </p>
+          <Button className="mt-4" onClick={() => navigate("/app/my-ballot/walkthrough")}>
+            Start my ballot <ArrowRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
       )}
     </div>
   );
@@ -208,6 +185,70 @@ function PartyPicker({
       )}
 
       {footer}
+    </div>
+  );
+}
+
+function PrecinctStep({ profile, onDone }: { profile: any; onDone: () => void }) {
+  const savePrecinct = useSavePrecinct();
+  const existing = (profile?.precinct_id || "").match(/\d+/g) || [];
+  const [ward, setWard] = useState(existing[0] || "");
+  const [pct, setPct] = useState(existing[1] || "");
+  const raw = ward && pct ? `${ward}-${pct}` : "";
+  const info = raw ? lookupPrecinct(raw) : null;
+
+  const save = async () => {
+    try {
+      await savePrecinct.mutateAsync(raw || null);
+      onDone();
+    } catch {
+      toast.error("Couldn't save that. Try again.");
+    }
+  };
+
+  return (
+    <div className="rounded-2xl p-6 border border-border bg-card space-y-4">
+      <div>
+        <h2 className="font-heading text-xl md:text-2xl text-foreground">What's your ward and precinct?</h2>
+        <p className="text-sm text-muted-foreground mt-2">
+          November 3 is a general election — everyone gets one ballot, no party choice. Your ward and precinct decide
+          your State Representative and County Legislator races and where you vote. They're printed on your voter ID
+          card, or look them up at{" "}
+          <a href="https://www.kceb.org" target="_blank" rel="noreferrer" className="text-primary underline">kceb.org</a>.
+        </p>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <label className="text-sm text-muted-foreground">
+          Ward
+          <input inputMode="numeric" value={ward} onChange={(e) => setWard(e.target.value.replace(/\D/g, "").slice(0, 2))}
+            className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground" placeholder="e.g. 6" />
+        </label>
+        <label className="text-sm text-muted-foreground">
+          Precinct
+          <input inputMode="numeric" value={pct} onChange={(e) => setPct(e.target.value.replace(/\D/g, "").slice(0, 3))}
+            className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground" placeholder="e.g. 14" />
+        </label>
+      </div>
+      {raw && info && (
+        <div className="rounded-xl p-3 text-sm border border-primary/30 bg-primary/10 text-foreground">
+          <p><strong>You vote at {info.placeName}</strong>, {info.address}{info.room ? ` — ${info.room}` : ""}.</p>
+          <p className="text-muted-foreground mt-1">State House District {info.rep} · County Legislature District {info.leg}. Confirm at kceb.org or (816) 842-4820.</p>
+        </div>
+      )}
+      {raw && !info && (
+        <p className="text-sm text-muted-foreground">
+          We couldn't find Ward {ward}, Precinct {pct} in the Kansas City Election Board list. It may be outside Kansas
+          City's Jackson County area. Double-check your voter card, or continue to see the races everyone votes on.
+        </p>
+      )}
+      <div className="flex flex-wrap gap-3">
+        <Button onClick={save} disabled={savePrecinct.isPending || (!!raw && !info)}>
+          {savePrecinct.isPending ? "Saving…" : "Start my ballot"} <ArrowRight className="h-4 w-4 ml-1" />
+        </Button>
+        {!raw && (
+          <Button variant="ghost" onClick={onDone}>I don't know it yet</Button>
+        )}
+      </div>
     </div>
   );
 }
