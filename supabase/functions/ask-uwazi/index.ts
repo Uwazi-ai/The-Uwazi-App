@@ -638,7 +638,7 @@ Deno.serve(async (req) => {
     const system: Record<string, unknown>[] = [
       {
         type: "text",
-        text: SYSTEM_PROMPT + "\n\n# Kansas City Poll & Ballot Finder (use the kc_poll_ballot_lookup tool for the data)\n\n" + KCEB_RULES,
+        text: SYSTEM_PROMPT + "\n\n# Kansas City Poll & Ballot Finder (use the kc_poll_ballot_lookup tool for the data)\n\n" + KCEB_RULES + "\n\n" + CLAY_RULES,
         cache_control: { type: "ephemeral" },
       },
       {
