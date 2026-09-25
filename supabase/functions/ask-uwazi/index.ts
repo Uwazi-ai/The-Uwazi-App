@@ -272,6 +272,24 @@ const LOCAL_TOOLS = [
     },
   },
   {
+    name: "clay_poll_lookup",
+    description:
+      "Official Clay County, Missouri (voteclaycountymo.gov) data for the Nov 3, 2026 general: " +
+      "Election Day polling place by precinct name (e.g. 'Liberty 2', '21 Gallatin 14'), precincts " +
+      "served by a polling place name, and early/no-excuse voting sites. Use for ANY Clay County " +
+      "voter, including the Clay County (north of the river) portion of Kansas City. Clay has NOT " +
+      "published its Nov 3 candidate list yet — never invent candidates; say the sample ballot " +
+      "isn't posted and point to voteclaycountymo.gov.",
+    input_schema: {
+      type: "object",
+      properties: {
+        precinct: { type: "string", description: "Clay County precinct name, e.g. 'Liberty 2'" },
+        polling_place: { type: "string", description: "Part of a polling place name" },
+      },
+      required: [],
+    },
+  },
+  {
     name: "precinct_ballot_lookup",
     description:
       "Nationwide polling place + ballot lookup for the signed-in voter's saved home address, from " +
