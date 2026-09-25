@@ -12,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useAskUwaziContext, getSuggestedPrompts, useAskUwaziSession, type ChatSession } from "@/hooks/useAskUwazi";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -871,7 +872,7 @@ export default function AskUwaziPage() {
                             )}
                           </div>
                           <div className="prose prose-sm dark:prose-invert max-w-none break-words [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_strong]:text-primary/90 [&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm [&_h1]:font-heading [&_h2]:font-heading [&_h3]:font-heading [&_ul]:space-y-1.5 [&_ol]:space-y-1.5 [&_li]:text-sm [&_p]:text-sm [&_p]:leading-relaxed [&_blockquote]:border-l-2 [&_blockquote]:border-primary/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs">
-                            <ReactMarkdown>{extractFollowups(msg.content).clean}</ReactMarkdown>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{extractFollowups(msg.content).clean}</ReactMarkdown>
                             {msg.id === "streaming" && isStreaming && (
                               <span className="streaming-cursor" />
                             )}

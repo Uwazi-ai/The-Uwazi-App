@@ -212,7 +212,8 @@ async function runLocalTool(
     const { data, error } = await supabase
       .from("profiles")
       .select(
-        "full_address, city, location, zip_code, county_name, " +
+        "full_address, city, location, state_code, zip_code, county_name, " +
+        "us_congressional_district, mo_house_district, mo_senate_district, " +
         "election_authority_key, party_preference",
       )
       .eq("user_id", userId)
@@ -222,24 +223,24 @@ async function runLocalTool(
     if (!data || !data.full_address) {
       return JSON.stringify({
         address_complete: false,
-        state: data?.location ?? null,
+        state: data?.state_code ?? data?.location ?? null,
         zip_code: data?.zip_code ?? null,
         note:
           "User has not completed their address. Ask them to add it in the " +
           "app. Do not infer districts from ZIP code.",
       });
     }
-    return JSON.stringify({ address_complete: true, ...data, state: data.location });
+    return JSON.stringify({ address_complete: true, ...data, state: data.state_code ?? data.location });
   }
 
   if (name === "get_user_ballot") {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("location, zip_code, county_name, election_authority_key")
+      .select("location, state_code, zip_code, county_name, election_authority_key")
       .eq("user_id", userId)
       .maybeSingle();
 
-    const state = profile?.location;
+    const state = profile?.state_code ?? profile?.location;
     if (!state) {
       return JSON.stringify({
         error: "unresolved_address",

@@ -92,6 +92,18 @@ export default function OnboardingPage() {
           street_address: data.address_line1,
         })
         .eq("user_id", user.id);
+      // Resolve county/precinct/districts in the background so ballot lookups work right away
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/resolve-address`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ address: fullAddress }),
+        }).catch((err) => console.error("resolve-address failed:", err));
+      });
       goNext();
     } catch {
       toast.error("Could not save address. Please try again.");
