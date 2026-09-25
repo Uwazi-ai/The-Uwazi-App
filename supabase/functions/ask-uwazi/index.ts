@@ -645,7 +645,7 @@ Deno.serve(async (req) => {
         type: "text",
         text: savedPrecinct
           ? `# This voter\nSaved ward-precinct: ${savedPrecinct}. For any question about their ballot, candidates, races or polling place, call get_user_ballot or kc_poll_ballot_lookup with this ward/precinct and answer ONLY with their contests. Do not list races from other districts. If the KC lookup returns not found, call precinct_ballot_lookup.`
-          : "# This voter\nNo KC ward/precinct saved. For personal ballot or polling-place questions, call get_voter_profile, then precinct_ballot_lookup (works for any US address, including Kansas and non-Jackson parts of KC). Use kc_poll_ballot_lookup only for Jackson County KC voters. If precinct_ballot_lookup has no data, hand off to their election authority — never guess.",
+          : "# This voter\nNo KC ward/precinct saved. For personal ballot or polling-place questions, call get_voter_profile, then: kc_poll_ballot_lookup for Jackson County KC voters; clay_poll_lookup for Clay County voters (including KC north of the river — precinct names like 'Liberty 2'); precinct_ballot_lookup for any other US address (Kansas, Platte/Cass, other states). If a lookup has no data, hand off to their election authority — never guess.",
       },
     ];
 
