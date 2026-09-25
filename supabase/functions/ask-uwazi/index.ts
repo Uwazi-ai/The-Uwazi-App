@@ -232,6 +232,23 @@ const LOCAL_TOOLS = [
     },
   },
   {
+    name: "precinct_ballot_lookup",
+    description:
+      "Nationwide polling place + ballot lookup for the signed-in voter's saved home address, from " +
+      "Google's official Voting Information Project (data comes from state/county election offices). " +
+      "Use this for ANY voter outside the Kansas City (Jackson County) KCEB area — e.g. Clay/Platte/Cass " +
+      "County, Kansas, or any other state — and as a cross-check for KC voters. Returns polling place, " +
+      "early-vote sites, drop-off sites, contests with candidates and referenda, and local election office. " +
+      "If it returns no_data, election officials haven't published it yet: hand off to the election authority.",
+    input_schema: {
+      type: "object",
+      properties: {
+        address: { type: "string", description: "Optional override; defaults to the voter's saved address" },
+      },
+      required: [],
+    },
+  },
+  {
     name: "get_election_authority",
     description:
       "Get official contact info, registration lookup URL, and sample ballot " +
@@ -400,6 +417,63 @@ async function runLocalTool(
 
   if (name === "kc_poll_ballot_lookup") return kcebLookup(input);
 
+  if (name === "precinct_ballot_lookup") {
+    let address = input.address ? String(input.address).slice(0, 300) : "";
+    if (!address) {
+      const { data: p } = await supabase
+        .from("profiles")
+        .select("full_address, address_line1, city, state_code, zip_code")
+        .eq("user_id", userId)
+        .maybeSingle();
+      address = (p as any)?.full_address ||
+        [p?.address_line1, p?.city, p?.state_code, p?.zip_code].filter(Boolean).join(", ");
+    }
+    if (!address) {
+      return JSON.stringify({ error: "no_address", note: "Ask the voter to add their home address in Settings." });
+    }
+    const key = Deno.env.get("GOOGLE_CIVIC_API_KEY");
+    if (!key) return JSON.stringify({ error: "not_configured" });
+    try {
+      const url = new URL("https://www.googleapis.com/civicinfo/v2/voterinfo");
+      url.searchParams.set("address", address);
+      url.searchParams.set("officialOnly", "false");
+      url.searchParams.set("key", key);
+      const r = await fetch(url, { signal: AbortSignal.timeout(10000) });
+      const j = await r.json();
+      if (!r.ok) {
+        return JSON.stringify({
+          error: "no_data",
+          detail: j?.error?.message ?? `HTTP ${r.status}`,
+          note: "Official November 3 ballot/polling data for this address isn't published in the national feed yet. Give general election facts and hand off to the local election authority (call get_election_authority).",
+        });
+      }
+      const fmt = (a: any) => a ? [a.locationName, a.line1, a.city, a.state, a.zip].filter(Boolean).join(", ") : null;
+      const loc = (arr: any[] = []) => arr.slice(0, 5).map((l) => ({
+        address: fmt(l.address), hours: l.pollingHours ?? null, notes: l.notes ?? null,
+        start: l.startDate ?? null, end: l.endDate ?? null,
+      }));
+      const contests = (j.contests ?? []).slice(0, 60).map((c: any) => c.type === "Referendum"
+        ? { type: "referendum", title: c.referendumTitle, subtitle: c.referendumSubtitle ?? null, text: (c.referendumText ?? c.referendumBrief ?? "").slice(0, 1200), url: c.referendumUrl ?? null }
+        : { type: "race", office: c.office, district: c.district?.name ?? null, level: c.level ?? null,
+            candidates: (c.candidates ?? []).map((k: any) => ({ name: k.name, party: k.party ?? null, url: k.candidateUrl ?? null })) });
+      const admin = j.state?.[0]?.local_jurisdiction?.electionAdministrationBody ?? j.state?.[0]?.electionAdministrationBody;
+      return JSON.stringify({
+        source: "Google Voting Information Project (official election office data)",
+        election: j.election ?? null,
+        normalized_address: fmt(j.normalizedInput),
+        polling_locations: loc(j.pollingLocations),
+        early_vote_sites: loc(j.earlyVoteSites),
+        drop_off_locations: loc(j.dropOffLocations),
+        contests,
+        contests_note: contests.length ? "Present only these contests, in this order, with party labels as given." : "No contest list published yet for this address.",
+        election_office: admin ? { name: admin.name ?? null, url: admin.electionInfoUrl ?? null, polling_lookup: admin.votingLocationFinderUrl ?? null, ballot_info: admin.ballotInfoUrl ?? null } : null,
+        note: "Polling places can change; tell the voter to confirm with their election office.",
+      });
+    } catch (e) {
+      return JSON.stringify({ error: "lookup_failed", detail: String(e) });
+    }
+  }
+
   if (name === "get_election_authority") {
     let q = supabase
       .from("election_authorities")
@@ -511,8 +585,8 @@ Deno.serve(async (req) => {
       {
         type: "text",
         text: savedPrecinct
-          ? `# This voter\nSaved ward-precinct: ${savedPrecinct}. For any question about their ballot, candidates, races or polling place, call get_user_ballot or kc_poll_ballot_lookup with this ward/precinct and answer ONLY with their contests. Do not list races from other districts.`
-          : "# This voter\nNo ward/precinct saved. For personal ballot questions, call get_voter_profile first; if still missing, give the contests on every KC ballot and tell them to add their ward/precinct in Settings.",
+          ? `# This voter\nSaved ward-precinct: ${savedPrecinct}. For any question about their ballot, candidates, races or polling place, call get_user_ballot or kc_poll_ballot_lookup with this ward/precinct and answer ONLY with their contests. Do not list races from other districts. If the KC lookup returns not found, call precinct_ballot_lookup.`
+          : "# This voter\nNo KC ward/precinct saved. For personal ballot or polling-place questions, call get_voter_profile, then precinct_ballot_lookup (works for any US address, including Kansas and non-Jackson parts of KC). Use kc_poll_ballot_lookup only for Jackson County KC voters. If precinct_ballot_lookup has no data, hand off to their election authority — never guess.",
       },
     ];
 
