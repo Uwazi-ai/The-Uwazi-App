@@ -28,10 +28,6 @@ const ELECTION_LABEL = "November 3, 2026";
 const GENERAL_DATE = "2026-11-03";
 const SUPPORTED_STATES = ["MO", "KS"];
 
-const REG_DEADLINES: Record<string, string> = {
-  MO: "October 7 in Missouri",
-  KS: "October 13 in Kansas",
-};
 
 type HubState = "LOADING" | "NO_ADDRESS" | "OUT_OF_AREA" | "READY" | "BALLOT_PENDING";
 
