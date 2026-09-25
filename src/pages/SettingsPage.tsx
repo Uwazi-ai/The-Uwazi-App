@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/dialog";
 import { US_STATES, getStateFromZip } from "@/utils/stateFromZip";
 import { resolveAvatarUrl } from "@/lib/avatar";
+import PollingPlaceCard from "@/components/voting/PollingPlaceCard";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ProfileData {
   display_name: string | null;
@@ -112,6 +114,7 @@ export default function SettingsPage() {
   const [addressState, setAddressState] = useState("");
   const [addressZip, setAddressZip] = useState("");
   const [editingAddress, setEditingAddress] = useState(false);
+  const queryClient = useQueryClient();
   const [savingAddress, setSavingAddress] = useState(false);
   const [currentFullAddress, setCurrentFullAddress] = useState<string | null>(null);
 
@@ -270,7 +273,9 @@ export default function SettingsPage() {
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({ address: fullAddr }),
-      }).catch((err) => console.error("resolve-address failed:", err));
+      })
+        .then(() => queryClient.invalidateQueries({ queryKey: ["my-ballot-profile"] }))
+        .catch((err) => console.error("resolve-address failed:", err));
     } catch (err) {
       console.error("resolve-address invoke failed:", err);
     }
@@ -572,6 +577,9 @@ export default function SettingsPage() {
             </div>
           </div>
         )}
+        <div className="mt-4">
+          <PollingPlaceCard />
+        </div>
       </motion.div>
 
       {/* Notifications */}
