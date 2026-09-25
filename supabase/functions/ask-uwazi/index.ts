@@ -290,10 +290,15 @@ async function runLocalTool(
 
     if (error) return JSON.stringify({ error: error.message });
     if (!data || !data.full_address) {
+      const pm0 = String(data?.precinct_id ?? "").match(/(\d+)\D+(\d+)/);
+      let ppb: unknown = null;
+      if (pm0) { try { ppb = JSON.parse(kcebLookup({ ward: Number(pm0[1]), precinct: Number(pm0[2]) })); } catch { /* ignore */ } }
       return JSON.stringify({
         address_complete: false,
         state: data?.state_code ?? data?.location ?? null,
         zip_code: data?.zip_code ?? null,
+        precinct_id: data?.precinct_id ?? null,
+        polling_place_and_ballot: ppb,
         note:
           "User has not completed their address. Ask them to add it in the " +
           "app. Do not infer districts from ZIP code.",
@@ -317,7 +322,7 @@ async function runLocalTool(
   if (name === "get_user_ballot") {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("location, state_code, zip_code, county_name, election_authority_key")
+      .select("location, state_code, zip_code, county_name, election_authority_key, precinct_id")
       .eq("user_id", userId)
       .maybeSingle();
 
@@ -333,6 +338,16 @@ async function runLocalTool(
 
     const electionDate = String(input.election_date ?? "2026-11-03");
     const party = input.party ? String(input.party).toUpperCase() : null;
+
+    // Resolve the voter's saved ward/precinct to their districts + polling place.
+    const pm = String(profile?.precinct_id ?? "").match(/(\d+)\D+(\d+)/);
+    let precinctInfo: any = null;
+    if (pm) {
+      try {
+        const r = JSON.parse(kcebLookup({ ward: Number(pm[1]), precinct: Number(pm[2]) }));
+        if (!r.error) precinctInfo = r;
+      } catch { /* ignore */ }
+    }
 
     let q = supabase
       .from("ballot_contests")
@@ -350,10 +365,17 @@ async function runLocalTool(
     if (party) q = q.or(`party.is.null,party.eq.${party}`);
     else q = q.is("party", null);
 
-    const { data: contests, error } = await q;
+    const { data: rawContests, error } = await q;
     if (error) return JSON.stringify({ error: error.message });
 
-    if (!contests?.length) {
+    // Keep only district races that match this voter's precinct.
+    const contests = (rawContests ?? []).filter((c: any) => {
+      if (c.district_type === "mo_house") return !!precinctInfo && String(precinctInfo.mo_house_district) === String(c.district_id);
+      if (c.district_type === "jackson_leg") return !!precinctInfo && String(precinctInfo.county_legislature_district) === String(c.district_id);
+      return true;
+    });
+
+    if (!contests.length) {
       return JSON.stringify({
         error: "no_published_election",
         note: "No verified ballot data for that date. Hand off to the county board.",
@@ -364,11 +386,15 @@ async function runLocalTool(
       election_date: electionDate,
       state,
       party_ballot: party,
+      saved_precinct: profile?.precinct_id ?? null,
+      polling_place: precinctInfo?.polling_place ?? null,
+      mo_house_district: precinctInfo?.mo_house_district ?? null,
+      county_legislature_district: precinctInfo?.county_legislature_district ?? null,
       contest_count: contests.length,
       contests,
-      note:
-        "Only present contests returned here. If a user asks about a race not " +
-        "in this list, say you don't have verified data and hand off.",
+      note: precinctInfo
+        ? "Ballot personalized to the voter's saved ward/precinct. Only present contests returned here."
+        : "No saved ward/precinct, so State Rep and County Legislator district races are omitted. Tell the voter to add their ward/precinct in Settings for their exact ballot. Only present contests returned here.",
     });
   }
 
