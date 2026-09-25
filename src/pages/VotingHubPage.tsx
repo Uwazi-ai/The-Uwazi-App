@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { MyBallotCard } from "@/components/ballot/MyBallotCard";
 import { CandidateRacesSection } from "@/components/voting/CandidateRacesSection";
 import { useMyBallotSelections, useSaveSelection } from "@/hooks/useMyBallot";
+import { useNextElection, formatElectionDate } from "@/hooks/useNextElection";
 
 /* ══════════════════════════════════════════════════════
    CONSTANTS
@@ -27,10 +28,6 @@ const ELECTION_LABEL = "November 3, 2026";
 const GENERAL_DATE = "2026-11-03";
 const SUPPORTED_STATES = ["MO", "KS"];
 
-const REG_DEADLINES: Record<string, string> = {
-  MO: "October 7 in Missouri",
-  KS: "October 13 in Kansas",
-};
 
 type HubState = "LOADING" | "NO_ADDRESS" | "OUT_OF_AREA" | "READY" | "BALLOT_PENDING";
 
@@ -301,9 +298,22 @@ function HeaderCountdown({ state }: { state: string | null }) {
     return () => clearInterval(id);
   }, []);
 
-  const target = new Date(`${ELECTION_DATE}T00:00:00`);
+  const { data: election } = useNextElection(state);
+  const electionDate = election?.election_date ?? ELECTION_DATE;
+  const electionLabel = formatElectionDate(electionDate, { month: "long", day: "numeric", year: "numeric" }) ?? ELECTION_LABEL;
+
+  const target = new Date(`${electionDate}T00:00:00`);
   const { headline, isElectionDay } = computeCountdownLabel(new Date(now), new Date(target));
   const nextAction = computeNextAction(state, new Date(now));
+
+  const keyDates: { label: string; value: string }[] = [];
+  const regDeadline = formatElectionDate(election?.registration_deadline, { month: "long", day: "numeric" });
+  const earlyStart = formatElectionDate(election?.early_voting_start, { month: "long", day: "numeric" });
+  const earlyEnd = formatElectionDate(election?.early_voting_end, { month: "long", day: "numeric" });
+  const absenteeDeadline = formatElectionDate(election?.absentee_deadline, { month: "long", day: "numeric" });
+  if (regDeadline) keyDates.push({ label: "Registration deadline", value: regDeadline });
+  if (earlyStart && earlyEnd) keyDates.push({ label: "Early voting", value: `${earlyStart} – ${earlyEnd}` });
+  if (absenteeDeadline) keyDates.push({ label: "Mail ballot request by", value: absenteeDeadline });
 
   return (
     <motion.section
@@ -320,7 +330,7 @@ function HeaderCountdown({ state }: { state: string | null }) {
         className="font-heading text-3xl md:text-5xl leading-none mt-1"
         style={{ letterSpacing: "-0.02em", color: "hsl(var(--foreground))" }}
       >
-        {ELECTION_LABEL}
+        {electionLabel}
       </h1>
       <p
         className={cn("mt-2 text-lg md:text-xl font-semibold", isElectionDay && "text-primary")}
@@ -328,6 +338,21 @@ function HeaderCountdown({ state }: { state: string | null }) {
       >
         {headline}
       </p>
+
+      {keyDates.length > 0 && (
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {keyDates.map((d) => (
+            <div
+              key={d.label}
+              className="rounded-xl px-3 py-2.5"
+              style={{ background: "rgba(155,211,75,0.06)", border: "1px solid rgba(155,211,75,0.18)" }}
+            >
+              <p className="text-[10px] tracking-widest uppercase text-muted-foreground">{d.label}</p>
+              <p className="text-sm font-semibold text-foreground mt-0.5">{d.value}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div
         className="mt-5 rounded-2xl p-4 md:p-5"
