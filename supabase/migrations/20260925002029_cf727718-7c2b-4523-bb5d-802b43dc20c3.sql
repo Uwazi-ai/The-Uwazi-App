@@ -1,0 +1,1 @@
+GRANT UPDATE (precinct_id) ON public.profiles TO authenticated;

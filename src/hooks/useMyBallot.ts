@@ -1,6 +1,57 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import kceb from "@/data/kceb-nov-2026.json";
+
+export interface PrecinctInfo {
+  ward: number;
+  precinct: number;
+  placeName: string;
+  address: string;
+  room: string;
+  rep: number;
+  leg: number;
+}
+
+/** Parse "6-14", "6/14", "Ward 6 precinct 14" into [ward, precinct]. */
+export function parsePrecinct(raw: string | null | undefined): [number, number] | null {
+  if (!raw) return null;
+  const nums = String(raw).match(/\d+/g);
+  if (!nums || nums.length < 2) return null;
+  return [parseInt(nums[0], 10), parseInt(nums[1], 10)];
+}
+
+/** Look up a Kansas City (KCEB) ward/precinct in the Sept 15, 2026 poll log. */
+export function lookupPrecinct(raw: string | null | undefined): PrecinctInfo | null {
+  const wp = parsePrecinct(raw);
+  if (!wp) return null;
+  const [ward, precinct] = wp;
+  const w = (kceb as any).polling.wards[String(ward)];
+  if (!w) return null;
+  for (const place of w.places) {
+    for (const g of place.precincts) {
+      if (g.pcts.includes(precinct)) {
+        return { ward, precinct, placeName: place.name, address: place.address, room: place.room, rep: g.rep, leg: g.leg };
+      }
+    }
+  }
+  return null;
+}
+
+/** Keep only contests on this voter's ballot based on district (general election data). */
+export function filterByDistrict(contests: BallotContest[], precinctRaw: string | null | undefined): BallotContest[] {
+  const info = lookupPrecinct(precinctRaw);
+  return contests.filter((c) => {
+    switch (c.district_type) {
+      case "mo_house":
+        return !!info && String(info.rep) === c.district_id;
+      case "jackson_leg":
+        return !!info && String(info.leg) === c.district_id;
+      default:
+        return true;
+    }
+  });
+}
 
 export const ELECTION_DATE = "2026-11-03";
 export const ELECTION_LABEL = "Tuesday, November 3, 2026";
@@ -27,6 +78,9 @@ export interface BallotContest {
   measure_full_text_url: string | null;
   source_name: string | null;
   source_url: string | null;
+  district_type?: string | null;
+  district_id?: string | null;
+  fiscal_note?: string | null;
 }
 
 export interface BallotCandidate {
@@ -66,6 +120,8 @@ export function filterContestsForParty(
 ): BallotContest[] {
   return contests.filter((c) => {
     if (c.contest_type === "ballot_measure") return true;
+    // General-election contests are tagged by district: everyone sees them regardless of party.
+    if (c.district_type) return true;
     if (!party) return false;
     if (party === "unaffiliated" || party === "not_sure") return false;
     const cp = contestParty(c.measure_title);
@@ -82,7 +138,7 @@ export function useVoterProfile() {
       const { data } = await supabase
         .from("profiles")
         .select(
-          "user_id, full_address, address_line1, city, state_code, zip_code, county_name, election_authority_key, party_preference, registration_verified_at",
+          "user_id, full_address, address_line1, city, state_code, zip_code, county_name, election_authority_key, party_preference, registration_verified_at, precinct_id",
         )
         .eq("user_id", user.id)
         .maybeSingle();
@@ -124,17 +180,19 @@ export function useElectionAuthority(profile: any) {
 }
 
 export function useBallotContestsForState(state: string | null | undefined) {
+  const { data: profile } = useVoterProfile();
+  const precinct = (profile as any)?.precinct_id ?? null;
   return useQuery({
-    queryKey: ["my-ballot-contests", state, ELECTION_DATE],
+    queryKey: ["my-ballot-contests", state, ELECTION_DATE, precinct],
     queryFn: async () => {
       if (!state) return [] as BallotContest[];
       const { data } = await supabase
         .from("ballot_contests")
-        .select("*")
+        .select("id, state, contest_type, sort_order, measure_title, measure_summary, plain_summary, yes_means, no_means, measure_full_text_url, source_name, source_url, district_type, district_id, fiscal_note, office_name, party")
         .eq("state", state)
         .eq("election_date", ELECTION_DATE)
         .order("sort_order", { ascending: true });
-      return (data || []) as BallotContest[];
+      return filterByDistrict((data || []) as BallotContest[], precinct);
     },
     enabled: !!state,
   });
@@ -215,6 +273,22 @@ export function useSaveParty() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["my-ballot-profile", user?.id] });
+    },
+  });
+}
+
+export function useSavePrecinct() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (precinct: string | null) => {
+      if (!user) throw new Error("Must be signed in");
+      const { error } = await supabase.from("profiles").update({ precinct_id: precinct }).eq("user_id", user.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["my-ballot-profile", user?.id] });
+      qc.invalidateQueries({ queryKey: ["my-ballot-contests"] });
     },
   });
 }

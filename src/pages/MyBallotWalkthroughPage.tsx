@@ -49,7 +49,6 @@ export default function MyBallotWalkthroughPage() {
   if (!profile || !isAddressComplete(profile) || !state || !SUPPORTED_STATES.includes(state)) {
     return <Navigate to="/app/my-ballot" replace />;
   }
-  if (!party) return <Navigate to="/app/my-ballot" replace />;
 
   if (contests.length === 0) {
     return (
@@ -61,11 +60,11 @@ export default function MyBallotWalkthroughPage() {
         >
           <h1 className="font-heading text-xl text-foreground">Nothing to walk through</h1>
           <p className="text-sm text-muted-foreground mt-2">
-            There are no contested races on your {party} ballot besides the four constitutional amendments. You can
-            still go to your polling place and vote on the amendments.
+            We don't have verified November ballot details for your area yet. Check your official sample ballot with
+            your local election office.
           </p>
           <div className="mt-4 flex gap-2">
-            <Link to="/app/my-ballot"><Button variant="outline">Change party</Button></Link>
+            <Link to="/app/my-ballot"><Button variant="outline">Back</Button></Link>
             <Link to="/app/vote"><Button className="bg-primary text-primary-foreground">Back to Voting Hub</Button></Link>
           </div>
         </div>
