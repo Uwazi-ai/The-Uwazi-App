@@ -474,6 +474,7 @@ async function runLocalTool(
   }
 
   if (name === "kc_poll_ballot_lookup") return kcebLookup(input);
+  if (name === "clay_poll_lookup") return clayLookup(input);
 
   if (name === "precinct_ballot_lookup") {
     let address = input.address ? String(input.address).slice(0, 300) : "";
