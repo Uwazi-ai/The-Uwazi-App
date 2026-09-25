@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { MyBallotCard } from "@/components/ballot/MyBallotCard";
 import { CandidateRacesSection } from "@/components/voting/CandidateRacesSection";
 import { useMyBallotSelections, useSaveSelection } from "@/hooks/useMyBallot";
+import { useNextElection, formatElectionDate } from "@/hooks/useNextElection";
 
 /* ══════════════════════════════════════════════════════
    CONSTANTS
@@ -333,7 +334,7 @@ function HeaderCountdown({ state }: { state: string | null }) {
         className="font-heading text-3xl md:text-5xl leading-none mt-1"
         style={{ letterSpacing: "-0.02em", color: "hsl(var(--foreground))" }}
       >
-        {ELECTION_LABEL}
+        {electionLabel}
       </h1>
       <p
         className={cn("mt-2 text-lg md:text-xl font-semibold", isElectionDay && "text-primary")}
@@ -341,6 +342,21 @@ function HeaderCountdown({ state }: { state: string | null }) {
       >
         {headline}
       </p>
+
+      {keyDates.length > 0 && (
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {keyDates.map((d) => (
+            <div
+              key={d.label}
+              className="rounded-xl px-3 py-2.5"
+              style={{ background: "rgba(155,211,75,0.06)", border: "1px solid rgba(155,211,75,0.18)" }}
+            >
+              <p className="text-[10px] tracking-widest uppercase text-muted-foreground">{d.label}</p>
+              <p className="text-sm font-semibold text-foreground mt-0.5">{d.value}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div
         className="mt-5 rounded-2xl p-4 md:p-5"
