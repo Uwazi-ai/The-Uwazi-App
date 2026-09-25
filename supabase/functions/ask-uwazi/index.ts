@@ -10,6 +10,57 @@
 
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SYSTEM_PROMPT } from "./prompt.ts";
+import { KCEB_RULES } from "./kceb-rules.ts";
+import KCEB from "./kceb-nov-2026.json" with { type: "json" };
+
+// deno-lint-ignore no-explicit-any
+function kcebLookup(input: Record<string, unknown>): string {
+  // deno-lint-ignore no-explicit-any
+  const K = KCEB as any;
+  const ballot = K.ballot;
+  const placeQ = input.polling_place ? String(input.polling_place).toLowerCase() : "";
+  if (placeQ) {
+    const hits: unknown[] = [];
+    for (const [ward, w] of Object.entries(K.polling.wards) as [string, any][]) {
+      for (const pl of w.places) {
+        if (pl.name.toLowerCase().includes(placeQ)) {
+          hits.push({ ward: Number(ward), name: pl.name, address: pl.address, room: pl.room,
+            precincts: pl.precincts.flatMap((g: any) => g.pcts) });
+        }
+      }
+    }
+    return JSON.stringify({ matches: hits });
+  }
+  const ward = Number(input.ward), pct = Number(input.precinct);
+  if (!ward || !pct) {
+    return JSON.stringify({ note: "No ward/precinct given. Countywide/statewide contests below appear on every KCEB ballot.",
+      everyone: ballot.everyone, county_legislator_at_large: ballot.county_legislator_at_large,
+      judicial_retention: ballot.judicial_retention, statewide_measures: ballot.statewide_measures,
+      county_measures: ballot.county_measures });
+  }
+  const w = K.polling.wards[String(ward)];
+  let found: any = null;
+  if (w) for (const pl of w.places) for (const g of pl.precincts) if (g.pcts.includes(pct)) found = { pl, g };
+  if (!found) {
+    return JSON.stringify({ error: `Ward ${ward}, precinct ${pct} is not in the KCEB Sept 15 poll log. It may have zero registered voters or be outside the KCEB jurisdiction. Send the voter to kceb.org or voteroutreach.sos.mo.gov/portal/.` });
+  }
+  const { pl, g } = found;
+  return JSON.stringify({
+    ward, precinct: pct,
+    polling_place: { name: pl.name, address: pl.address, room: pl.room },
+    mo_house_district: g.rep, county_legislature_district: g.leg,
+    ballot: {
+      everyone: ballot.everyone,
+      state_representative: ballot.state_representative_by_district[String(g.rep)] ?? null,
+      county_legislator_district: ballot.county_legislator_by_district[String(g.leg)] ?? "No district contest this year",
+      county_legislator_at_large_one_of: ballot.county_legislator_at_large,
+      judicial_retention: ballot.judicial_retention,
+      statewide_measures: ballot.statewide_measures,
+      county_measures: ballot.county_measures,
+    },
+    reminder: "Polls 6 AM–7 PM Nov 3. Confirm at kceb.org or (816) 842-4820.",
+  });
+}
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 
@@ -163,6 +214,24 @@ const LOCAL_TOOLS = [
     },
   },
   {
+    name: "kc_poll_ballot_lookup",
+    description:
+      "Official Kansas City Election Board (KCEB, Jackson County portion of KCMO) data for the " +
+      "Nov 3, 2026 general: polling place + full ballot by ward and precinct, or precincts served " +
+      "by a polling place name. Call with no args for contests on every KC ballot (candidates, " +
+      "judges, measures with official summary + fiscal note). Use the voter's saved precinct_id " +
+      "from get_voter_profile (format 'ward-precinct') when present. Never infer a precinct from an address.",
+    input_schema: {
+      type: "object",
+      properties: {
+        ward: { type: "integer" },
+        precinct: { type: "integer" },
+        polling_place: { type: "string", description: "Part of a polling place name" },
+      },
+      required: [],
+    },
+  },
+  {
     name: "get_election_authority",
     description:
       "Get official contact info, registration lookup URL, and sample ballot " +
@@ -214,7 +283,7 @@ async function runLocalTool(
       .select(
         "full_address, city, location, state_code, zip_code, county_name, " +
         "us_congressional_district, mo_house_district, mo_senate_district, " +
-        "election_authority_key, party_preference",
+        "election_authority_key, party_preference, precinct_id",
       )
       .eq("user_id", userId)
       .maybeSingle();
@@ -290,6 +359,8 @@ async function runLocalTool(
         "in this list, say you don't have verified data and hand off.",
     });
   }
+
+  if (name === "kc_poll_ballot_lookup") return kcebLookup(input);
 
   if (name === "get_election_authority") {
     let q = supabase
@@ -394,7 +465,7 @@ Deno.serve(async (req) => {
     const system = [
       {
         type: "text",
-        text: SYSTEM_PROMPT,
+        text: SYSTEM_PROMPT + "\n\n# Kansas City Poll & Ballot Finder (use the kc_poll_ballot_lookup tool for the data)\n\n" + KCEB_RULES,
         cache_control: { type: "ephemeral" },
       },
     ];
