@@ -165,6 +165,50 @@ Deno.serve(async (req) => {
       console.error("Civic API failed:", e);
     }
 
+    // STEP B2 — US Census geocoder (free, no key): coordinates, county, districts
+    let place: string | null = null;
+    try {
+      const cUrl = `https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=${encodeURIComponent(
+        address,
+      )}&benchmark=Public_AR_Current&vintage=Current_Current&layers=all&format=json`;
+      const cRes = await fetch(cUrl);
+      if (cRes.ok) {
+        const cData = await cRes.json();
+        const m = cData?.result?.addressMatches?.[0];
+        if (m) {
+          lat = lat ?? m.coordinates?.y ?? null;
+          lng = lng ?? m.coordinates?.x ?? null;
+          const g: Record<string, any[]> = m.geographies || {};
+          const pick = (re: RegExp) => {
+            const k = Object.keys(g).find((key) => re.test(key));
+            return k ? g[k]?.[0] ?? null : null;
+          };
+          county = county ?? pick(/^Counties$/)?.BASENAME ?? null;
+          place = pick(/^Incorporated Places$/)?.BASENAME ?? null;
+          const cd = pick(/Congressional Districts/)?.BASENAME;
+          const up = pick(/State Legislative Districts - Upper/)?.BASENAME;
+          const lo = pick(/State Legislative Districts - Lower/)?.BASENAME;
+          const st = state ?? m.addressComponents?.state ?? null;
+          state = st;
+          if (!usCongress && cd) usCongress = `${st ?? ""} Congressional District ${cd}`.trim();
+          if (!moSenate && up) moSenate = `State Senate District ${up}`;
+          if (!moHouse && lo) moHouse = `State House District ${lo}`;
+        }
+      }
+    } catch (e) {
+      console.warn("Census geocoder failed:", e);
+    }
+    if (county) county = county.replace(/\s+County$/i, "");
+
+    let authorityKey: string | null = null;
+    if (state === "MO") {
+      if (place === "Kansas City" && ["Jackson", "Clay", "Platte", "Cass"].includes(county ?? "")) authorityKey = "mo-kcmo-eb";
+      else if (county === "Jackson") authorityKey = "mo-jackson-eb";
+      else authorityKey = "mo-sos-fallback";
+    } else if (state === "KS") {
+      authorityKey = county === "Johnson" ? "ks-johnson-eo" : "ks-sos-fallback";
+    }
+
     // STEP C — write to profiles
     await admin
       .from("profiles")
@@ -175,6 +219,7 @@ Deno.serve(async (req) => {
         lng,
         state_code: state,
         ...(county ? { county_name: county } : {}),
+        ...(authorityKey ? { election_authority_key: authorityKey } : {}),
         city_council_district: cityCouncil,
         mo_house_district: moHouse,
         mo_senate_district: moSenate,
@@ -203,6 +248,7 @@ Deno.serve(async (req) => {
       lat,
       lng,
       county_name: county,
+      election_authority_key: authorityKey,
       geocoding_status: geocodingStatus,
       city_council_district: cityCouncil,
       mo_house_district: moHouse,
