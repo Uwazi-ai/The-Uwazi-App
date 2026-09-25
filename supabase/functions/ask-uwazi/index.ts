@@ -12,6 +12,46 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 import { SYSTEM_PROMPT } from "./prompt.ts";
 import { KCEB_RULES } from "./kceb-rules.ts";
 import KCEB from "./kceb-nov-2026.json" with { type: "json" };
+import { CLAY_RULES } from "./clay-rules.ts";
+import CLAY from "./clay-nov-2026.json" with { type: "json" };
+
+// deno-lint-ignore no-explicit-any
+function clayLookup(input: Record<string, unknown>): string {
+  // deno-lint-ignore no-explicit-any
+  const C = CLAY as any;
+  const placeQ = input.polling_place ? String(input.polling_place).toLowerCase() : "";
+  if (placeQ) {
+    const hits = C.precincts.filter((p: any) =>
+      p.polling_place.name.toLowerCase().includes(placeQ));
+    const places = [...new Set(hits.map((p: any) => p.polling_place.name))].map((n) => ({
+      name: n,
+      address: hits.find((p: any) => p.polling_place.name === n).polling_place.address,
+      precincts: hits.filter((p: any) => p.polling_place.name === n).map((p: any) => p.precinct),
+    }));
+    return JSON.stringify({ matches: places });
+  }
+  const pq = input.precinct ? String(input.precinct).toLowerCase().trim() : "";
+  if (!pq) {
+    return JSON.stringify({
+      note: "No precinct given. Clay County's Nov 3 sample ballot is not yet published — no candidate lists available. Early voting sites and office info below.",
+      early_voting_sites: C.early_voting_sites,
+      election_authority: "Clay County Board of Election Commissioners, voteclaycountymo.gov, (816) 415-8683",
+    });
+  }
+  const hit = C.precincts.find((p: any) =>
+    p.precinct.toLowerCase() === pq ||
+    p.precinct.toLowerCase().replace(/^(21|22|23|24|25|26|27|28|29|30|31|32)\s+/, "").includes(pq));
+  if (!hit) {
+    return JSON.stringify({ error: `"${input.precinct}" is not a Clay County precinct in the official list. Send the voter to voteclaycountymo.gov/cceb-maps or voteroutreach.sos.mo.gov/portal/ to find their precinct name.` });
+  }
+  return JSON.stringify({
+    precinct: hit.precinct,
+    polling_place: hit.polling_place,
+    early_voting_sites: C.early_voting_sites,
+    ballot_note: "Clay County has not published its Nov 3, 2026 sample ballot yet — do not invent candidates. The voter's sample ballot will appear in the county's address lookup at voteclaycountymo.gov closer to the election.",
+    reminder: "Polls 6 AM–7 PM Nov 3. Confirm at voteclaycountymo.gov or (816) 415-8683.",
+  });
+}
 
 // deno-lint-ignore no-explicit-any
 function kcebLookup(input: Record<string, unknown>): string {
