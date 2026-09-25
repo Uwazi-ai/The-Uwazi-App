@@ -500,11 +500,19 @@ Deno.serve(async (req) => {
 
 
 
-    const system = [
+    const { data: pRow } = await supabase.from("profiles").select("precinct_id").eq("user_id", user.id).maybeSingle();
+    const savedPrecinct = (pRow as any)?.precinct_id as string | null;
+    const system: Record<string, unknown>[] = [
       {
         type: "text",
         text: SYSTEM_PROMPT + "\n\n# Kansas City Poll & Ballot Finder (use the kc_poll_ballot_lookup tool for the data)\n\n" + KCEB_RULES,
         cache_control: { type: "ephemeral" },
+      },
+      {
+        type: "text",
+        text: savedPrecinct
+          ? `# This voter\nSaved ward-precinct: ${savedPrecinct}. For any question about their ballot, candidates, races or polling place, call get_user_ballot or kc_poll_ballot_lookup with this ward/precinct and answer ONLY with their contests. Do not list races from other districts.`
+          : "# This voter\nNo ward/precinct saved. For personal ballot questions, call get_voter_profile first; if still missing, give the contests on every KC ballot and tell them to add their ward/precinct in Settings.",
       },
     ];
 
