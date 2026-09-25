@@ -1,0 +1,1278 @@
+{
+ "meta": {
+  "source": "Clay County Board of Election Commissioners (voteclaycountymo.gov) public election geography service",
+  "pulled": "2026-09-25",
+  "election": "2026-11-03 General Election",
+  "registration_deadline": "2026-10-07",
+  "note": "Precinct-to-polling-place mapping and current officeholders. November 3 candidate lists/sample ballots not yet published by Clay County."
+ },
+ "precincts": [
+  {
+   "precinct": "21 Chouteau 11",
+   "polling_place": {
+    "name": "Shoal Creek Community Church",
+    "address": "6816 N Church Rd, Pleasant Valley, 64068",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Chouteau 12",
+   "polling_place": {
+    "name": "MCC Maple Woods Campus Center Building",
+    "address": "2601 NE Barry Rd, Kansas City, 64156",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Chouteau 13",
+   "polling_place": {
+    "name": "Northland Cathedral",
+    "address": "101 NW 99th St, Kansas City, 64155",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Chouteau 16",
+   "polling_place": {
+    "name": "Mid-Continent Public Library - North Oak Branch",
+    "address": "8700 N Oak Trafficway, Kansas City, 64155",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Chouteau 17",
+   "polling_place": {
+    "name": "Grace Fellowship",
+    "address": "10920 N Oak Trafficway, Kansas City, 64155",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Chouteau 18",
+   "polling_place": {
+    "name": "McMurry Methodist",
+    "address": "25 Eugene Fields Rd, Kansas City, 64119",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Chouteau 19",
+   "polling_place": {
+    "name": "Claycomo Community Building",
+    "address": "28 S Drake, Claycomo, 64119",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Chouteau 21",
+   "polling_place": {
+    "name": "Gracemor Christian Church",
+    "address": "5600 NE San Rafael Dr, Kansas City, 64119",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Chouteau 22",
+   "polling_place": {
+    "name": "Birmingham Community Church",
+    "address": "421 Spratley St , Kansas City, 64161",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Chouteau 26",
+   "polling_place": {
+    "name": "Northland Cathedral",
+    "address": "101 NW 99th St, Kansas City, 64155",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Chouteau 27",
+   "polling_place": {
+    "name": "New Life Church",
+    "address": "10500 N Central St, Kansas City, 64155",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Chouteau 28",
+   "polling_place": {
+    "name": "The Venue North",
+    "address": "232 NE Barry Rd, Kansas City, 64155",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Chouteau 30",
+   "polling_place": {
+    "name": "Northland Cathedral",
+    "address": "101 NW 99th St, Kansas City, 64155",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Gallatin 1",
+   "polling_place": {
+    "name": "Highlands Community of Christ",
+    "address": "7615 N Platte Purchase Dr, Kansas City, 64118",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Gallatin 10",
+   "polling_place": {
+    "name": "Gashland Baptist Church",
+    "address": "601 NE Barry Rd, Kansas City, 64155",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Gallatin 14",
+   "polling_place": {
+    "name": "Tower View Baptist Church",
+    "address": "7301 NE 50th St, Kansas City, 64119",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Gallatin 15",
+   "polling_place": {
+    "name": "Northside Christian Church",
+    "address": "5114 NW Old Pike Road, Kansas City, 64118",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Gallatin 2",
+   "polling_place": {
+    "name": "Harmony Vineyard Church",
+    "address": "600 NE 46th St, Kansas City, 64116",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Gallatin 20",
+   "polling_place": {
+    "name": "Episcopal Church of the Good Shepherd",
+    "address": "4947 NE Chouteau Dr, Kansas City, 64119",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Gallatin 23",
+   "polling_place": {
+    "name": "Immanuel Presbyterian Church",
+    "address": "3800 NE Parvin Rd, Kansas City, 64117",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Gallatin 24",
+   "polling_place": {
+    "name": "Bethel United Church of Christ",
+    "address": "4900 NE Parvin Rd , Kansas City, 64117",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Gallatin 25",
+   "polling_place": {
+    "name": "Gashland United Methodist Church",
+    "address": "7715 N Oak Trfy, Kansas City, 64118",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Gallatin 29",
+   "polling_place": {
+    "name": "Highlands Community of Christ",
+    "address": "7615 N Platte Purchase Dr, Kansas City, 64118",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Gallatin 3",
+   "polling_place": {
+    "name": "LifeBridge Baptist Church",
+    "address": "3710 N Holmes , Kansas City, 64116",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Gallatin 4",
+   "polling_place": {
+    "name": "Kansas City North Community Center",
+    "address": "3930 NE Antioch Rd, Kansas City, 64117",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Gallatin 5",
+   "polling_place": {
+    "name": "Eagle Heights Baptist Church",
+    "address": "5600 N Brighton Ave, Kansas City, 64119",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Gallatin 6",
+   "polling_place": {
+    "name": "Avondale United Methodist Church",
+    "address": "3101 NE Winn Rd , Kansas City, 64117",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Gallatin 7",
+   "polling_place": {
+    "name": "Episcopal Church of the Good Shepherd",
+    "address": "4947 NE Chouteau Dr, Kansas City, 64119",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Gallatin 8",
+   "polling_place": {
+    "name": "Briarcliff Church",
+    "address": "800 NE Vivion Rd, Kansas City, 64118",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Gallatin 9",
+   "polling_place": {
+    "name": "Northcross United Methodist Church",
+    "address": "1321 NE Vivion Rd, Kansas City, 64118",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Liberty 1",
+   "polling_place": {
+    "name": "Providence Baptist Church",
+    "address": "12206 N Stark, Kansas City, 64167",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Liberty 2",
+   "polling_place": {
+    "name": "Kansas City Church",
+    "address": "7700 N Church Rd, Kansas City, 64158",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Liberty 3",
+   "polling_place": {
+    "name": "Mid-Continent Public Library - Woodneath Library Center",
+    "address": "8900 NE Flintlock Road, Kansas City, 64157",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Liberty 4",
+   "polling_place": {
+    "name": "Hosanna Lutheran Church",
+    "address": "2800 N Church Rd, Liberty, 64068",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Liberty 5",
+   "polling_place": {
+    "name": "Mid-Continent Public Library - Woodneath Library Center",
+    "address": "8900 NE Flintlock Road, Kansas City, 64157",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Liberty 6",
+   "polling_place": {
+    "name": "Pleasant Valley Baptist Church",
+    "address": "1600 N 291 Hwy, Liberty, 64068",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Liberty 7",
+   "polling_place": {
+    "name": "Pleasant Valley Baptist Church",
+    "address": "1600 N 291 Hwy, Liberty, 64068",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Liberty 8",
+   "polling_place": {
+    "name": "Pleasant Valley Baptist Church",
+    "address": "1600 N 291 Hwy, Liberty, 64068",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Liberty 9",
+   "polling_place": {
+    "name": "Kansas City Church",
+    "address": "7700 N Church Rd, Kansas City, 64158",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Platte 1",
+   "polling_place": {
+    "name": "New Life Church",
+    "address": "10500 N Central St, Kansas City, 64155",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "21 Platte 2",
+   "polling_place": {
+    "name": "North Star United Methodist",
+    "address": "11250 N Eastern Rd, Kansas City, 64156",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Chouteau 8",
+   "polling_place": {
+    "name": "Claycomo Community Buliding",
+    "address": "28 S Drake, Claycomo, 64119",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Fishing River 1",
+   "polling_place": {
+    "name": "Flander Hall",
+    "address": "107 W Broadway Ave, Excelsior Springs, 64024",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Fishing River 2",
+   "polling_place": {
+    "name": "Mid-Continent Library - Excelsior Springs",
+    "address": "1460 Kearney Rd, Excelsior Springs, MO 64024",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Fishing River 3",
+   "polling_place": {
+    "name": "Mosby City Hall",
+    "address": "12312 4th St, Mosby, 64024",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Fishing River 4",
+   "polling_place": {
+    "name": "Missouri City School",
+    "address": "700 E Main St, Missouri City, 64072",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Gallatin 1",
+   "polling_place": {
+    "name": "North Kansas City YMCA",
+    "address": "1999 Iron St, NKansas City, 64116",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Gallatin 10",
+   "polling_place": {
+    "name": "Gladstone Community Center",
+    "address": "6901 N Holmes, Gladstone, 64118",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Gallatin 11",
+   "polling_place": {
+    "name": "Mid-Continent Public Library - Antioch Branch",
+    "address": "6060 Chestnut Ave, Gladstone, 64119",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Gallatin 12",
+   "polling_place": {
+    "name": "Antioch Bible Baptist Church",
+    "address": "800 NE 72nd St, Gladstone, 64118",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Gallatin 13",
+   "polling_place": {
+    "name": "A Turning Point",
+    "address": "1900 NE Englewood Rd, Gladstone, 64118",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Gallatin 2",
+   "polling_place": {
+    "name": "North Kansas City YMCA",
+    "address": "1999 Iron St, NKansas City, 64116",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Gallatin 3",
+   "polling_place": {
+    "name": "Faubion United Methodist Church",
+    "address": "7113 N Troost Ave, Gladstone, 64118",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Gallatin 4",
+   "polling_place": {
+    "name": "Briarcliff Church",
+    "address": "800 NE Vivion Rd, Kansas City, 64118",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Gallatin 5",
+   "polling_place": {
+    "name": "MCC Maple Woods Campus Center Building",
+    "address": "2601 NE Barry Rd, Kansas City, 64156",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Voting Center"
+   }
+  },
+  {
+   "precinct": "Gallatin 6",
+   "polling_place": {
+    "name": "Fairview Christian Church",
+    "address": "1800 NE 65th St, Gladstone, 64118",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Gallatin 7",
+   "polling_place": {
+    "name": "A Turning Point",
+    "address": "1900 NE Englewood Rd, Gladstone, 64118",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Gallatin 9",
+   "polling_place": {
+    "name": "St Charles Borromeo Church",
+    "address": "900 NE Shady Lane Dr, Gladstone, 64118",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Kearney 1",
+   "polling_place": {
+    "name": "Holt City Hall",
+    "address": "315 Main St, Holt, 64048",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Kearney 2",
+   "polling_place": {
+    "name": "Kearney Annunciation Center",
+    "address": "705 N Jefferson, Kearney, 64060",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Kearney 3",
+   "polling_place": {
+    "name": "Mid-Continent Public Library - Kearney Branch",
+    "address": "100 S Platte-Clay Way, Kearney, 64060",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Kearney 4",
+   "polling_place": {
+    "name": "Trinity Lutheran Church",
+    "address": "1715 S Jefferson St, Kearney, 64060",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Kearney 5",
+   "polling_place": {
+    "name": "First Christian Church",
+    "address": "2151 S Jefferson St, Kearney, 64060",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Liberty 1",
+   "polling_place": {
+    "name": "Second Baptist Church",
+    "address": "300 E Kansas, Liberty, 64068",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Liberty 10",
+   "polling_place": {
+    "name": "Liberty Church of Christ",
+    "address": "1401 Glenn Hendren Dr, Liberty, 64068",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Liberty 11",
+   "polling_place": {
+    "name": "Liberty Manor Baptist Church",
+    "address": "1000 Birmingham Rd, Liberty, 64068",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Liberty 13",
+   "polling_place": {
+    "name": "Liberty Community Center",
+    "address": "1600 S Withers Rd, Liberty, 64068",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Liberty 14",
+   "polling_place": {
+    "name": "Liberty Manor Baptist Church",
+    "address": "1000 Birmingham Rd, Liberty, 64068",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Liberty 2",
+   "polling_place": {
+    "name": "Liberty Church of Christ",
+    "address": "1401 Glenn Hendren Dr, Liberty, 64068",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Liberty 3",
+   "polling_place": {
+    "name": "Liberty Community Center",
+    "address": "1600 S Withers Rd, Liberty, 64068",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Liberty 4",
+   "polling_place": {
+    "name": "Mid-Continent Public Library - Withers Branch",
+    "address": "1665 S Withers Road, Liberty, 64068",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Liberty 5",
+   "polling_place": {
+    "name": "Pleasant Valley Community Center",
+    "address": "6805 Sobbie Rd, Pleasant Valley, 64068",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Liberty 6",
+   "polling_place": {
+    "name": "Liberty Christian Fellowship",
+    "address": "1815 W Liberty Drive, Liberty, 64068",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Liberty 7",
+   "polling_place": {
+    "name": "Liberty United Methodist Church",
+    "address": "1001 Sunset, Liberty, 64068",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Liberty 8",
+   "polling_place": {
+    "name": "Chandler Baptist Church",
+    "address": "11401 33 hwy, Liberty, 64068",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Liberty 9",
+   "polling_place": {
+    "name": "Chandler Baptist Church",
+    "address": "11401 33 hwy, Liberty, 64068",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Platte 1",
+   "polling_place": {
+    "name": "Grace Community Church",
+    "address": "1520 Hwy DD, Smithville, 64089",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Platte 2",
+   "polling_place": {
+    "name": "Mid-Continent Public Library - Smithville Branch",
+    "address": "120 Richardson St",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Platte 3",
+   "polling_place": {
+    "name": "Smithville Family Worship Center",
+    "address": "98 Stonebridge Lane, Smithville, 64089",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Washington 1",
+   "polling_place": {
+    "name": "Excelsior Springs Baptist Church",
+    "address": "1500 Rosalea St, Excelsior Springs, 64024",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Washington 2",
+   "polling_place": {
+    "name": "Excelsior Springs Baptist Church",
+    "address": "1500 Rosalea St, Excelsior Springs, 64024",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  },
+  {
+   "precinct": "Washington 3",
+   "polling_place": {
+    "name": "First United Methodist Church",
+    "address": "1000 E 92 Hwy, Kearney, 64060",
+    "hours": "6:00 AM - 7:00 PM",
+    "accessible": true,
+    "type": "Polling Place"
+   }
+  }
+ ],
+ "early_voting_sites": [
+  {
+   "name": "Clay County Election Board Office - Absentee or Early Voting (with Excuse or No Excuse)",
+   "address": "100 W Mississippi St, Liberty 64068",
+   "hours": "Mo-Fr (8:00-17:00); Su(Closed)"
+  },
+  {
+   "name": "Gladstone Community Center - Early Voting ONLY (No Excuse)",
+   "address": "6901 N Holmes St, Gladstone, 64118",
+   "hours": "Mo-Sa (8:00-17:00); Su(Closed)"
+  },
+  {
+   "name": "Kearney Annunciation Center - Early Voting ONLY (No Excuse)",
+   "address": "705 N Jefferson St, Kearney, 64060",
+   "hours": "Mo-Sa (8:00-17:00); Su(Closed)"
+  },
+  {
+   "name": "Clay County Election Board - Early Voting ONLY (No Excuse)",
+   "address": "100 W. Mississippi St. Liberty, MO 64068-1623",
+   "hours": "Mo-Sa (8:00-17:00); Su(Closed)"
+  },
+  {
+   "name": "A Turning Point - Early Voting ONLY (No Excuse)",
+   "address": "1900 NE Englewood Rd, Gladstone, 64118",
+   "hours": "Mo-Sa (8:00-17:00); Su(Closed)"
+  },
+  {
+   "name": "Nashua Baptist Church - Early Voting ONLY (No Excuse)",
+   "address": "11408 N. Main Street, Kansas City, MO 64155",
+   "hours": "Mo-Sa (8:00-17:00); Su(Closed)"
+  }
+ ],
+ "current_officeholders": [
+  {
+   "office": "County Commissioner",
+   "district": "Eastern County Commissioner",
+   "current_officeholders": [
+    {
+     "name": "Megan Thompson",
+     "party": null,
+     "term_expires": 2028,
+     "email": "mthompson@claycountymo.gov",
+     "phone": null
+    },
+    {
+     "name": "Jay R. Johnson",
+     "party": null,
+     "term_expires": 2026,
+     "email": "jjohnson@claycountymo.gov",
+     "phone": null
+    }
+   ]
+  },
+  {
+   "office": "County Commissioner",
+   "district": "Western County Commissioner",
+   "current_officeholders": [
+    {
+     "name": "Jon Carpenter",
+     "party": null,
+     "term_expires": 2028,
+     "email": "jcarpenter@claycountymo.gov",
+     "phone": null
+    },
+    {
+     "name": "Scott Wagner",
+     "party": null,
+     "term_expires": 2026,
+     "email": "swagner@claycountymo.gov",
+     "phone": null
+    }
+   ]
+  },
+  {
+   "office": "State House Representative",
+   "district": "Missouri Representative District 8",
+   "current_officeholders": [
+    {
+     "name": "Josh Hurlbert",
+     "party": "Republican",
+     "term_expires": 2026,
+     "email": "Josh.Hurlbert@house.mo.gov",
+     "phone": "(573) 751-0246"
+    }
+   ]
+  },
+  {
+   "office": "State House Representative",
+   "district": "Missouri Representative District 18",
+   "current_officeholders": [
+    {
+     "name": "Eric Woods",
+     "party": "Democratic",
+     "term_expires": 2026,
+     "email": "Eric.Woods@house.mo.gov",
+     "phone": "(573) 751-2199"
+    }
+   ]
+  },
+  {
+   "office": "State House Representative",
+   "district": "Missouri Representative District 16",
+   "current_officeholders": [
+    {
+     "name": "Chris Brown",
+     "party": "Republican",
+     "term_expires": 2026,
+     "email": "Chris.Brown@house.mo.gov",
+     "phone": "(573) 751-9458"
+    }
+   ]
+  },
+  {
+   "office": "State House Representative",
+   "district": "Missouri Representative District 39",
+   "current_officeholders": [
+    {
+     "name": "Mark Meirath",
+     "party": "Republican",
+     "term_expires": 2026,
+     "email": "Mark.Meirath@house.mo.gov",
+     "phone": "(573) 751-1468"
+    }
+   ]
+  },
+  {
+   "office": "State House Representative",
+   "district": "Missouri Representative District 38",
+   "current_officeholders": [
+    {
+     "name": "Martin Jacobs",
+     "party": "Democratic",
+     "term_expires": 2026,
+     "email": "Martin.Jacobs@house.mo.gov ",
+     "phone": "(573) 751-2238"
+    }
+   ]
+  },
+  {
+   "office": "State House Representative",
+   "district": "Missouri Representative District 15",
+   "current_officeholders": [
+    {
+     "name": "Ken Jamison",
+     "party": "Democratic",
+     "term_expires": 2026,
+     "email": "Ken.Jamison@house.mo.gov",
+     "phone": "(573) 751-4787"
+    }
+   ]
+  },
+  {
+   "office": "State House Representative",
+   "district": "Missouri Representative District 17",
+   "current_officeholders": [
+    {
+     "name": "Bill Allen",
+     "party": "Republican",
+     "term_expires": 2026,
+     "email": "Bill.Allen@house.mo.gov",
+     "phone": "(573) 751-1218"
+    }
+   ]
+  },
+  {
+   "office": "State Senate",
+   "district": "Missouri Senate District 017",
+   "current_officeholders": [
+    {
+     "name": "Maggie Nurrenbern",
+     "party": "Democratic",
+     "term_expires": 2028,
+     "email": null,
+     "phone": "(573) 751-5282"
+    }
+   ]
+  },
+  {
+   "office": "State Senate",
+   "district": "Missouri Senate District 021",
+   "current_officeholders": [
+    {
+     "name": "Kurtis Gregorgy",
+     "party": "Republican",
+     "term_expires": 2028,
+     "email": null,
+     "phone": "(573) 751-4302"
+    }
+   ]
+  },
+  {
+   "office": "United States House of Representatives",
+   "district": "U.S. Congressional District 5",
+   "current_officeholders": [
+    {
+     "name": "Emanuel Cleaver",
+     "party": "Democratic",
+     "term_expires": 2026,
+     "email": null,
+     "phone": "(816) 842-4545"
+    }
+   ]
+  },
+  {
+   "office": "United States House of Representatives",
+   "district": "U.S. Congressional District 6",
+   "current_officeholders": [
+    {
+     "name": "Sam Graves",
+     "party": "Republican",
+     "term_expires": 2026,
+     "email": null,
+     "phone": "(816) 792-3976"
+    }
+   ]
+  },
+  {
+   "office": "County Commissioner",
+   "district": "Presiding County Commissioner",
+   "current_officeholders": [
+    {
+     "name": "Jerry Nolte",
+     "party": null,
+     "term_expires": 2026,
+     "email": "jnolte@claycountymo.gov",
+     "phone": null
+    }
+   ]
+  },
+  {
+   "office": "County Commissioner",
+   "district": "Eastern County Commissioner At-Large",
+   "current_officeholders": [
+    {
+     "name": "JoAnn Lawson",
+     "party": null,
+     "term_expires": 2028,
+     "email": "jlawson@claycountymo.gov",
+     "phone": null
+    }
+   ]
+  },
+  {
+   "office": "County Commissioner",
+   "district": "Western Commissioner At-Large",
+   "current_officeholders": [
+    {
+     "name": "Jason Withington",
+     "party": null,
+     "term_expires": 2028,
+     "email": "jwithington@claycountymo.gov",
+     "phone": null
+    }
+   ]
+  },
+  {
+   "office": "United States Senate",
+   "district": "U.S. Senate",
+   "current_officeholders": [
+    {
+     "name": "Josh Hawley",
+     "party": "Republican",
+     "term_expires": 2030,
+     "email": null,
+     "phone": "(816) 960-4694"
+    },
+    {
+     "name": "Eric Schmitt",
+     "party": "Republican",
+     "term_expires": 2028,
+     "email": null,
+     "phone": "(573) 514-8680"
+    }
+   ]
+  },
+  {
+   "office": "President of the United States",
+   "district": "President",
+   "current_officeholders": [
+    {
+     "name": "Donald J. Trump",
+     "party": "Republican",
+     "term_expires": 2028,
+     "email": null,
+     "phone": null
+    }
+   ]
+  },
+  {
+   "office": "Vice-President of the United States",
+   "district": "Vice President",
+   "current_officeholders": [
+    {
+     "name": "J. D Vance",
+     "party": "Republican",
+     "term_expires": 2028,
+     "email": null,
+     "phone": null
+    }
+   ]
+  },
+  {
+   "office": "County Prosecutor",
+   "district": "Prosecuting Attorney",
+   "current_officeholders": [
+    {
+     "name": "Zachary Thompson",
+     "party": null,
+     "term_expires": 2026,
+     "email": "prosecutor@claycopa.com",
+     "phone": null
+    }
+   ]
+  },
+  {
+   "office": "County Sheriff",
+   "district": "Sheriff",
+   "current_officeholders": [
+    {
+     "name": "Will Akin ",
+     "party": null,
+     "term_expires": 2028,
+     "email": "sheriff@claycountymo.gov",
+     "phone": null
+    }
+   ]
+  },
+  {
+   "office": "County Auditor",
+   "district": "County Auditor",
+   "current_officeholders": [
+    {
+     "name": "Victor S. Hurlbert",
+     "party": null,
+     "term_expires": 2026,
+     "email": "auditor@claycounytmo.gov",
+     "phone": null
+    }
+   ]
+  },
+  {
+   "office": "County Assessor",
+   "district": "County Assessor",
+   "current_officeholders": [
+    {
+     "name": "Tracy Baldwin",
+     "party": null,
+     "term_expires": 2028,
+     "email": "assessor@claycountymo.gov",
+     "phone": null
+    }
+   ]
+  },
+  {
+   "office": "Governor",
+   "district": "Governor",
+   "current_officeholders": [
+    {
+     "name": "Mike Kehoe",
+     "party": "Republican",
+     "term_expires": 2028,
+     "email": null,
+     "phone": "(573) 751-4727"
+    }
+   ]
+  },
+  {
+   "office": "Lieutenant Governor",
+   "district": "Lieutenant Governor",
+   "current_officeholders": [
+    {
+     "name": "David Wasinger",
+     "party": "Republican",
+     "term_expires": 2028,
+     "email": "ltgovinfo@ltgov.mo.gov",
+     "phone": "(573)751-4727"
+    }
+   ]
+  },
+  {
+   "office": "Secretary of State",
+   "district": "Secretary of State",
+   "current_officeholders": [
+    {
+     "name": "Denny Hoskins",
+     "party": "Republican",
+     "term_expires": 2028,
+     "email": "Info@sos.mo.gov",
+     "phone": "(573) 751-4936"
+    }
+   ]
+  },
+  {
+   "office": "State Treasurer",
+   "district": "State Treasurer",
+   "current_officeholders": [
+    {
+     "name": "Vivek Malek",
+     "party": "Republican",
+     "term_expires": 2028,
+     "email": null,
+     "phone": "(573) 751-8533"
+    }
+   ]
+  },
+  {
+   "office": "State Auditor",
+   "district": "State Auditor",
+   "current_officeholders": [
+    {
+     "name": "Scott Fitzpatrick",
+     "party": "Republican",
+     "term_expires": 2026,
+     "email": "moaudit@auditor.mo.gov",
+     "phone": "(573) 751-4824"
+    }
+   ]
+  },
+  {
+   "office": "State Attorney General",
+   "district": "Attorney General",
+   "current_officeholders": [
+    {
+     "name": "Catherine Hanaway",
+     "party": "Republican",
+     "term_expires": 2028,
+     "email": null,
+     "phone": "(573) 751-3321"
+    }
+   ]
+  },
+  {
+   "office": null,
+   "district": "Clay County",
+   "current_officeholders": []
+  },
+  {
+   "office": null,
+   "district": "Clay County",
+   "current_officeholders": []
+  },
+  {
+   "office": null,
+   "district": "Clay County",
+   "current_officeholders": []
+  }
+ ]
+}

@@ -12,6 +12,46 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 import { SYSTEM_PROMPT } from "./prompt.ts";
 import { KCEB_RULES } from "./kceb-rules.ts";
 import KCEB from "./kceb-nov-2026.json" with { type: "json" };
+import { CLAY_RULES } from "./clay-rules.ts";
+import CLAY from "./clay-nov-2026.json" with { type: "json" };
+
+// deno-lint-ignore no-explicit-any
+function clayLookup(input: Record<string, unknown>): string {
+  // deno-lint-ignore no-explicit-any
+  const C = CLAY as any;
+  const placeQ = input.polling_place ? String(input.polling_place).toLowerCase() : "";
+  if (placeQ) {
+    const hits = C.precincts.filter((p: any) =>
+      p.polling_place.name.toLowerCase().includes(placeQ));
+    const places = [...new Set(hits.map((p: any) => p.polling_place.name))].map((n) => ({
+      name: n,
+      address: hits.find((p: any) => p.polling_place.name === n).polling_place.address,
+      precincts: hits.filter((p: any) => p.polling_place.name === n).map((p: any) => p.precinct),
+    }));
+    return JSON.stringify({ matches: places });
+  }
+  const pq = input.precinct ? String(input.precinct).toLowerCase().trim() : "";
+  if (!pq) {
+    return JSON.stringify({
+      note: "No precinct given. Clay County's Nov 3 sample ballot is not yet published — no candidate lists available. Early voting sites and office info below.",
+      early_voting_sites: C.early_voting_sites,
+      election_authority: "Clay County Board of Election Commissioners, voteclaycountymo.gov, (816) 415-8683",
+    });
+  }
+  const hit = C.precincts.find((p: any) =>
+    p.precinct.toLowerCase() === pq ||
+    p.precinct.toLowerCase().replace(/^(21|22|23|24|25|26|27|28|29|30|31|32)\s+/, "").includes(pq));
+  if (!hit) {
+    return JSON.stringify({ error: `"${input.precinct}" is not a Clay County precinct in the official list. Send the voter to voteclaycountymo.gov/cceb-maps or voteroutreach.sos.mo.gov/portal/ to find their precinct name.` });
+  }
+  return JSON.stringify({
+    precinct: hit.precinct,
+    polling_place: hit.polling_place,
+    early_voting_sites: C.early_voting_sites,
+    ballot_note: "Clay County has not published its Nov 3, 2026 sample ballot yet — do not invent candidates. The voter's sample ballot will appear in the county's address lookup at voteclaycountymo.gov closer to the election.",
+    reminder: "Polls 6 AM–7 PM Nov 3. Confirm at voteclaycountymo.gov or (816) 415-8683.",
+  });
+}
 
 // deno-lint-ignore no-explicit-any
 function kcebLookup(input: Record<string, unknown>): string {
@@ -232,6 +272,24 @@ const LOCAL_TOOLS = [
     },
   },
   {
+    name: "clay_poll_lookup",
+    description:
+      "Official Clay County, Missouri (voteclaycountymo.gov) data for the Nov 3, 2026 general: " +
+      "Election Day polling place by precinct name (e.g. 'Liberty 2', '21 Gallatin 14'), precincts " +
+      "served by a polling place name, and early/no-excuse voting sites. Use for ANY Clay County " +
+      "voter, including the Clay County (north of the river) portion of Kansas City. Clay has NOT " +
+      "published its Nov 3 candidate list yet — never invent candidates; say the sample ballot " +
+      "isn't posted and point to voteclaycountymo.gov.",
+    input_schema: {
+      type: "object",
+      properties: {
+        precinct: { type: "string", description: "Clay County precinct name, e.g. 'Liberty 2'" },
+        polling_place: { type: "string", description: "Part of a polling place name" },
+      },
+      required: [],
+    },
+  },
+  {
     name: "precinct_ballot_lookup",
     description:
       "Nationwide polling place + ballot lookup for the signed-in voter's saved home address, from " +
@@ -416,6 +474,7 @@ async function runLocalTool(
   }
 
   if (name === "kc_poll_ballot_lookup") return kcebLookup(input);
+  if (name === "clay_poll_lookup") return clayLookup(input);
 
   if (name === "precinct_ballot_lookup") {
     let address = input.address ? String(input.address).slice(0, 300) : "";
@@ -579,14 +638,14 @@ Deno.serve(async (req) => {
     const system: Record<string, unknown>[] = [
       {
         type: "text",
-        text: SYSTEM_PROMPT + "\n\n# Kansas City Poll & Ballot Finder (use the kc_poll_ballot_lookup tool for the data)\n\n" + KCEB_RULES,
+        text: SYSTEM_PROMPT + "\n\n# Kansas City Poll & Ballot Finder (use the kc_poll_ballot_lookup tool for the data)\n\n" + KCEB_RULES + "\n\n" + CLAY_RULES,
         cache_control: { type: "ephemeral" },
       },
       {
         type: "text",
         text: savedPrecinct
           ? `# This voter\nSaved ward-precinct: ${savedPrecinct}. For any question about their ballot, candidates, races or polling place, call get_user_ballot or kc_poll_ballot_lookup with this ward/precinct and answer ONLY with their contests. Do not list races from other districts. If the KC lookup returns not found, call precinct_ballot_lookup.`
-          : "# This voter\nNo KC ward/precinct saved. For personal ballot or polling-place questions, call get_voter_profile, then precinct_ballot_lookup (works for any US address, including Kansas and non-Jackson parts of KC). Use kc_poll_ballot_lookup only for Jackson County KC voters. If precinct_ballot_lookup has no data, hand off to their election authority — never guess.",
+          : "# This voter\nNo KC ward/precinct saved. For personal ballot or polling-place questions, call get_voter_profile, then: kc_poll_ballot_lookup for Jackson County KC voters; clay_poll_lookup for Clay County voters (including KC north of the river — precinct names like 'Liberty 2'); precinct_ballot_lookup for any other US address (Kansas, Platte/Cass, other states). If a lookup has no data, hand off to their election authority — never guess.",
       },
     ];
 
