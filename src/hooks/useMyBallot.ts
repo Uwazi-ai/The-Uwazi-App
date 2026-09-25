@@ -188,7 +188,7 @@ export function useBallotContestsForState(state: string | null | undefined) {
       if (!state) return [] as BallotContest[];
       const { data } = await supabase
         .from("ballot_contests")
-        .select("*")
+        .select("id, state, contest_type, sort_order, measure_title, measure_summary, plain_summary, yes_means, no_means, measure_full_text_url, source_name, source_url, district_type, district_id, fiscal_note, office_name, party")
         .eq("state", state)
         .eq("election_date", ELECTION_DATE)
         .order("sort_order", { ascending: true });
