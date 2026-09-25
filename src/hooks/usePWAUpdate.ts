@@ -43,10 +43,19 @@ export function usePWAUpdate() {
           setUpdateAvailable(true);
         }
 
-        // Poll for updates every 60s while the app is open
+        // Check right away, then every 60s while the app is open
+        reg.update().catch(() => {});
         interval = setInterval(() => {
           reg.update().catch(() => {});
         }, 60 * 1000);
+
+        // Phones resume PWAs from the background without reloading —
+        // check for a new version every time the app comes back into view.
+        const onVisible = () => {
+          if (document.visibilityState === "visible") reg.update().catch(() => {});
+        };
+        document.addEventListener("visibilitychange", onVisible);
+        window.addEventListener("focus", onVisible);
 
         // New worker found → watch its state
         reg.addEventListener("updatefound", () => {
