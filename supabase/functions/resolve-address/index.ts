@@ -79,6 +79,7 @@ Deno.serve(async (req) => {
     let lng: number | null = null;
     let zip: string | null = fallbackZip;
     let state: string | null = existingProfile?.state_code ?? null;
+    let county: string | null = null;
     let geocodingStatus: string | null = mapsKey ? null : "MAPS_API_KEY_MISSING";
 
     if (mapsKey) {
@@ -99,6 +100,7 @@ Deno.serve(async (req) => {
           const findComp = (t: string) => comps.find((c) => c.types.includes(t));
           zip = findComp("postal_code")?.long_name?.slice(0, 5) ?? zip;
           state = findComp("administrative_area_level_1")?.short_name ?? state;
+          county = findComp("administrative_area_level_2")?.long_name ?? null;
         } else {
           console.warn("Geocoding unavailable:", geocodingStatus, geoData.error_message ?? "No details");
         }
@@ -172,6 +174,7 @@ Deno.serve(async (req) => {
         lat,
         lng,
         state_code: state,
+        ...(county ? { county_name: county } : {}),
         city_council_district: cityCouncil,
         mo_house_district: moHouse,
         mo_senate_district: moSenate,
@@ -199,6 +202,8 @@ Deno.serve(async (req) => {
       zip_code: zip,
       lat,
       lng,
+      county_name: county,
+      geocoding_status: geocodingStatus,
       city_council_district: cityCouncil,
       mo_house_district: moHouse,
       mo_senate_district: moSenate,
