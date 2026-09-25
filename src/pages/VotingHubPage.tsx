@@ -1,3 +1,4 @@
+import PollingPlaceCard from "@/components/voting/PollingPlaceCard";
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
@@ -266,6 +267,7 @@ export default function VotingHubPage() {
 
       {(hubState === "READY" || hubState === "BALLOT_PENDING") && profile?.state_code && (
         <>
+          <PollingPlaceCard />
           <MyBallotCard state={profile.state_code} partyPreference={profile.party_preference} />
           <RegistrationCheckCard profile={profile} />
           <CandidateRacesSection

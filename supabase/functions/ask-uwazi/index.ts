@@ -299,7 +299,19 @@ async function runLocalTool(
           "app. Do not infer districts from ZIP code.",
       });
     }
-    return JSON.stringify({ address_complete: true, ...data, state: data.state_code ?? data.location });
+    // Auto-attach the voter's KC polling place + full ballot when a precinct is saved.
+    let polling_place_and_ballot: unknown = null;
+    const m = String(data.precinct_id ?? "").match(/(\d+)\D+(\d+)/);
+    if (m) {
+      try { polling_place_and_ballot = JSON.parse(kcebLookup({ ward: Number(m[1]), precinct: Number(m[2]) })); } catch { /* ignore */ }
+    }
+    return JSON.stringify({
+      address_complete: true, ...data, state: data.state_code ?? data.location,
+      polling_place_and_ballot,
+      ...(polling_place_and_ballot ? {} : data.state_code === "MO"
+        ? { note: "No ward/precinct saved. Kansas City voters can add it in Settings or My Ballot for their exact polling place and ballot." }
+        : {}),
+    });
   }
 
   if (name === "get_user_ballot") {
