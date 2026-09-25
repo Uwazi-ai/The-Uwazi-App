@@ -32,9 +32,6 @@ export function CandidateRacesSection({
   const { data: selections = [] } = useMyBallotSelections();
   const save = useSaveSelection();
 
-  if (!party || party === "unaffiliated" || party === "not_sure") {
-    return null;
-  }
 
   if (isLoading) {
     return <div className="rounded-2xl h-24 animate-pulse" style={{ background: "rgba(255,255,255,0.04)" }} />;
@@ -64,7 +61,7 @@ export function CandidateRacesSection({
       <div className="flex items-center justify-between mb-2 gap-3">
         <h2 className="font-heading text-xl md:text-2xl text-foreground flex items-center gap-2">
           <Users className="h-5 w-5 text-primary" />
-          Your primary races
+          Your races
         </h2>
         <Link to="/app/my-ballot" className="text-xs text-primary hover:underline whitespace-nowrap">
           Full walkthrough <ChevronRight className="inline h-3 w-3" />
