@@ -62,6 +62,8 @@ export default function AdminOfficeHealthPage() {
   const [form, setForm] = useState({ label: "", source_url: "", geoid: "", jurisdiction_level: "city", check_frequency_hours: "168",
     kind: "office", target_table: "ballot_candidates", race_id: "", ballot_state: "MO", ballot_election_date: "2026-11-03", is_official: true });
   const [manual, setManual] = useState(emptyManual);
+  const [boundary, setBoundary] = useState(emptyBoundary);
+  const [importing, setImporting] = useState(false);
   const [running, setRunning] = useState<string | null>(null);
   const [showText, setShowText] = useState<string | null>(null);
 
