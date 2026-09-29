@@ -117,7 +117,11 @@ export default function PollingPlaceCard({ compact = false }: { compact?: boolea
               <button className="text-xs text-muted-foreground" onClick={() => setEditing(false)}>Cancel</button>
             )}
             <a href="https://voteroutreach.sos.mo.gov/portal/" target="_blank" rel="noreferrer"
-              className="text-xs text-primary hover:underline">Don't know it? Look it up</a>
+              className="text-xs text-primary hover:underline">Do not know it? Look it up</a>
+            <Link to={`/app/ask?q=${encodeURIComponent("How do I find my ward and precinct?")}`}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
+              <Sparkles className="h-3.5 w-3.5" /> Ask UWAZI
+            </Link>
           </div>
         </div>
       )}
