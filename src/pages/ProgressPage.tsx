@@ -117,6 +117,21 @@ export default function ProgressPage() {
         </p>
       </div>
 
+      {challenge && (
+        <div className="rounded-2xl p-5 bg-card border border-border space-y-2" data-testid="progress-challenge">
+          <div className="flex items-center gap-2"><Trophy className="h-4 w-4 text-primary" /><h2 className="font-semibold text-foreground">{challenge.title}</h2></div>
+          <p className="text-sm text-foreground">You have {challenge.my_count} {COUNT_LABELS[challenge.counts_what]} in this challenge.</p>
+          <ChallengeStanding c={challenge} />
+        </div>
+      )}
+
+      {badges.length > 0 && (
+        <div className="rounded-2xl p-5 bg-card border border-border space-y-3">
+          <div className="flex items-center gap-2"><Award className="h-4 w-4 text-primary" /><h2 className="font-semibold text-foreground">Your badges</h2></div>
+          <BadgeRow badges={badges} />
+        </div>
+      )}
+
       {journey.personalization && (
         <div className="rounded-2xl p-5 bg-card border border-border space-y-2">
           <div className="flex items-center gap-2"><TrendingUp className="h-4 w-4 text-primary" /><h2 className="font-semibold text-foreground">How sure you feel</h2></div>
