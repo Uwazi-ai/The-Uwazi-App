@@ -21,6 +21,8 @@ import { supabase } from "@/integrations/supabase/client";
 import FeatureTour from "@/components/home/FeatureTour";
 import { YourPath } from "@/components/journey/YourPath";
 import { useMyPath } from "@/hooks/useJourney";
+import { ChallengeCard } from "@/components/games/ChallengeCard";
+import { useMyChallenge } from "@/hooks/useChallenge";
 import { useEpisodeVideoUrl } from "@/hooks/useEpisodeVideoUrl";
 
 function EpisodeVideoThumb({
