@@ -1,0 +1,10 @@
+REVOKE EXECUTE ON FUNCTION public.refresh_challenge_progress(uuid) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.challenge_zip_board(uuid) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.challenge_zip_board_admin(uuid) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.get_my_challenge() FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.end_challenge(uuid, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.refresh_challenge_progress(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.challenge_zip_board(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.challenge_zip_board_admin(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_my_challenge() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.end_challenge(uuid, text) TO authenticated;
