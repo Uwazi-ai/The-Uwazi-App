@@ -664,12 +664,35 @@ Deno.serve(async (req) => {
     };
     const journeyTurn = await buildJourneyTurn(supabase, user.id, message, Array.isArray(history) ? history.length : 0, callRoute);
 
+    // Who represents me: use the offices matched to this person's own districts.
+    let officesText: string | null = null;
+    if (/\b(who|which)\b[^?]*\b(represent|rep|council ?member|councilman|councilwoman|mayor|official|officials|elected)\b/i.test(message)) {
+      try {
+        const { data: myOffices } = await supabase.rpc("get_my_offices", { _user_id: user.id });
+        const { data: ud } = await supabase
+          .from("user_districts").select("precision").eq("user_id", user.id).maybeSingle();
+        if (Array.isArray(myOffices) && myOffices.length) {
+          const lines = myOffices
+            .map((o: any) => `- ${o.office_title}: ${o.current_holder ?? "no one listed"}${o.term_end ? `, term ends ${o.term_end}` : ""}${o.source_url ? ` (${o.source_url})` : ""}`)
+            .join("\n");
+          officesText =
+            `Offices matched to this person's own districts, verified by our review team:\n${lines}\n` +
+            (ud?.precision === "zip"
+              ? "We only have their ZIP code, so district level seats may be missing. Tell them to add their street address in Settings to see their exact district."
+              : "");
+        }
+      } catch (e) {
+        console.warn("get_my_offices failed", e);
+      }
+    }
+
+    const contextParts = [journeyTurn.contextText, officesText].filter(Boolean) as string[];
     const messages: Record<string, unknown>[] = [
       ...history,
       {
         role: "user",
-        content: journeyTurn.contextText
-          ? [{ type: "text", text: journeyTurn.contextText }, { type: "text", text: message }]
+        content: contextParts.length
+          ? [...contextParts.map((t) => ({ type: "text", text: t })), { type: "text", text: message }]
           : message,
       },
     ];

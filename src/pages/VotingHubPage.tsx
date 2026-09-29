@@ -19,6 +19,9 @@ import { MyBallotCard } from "@/components/ballot/MyBallotCard";
 import { CandidateRacesSection } from "@/components/voting/CandidateRacesSection";
 import { useMyBallotSelections, useSaveSelection } from "@/hooks/useMyBallot";
 import { useNextElection, formatElectionDate } from "@/hooks/useNextElection";
+import { useMyDistricts } from "@/hooks/useMyOffices";
+import { contestMatchesDistricts } from "@/lib/districts";
+import MyOfficialsCard from "@/components/voting/MyOfficialsCard";
 
 /* ══════════════════════════════════════════════════════
    CONSTANTS
@@ -165,8 +168,10 @@ function usePublishedElection(state: string | null | undefined) {
 }
 
 function useBallotContests(state: string | null | undefined) {
+  const { data: districts } = useMyDistricts();
+  const resolved = districts?.resolved ?? null;
   return useQuery({
-    queryKey: ["ballot-contests", state, ELECTION_DATE],
+    queryKey: ["ballot-contests", state, ELECTION_DATE, resolved],
     queryFn: async () => {
       if (!state) return [];
       const { data } = await supabase
@@ -176,7 +181,7 @@ function useBallotContests(state: string | null | undefined) {
         .eq("election_date", ELECTION_DATE)
         .eq("contest_type", "ballot_measure")
         .order("sort_order", { ascending: true });
-      return data || [];
+      return (data || []).filter((c: any) => contestMatchesDistricts(c, resolved));
     },
     enabled: !!state,
   });
@@ -268,6 +273,7 @@ export default function VotingHubPage() {
       {(hubState === "READY" || hubState === "BALLOT_PENDING") && profile?.state_code && (
         <>
           <PollingPlaceCard />
+          <MyOfficialsCard />
           <MyBallotCard state={profile.state_code} partyPreference={profile.party_preference} />
           <RegistrationCheckCard profile={profile} />
           <CandidateRacesSection

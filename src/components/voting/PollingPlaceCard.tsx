@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useVoterProfile, useSavePrecinct, lookupPrecinct } from "@/hooks/useMyBallot";
+import { useMyDistricts } from "@/hooks/useMyOffices";
 
 /**
  * Shows the voter's Nov 3 polling place + ballot districts from their saved
@@ -12,9 +13,12 @@ import { useVoterProfile, useSavePrecinct, lookupPrecinct } from "@/hooks/useMyB
  */
 export default function PollingPlaceCard({ compact = false }: { compact?: boolean }) {
   const { data: profile } = useVoterProfile();
+  const { data: districts } = useMyDistricts();
   const save = useSavePrecinct();
   const saved = (profile as any)?.precinct_id as string | null | undefined;
-  const info = lookupPrecinct(saved);
+  // If they have not saved a ward and precinct, try the voting district we resolved from their address.
+  const fromDistricts = districts?.resolved?.voting_district ?? null;
+  const info = lookupPrecinct(saved) ?? lookupPrecinct(fromDistricts);
   const [editing, setEditing] = useState(false);
   const [ward, setWard] = useState("");
   const [pct, setPct] = useState("");
@@ -114,7 +118,11 @@ export default function PollingPlaceCard({ compact = false }: { compact?: boolea
               <button className="text-xs text-muted-foreground" onClick={() => setEditing(false)}>Cancel</button>
             )}
             <a href="https://voteroutreach.sos.mo.gov/portal/" target="_blank" rel="noreferrer"
-              className="text-xs text-primary hover:underline">Don't know it? Look it up</a>
+              className="text-xs text-primary hover:underline">Do not know it? Look it up</a>
+            <Link to={`/app/ask?q=${encodeURIComponent("How do I find my ward and precinct?")}`}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
+              <Sparkles className="h-3.5 w-3.5" /> Ask UWAZI
+            </Link>
           </div>
         </div>
       )}

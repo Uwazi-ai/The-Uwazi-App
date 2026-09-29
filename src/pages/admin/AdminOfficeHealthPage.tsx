@@ -52,7 +52,9 @@ const isStale = (s: Source) => s.active && (!s.last_success_at || Date.now() - n
 const isBadHealth = (s: Source) => s.source_health === "blocked" || s.source_health === "unclear" || s.source_health === "broken";
 const needsAttention = (s: Source) => isBadHealth(s) || isOverdue(s) || isStale(s);
 
-const emptyManual = { office_title: "", current_holder: "", term_end: "", jurisdiction_level: "city", geoid: "", data_source: "", source_url: "" };
+const emptyManual = { office_title: "", current_holder: "", term_end: "", jurisdiction_level: "city", geoid: "", data_source: "", source_url: "", district_type: "", district_code: "" };
+const emptyBoundary = { jurisdiction_geoid: "", district_type: "council", geojson_url: "", source_url: "" };
+const DISTRICT_TYPE_LABEL: Record<string, string> = { council: "City council", commission: "County commission", school_board: "School board", ward: "Ward" };
 
 export default function AdminOfficeHealthPage() {
   const qc = useQueryClient();
@@ -60,6 +62,8 @@ export default function AdminOfficeHealthPage() {
   const [form, setForm] = useState({ label: "", source_url: "", geoid: "", jurisdiction_level: "city", check_frequency_hours: "168",
     kind: "office", target_table: "ballot_candidates", race_id: "", ballot_state: "MO", ballot_election_date: "2026-11-03", is_official: true });
   const [manual, setManual] = useState(emptyManual);
+  const [boundary, setBoundary] = useState(emptyBoundary);
+  const [importing, setImporting] = useState(false);
   const [running, setRunning] = useState<string | null>(null);
   const [showText, setShowText] = useState<string | null>(null);
 
@@ -108,8 +112,40 @@ export default function AdminOfficeHealthPage() {
     },
   });
 
+  const batches = useQuery({
+    queryKey: ["district-batches"],
+    queryFn: async () => {
+      const { data, error } = await db.rpc("district_batches");
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+    enabled: isAdmin,
+  });
+
   const refresh = () => {
-    ["office-sources", "office-changes", "office-decisions", "civic-offices-admin"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+    ["office-sources", "office-changes", "office-decisions", "civic-offices-admin", "district-batches"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  };
+
+  const importBoundaries = async () => {
+    setImporting(true);
+    const { data, error } = await supabase.functions.invoke("district-import", { body: boundary });
+    setImporting(false);
+    if (error) {
+      const d = error instanceof FunctionsHttpError ? await error.context.text() : error.message;
+      toast.error(`Import failed. ${d}`);
+      return;
+    }
+    if (data?.error) return toast.error(`Import failed. ${data.error}`);
+    toast.success(`Saved ${data.saved} districts. They stay off until you turn them on.`);
+    setBoundary({ ...boundary, geojson_url: "" });
+    refresh();
+  };
+
+  const setBatchActive = async (id: string, on: boolean) => {
+    if (on && !confirm("Did you compare these district names with the official page? Turn them on only if they look right.")) return;
+    const { error } = await db.rpc("activate_district_batch", { _batch: id, _on: on });
+    if (error) toast.error(error.message);
+    else { toast.success(on ? "These districts are on." : "These districts are off."); refresh(); }
   };
 
   const addSource = useMutation({
@@ -140,6 +176,7 @@ export default function AdminOfficeHealthPage() {
       const { error } = await db.rpc("add_manual_office", {
         _office_title: manual.office_title, _current_holder: manual.current_holder, _term_end: manual.term_end,
         _jurisdiction_level: manual.jurisdiction_level, _geoid: manual.geoid, _data_source: manual.data_source, _source_url: manual.source_url,
+        _district_type: manual.district_type || null, _district_code: manual.district_code || null,
       });
       if (error) throw error;
     },
@@ -237,6 +274,12 @@ export default function AdminOfficeHealthPage() {
                 ? `${c.proposed?.name}${c.proposed?.party ? `, ${c.proposed.party}` : ""}${c.proposed?.is_incumbent ? ", in office now" : ""}`
                 : c.new_value ?? "No new value given"}</div>
             </div>
+            {(c.proposed?.district_type || c.proposed?.district_code) && (
+              <div className="text-sm text-muted-foreground">
+                District: {DISTRICT_TYPE_LABEL[c.proposed?.district_type] ?? c.proposed?.district_type ?? "not set"}
+                {c.field_changed === "district_code" ? ` ${c.new_value || "none"}` : c.proposed?.district_code ? ` ${c.proposed.district_code}` : ""}
+              </div>
+            )}
             {c.note && <p className="text-sm text-muted-foreground">Note: {c.note}</p>}
             <div className="flex flex-wrap gap-2 items-center">
               <Button size="sm" onClick={() => review(c.id, true)}><Check className="h-4 w-4 mr-1" />Approve</Button>
@@ -334,6 +377,13 @@ export default function AdminOfficeHealthPage() {
           <div><Label>Level</Label><Input value={manual.jurisdiction_level} onChange={(e) => setManual({ ...manual, jurisdiction_level: e.target.value })} placeholder="city" /></div>
           <div><Label>Area code, GEOID</Label><Input value={manual.geoid} onChange={(e) => setManual({ ...manual, geoid: e.target.value })} placeholder="2938000" /></div>
           <div><Label>Where it came from</Label><Input value={manual.data_source} onChange={(e) => setManual({ ...manual, data_source: e.target.value })} placeholder="KCMO City Clerk" /></div>
+          <div><Label>District type, optional</Label>
+            <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={manual.district_type} onChange={(e) => setManual({ ...manual, district_type: e.target.value })}>
+              <option value="">City wide, no district</option>
+              {Object.keys(DISTRICT_TYPE_LABEL).map((k) => <option key={k} value={k}>{DISTRICT_TYPE_LABEL[k]}</option>)}
+            </select>
+          </div>
+          <div><Label>District code, optional</Label><Input value={manual.district_code} onChange={(e) => setManual({ ...manual, district_code: e.target.value })} placeholder="1" /></div>
           <div className="md:col-span-2"><Label>Official web address, required</Label><Input value={manual.source_url} onChange={(e) => setManual({ ...manual, source_url: e.target.value })} placeholder="https://" /></div>
         </div>
         <Button onClick={() => addManual.mutate()} disabled={addManual.isPending}>Send for review</Button>
@@ -384,6 +434,50 @@ export default function AdminOfficeHealthPage() {
         </Card>
       )}
 
+      {isAdmin && (
+        <Card className="p-4 space-y-3">
+          <h2 className="text-lg font-semibold text-foreground">Add district boundaries</h2>
+          <p className="text-sm text-muted-foreground">Paste a link to an official map file in GeoJSON form. We save one district per shape. They stay off until you check the names and turn them on.</p>
+          <div className="grid md:grid-cols-2 gap-3">
+            <div><Label>Area code, GEOID</Label><Input value={boundary.jurisdiction_geoid} onChange={(e) => setBoundary({ ...boundary, jurisdiction_geoid: e.target.value })} placeholder="2938000" /></div>
+            <div><Label>District type</Label>
+              <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={boundary.district_type} onChange={(e) => setBoundary({ ...boundary, district_type: e.target.value })}>
+                {Object.keys(DISTRICT_TYPE_LABEL).map((k) => <option key={k} value={k}>{DISTRICT_TYPE_LABEL[k]}</option>)}
+              </select>
+            </div>
+            <div className="md:col-span-2"><Label>Map file web address</Label><Input value={boundary.geojson_url} onChange={(e) => setBoundary({ ...boundary, geojson_url: e.target.value })} placeholder="https://" /></div>
+            <div className="md:col-span-2"><Label>Official page web address</Label><Input value={boundary.source_url} onChange={(e) => setBoundary({ ...boundary, source_url: e.target.value })} placeholder="https://" /></div>
+          </div>
+          <Button onClick={importBoundaries} disabled={importing}>{importing ? "Reading the map file…" : "Import districts"}</Button>
+
+          <div className="space-y-2 pt-2">
+            <div className="text-sm font-medium text-foreground">Imports</div>
+            {!batches.data?.length && <p className="text-sm text-muted-foreground">No district maps yet.</p>}
+            {batches.data?.map((b) => (
+              <div key={b.import_batch_id} className="rounded-lg border border-border p-3 space-y-2">
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="font-medium text-foreground">{DISTRICT_TYPE_LABEL[b.district_type] ?? b.district_type}</span>
+                  <Badge variant="outline">{b.feature_count} districts</Badge>
+                  <Badge variant={b.active_count > 0 ? "default" : "outline"}>{b.active_count > 0 ? "On" : "Off"}</Badge>
+                  <span className="text-xs text-muted-foreground">{when(b.imported_at)}</span>
+                </div>
+                <div className="text-xs text-muted-foreground">{(b.names ?? []).join(" · ")}</div>
+                {b.source_url && (
+                  <a href={b.source_url} target="_blank" rel="noreferrer" className="text-xs text-primary inline-flex items-center gap-1 break-all">
+                    Check the official page <ExternalLink className="h-3 w-3 shrink-0" />
+                  </a>
+                )}
+                <div>
+                  {b.active_count > 0
+                    ? <Button size="sm" variant="ghost" onClick={() => setBatchActive(b.import_batch_id, false)}>Turn off</Button>
+                    : <Button size="sm" onClick={() => setBatchActive(b.import_batch_id, true)}><Power className="h-4 w-4 mr-1" />Activate</Button>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
       <section className="space-y-2">
         <h2 className="text-lg font-semibold text-foreground">Office list, {offices.data?.length ?? 0} offices</h2>
         {!offices.data?.length && <p className="text-sm text-muted-foreground">No offices yet. Add one by hand above.</p>}
@@ -391,6 +485,7 @@ export default function AdminOfficeHealthPage() {
           <div key={o.id} className="text-sm border-b border-border py-1">
             {o.office_title}: {o.current_holder ?? "no one listed"}{o.term_end ? `, term ${o.term_end}` : ""}
             <span className="text-xs text-muted-foreground"> · checked {when(o.last_verified_at)}</span>
+            <span className="text-xs text-muted-foreground"> · {o.district_code ? `${DISTRICT_TYPE_LABEL[o.district_type] ?? o.district_type ?? "District"} ${o.district_code}` : "City wide"}</span>
           </div>
         ))}
       </section>

@@ -1186,6 +1186,8 @@ export type Database = {
           created_at: string
           current_holder: string | null
           data_source: string | null
+          district_code: string | null
+          district_type: string | null
           geoid: string | null
           id: string
           jurisdiction_level: string | null
@@ -1199,6 +1201,8 @@ export type Database = {
           created_at?: string
           current_holder?: string | null
           data_source?: string | null
+          district_code?: string | null
+          district_type?: string | null
           geoid?: string | null
           id?: string
           jurisdiction_level?: string | null
@@ -1212,6 +1216,8 @@ export type Database = {
           created_at?: string
           current_holder?: string | null
           data_source?: string | null
+          district_code?: string | null
+          district_type?: string | null
           geoid?: string | null
           id?: string
           jurisdiction_level?: string | null
@@ -1547,6 +1553,51 @@ export type Database = {
           locale?: string | null
           started_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      district_boundaries: {
+        Row: {
+          active: boolean
+          created_at: string
+          district_code: string
+          district_type: string
+          geometry: unknown
+          id: string
+          import_batch_id: string | null
+          jurisdiction_geoid: string | null
+          last_verified_at: string | null
+          name: string | null
+          source_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          district_code: string
+          district_type: string
+          geometry?: unknown
+          id?: string
+          import_batch_id?: string | null
+          jurisdiction_geoid?: string | null
+          last_verified_at?: string | null
+          name?: string | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          district_code?: string
+          district_type?: string
+          geometry?: unknown
+          id?: string
+          import_batch_id?: string | null
+          jurisdiction_geoid?: string | null
+          last_verified_at?: string | null
+          name?: string | null
+          source_url?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -3445,6 +3496,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_districts: {
+        Row: {
+          created_at: string
+          precision: string
+          resolved: Json
+          resolved_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          precision?: string
+          resolved?: Json
+          resolved_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          precision?: string
+          resolved?: Json
+          resolved_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_journey_next_step: {
         Row: {
           completed_at: string | null
@@ -3876,18 +3954,37 @@ export type Database = {
           role: string
         }[]
       }
-      add_manual_office: {
-        Args: {
-          _current_holder: string
-          _data_source: string
-          _geoid: string
-          _jurisdiction_level: string
-          _office_title: string
-          _source_url: string
-          _term_end: string
-        }
-        Returns: string
+      activate_district_batch: {
+        Args: { _batch: string; _on: boolean }
+        Returns: number
       }
+      add_manual_office:
+        | {
+            Args: {
+              _current_holder: string
+              _data_source: string
+              _geoid: string
+              _jurisdiction_level: string
+              _office_title: string
+              _source_url: string
+              _term_end: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              _current_holder: string
+              _data_source: string
+              _district_code?: string
+              _district_type?: string
+              _geoid: string
+              _jurisdiction_level: string
+              _office_title: string
+              _source_url: string
+              _term_end: string
+            }
+            Returns: string
+          }
       ask_categories_summary: {
         Args: { period_days: number }
         Returns: {
@@ -3959,6 +4056,19 @@ export type Database = {
         Args: { _ascending: boolean; _exclude?: string[]; _uid: string }
         Returns: string
       }
+      district_batches: {
+        Args: never
+        Returns: {
+          active_count: number
+          district_type: string
+          feature_count: number
+          import_batch_id: string
+          imported_at: string
+          jurisdiction_geoid: string
+          names: string[]
+          source_url: string
+        }[]
+      }
       email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
@@ -3980,6 +4090,21 @@ export type Database = {
         }[]
       }
       get_my_journey: { Args: never; Returns: Json }
+      get_my_offices: {
+        Args: { _user_id?: string }
+        Returns: {
+          current_holder: string
+          district_code: string
+          district_type: string
+          id: string
+          jurisdiction_level: string
+          last_verified_at: string
+          match_level: string
+          office_title: string
+          source_url: string
+          term_end: string
+        }[]
+      }
       get_my_path: { Args: never; Returns: Json }
       get_state_from_zip: { Args: { zip: string }; Returns: string }
       has_active_subscription: {
@@ -3992,6 +4117,18 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      import_district_boundary: {
+        Args: {
+          _batch: string
+          _district_code: string
+          _district_type: string
+          _geojson: Json
+          _jurisdiction_geoid: string
+          _name: string
+          _source_url: string
+        }
+        Returns: string
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_lesson_done: {
@@ -4027,6 +4164,10 @@ export type Database = {
           reason: string
         }[]
       }
+      match_district_codes: {
+        Args: { _lat: number; _lon: number }
+        Returns: Json
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -4056,6 +4197,14 @@ export type Database = {
       office_reviewer_count: { Args: never; Returns: number }
       owns_compass_session: { Args: { _session_id: string }; Returns: boolean }
       persona_label: { Args: { _scores: Json }; Returns: Json }
+      propose_office_district: {
+        Args: {
+          _district_code: string
+          _district_type: string
+          _office_id: string
+        }
+        Returns: string
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
