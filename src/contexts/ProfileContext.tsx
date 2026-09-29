@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveAvatarUrl } from "@/lib/avatar";
 
-export type AppRole = "super_admin" | "program_admin" | "user";
+export type AppRole = "super_admin" | "program_admin" | "reviewer" | "user";
 
 interface ProfileContextType {
   displayName: string;
@@ -14,6 +14,7 @@ interface ProfileContextType {
   stateCode: string | null;
   isAdmin: boolean; // super admin (legacy + role-based)
   isProgramAdmin: boolean; // program_admin OR super_admin
+  isReviewer: boolean; // reviewer OR super_admin
   roles: AppRole[];
   profileLoaded: boolean;
   refreshProfile: () => Promise<void>;
@@ -28,6 +29,7 @@ const ProfileContext = createContext<ProfileContextType>({
   stateCode: null,
   isAdmin: false,
   isProgramAdmin: false,
+  isReviewer: false,
   roles: [],
   profileLoaded: false,
   refreshProfile: async () => {},
@@ -98,9 +100,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   }, [user, refreshProfile]);
 
   const isProgramAdmin = isAdmin || roles.includes("program_admin");
+  const isReviewer = isAdmin || roles.includes("reviewer");
 
   return (
-    <ProfileContext.Provider value={{ displayName, avatarUrl, zipCode, fullAddress, city, stateCode, isAdmin, isProgramAdmin, roles, profileLoaded, refreshProfile }}>
+    <ProfileContext.Provider value={{ displayName, avatarUrl, zipCode, fullAddress, city, stateCode, isAdmin, isProgramAdmin, isReviewer, roles, profileLoaded, refreshProfile }}>
       {children}
     </ProfileContext.Provider>
   );

@@ -5,10 +5,12 @@ interface AdminRouteProps {
   children: React.ReactNode;
   /** If true, allow program_admin too. Otherwise require super_admin. */
   allowProgramAdmin?: boolean;
+  /** If true, allow the office reviewer role too. */
+  allowReviewer?: boolean;
 }
 
-export function AdminRoute({ children, allowProgramAdmin = false }: AdminRouteProps) {
-  const { isAdmin, isProgramAdmin, profileLoaded } = useProfile();
+export function AdminRoute({ children, allowProgramAdmin = false, allowReviewer = false }: AdminRouteProps) {
+  const { isAdmin, isProgramAdmin, isReviewer, profileLoaded } = useProfile();
 
   if (!profileLoaded) {
     return (
@@ -18,7 +20,7 @@ export function AdminRoute({ children, allowProgramAdmin = false }: AdminRoutePr
     );
   }
 
-  const allowed = allowProgramAdmin ? isProgramAdmin : isAdmin;
+  const allowed = (allowProgramAdmin && isProgramAdmin) || (allowReviewer && isReviewer) || isAdmin;
   if (!allowed) {
     return <Navigate to="/app" replace />;
   }
