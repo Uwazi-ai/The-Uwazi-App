@@ -181,8 +181,8 @@ export default function CivicCompassPage() {
           </div>
 
           <div className="relative bg-card rounded-2xl p-6 shadow-card overflow-hidden border border-border">
-            <div className="space-y-3 blur-sm select-none pointer-events-none" aria-hidden>
-              {[80, 65, 55, 40].map((w, i) => (
+            <div className="space-y-3 blur-sm select-none pointer-events-none min-h-[280px] flex flex-col justify-center" aria-hidden>
+              {[80, 65, 55, 40, 70, 50].map((w, i) => (
                 <div key={i} className="h-3 rounded-full bg-muted" style={{ width: `${w}%` }} />
               ))}
             </div>
