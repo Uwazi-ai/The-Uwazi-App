@@ -711,6 +711,44 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Budget questions: answer only from reviewed budget rows for this person's city.
+    let budgetText: string | null = null;
+    if (/\b(budget|spend|spends|spending|tax(es)?|tax dollars|revenue|fund(s|ing)?|money|fiscal)\b/i.test(message)) {
+      try {
+        const { data: udb } = await supabase.from("user_districts").select("resolved").eq("user_id", user.id).maybeSingle();
+        const place = (udb as any)?.resolved?.place;
+        if (!place) {
+          budgetText = "Budget facts: we do not know this person's city yet. Say we need their street address in Settings to show their city budget. Do not guess any budget numbers.";
+        } else {
+          const [{ data: lines }, { data: cal }] = await Promise.all([
+            supabase.from("civic_budget_percent_of_total").select("fiscal_year, department_or_fund, category, revenue_or_expense, amount, percent_of_total, source_url, last_verified_at").eq("geoid", place),
+            supabase.from("civic_budget_calendar").select("fiscal_year, milestone, milestone_date, label, source_url, last_verified_at").eq("geoid", place).order("milestone_date"),
+          ]);
+          const all = (lines ?? []) as any[];
+          if (!all.length && !(cal ?? []).length) {
+            budgetText = "Budget facts: we do not have this city's budget yet. Say plainly: \"We are adding your city's budget now.\" Do not guess any budget numbers. Suggest the city's own budget page.";
+          } else {
+            const latest = [...new Set(all.map((l) => l.fiscal_year))].sort().reverse().slice(0, 2);
+            const fmt = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
+            const lineText = all.filter((l) => latest.includes(l.fiscal_year))
+              .sort((a, b) => a.fiscal_year.localeCompare(b.fiscal_year) || a.revenue_or_expense.localeCompare(b.revenue_or_expense) || b.amount - a.amount)
+              .map((l) => `- ${l.fiscal_year}, ${l.revenue_or_expense}, ${l.department_or_fund}${l.category ? ` [${l.category}]` : ""}: ${fmt(Number(l.amount))}, ${Math.round(Number(l.percent_of_total ?? 0))}% of total. Source ${l.source_url ?? "unknown"}, checked ${String(l.last_verified_at ?? "").slice(0, 10) || "unknown"}`)
+              .join("\n");
+            const calText = (cal ?? []).map((m: any) => `- ${m.fiscal_year}, ${m.milestone.replace(/_/g, " ")} on ${m.milestone_date}${m.label ? `, ${m.label}` : ""}. Source ${m.source_url ?? "unknown"}`).join("\n");
+            const newest = Math.max(...[...all, ...(cal ?? [])].map((r: any) => new Date(r.last_verified_at ?? 0).getTime()));
+            const old = !newest || Date.now() - newest > 45 * 86400000;
+            budgetText =
+              `Budget facts for this person's city, approved by our review team:\n${lineText || "No budget lines yet."}\n\nBudget calendar:\n${calText || "No budget dates yet."}\n\n` +
+              "When they ask how the city spends money or when the budget gets decided, answer only from these facts. Name the source link and the date it was checked. " +
+              "You may say it as \"of every $100 the city spends, about $X goes to ...\". If a fact they ask about is not listed, say plainly we do not have it yet. Never guess a number." +
+              (old ? " These facts were last checked more than 45 days ago. Say so plainly." : "");
+          }
+        }
+      } catch (e) {
+        console.warn("budget lookup failed", e);
+      }
+    }
+
     // Only plain user and assistant text turns from the client.
     const safeHistory = (Array.isArray(history) ? history : [])
       .filter((h: any) => h && (h.role === "user" || h.role === "assistant") && typeof h.content === "string" && h.content.trim())
@@ -718,7 +756,7 @@ Deno.serve(async (req) => {
       .map((h: any) => ({ role: h.role, content: h.content.slice(0, 8000) }));
     while (safeHistory.length && safeHistory[0].role !== "user") safeHistory.shift();
 
-    const contextParts = [journeyTurn.contextText, officesText].filter(Boolean) as string[];
+    const contextParts = [journeyTurn.contextText, officesText, budgetText].filter(Boolean) as string[];
     const messages: Record<string, unknown>[] = [
       ...safeHistory,
       {
