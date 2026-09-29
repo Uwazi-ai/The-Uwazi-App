@@ -371,6 +371,13 @@ export default function AdminOfficeHealthPage() {
           <div><Label>Level</Label><Input value={manual.jurisdiction_level} onChange={(e) => setManual({ ...manual, jurisdiction_level: e.target.value })} placeholder="city" /></div>
           <div><Label>Area code, GEOID</Label><Input value={manual.geoid} onChange={(e) => setManual({ ...manual, geoid: e.target.value })} placeholder="2938000" /></div>
           <div><Label>Where it came from</Label><Input value={manual.data_source} onChange={(e) => setManual({ ...manual, data_source: e.target.value })} placeholder="KCMO City Clerk" /></div>
+          <div><Label>District type, optional</Label>
+            <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={manual.district_type} onChange={(e) => setManual({ ...manual, district_type: e.target.value })}>
+              <option value="">City wide, no district</option>
+              {Object.keys(DISTRICT_TYPE_LABEL).map((k) => <option key={k} value={k}>{DISTRICT_TYPE_LABEL[k]}</option>)}
+            </select>
+          </div>
+          <div><Label>District code, optional</Label><Input value={manual.district_code} onChange={(e) => setManual({ ...manual, district_code: e.target.value })} placeholder="1" /></div>
           <div className="md:col-span-2"><Label>Official web address, required</Label><Input value={manual.source_url} onChange={(e) => setManual({ ...manual, source_url: e.target.value })} placeholder="https://" /></div>
         </div>
         <Button onClick={() => addManual.mutate()} disabled={addManual.isPending}>Send for review</Button>
