@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Flag, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { useMyOffices, useMyDistricts, ADD_ADDRESS_LINE } from "@/hooks/useMyOffices";
 
 const db = supabase as any;
 
@@ -24,13 +24,8 @@ export function CompassOfficesReport({ sessionId }: { sessionId?: string | null 
   const [note, setNote] = useState("");
   const [sending, setSending] = useState(false);
 
-  const { data: offices = [] } = useQuery({
-    queryKey: ["compass-offices"],
-    queryFn: async () => {
-      const { data } = await db.from("civic_offices").select("id, office_title, current_holder, term_end, last_verified_at").order("office_title").limit(50);
-      return data ?? [];
-    },
-  });
+  const { data: offices = [] } = useMyOffices();
+  const { data: districts } = useMyDistricts();
 
   const send = async () => {
     setSending(true);
