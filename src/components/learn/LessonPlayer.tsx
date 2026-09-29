@@ -29,6 +29,7 @@ export default function LessonPlayer({ lesson, onClose, onComplete }: LessonPlay
   const [quizAnswers, setQuizAnswers] = useState<Record<string, number | null>>({});
   const [revealedQuiz, setRevealedQuiz] = useState<Set<string>>(new Set());
   const [completed, setCompleted] = useState(false);
+  const [xpAwarded, setXpAwarded] = useState<number | null>(null);
   const [startTime] = useState(Date.now());
 
   const isSlide = step < slides.length;
@@ -94,8 +95,9 @@ export default function LessonPlayer({ lesson, onClose, onComplete }: LessonPlay
       return;
     }
     const xp = Array.isArray(awarded) ? awarded[0]?.xp_awarded ?? 0 : 0;
+    setXpAwarded(xp);
 
-    toast.success(`+${xp} XP earned! 🎓`);
+    if (xp > 0) toast.success(`+${xp} XP earned! 🎓`);
     onComplete();
   }, [user, lesson, completed, correctCount, quizQuestions.length, slides.length, startTime, onComplete]);
 
@@ -132,11 +134,16 @@ export default function LessonPlayer({ lesson, onClose, onComplete }: LessonPlay
             <p className="text-muted-foreground text-sm">
               {passed ? "You crushed it." : "Review the lesson and try again for full XP."}
             </p>
+            {xpAwarded === 0 && (
+              <p className="text-muted-foreground text-sm mt-2">
+                You already earned points for this lesson. Nice to see you back.
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             <div className="bg-card rounded-xl p-3 border border-border">
-              <p className="text-2xl font-bold text-primary">+{lesson.xp_reward}</p>
+              <p className="text-2xl font-bold text-primary">+{xpAwarded ?? lesson.xp_reward}</p>
               <p className="text-xs text-muted-foreground">XP Earned</p>
             </div>
             <div className="bg-card rounded-xl p-3 border border-border">
