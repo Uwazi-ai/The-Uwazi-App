@@ -10,6 +10,7 @@ import { useMyChallenge, useMyBadges, countPhrase } from "@/hooks/useChallenge";
 import { ChallengeStanding } from "@/components/games/ChallengeCard";
 import { BadgeRow } from "@/components/games/BadgeRow";
 import { Trophy, Award } from "lucide-react";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 const db = supabase as any;
 
@@ -55,11 +56,7 @@ export default function ProgressPage() {
   const navigate = useNavigate();
 
   if (loading) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-8 space-y-4">
-        {[1, 2, 3].map((i) => <div key={i} className="h-28 rounded-2xl bg-card animate-pulse" />)}
-      </div>
-    );
+    return <LoadingScreen fullScreen={false} />;
   }
   if (!journey) {
     return (

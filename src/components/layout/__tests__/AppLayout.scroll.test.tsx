@@ -25,7 +25,7 @@ import React from "react";
 /** Mirrors the className values from AppLayout.tsx */
 const OUTER_DIV_CLASSES = "min-h-screen flex w-full bg-background overflow-x-hidden";
 const CONTENT_COL_CLASSES = "flex-1 flex flex-col h-screen min-w-0 overflow-x-hidden overflow-y-auto";
-const MAIN_CLASSES = "flex-1 min-w-0 overflow-x-hidden pb-20 md:pb-0";
+const MAIN_CLASSES = "flex-1 min-w-0 pb-20 md:pb-0";
 const MOTION_DIV_CLASSES = "min-h-0";
 
 /**
@@ -82,6 +82,7 @@ describe("AppLayout scroll regression", () => {
     expect(main.className).not.toContain("h-full");
     expect(main.className).not.toContain("h-screen");
     expect(main.className).not.toContain("max-h-screen");
+    expect(main.className).not.toContain("overflow-x-hidden");
   });
 
   it("outer wrapper allows vertical growth with min-h-screen", () => {
@@ -98,6 +99,7 @@ describe("AppLayout scroll regression", () => {
 
     // motion.div wrapper must contain min-h-0
     expect(source).toContain('className="min-h-0"');
+    expect(source).not.toContain('min-w-0 overflow-x-hidden ${isAskPage');
     // Must NOT contain h-full on the motion.div line
     expect(source).not.toMatch(/motion\.div[\s\S]{0,120}className="h-full"/);
   });
