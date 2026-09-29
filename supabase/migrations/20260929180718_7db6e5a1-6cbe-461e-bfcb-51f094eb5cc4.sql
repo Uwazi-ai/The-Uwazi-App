@@ -1,0 +1,1 @@
+ALTER TABLE public.civic_office_sources ADD COLUMN IF NOT EXISTS read_method TEXT;

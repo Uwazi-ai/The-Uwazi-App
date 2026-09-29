@@ -1018,6 +1018,7 @@ export type Database = {
           last_page_text: string | null
           last_result: Json | null
           last_success_at: string | null
+          read_method: string | null
           source_health: string | null
           source_url: string
         }
@@ -1035,6 +1036,7 @@ export type Database = {
           last_page_text?: string | null
           last_result?: Json | null
           last_success_at?: string | null
+          read_method?: string | null
           source_health?: string | null
           source_url: string
         }
@@ -1052,6 +1054,7 @@ export type Database = {
           last_page_text?: string | null
           last_result?: Json | null
           last_success_at?: string | null
+          read_method?: string | null
           source_health?: string | null
           source_url?: string
         }
