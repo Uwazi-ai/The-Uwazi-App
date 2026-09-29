@@ -622,7 +622,19 @@ Deno.serve(async (req) => {
 
     const { message, history = [], session_id } = await req.json();
     logSessionId = session_id ?? null;
-    if (!message?.trim()) return json({ error: "empty_message" }, 400);
+    if (typeof message !== "string" || !message.trim()) return json({ error: "empty_message" }, 400);
+
+    // Enforce the free question limit on the server. This counts the question.
+    const limitRes = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/check-ask-limit`, {
+      method: "POST",
+      headers: { Authorization: authHeader, apikey: Deno.env.get("SUPABASE_ANON_KEY")!, "Content-Type": "application/json" },
+      body: "{}",
+    });
+    const limitData = await limitRes.json().catch(() => ({}));
+    if (limitRes.status === 429 || limitData?.allowed === false) {
+      return json({ error: "rate_limited", reset_at: limitData?.reset_at ?? null }, 429);
+    }
+    if (!limitRes.ok) return json({ error: "limit_check_failed" }, 503);
 
     const override = await getModelSetting();
     const model = override === "auto"
@@ -699,9 +711,16 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Only plain user and assistant text turns from the client.
+    const safeHistory = (Array.isArray(history) ? history : [])
+      .filter((h: any) => h && (h.role === "user" || h.role === "assistant") && typeof h.content === "string" && h.content.trim())
+      .slice(-20)
+      .map((h: any) => ({ role: h.role, content: h.content.slice(0, 8000) }));
+    while (safeHistory.length && safeHistory[0].role !== "user") safeHistory.shift();
+
     const contextParts = [journeyTurn.contextText, officesText].filter(Boolean) as string[];
     const messages: Record<string, unknown>[] = [
-      ...history,
+      ...safeHistory,
       {
         role: "user",
         content: contextParts.length

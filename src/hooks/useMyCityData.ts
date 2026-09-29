@@ -109,11 +109,10 @@ export function useMyCityData() {
         return;
       }
 
-      const { data: cacheRows } = await supabase
-        .from("zip_investment_cache" as any)
-        .select("*")
-        .eq("zip_code", zip)
-        .eq("fiscal_year", "2024");
+      const { data: cacheRows } = await supabase.rpc("get_my_zip_investment" as any, {
+        _zip: zip,
+        _fiscal_year: "2024",
+      });
 
       const cache = {
         city: (cacheRows as any[])?.find((r) => r.level === "city"),

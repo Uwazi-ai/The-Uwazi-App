@@ -1,3 +1,4 @@
+import { csvRow } from "@/lib/csv";
 import { useState, useEffect, useMemo } from "react";
 import { useAllUsers } from "@/hooks/useAdminData";
 import { supabase } from "@/integrations/supabase/client";
@@ -137,7 +138,7 @@ export default function AdminUsersPage() {
     if (!data?.users.length) return;
     const headers = ["Name", "Email", "ZIP", "Admin", "Joined"];
     const rows = data.users.map(u => [u.display_name, "", u.zip_code, u.is_admin, u.created_at]);
-    const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
+    const csv = [headers, ...rows].map(r => csvRow(r)).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

@@ -68,12 +68,26 @@ Deno.serve(async (req) => {
       });
     }
 
+    const reqBody = await req.json().catch(() => ({}));
+    const peek = reqBody?.peek === true;
+
     const now = new Date();
     const windowStart = profile.ask_uwazi_window_start
       ? new Date(profile.ask_uwazi_window_start)
       : null;
     const windowActive = windowStart && now.getTime() - windowStart.getTime() < WINDOW_MS;
     const count = profile.ask_uwazi_question_count ?? 0;
+
+    if (peek) {
+      const used = windowActive ? count : 0;
+      return json(used >= FREE_LIMIT ? 429 : 200, {
+        allowed: used < FREE_LIMIT,
+        is_plus: false,
+        questions_used: used,
+        questions_remaining: Math.max(0, FREE_LIMIT - used),
+        reset_at: windowActive ? new Date(windowStart!.getTime() + WINDOW_MS).toISOString() : null,
+      });
+    }
 
     // CASE A — expired/never started → reset
     if (!windowActive) {

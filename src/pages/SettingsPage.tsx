@@ -254,14 +254,6 @@ export default function SettingsPage() {
       new_zip: addressZip.trim(),
     } as any);
 
-    // If ZIP changed, clear cache for the old ZIP so My City re-fetches
-    if (oldZip && oldZip !== addressZip.trim()) {
-      await supabase
-        .from("zip_investment_cache" as any)
-        .delete()
-        .eq("zip_code", oldZip);
-    }
-
     // Trigger geocoding + investment data fetch in background
     try {
       const { data: { session } } = await supabase.auth.getSession();

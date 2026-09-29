@@ -456,7 +456,7 @@ export default function AskUwaziPage() {
               Authorization: `Bearer ${session.access_token}`,
               apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
             },
-            body: "{}",
+            body: JSON.stringify({ peek: true }),
           },
         );
         const limitData = await resp.json().catch(() => ({}));
@@ -553,7 +553,7 @@ export default function AskUwaziPage() {
           Authorization: `Bearer ${session.access_token}`,
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
-        body: "{}",
+        body: JSON.stringify({ peek: true }),
       },
     );
     const data = await resp.json().catch(() => ({}));

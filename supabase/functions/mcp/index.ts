@@ -212,8 +212,11 @@ var search_lessons_default = defineTool6({
     let q = supabase.from("lessons").select(
       "id, slug, title, description, track_name, category, difficulty, xp_reward, estimated_minutes, key_takeaways, lesson_number"
     ).eq("is_published", true).order("order_index").limit(25);
-    if (query) q = q.or(`title.ilike.%${query}%,description.ilike.%${query}%`);
-    if (track) q = q.ilike("track_name", `%${track}%`);
+    if (query) {
+      const safe = query.replace(/[^\p{L}\p{N}\s'-]/gu, " ").trim().slice(0, 100);
+      if (safe) q = q.or(`title.ilike."%${safe}%",description.ilike."%${safe}%"`);
+    }
+    if (track) q = q.ilike("track_name", `%${track.replace(/[%_\\]/g, "").slice(0, 100)}%`);
     const { data, error } = await q;
     if (error) return errorResult(error.message);
     return textResult({ count: data?.length ?? 0, lessons: data ?? [] });

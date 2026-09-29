@@ -1,3 +1,4 @@
+import { csvRow } from "@/lib/csv";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -149,7 +150,7 @@ export default function AdminCRMPage() {
 
   const exportCSV = () => {
     const csv = ["Name,Email,Phone,ZIP,Email Opt-In,SMS Opt-In,Push,Score",
-      ...filtered.map(c => `"${c.display_name || ""}","","${c.phone_number || ""}","${c.zip_code || ""}",${c.email_opt_in},${c.sms_opt_in},${c.push_opt_in},${c.contact_score || 0}`)
+      ...filtered.map(c => csvRow([c.display_name || "", "", c.phone_number || "", c.zip_code || "", c.email_opt_in, c.sms_opt_in, c.push_opt_in, c.contact_score || 0]))
     ].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);

@@ -10,7 +10,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { priceId, quantity, customerEmail, userId, returnUrl, environment } = await req.json();
+    const { priceId, customerEmail, userId, returnUrl, environment } = await req.json();
     if (!priceId || typeof priceId !== "string" || !/^[a-zA-Z0-9_-]+$/.test(priceId)) {
       return new Response(JSON.stringify({ error: "Invalid priceId" }), {
         status: 400,
@@ -28,13 +28,27 @@ serve(async (req) => {
       });
     }
     const stripePrice = prices.data[0];
+
+    // Only return to our own app pages.
+    const ALLOWED_ORIGINS = ["https://uwaziapp.uwazi.ai", "https://uwaziapp.lovable.app"];
+    const isAllowedOrigin = (o: string) =>
+      ALLOWED_ORIGINS.includes(o) || /^https:\/\/[a-z0-9-]+\.lovable\.app$/.test(o) || /^https:\/\/[a-z0-9-]+\.lovableproject\.com$/.test(o) || /^http:\/\/localhost(:\d+)?$/.test(o) || o === "capacitor://localhost";
+    const reqOrigin = req.headers.get("origin") ?? "";
+    const fallbackOrigin = isAllowedOrigin(reqOrigin) ? reqOrigin : ALLOWED_ORIGINS[0];
+    let safeReturnUrl = `${fallbackOrigin}/app/checkout/return?session_id={CHECKOUT_SESSION_ID}`;
+    if (typeof returnUrl === "string") {
+      try {
+        if (isAllowedOrigin(new URL(returnUrl).origin)) safeReturnUrl = returnUrl;
+      } catch { /* keep default */ }
+    }
+    const qty = 1; // One subscription per checkout, never set by the caller.
     const isRecurring = stripePrice.type === "recurring";
 
     const session = await stripe.checkout.sessions.create({
-      line_items: [{ price: stripePrice.id, quantity: quantity || 1 }],
+      line_items: [{ price: stripePrice.id, quantity: qty }],
       mode: isRecurring ? "subscription" : "payment",
       ui_mode: "embedded",
-      return_url: returnUrl || `${req.headers.get("origin")}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
+      return_url: safeReturnUrl,
       ...(customerEmail && { customer_email: customerEmail }),
       ...(userId && {
         metadata: { userId },

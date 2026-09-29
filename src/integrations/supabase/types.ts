@@ -1485,6 +1485,7 @@ export type Database = {
           registration_link_clicked: boolean
           registration_source: string | null
           state_code: string | null
+          user_id: string | null
           utm_campaign: string | null
           utm_medium: string | null
           utm_source: string | null
@@ -1499,6 +1500,7 @@ export type Database = {
           registration_link_clicked?: boolean
           registration_source?: string | null
           state_code?: string | null
+          user_id?: string | null
           utm_campaign?: string | null
           utm_medium?: string | null
           utm_source?: string | null
@@ -1513,6 +1515,7 @@ export type Database = {
           registration_link_clicked?: boolean
           registration_source?: string | null
           state_code?: string | null
+          user_id?: string | null
           utm_campaign?: string | null
           utm_medium?: string | null
           utm_source?: string | null
@@ -4421,6 +4424,29 @@ export type Database = {
         }[]
       }
       get_my_path: { Args: never; Returns: Json }
+      get_my_zip_investment: {
+        Args: { _fiscal_year?: string; _zip: string }
+        Returns: {
+          created_at: string | null
+          data_sources: string[] | null
+          fiscal_year: string
+          flags_json: Json | null
+          id: string
+          level: string
+          meta_json: Json | null
+          projects_json: Json | null
+          refreshed_at: string | null
+          total_investment: number | null
+          vendors_json: Json | null
+          zip_code: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "zip_investment_cache"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_state_from_zip: { Args: { zip: string }; Returns: string }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }

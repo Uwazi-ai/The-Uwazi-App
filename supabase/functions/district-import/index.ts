@@ -77,6 +77,15 @@ Deno.serve(async (req) => {
     if (!TYPES.includes(districtType)) return json({ error: 'Pick a district type we support.' }, 400);
     if (!/^https?:\/\//i.test(sourceUrl)) return json({ error: 'Add the full web address of the official page.' }, 400);
 
+    // Only read map files from official government sites.
+    let host = '';
+    try { host = new URL(geojsonUrl).hostname.toLowerCase(); } catch { /* invalid */ }
+    const { data: domains } = await userClient.from('official_domains').select('domain');
+    const extra = (domains ?? []).map((d: any) => String(d.domain).toLowerCase());
+    const isOfficial = /\.(gov|us)$/.test(host) || host === 'arcgis.com' || host.endsWith('.arcgis.com') ||
+      extra.some((d) => host === d || host.endsWith('.' + d));
+    if (!host || !isOfficial) return json({ error: 'Use a map file from an official government site.' }, 400);
+
     let readMethod = 'fetch';
     let text = '';
     try {
