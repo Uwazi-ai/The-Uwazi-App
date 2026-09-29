@@ -937,6 +937,162 @@ export type Database = {
         }
         Relationships: []
       }
+      civic_office_pending_changes: {
+        Row: {
+          extracted_at: string
+          field_changed: string
+          id: string
+          new_value: string | null
+          note: string | null
+          office_id: string | null
+          old_value: string | null
+          origin: string
+          proposed: Json | null
+          reported_by: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source_id: string | null
+          status: string
+        }
+        Insert: {
+          extracted_at?: string
+          field_changed: string
+          id?: string
+          new_value?: string | null
+          note?: string | null
+          office_id?: string | null
+          old_value?: string | null
+          origin?: string
+          proposed?: Json | null
+          reported_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_id?: string | null
+          status?: string
+        }
+        Update: {
+          extracted_at?: string
+          field_changed?: string
+          id?: string
+          new_value?: string | null
+          note?: string | null
+          office_id?: string | null
+          old_value?: string | null
+          origin?: string
+          proposed?: Json | null
+          reported_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "civic_office_pending_changes_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "civic_offices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "civic_office_pending_changes_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "civic_office_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      civic_office_sources: {
+        Row: {
+          active: boolean
+          check_frequency_hours: number
+          created_at: string
+          geoid: string | null
+          id: string
+          jurisdiction_level: string | null
+          label: string
+          last_changed_at: string | null
+          last_checked_at: string | null
+          last_error: string | null
+          last_result: Json | null
+          last_success_at: string | null
+          source_url: string
+        }
+        Insert: {
+          active?: boolean
+          check_frequency_hours?: number
+          created_at?: string
+          geoid?: string | null
+          id?: string
+          jurisdiction_level?: string | null
+          label: string
+          last_changed_at?: string | null
+          last_checked_at?: string | null
+          last_error?: string | null
+          last_result?: Json | null
+          last_success_at?: string | null
+          source_url: string
+        }
+        Update: {
+          active?: boolean
+          check_frequency_hours?: number
+          created_at?: string
+          geoid?: string | null
+          id?: string
+          jurisdiction_level?: string | null
+          label?: string
+          last_changed_at?: string | null
+          last_checked_at?: string | null
+          last_error?: string | null
+          last_result?: Json | null
+          last_success_at?: string | null
+          source_url?: string
+        }
+        Relationships: []
+      }
+      civic_offices: {
+        Row: {
+          created_at: string
+          current_holder: string | null
+          data_source: string | null
+          geoid: string | null
+          id: string
+          jurisdiction_level: string | null
+          last_verified_at: string | null
+          office_title: string
+          source_url: string | null
+          term_end: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_holder?: string | null
+          data_source?: string | null
+          geoid?: string | null
+          id?: string
+          jurisdiction_level?: string | null
+          last_verified_at?: string | null
+          office_title: string
+          source_url?: string | null
+          term_end?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_holder?: string | null
+          data_source?: string | null
+          geoid?: string | null
+          id?: string
+          jurisdiction_level?: string | null
+          last_verified_at?: string | null
+          office_title?: string
+          source_url?: string | null
+          term_end?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       civic_registrants: {
         Row: {
           address: Json | null
@@ -3546,6 +3702,19 @@ export type Database = {
         }[]
       }
       redeem_code: { Args: { p_code: string }; Returns: Json }
+      report_office_issue: {
+        Args: {
+          _correct_value: string
+          _field: string
+          _note: string
+          _office_id: string
+        }
+        Returns: string
+      }
+      review_office_change: {
+        Args: { _approve: boolean; _change_id: string }
+        Returns: string
+      }
       set_contest_verification: {
         Args: { _contest_ids: string[]; _note?: string; _status: string }
         Returns: {
