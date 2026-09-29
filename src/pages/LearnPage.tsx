@@ -91,7 +91,7 @@ export default function LearnPage() {
         <div className="bg-card rounded-xl border border-border p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-semibold text-foreground">Your Civic Literacy Score</span>
-            <a href="/progress" className="text-xs font-medium text-primary hover:underline">View Progress →</a>
+            <a href="/app/progress" className="text-xs font-medium text-primary hover:underline">View Progress →</a>
           </div>
           <div className="flex items-center gap-3">
             <Progress value={literacyScore} className="h-2.5 flex-1" />

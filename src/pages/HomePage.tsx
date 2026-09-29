@@ -19,6 +19,8 @@ import { useProfile } from "@/contexts/ProfileContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import FeatureTour from "@/components/home/FeatureTour";
+import { YourPath } from "@/components/journey/YourPath";
+import { useMyPath } from "@/hooks/useJourney";
 import { useEpisodeVideoUrl } from "@/hooks/useEpisodeVideoUrl";
 
 function EpisodeVideoThumb({
@@ -116,6 +118,7 @@ export default function HomePage() {
   const noMotion = <T,>(val: T): T | Record<string, never> => (reduceMotion ? {} : val);
   const noTransition = <T,>(val: T): T | { duration: 0 } => (reduceMotion ? { duration: 0 } : val);
 
+  const { path: homePath } = useMyPath();
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-10 py-6 md:py-8 pb-24 md:pb-8 space-y-8">
       <FeatureTour open={tourOpen} onClose={() => setTourOpen(false)} />
@@ -249,6 +252,8 @@ export default function HomePage() {
           </div>
         </motion.div>
       )}
+
+      <YourPath path={homePath} compact />
 
       {/* SECTION 3 — Episode Strip */}
       {episodes.length > 0 && (
