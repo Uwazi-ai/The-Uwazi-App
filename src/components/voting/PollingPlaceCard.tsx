@@ -12,9 +12,12 @@ import { useVoterProfile, useSavePrecinct, lookupPrecinct } from "@/hooks/useMyB
  */
 export default function PollingPlaceCard({ compact = false }: { compact?: boolean }) {
   const { data: profile } = useVoterProfile();
+  const { data: districts } = useMyDistricts();
   const save = useSavePrecinct();
   const saved = (profile as any)?.precinct_id as string | null | undefined;
-  const info = lookupPrecinct(saved);
+  // If they have not saved a ward and precinct, try the voting district we resolved from their address.
+  const fromDistricts = districts?.resolved?.voting_district ?? null;
+  const info = lookupPrecinct(saved) ?? lookupPrecinct(fromDistricts);
   const [editing, setEditing] = useState(false);
   const [ward, setWard] = useState("");
   const [pct, setPct] = useState("");
