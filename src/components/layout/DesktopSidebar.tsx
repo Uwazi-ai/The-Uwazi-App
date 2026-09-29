@@ -43,6 +43,7 @@ const adminNav: AdminNavItem[] = [
   { to: "/app/admin/surveys", icon: SurveysIcon, label: "Surveys", programAdmin: true },
   { to: "/app/admin/platform", icon: PlatformSettingsIcon, label: "Platform Settings" },
   { to: "/app/admin/ballot-review", icon: ShieldCheck, label: "Ballot Review" },
+  { to: "/app/admin/office-health", icon: ShieldCheck, label: "Office Data Health" },
   { to: "/app/admin/partner-orgs", icon: PartnerOrgsIcon, label: "Partner Orgs" },
   { to: "/app/admin/codes", icon: Ticket, label: "Redemption Codes" },
   { to: "/app/admin/security", icon: Lock, label: "Security" },
