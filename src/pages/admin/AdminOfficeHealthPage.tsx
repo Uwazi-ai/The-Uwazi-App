@@ -206,6 +206,11 @@ export default function AdminOfficeHealthPage() {
     if (error) toast.error(error.message); else { toast.success(active ? "Source is on." : "Source is off."); refresh(); }
   };
 
+  const setFrequency = async (s: Source, hours: number) => {
+    const { error } = await db.from("civic_data_sources").update({ check_frequency_hours: hours }).eq("id", s.id);
+    if (error) toast.error(error.message); else { toast.success(hours <= 168 ? "Now checks every week." : "Now checks every month."); refresh(); }
+  };
+
   const review = async (id: string, approve: boolean) => {
     const { error } = await db.rpc("review_office_change", { _change_id: id, _approve: approve });
     if (error) toast.error(error.message); else { toast.success(approve ? "Saved. Voters will see it now." : "Change closed."); refresh(); }
@@ -224,6 +229,8 @@ export default function AdminOfficeHealthPage() {
     { label: "Waiting more than 7 days", value: oldPending },
   ];
   const attentionTotal = list.filter(needsAttention).length + oldPending;
+  const budgetSources = list.filter((s) => s.data_type === "budget");
+  const budgetPending = pending.filter((c) => c.data_type === "budget").length;
   const stats = [
     { label: "Needs attention", value: attentionTotal },
     { label: "Sources checked", value: list.filter((s) => s.last_checked_at).length },
@@ -255,6 +262,13 @@ export default function AdminOfficeHealthPage() {
         </div>
       </Card>
 
+      <Card className="p-4 text-sm flex flex-wrap items-center gap-2">
+        <span className="font-medium text-foreground">Budget data health</span>
+        <Badge variant="outline">Budget sources: {budgetSources.length}</Badge>
+        <Badge variant="outline">On: {budgetSources.filter((s) => s.active).length}</Badge>
+        <Badge variant={budgetPending ? "secondary" : "outline"}>Budget changes to review: {budgetPending}</Badge>
+      </Card>
+
       {!!citiesWaiting.data && (
         <Badge variant="destructive">New city waiting for review: {citiesWaiting.data}</Badge>
       )}
@@ -269,8 +283,10 @@ export default function AdminOfficeHealthPage() {
           <Card key={c.id} className="p-4 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant={c.origin === "user_reported" ? "destructive" : "secondary"}>{ORIGIN_LABEL[c.origin] ?? c.origin}</Badge>
-              <span className="font-medium text-foreground">{c.civic_offices?.office_title ?? c.proposed?.office_title ?? c.proposed?.contest ?? "New office"}</span>
-              {c.target_table && <Badge variant="outline">Candidate</Badge>}
+              <span className="font-medium text-foreground">{c.data_type === "budget"
+                ? (c.target_table === "civic_budget_calendar" ? `Budget calendar, ${c.proposed?.fiscal_year ?? ""}` : `${c.proposed?.department_or_fund ?? "Budget line"}, ${c.proposed?.fiscal_year ?? ""}`)
+                : c.civic_offices?.office_title ?? c.proposed?.office_title ?? c.proposed?.contest ?? "New office"}</span>
+              {c.data_type === "budget" ? <Badge variant="outline">Budget</Badge> : c.target_table && <Badge variant="outline">Candidate</Badge>}
               <span className="text-xs text-muted-foreground">{FIELD_LABEL[c.field_changed] ?? c.field_changed}</span>
               <span className={`text-xs ${Date.now() - new Date(c.extracted_at).getTime() > 7 * DAY ? "text-destructive" : "text-muted-foreground"}`}>{waited(c.extracted_at)}</span>
             </div>
@@ -320,7 +336,7 @@ export default function AdminOfficeHealthPage() {
           <Card key={s.id} className="p-4 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-medium text-foreground">{s.label}</span>
-              <Badge variant="outline">{s.kind === "candidates" ? "Candidates" : "Offices"}</Badge>
+              <Badge variant="outline">{s.data_type === "budget" ? "Budget" : s.kind === "candidates" ? "Candidates" : "Offices"}</Badge>
               {!s.is_official && <Badge variant="secondary">Not official</Badge>}
               <Badge variant={s.active ? "default" : "outline"}>{s.active ? "On" : "Off"}</Badge>
               {s.source_health ? <Badge variant={HEALTH[s.source_health].variant}>{HEALTH[s.source_health].label}</Badge> : <Badge variant="outline">Not checked</Badge>}
@@ -334,6 +350,16 @@ export default function AdminOfficeHealthPage() {
               Checks every {s.check_frequency_hours} hours. Last check: {when(s.last_checked_at)}. Last change: {when(s.last_changed_at)}.
               {s.read_method && <> Read by: {s.read_method === "firecrawl" ? "web reading service" : "direct read"}.</>}
             </div>
+            {s.data_type === "budget" && isAdmin && (
+              <Button size="sm" variant="outline" onClick={() => setFrequency(s, s.check_frequency_hours <= 168 ? 720 : 168)}>
+                {s.check_frequency_hours <= 168 ? "Go back to monthly checks" : "Check weekly for budget season"}
+              </Button>
+            )}
+            {s.data_type === "budget" && s.last_result && (
+              <div className="text-xs text-muted-foreground">
+                Last check found {s.last_result.lines_found ?? 0} budget lines and {s.last_result.milestones_found ?? 0} dates.
+              </div>
+            )}
 
             {s.last_error && <p className="text-xs text-destructive">{s.last_error}</p>}
             {s.last_result && (
