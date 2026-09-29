@@ -234,10 +234,10 @@ async function discoverCity(db: any, city: any) {
         continue;
       }
 
-      const { data: existing } = await db.from('civic_office_sources').select('id').eq('source_url', official.url).maybeSingle();
+      const { data: existing } = await db.from('civic_data_sources').select('id').eq('source_url', official.url).maybeSingle();
       let sourceId = existing?.id as string | undefined;
       if (!sourceId) {
-        const { data: ins, error } = await db.from('civic_office_sources').insert({
+        const { data: ins, error } = await db.from('civic_data_sources').insert({
           geoid: j.geoid, label: j.label, source_url: official.url, jurisdiction_level: j.level,
           check_frequency_hours: 168, active: false, kind: 'office', is_official: true,
           last_error: 'Found by city auto discovery. Check it against the live page before you turn it on.',
@@ -322,10 +322,10 @@ async function markOfficial(db: any, userId: string, cityId: string, url: string
       : { kind: 'boundary', label, url, file: r.file, import_batch_id: r.batch, saved: r.saved, names: r.names };
     note = 'error' in r ? `${label}: ${url} marked official, but ${r.error}` : `${label}: ${url} marked official. Saved ${r.saved} districts, turned off.`;
   } else {
-    const { data: existing } = await db.from('civic_office_sources').select('id').eq('source_url', url).maybeSingle();
+    const { data: existing } = await db.from('civic_data_sources').select('id').eq('source_url', url).maybeSingle();
     let sourceId = existing?.id as string | undefined;
     if (!sourceId) {
-      const { data: ins, error } = await db.from('civic_office_sources').insert({
+      const { data: ins, error } = await db.from('civic_data_sources').insert({
         geoid, label, source_url: url, jurisdiction_level: level,
         check_frequency_hours: 168, active: false, kind: 'office', is_official: true,
         last_error: 'An admin marked this site official. Check it against the live page before you turn it on.',

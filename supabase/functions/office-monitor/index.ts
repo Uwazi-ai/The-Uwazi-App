@@ -121,7 +121,7 @@ async function diffCandidates(db: any, src: any, text: string) {
   }
 
   const { contests, unclear } = await extractCandidates(text, src.label, targets.map((t) => t.name));
-  const { data: pending } = await db.from('civic_office_pending_changes')
+  const { data: pending } = await db.from('civic_data_pending_changes')
     .select('candidate_id, contest_ref, field_changed, new_value').eq('source_id', src.id).eq('status', 'pending');
   const pendingKeys = new Set((pending ?? []).map((p: any) =>
     `${p.contest_ref}|${p.candidate_id ?? 'new'}|${p.field_changed}|${nameKey(p.new_value)}`));
@@ -275,11 +275,11 @@ async function checkSource(db: any, src: any) {
     if (src.kind === 'candidates') {
       const { rows, result: r, health } = await diffCandidates(db, src, text);
       if (rows.length) {
-        const { error: insErr } = await db.from('civic_office_pending_changes').insert(rows);
+        const { error: insErr } = await db.from('civic_data_pending_changes').insert(rows);
         if (insErr) throw new Error(`Could not save changes: ${insErr.message}`);
       }
       const result = { ...r, changes_found: rows.length, checked_at: now, read_method: readMethod };
-      await db.from('civic_office_sources').update({
+      await db.from('civic_data_sources').update({
         last_checked_at: now, last_success_at: now, last_error: null, last_result: result,
         source_health: health, last_page_text: text.slice(0, 20000), read_method: readMethod,
         ...(rows.length ? { last_changed_at: now } : {}),
@@ -292,7 +292,7 @@ async function checkSource(db: any, src: any) {
 
 
     const { data: existing } = await db.from('civic_offices').select('*').eq('source_url', src.source_url);
-    const { data: pending } = await db.from('civic_office_pending_changes')
+    const { data: pending } = await db.from('civic_data_pending_changes')
       .select('office_id, field_changed, new_value, proposed').eq('source_id', src.id).eq('status', 'pending');
     const pendingKeys = new Set((pending ?? []).map((p: any) =>
       `${p.office_id ?? 'new'}|${p.field_changed}|${norm(p.new_value)}`));
@@ -317,10 +317,10 @@ async function checkSource(db: any, src: any) {
         }
       }
     }
-    if (rows.length) await db.from('civic_office_pending_changes').insert(rows);
+    if (rows.length) await db.from('civic_data_pending_changes').insert(rows);
 
     const result = { offices, unclear, changes_found: rows.length, checked_at: now, read_method: readMethod };
-    await db.from('civic_office_sources').update({
+    await db.from('civic_data_sources').update({
       last_checked_at: now, last_success_at: now, last_error: null, last_result: result,
       source_health: health, last_page_text: text.slice(0, 20000), read_method: readMethod,
       ...(rows.length ? { last_changed_at: now } : {}),
@@ -329,7 +329,7 @@ async function checkSource(db: any, src: any) {
   } catch (e) {
     const msg = (e as Error).message;
     console.error(`office-monitor ${src.id}: ${msg}`);
-    await db.from('civic_office_sources').update({ last_checked_at: now, last_error: msg, source_health: (e as any).health ?? 'broken',
+    await db.from('civic_data_sources').update({ last_checked_at: now, last_error: msg, source_health: (e as any).health ?? 'broken',
       read_method: (e as any).readMethod ?? readMethod,
       ...((e as any).pageText ? { last_page_text: String((e as any).pageText).slice(0, 20000) } : {}) }).eq('id', src.id);
     return { source_id: src.id, ok: false, error: msg };
@@ -354,14 +354,14 @@ Deno.serve(async (req) => {
       const { data: isAdmin } = await db.rpc('is_office_reviewer', { _user_id: u.user.id });
       if (!isAdmin) return json({ error: 'Admins and reviewers only' }, 403);
     }
-    const { data: src } = await db.from('civic_office_sources').select('*').eq('id', body.source_id).single();
+    const { data: src } = await db.from('civic_data_sources').select('*').eq('id', body.source_id).single();
     if (!src) return json({ error: 'Source not found' }, 404);
     return json(await checkSource(db, src));
   }
 
   // Cron: all active sources that are due
   if (!CRON_SECRET || req.headers.get('x-cron-secret') !== CRON_SECRET) return json({ error: 'Unauthorized' }, 401);
-  const { data: sources } = await db.from('civic_office_sources').select('*').eq('active', true);
+  const { data: sources } = await db.from('civic_data_sources').select('*').eq('active', true);
   const due = (sources ?? []).filter((s: any) =>
     !s.last_checked_at || new Date(s.last_checked_at).getTime() + s.check_frequency_hours * 3600_000 < Date.now()
   ).slice(0, MAX_PER_RUN);
