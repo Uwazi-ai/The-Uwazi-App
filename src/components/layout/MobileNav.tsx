@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Building2, ChevronRight, Compass, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Building2, ChevronRight, Compass, Menu, User } from "lucide-react";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { openMyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
@@ -18,10 +19,10 @@ const navItems = [
   { to: "/app/ask", icon: AskUwaziIcon, label: "Ask" },
   { to: "/app/vote", icon: VotingHubIcon, label: "Vote" },
   { to: "/app/compass", icon: Compass, label: "Compass" },
-  { to: "/app/my-city", icon: Building2, label: "My City", premium: true },
 ];
 
 const drawerItems = [
+  { to: "/app/my-city", icon: Building2, label: "My City", premium: true },
   { to: "/app/settings", icon: User, label: "You" },
   { to: "/app/progress", icon: ProgressIcon, label: "Progress" },
   { to: "/app/saved", icon: SavedIcon, label: "Saved" },
@@ -81,29 +82,22 @@ export function MobileNav() {
           </NavLink>
         ))}
 
-        {/* Profile avatar — opens drawer with profile + secondary nav */}
+        {/* Menu — opens drawer with My City + secondary nav */}
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <button
+            <Button
               type="button"
-              aria-label="Open profile and more"
+              variant="ghost"
+              aria-label="Open navigation menu"
               className={`bottom-nav-item flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-medium tracking-[0.02em] transition-all duration-150 ${
                 open ? "active text-primary" : "text-muted-foreground"
               }`}
             >
-              <div
-                className={`relative w-7 h-7 rounded-full overflow-hidden border-2 transition-colors ${
-                  open ? "border-primary" : "border-border"
-                } bg-muted flex items-center justify-center`}
-              >
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-[11px] font-bold text-foreground">{initial}</span>
-                )}
+              <div className={`relative p-1 rounded-lg transition-colors ${open ? "bg-primary/[0.12]" : ""}`}>
+                <Menu className="size-[22px]" />
               </div>
-              <span>You</span>
-            </button>
+              <span>Menu</span>
+            </Button>
           </SheetTrigger>
           <SheetContent
             side="bottom"
@@ -130,9 +124,15 @@ export function MobileNav() {
             <div className="flex flex-col gap-1">
               {drawerItems.map((item) => (
                 <NavLink
-                  key={item.to}
+                  key={item.label}
                   to={item.to}
-                  onClick={() => setOpen(false)}
+                  onClick={(event) => {
+                    setOpen(false);
+                    if (item.premium && !isPremium) {
+                      event.preventDefault();
+                      openMyCityUnlockModal();
+                    }
+                  }}
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-150 ${
                       isActive
@@ -143,6 +143,11 @@ export function MobileNav() {
                 >
                   <item.icon size={22} />
                   <span className="flex-1 text-sm font-medium">{item.label}</span>
+                  {item.premium && !isPremium && (
+                    <span className="text-[10px] font-bold text-primary" aria-label="Premium feature">
+                      UWAZI+
+                    </span>
+                  )}
                   <ChevronRight className="w-4 h-4 opacity-50" />
                 </NavLink>
               ))}
