@@ -6,6 +6,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useMyJourney, EVENT_LABELS, type MyJourney } from "@/hooks/useJourney";
+import { useMyChallenge, useMyBadges, COUNT_LABELS } from "@/hooks/useChallenge";
+import { ChallengeStanding } from "@/components/games/ChallengeCard";
+import { BadgeRow } from "@/components/games/BadgeRow";
+import { Trophy, Award } from "lucide-react";
 
 const db = supabase as any;
 
