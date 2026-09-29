@@ -112,8 +112,40 @@ export default function AdminOfficeHealthPage() {
     },
   });
 
+  const batches = useQuery({
+    queryKey: ["district-batches"],
+    queryFn: async () => {
+      const { data, error } = await db.rpc("district_batches");
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+    enabled: isAdmin,
+  });
+
   const refresh = () => {
-    ["office-sources", "office-changes", "office-decisions", "civic-offices-admin"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+    ["office-sources", "office-changes", "office-decisions", "civic-offices-admin", "district-batches"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  };
+
+  const importBoundaries = async () => {
+    setImporting(true);
+    const { data, error } = await supabase.functions.invoke("district-import", { body: boundary });
+    setImporting(false);
+    if (error) {
+      const d = error instanceof FunctionsHttpError ? await error.context.text() : error.message;
+      toast.error(`Import failed. ${d}`);
+      return;
+    }
+    if (data?.error) return toast.error(`Import failed. ${data.error}`);
+    toast.success(`Saved ${data.saved} districts. They stay off until you turn them on.`);
+    setBoundary({ ...boundary, geojson_url: "" });
+    refresh();
+  };
+
+  const setBatchActive = async (id: string, on: boolean) => {
+    if (on && !confirm("Did you compare these district names with the official page? Turn them on only if they look right.")) return;
+    const { error } = await db.rpc("activate_district_batch", { _batch: id, _on: on });
+    if (error) toast.error(error.message);
+    else { toast.success(on ? "These districts are on." : "These districts are off."); refresh(); }
   };
 
   const addSource = useMutation({
