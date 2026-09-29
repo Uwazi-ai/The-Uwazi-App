@@ -77,6 +77,33 @@ export type Database = {
         }
         Relationships: []
       }
+      ask_calibration_state: {
+        Row: {
+          last_prompt_at: string | null
+          pending_question: string | null
+          pending_since: string | null
+          turns_since_prompt: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          last_prompt_at?: string | null
+          pending_question?: string | null
+          pending_since?: string | null
+          turns_since_prompt?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          last_prompt_at?: string | null
+          pending_question?: string | null
+          pending_since?: string | null
+          turns_since_prompt?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ask_uwazi_model_log: {
         Row: {
           created_at: string
@@ -898,6 +925,30 @@ export type Database = {
         }
         Relationships: []
       }
+      civic_confidence: {
+        Row: {
+          confidence_score: number
+          id: string
+          last_updated: string
+          sample_count: number
+          user_id: string
+        }
+        Insert: {
+          confidence_score: number
+          id?: string
+          last_updated?: string
+          sample_count?: number
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number
+          id?: string
+          last_updated?: string
+          sample_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       civic_impact_summary: {
         Row: {
           generated_at: string
@@ -936,6 +987,38 @@ export type Database = {
           voter_file_matches?: number
         }
         Relationships: []
+      }
+      civic_journey_stages: {
+        Row: {
+          created_at: string
+          id: string
+          lab_track: string | null
+          min_points: number
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lab_track?: string | null
+          min_points: number
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lab_track?: string | null
+          min_points?: number
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "civic_journey_stages_lab_track_fkey"
+            columns: ["lab_track"]
+            isOneToOne: false
+            referencedRelation: "lesson_tracks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       civic_office_pending_changes: {
         Row: {
@@ -1785,6 +1868,68 @@ export type Database = {
         }
         Relationships: []
       }
+      journey_step_history: {
+        Row: {
+          completed_at: string | null
+          id: string
+          set_at: string
+          step_ref: string | null
+          step_type: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          set_at?: string
+          step_ref?: string | null
+          step_type: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          set_at?: string
+          step_ref?: string | null
+          step_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      learn_path_offers: {
+        Row: {
+          completed_at: string | null
+          id: string
+          lesson_id: string
+          offered_at: string
+          slot: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          lesson_id: string
+          offered_at?: string
+          slot: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          lesson_id?: string
+          offered_at?: string
+          slot?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learn_path_offers_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_gap_recommendations: {
         Row: {
           created_at: string | null
@@ -1883,11 +2028,13 @@ export type Database = {
           created_at: string | null
           description: string | null
           difficulty: string | null
+          dimension_id: string | null
           estimated_minutes: number | null
           id: string
           is_published: boolean | null
           key_takeaways: Json | null
           lesson_number: string | null
+          min_stage: string | null
           order_index: number | null
           prerequisites: Json | null
           quiz_questions: Json | null
@@ -1907,11 +2054,13 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           difficulty?: string | null
+          dimension_id?: string | null
           estimated_minutes?: number | null
           id?: string
           is_published?: boolean | null
           key_takeaways?: Json | null
           lesson_number?: string | null
+          min_stage?: string | null
           order_index?: number | null
           prerequisites?: Json | null
           quiz_questions?: Json | null
@@ -1931,11 +2080,13 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           difficulty?: string | null
+          dimension_id?: string | null
           estimated_minutes?: number | null
           id?: string
           is_published?: boolean | null
           key_takeaways?: Json | null
           lesson_number?: string | null
+          min_stage?: string | null
           order_index?: number | null
           prerequisites?: Json | null
           quiz_questions?: Json | null
@@ -1947,7 +2098,22 @@ export type Database = {
           track_name?: string | null
           xp_reward?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "lessons_dimension_id_fkey"
+            columns: ["dimension_id"]
+            isOneToOne: false
+            referencedRelation: "compass_dimensions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lessons_min_stage_fkey"
+            columns: ["min_stage"]
+            isOneToOne: false
+            referencedRelation: "civic_journey_stages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       org_invites: {
         Row: {
@@ -3184,6 +3350,33 @@ export type Database = {
           },
         ]
       }
+      user_civic_persona: {
+        Row: {
+          consent_scope: Json
+          dimension_scores: Json
+          id: string
+          last_updated: string
+          persona_labels: Json
+          user_id: string
+        }
+        Insert: {
+          consent_scope?: Json
+          dimension_scores?: Json
+          id?: string
+          last_updated?: string
+          persona_labels?: Json
+          user_id: string
+        }
+        Update: {
+          consent_scope?: Json
+          dimension_scores?: Json
+          id?: string
+          last_updated?: string
+          persona_labels?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_civic_stats: {
         Row: {
           bills_tracked_count: number
@@ -3210,6 +3403,30 @@ export type Database = {
           last_action_at?: string | null
           longest_streak?: number
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_journey_next_step: {
+        Row: {
+          completed_at: string | null
+          set_at: string
+          step_ref: string | null
+          step_type: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          set_at?: string
+          step_ref?: string | null
+          step_type: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          set_at?: string
+          step_ref?: string | null
+          step_type?: string
           user_id?: string
         }
         Relationships: []
@@ -3266,6 +3483,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_points_ledger: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          points: number
+          source_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          points: number
+          source_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          points?: number
+          source_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_preferences: {
         Row: {
@@ -3574,7 +3818,14 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_level: {
+        Row: {
+          stage_name: string | null
+          total_points: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_org_invite: {
@@ -3625,6 +3876,11 @@ export type Database = {
           xp_awarded: number
         }[]
       }
+      award_points: {
+        Args: { _event: string; _points: number; _source: string; _uid: string }
+        Returns: number
+      }
+      award_report_unlock: { Args: { _session_id: string }; Returns: number }
       claim_promo_code: {
         Args: { _code: string; _user_id: string }
         Returns: Json
@@ -3649,9 +3905,21 @@ export type Database = {
           date: string
         }[]
       }
+      complete_compass_session: {
+        Args: {
+          _personalization: boolean
+          _research: boolean
+          _session_id: string
+        }
+        Returns: Json
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
+      }
+      dimension_lesson: {
+        Args: { _ascending: boolean; _exclude?: string[]; _uid: string }
+        Returns: string
       }
       email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
@@ -3673,6 +3941,8 @@ export type Database = {
           role: string
         }[]
       }
+      get_my_journey: { Args: never; Returns: Json }
+      get_my_path: { Args: never; Returns: Json }
       get_state_from_zip: { Args: { zip: string }; Returns: string }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
@@ -3686,6 +3956,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_lesson_done: {
+        Args: { _lesson: string; _uid: string }
+        Returns: boolean
+      }
       is_office_reviewer: { Args: { _user_id: string }; Returns: boolean }
       is_org_admin: {
         Args: { _org_id: string; _user_id: string }
@@ -3693,6 +3967,8 @@ export type Database = {
       }
       is_org_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_program_admin: { Args: { _user_id: string }; Returns: boolean }
+      journey_research_stats: { Args: never; Returns: Json }
+      lesson_brief: { Args: { _id: string }; Returns: Json }
       list_office_reviewers: {
         Args: never
         Returns: {
@@ -3700,6 +3976,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      log_civic_action: { Args: { _office_id?: string }; Returns: Json }
       log_episode_video_access: {
         Args: {
           _context?: Json
@@ -3721,6 +3998,10 @@ export type Database = {
         }
         Returns: number
       }
+      next_stage_lesson: {
+        Args: { _exclude?: string[]; _uid: string }
+        Returns: string
+      }
       office_recent_decisions: {
         Args: never
         Returns: {
@@ -3736,6 +4017,7 @@ export type Database = {
       }
       office_reviewer_count: { Args: never; Returns: number }
       owns_compass_session: { Args: { _session_id: string }; Returns: boolean }
+      persona_label: { Args: { _scores: Json }; Returns: Json }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -3744,6 +4026,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      recompute_next_step: { Args: { _uid: string }; Returns: undefined }
       redeem_code: { Args: { p_code: string }; Returns: Json }
       report_office_issue: {
         Args: {
@@ -3777,6 +4060,7 @@ export type Database = {
           date: string
         }[]
       }
+      stage_name_for: { Args: { _points: number }; Returns: string }
     }
     Enums: {
       app_role: "super_admin" | "program_admin" | "user" | "reviewer"
