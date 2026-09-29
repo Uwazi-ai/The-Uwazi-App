@@ -16,6 +16,7 @@ Follow these rules every time.
 3. For each office, explain in plain words which of the person's top issues it connects to and why.
 4. Give 2 or 3 policy priorities per office. Each is a short neutral topic area, like "transit funding levels". Never take a side for or against anything.
 5. If the list has fewer than 3 offices, rank what is there. Say plainly in the note that more offices will show as the city adds them.
+6. Write different reasoning for each office based on what that office actually does. Never repeat the same sentence for two offices. Mention only the person's top three issues unless an office truly connects to another one.
 Write at a 6th to 8th grade level. Use short sentences. Do not use em dashes, semicolons, or parentheses. Speak to the person as "you". Affirm what they can do.
 match_score is a number from 0 to 1. Higher means a closer match to their top issues.
 Return JSON only.`;
@@ -132,7 +133,7 @@ Deno.serve(async (req) => {
 
     const { data: offices, error: oErr } = await userClient.rpc("get_my_offices", { _user_id: uid });
     if (oErr) return json(500, { error: "We could not load your offices." });
-    const list = (offices ?? []).filter((o: any) => o.match_level === "city" || o.match_level === "district");
+    const list = (offices ?? []).filter((o: any) => ["city", "district", "county", "school"].includes(o.match_level));
     if (!list.length) return json(200, { matches: 0, note: "We do not have local offices for your area yet." });
 
     const { data: dims } = await admin.from("compass_dimensions").select("*");

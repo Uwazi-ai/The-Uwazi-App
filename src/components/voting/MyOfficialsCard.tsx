@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { MessageCircle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useMyOffices, useMyDistricts, ADD_ADDRESS_LINE } from "@/hooks/useMyOffices";
+import { useMyOffices, useMyDistricts, ADD_ADDRESS_LINE, groupOffices } from "@/hooks/useMyOffices";
 import CityComingNotice from "./CityComingNotice";
 
 /** The offices that match where this person lives. Shown on the Voting Hub. */
@@ -23,19 +23,26 @@ export default function MyOfficialsCard() {
         {!offices.length ? (
           <p className="text-sm text-muted-foreground">We do not have your local offices yet. Ask UWAZI and we will help you find them.</p>
         ) : (
-          <ul className="divide-y divide-white/5">
-            {offices.map((o) => (
-              <li key={o.id} className="py-2 text-sm">
-                <div className="font-medium text-foreground">{o.office_title}</div>
-                <div className="text-muted-foreground">{o.current_holder ?? "No one listed"}{o.term_end ? `. Term ends ${o.term_end}` : ""}</div>
-                {o.source_url && (
-                  <a href={o.source_url} target="_blank" rel="noreferrer" className="text-xs text-primary inline-flex items-center gap-1">
-                    Official page <ExternalLink className="h-3 w-3" />
-                  </a>
-                )}
-              </li>
+          <div className="space-y-4">
+            {groupOffices(offices).map((g) => (
+              <div key={g.key}>
+                <h3 className="text-sm font-semibold text-muted-foreground mb-1">{g.label}</h3>
+                <ul className="divide-y divide-white/5">
+                  {g.items.map((o) => (
+                    <li key={o.id} className="py-2 text-sm">
+                      <div className="font-medium text-foreground">{o.office_title}</div>
+                      <div className="text-muted-foreground">{o.current_holder ?? "No one listed"}{o.term_end ? `. Term ends ${o.term_end}` : ""}</div>
+                      {o.source_url && (
+                        <a href={o.source_url} target="_blank" rel="noreferrer" className="text-xs text-primary inline-flex items-center gap-1">
+                          Official page <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
 
         {districts?.precision === "zip" && (
