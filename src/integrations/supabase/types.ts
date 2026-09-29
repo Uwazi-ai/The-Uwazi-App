@@ -2325,6 +2325,27 @@ export type Database = {
           },
         ]
       }
+      official_domains: {
+        Row: {
+          added_at: string
+          added_by: string | null
+          domain: string
+          label: string | null
+        }
+        Insert: {
+          added_at?: string
+          added_by?: string | null
+          domain: string
+          label?: string | null
+        }
+        Update: {
+          added_at?: string
+          added_by?: string | null
+          domain?: string
+          label?: string | null
+        }
+        Relationships: []
+      }
       org_invites: {
         Row: {
           accepted_at: string | null
