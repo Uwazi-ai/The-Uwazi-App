@@ -16,7 +16,7 @@ const MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
 
 type Match = {
   id: string; office_id: string; match_score: number; reasoning: string; policy_priorities: string[]; created_at: string;
-  office: { office_title: string; current_holder: string | null; source_url: string | null; last_verified_at: string | null; geoid: string | null } | null;
+  office: { office_title: string; current_holder: string | null; source_url: string | null; last_verified_at: string | null; geoid: string | null; jurisdiction_level: string | null } | null;
 };
 
 const askLink = (q: string) => `/app/ask?q=${encodeURIComponent(q)}`;
@@ -24,7 +24,7 @@ const askLink = (q: string) => `/app/ask?q=${encodeURIComponent(q)}`;
 async function loadMatches(sessionId: string): Promise<Match[]> {
   const { data, error } = await db
     .from("compass_office_matches")
-    .select("id, office_id, match_score, reasoning, policy_priorities, created_at, office:civic_offices(office_title, current_holder, source_url, last_verified_at, geoid)")
+    .select("id, office_id, match_score, reasoning, policy_priorities, created_at, office:civic_offices(office_title, current_holder, source_url, last_verified_at, geoid, jurisdiction_level)")
     .eq("session_id", sessionId)
     .order("match_score", { ascending: false });
   if (error) throw error;
@@ -131,12 +131,16 @@ export function CompassOfficesReport({ sessionId }: { sessionId?: string | null 
       {!matches.length ? (
         <p className="text-sm text-muted-foreground">We do not have local offices for your area yet. They will show here as your city adds them.</p>
       ) : (
+        <div className="space-y-5">
+        {groupOffices(matches.map((m, i) => ({ ...m, rank: i + 1, jurisdiction_level: m.office?.jurisdiction_level ?? null }))).map((g) => (
+        <section key={g.key} className="space-y-3">
+        <h4 className="text-sm font-semibold text-muted-foreground">{g.label}</h4>
         <ol className="space-y-3">
-          {matches.map((m, i) => (
+          {g.items.map((m) => (
             <li key={m.id} className="rounded-xl border border-border p-4 space-y-2">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-xs text-primary font-semibold">#{i + 1}</div>
+                  <div className="text-xs text-primary font-semibold">#{m.rank}</div>
                   <div className="font-semibold text-foreground">{m.office?.office_title}</div>
                   <div className="text-sm text-muted-foreground">{m.office?.current_holder ?? "No one listed"}</div>
                 </div>
@@ -176,6 +180,9 @@ export function CompassOfficesReport({ sessionId }: { sessionId?: string | null 
             </li>
           ))}
         </ol>
+        </section>
+        ))}
+        </div>
       )}
       {matches.length > 0 && matches.length < 3 && (
         <p className="text-sm text-muted-foreground">More offices will show here as your city adds them.</p>
