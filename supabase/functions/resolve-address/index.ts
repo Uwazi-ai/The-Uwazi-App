@@ -348,6 +348,7 @@ Deno.serve(async (req) => {
       us_congressional_district: usCongress,
       resolved,
       precision,
+      city_status: cityStatus,
       districts_resolved_at: new Date().toISOString(),
     });
   } catch (err) {
