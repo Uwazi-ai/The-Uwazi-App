@@ -17,6 +17,7 @@ import {
 
 interface EmailChangeEmailProps {
   siteName: string
+  oldEmail: string
   email: string
   newEmail: string
   confirmationUrl: string
@@ -26,6 +27,7 @@ const LOGO_URL = 'https://zigemhmhbzegwbgvvmpc.supabase.co/storage/v1/object/pub
 
 export const EmailChangeEmail = ({
   siteName,
+  oldEmail,
   email,
   newEmail,
   confirmationUrl,
@@ -39,8 +41,8 @@ export const EmailChangeEmail = ({
         <Heading style={h1}>Confirm your email change</Heading>
         <Text style={text}>
           You requested to change your email address for {siteName} from{' '}
-          <Link href={`mailto:${email}`} style={link}>
-            {email}
+          <Link href={`mailto:${oldEmail}`} style={link}>
+            {oldEmail}
           </Link>{' '}
           to{' '}
           <Link href={`mailto:${newEmail}`} style={link}>
