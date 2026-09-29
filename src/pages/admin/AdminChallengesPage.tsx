@@ -219,7 +219,7 @@ export default function AdminChallengesPage() {
                   {COUNTS.find((x) => x.v === c.counts_what)?.l} · {new Date(c.starts_at).toLocaleDateString()} to {new Date(c.ends_at).toLocaleDateString()}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {c.ended_at ? `Ended. ${c.winning_zip ?? "No"} ZIP won.` : c.active ? "Live now" : "Turned off"}
+                  {c.ended_at ? `Ended. ${c.winning_zip ? `ZIP ${c.winning_zip} won.` : "No winning ZIP was picked."}` : c.active ? "Live now" : "Turned off"}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
