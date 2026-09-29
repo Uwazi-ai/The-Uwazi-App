@@ -28,6 +28,7 @@ export function IdentityCard({ label, scores, stage, fallbackTitle }: Props) {
   const [since, setSince] = useState<string | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const badges = useMyBadges();
   const path = user ? `${user.id}/photo` : "";
 
   useEffect(() => {
