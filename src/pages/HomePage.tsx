@@ -21,6 +21,8 @@ import { supabase } from "@/integrations/supabase/client";
 import FeatureTour from "@/components/home/FeatureTour";
 import { YourPath } from "@/components/journey/YourPath";
 import { useMyPath } from "@/hooks/useJourney";
+import { ChallengeCard } from "@/components/games/ChallengeCard";
+import { useMyChallenge } from "@/hooks/useChallenge";
 import { useEpisodeVideoUrl } from "@/hooks/useEpisodeVideoUrl";
 
 function EpisodeVideoThumb({
@@ -119,6 +121,7 @@ export default function HomePage() {
   const noTransition = <T,>(val: T): T | { duration: 0 } => (reduceMotion ? { duration: 0 } : val);
 
   const { path: homePath } = useMyPath();
+  const { challenge } = useMyChallenge();
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-10 py-6 md:py-8 pb-24 md:pb-8 space-y-8">
       <FeatureTour open={tourOpen} onClose={() => setTourOpen(false)} />
@@ -254,6 +257,8 @@ export default function HomePage() {
       )}
 
       <YourPath path={homePath} compact />
+
+      {challenge && <ChallengeCard c={challenge} />}
 
       {/* SECTION 3 — Episode Strip */}
       {episodes.length > 0 && (

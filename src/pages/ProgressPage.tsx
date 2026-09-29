@@ -6,6 +6,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useMyJourney, EVENT_LABELS, type MyJourney } from "@/hooks/useJourney";
+import { useMyChallenge, useMyBadges, countPhrase } from "@/hooks/useChallenge";
+import { ChallengeStanding } from "@/components/games/ChallengeCard";
+import { BadgeRow } from "@/components/games/BadgeRow";
+import { Trophy, Award } from "lucide-react";
 
 const db = supabase as any;
 
@@ -46,6 +50,8 @@ function ConfidenceTrend({ points }: { points: { score: number; at: string }[] }
 
 export default function ProgressPage() {
   const { journey, loading, reload } = useMyJourney();
+  const { challenge } = useMyChallenge();
+  const badges = useMyBadges();
   const navigate = useNavigate();
 
   if (loading) {
@@ -110,6 +116,21 @@ export default function ProgressPage() {
           {journey.next_stage ? `${span - journey.total_points} more points to reach ${journey.next_stage}.` : "You reached the top stage. Keep going."}
         </p>
       </div>
+
+      {challenge && (
+        <div className="rounded-2xl p-5 bg-card border border-border space-y-2" data-testid="progress-challenge">
+          <div className="flex items-center gap-2"><Trophy className="h-4 w-4 text-primary" /><h2 className="font-semibold text-foreground">{challenge.title}</h2></div>
+          <p className="text-sm text-foreground">You have {countPhrase(challenge.my_count, challenge.counts_what)} in this challenge.</p>
+          <ChallengeStanding c={challenge} />
+        </div>
+      )}
+
+      {badges.length > 0 && (
+        <div className="rounded-2xl p-5 bg-card border border-border space-y-3">
+          <div className="flex items-center gap-2"><Award className="h-4 w-4 text-primary" /><h2 className="font-semibold text-foreground">Your badges</h2></div>
+          <BadgeRow badges={badges} />
+        </div>
+      )}
 
       {journey.personalization && (
         <div className="rounded-2xl p-5 bg-card border border-border space-y-2">

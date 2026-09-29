@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CompassRose } from "./CompassRose";
 import { dimMeta, stageColor, topSlugs } from "@/lib/compassDims";
+import { useMyBadges } from "@/hooks/useChallenge";
+import { BadgeRow } from "@/components/games/BadgeRow";
 
 const db = supabase as any;
 const BUCKET = "identity-photos";
@@ -26,6 +28,7 @@ export function IdentityCard({ label, scores, stage, fallbackTitle }: Props) {
   const [since, setSince] = useState<string | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const badges = useMyBadges();
   const path = user ? `${user.id}/photo` : "";
 
   useEffect(() => {
@@ -119,6 +122,9 @@ export function IdentityCard({ label, scores, stage, fallbackTitle }: Props) {
               </span>
             ))}
           </div>
+          {badges.length > 0 && (
+            <div className="flex justify-center"><BadgeRow badges={badges.slice(0, 4)} compact /></div>
+          )}
           {since && <p className="text-xs text-center text-muted-foreground">Member since {since}</p>}
         </div>
       </div>
