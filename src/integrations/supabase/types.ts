@@ -1092,6 +1092,101 @@ export type Database = {
         }
         Relationships: []
       }
+      civic_budget_calendar: {
+        Row: {
+          created_at: string
+          fiscal_year: string
+          geoid: string
+          id: string
+          label: string | null
+          last_verified_at: string | null
+          milestone: string
+          milestone_date: string
+          source_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fiscal_year: string
+          geoid: string
+          id?: string
+          label?: string | null
+          last_verified_at?: string | null
+          milestone: string
+          milestone_date: string
+          source_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fiscal_year?: string
+          geoid?: string
+          id?: string
+          label?: string | null
+          last_verified_at?: string | null
+          milestone?: string
+          milestone_date?: string
+          source_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      civic_budgets: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          data_source: string | null
+          department_or_fund: string
+          fiscal_year: string
+          geoid: string
+          id: string
+          last_verified_at: string | null
+          office_id: string | null
+          revenue_or_expense: string
+          source_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string
+          data_source?: string | null
+          department_or_fund: string
+          fiscal_year: string
+          geoid: string
+          id?: string
+          last_verified_at?: string | null
+          office_id?: string | null
+          revenue_or_expense: string
+          source_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          data_source?: string | null
+          department_or_fund?: string
+          fiscal_year?: string
+          geoid?: string
+          id?: string
+          last_verified_at?: string | null
+          office_id?: string | null
+          revenue_or_expense?: string
+          source_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "civic_budgets_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "civic_offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       civic_confidence: {
         Row: {
           confidence_score: number
@@ -1115,6 +1210,180 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      civic_data_pending_changes: {
+        Row: {
+          candidate_id: string | null
+          contest_ref: string | null
+          data_type: string
+          extracted_at: string
+          field_changed: string
+          id: string
+          new_value: string | null
+          note: string | null
+          office_id: string | null
+          old_value: string | null
+          origin: string
+          proposed: Json | null
+          reported_by: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source_id: string | null
+          status: string
+          target_id: string | null
+          target_table: string | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          contest_ref?: string | null
+          data_type?: string
+          extracted_at?: string
+          field_changed: string
+          id?: string
+          new_value?: string | null
+          note?: string | null
+          office_id?: string | null
+          old_value?: string | null
+          origin?: string
+          proposed?: Json | null
+          reported_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_id?: string | null
+          status?: string
+          target_id?: string | null
+          target_table?: string | null
+        }
+        Update: {
+          candidate_id?: string | null
+          contest_ref?: string | null
+          data_type?: string
+          extracted_at?: string
+          field_changed?: string
+          id?: string
+          new_value?: string | null
+          note?: string | null
+          office_id?: string | null
+          old_value?: string | null
+          origin?: string
+          proposed?: Json | null
+          reported_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_id?: string | null
+          status?: string
+          target_id?: string | null
+          target_table?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "civic_office_pending_changes_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "civic_offices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "civic_office_pending_changes_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "civic_data_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "civic_office_pending_changes_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "civic_office_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      civic_data_sources: {
+        Row: {
+          active: boolean
+          ballot_election_date: string | null
+          ballot_state: string | null
+          check_frequency_hours: number
+          created_at: string
+          data_type: string
+          geoid: string | null
+          id: string
+          is_official: boolean
+          jurisdiction_level: string | null
+          kind: string
+          label: string
+          last_changed_at: string | null
+          last_checked_at: string | null
+          last_error: string | null
+          last_page_text: string | null
+          last_result: Json | null
+          last_success_at: string | null
+          race_id: string | null
+          read_method: string | null
+          source_health: string | null
+          source_url: string
+          target_table: string | null
+        }
+        Insert: {
+          active?: boolean
+          ballot_election_date?: string | null
+          ballot_state?: string | null
+          check_frequency_hours?: number
+          created_at?: string
+          data_type?: string
+          geoid?: string | null
+          id?: string
+          is_official?: boolean
+          jurisdiction_level?: string | null
+          kind?: string
+          label: string
+          last_changed_at?: string | null
+          last_checked_at?: string | null
+          last_error?: string | null
+          last_page_text?: string | null
+          last_result?: Json | null
+          last_success_at?: string | null
+          race_id?: string | null
+          read_method?: string | null
+          source_health?: string | null
+          source_url: string
+          target_table?: string | null
+        }
+        Update: {
+          active?: boolean
+          ballot_election_date?: string | null
+          ballot_state?: string | null
+          check_frequency_hours?: number
+          created_at?: string
+          data_type?: string
+          geoid?: string | null
+          id?: string
+          is_official?: boolean
+          jurisdiction_level?: string | null
+          kind?: string
+          label?: string
+          last_changed_at?: string | null
+          last_checked_at?: string | null
+          last_error?: string | null
+          last_page_text?: string | null
+          last_result?: Json | null
+          last_success_at?: string | null
+          race_id?: string | null
+          read_method?: string | null
+          source_health?: string | null
+          source_url?: string
+          target_table?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "civic_office_sources_race_id_fkey"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "election_races"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       civic_impact_summary: {
         Row: {
@@ -1183,164 +1452,6 @@ export type Database = {
             columns: ["lab_track"]
             isOneToOne: false
             referencedRelation: "lesson_tracks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      civic_office_pending_changes: {
-        Row: {
-          candidate_id: string | null
-          contest_ref: string | null
-          extracted_at: string
-          field_changed: string
-          id: string
-          new_value: string | null
-          note: string | null
-          office_id: string | null
-          old_value: string | null
-          origin: string
-          proposed: Json | null
-          reported_by: string | null
-          reviewed_at: string | null
-          reviewed_by: string | null
-          source_id: string | null
-          status: string
-          target_table: string | null
-        }
-        Insert: {
-          candidate_id?: string | null
-          contest_ref?: string | null
-          extracted_at?: string
-          field_changed: string
-          id?: string
-          new_value?: string | null
-          note?: string | null
-          office_id?: string | null
-          old_value?: string | null
-          origin?: string
-          proposed?: Json | null
-          reported_by?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          source_id?: string | null
-          status?: string
-          target_table?: string | null
-        }
-        Update: {
-          candidate_id?: string | null
-          contest_ref?: string | null
-          extracted_at?: string
-          field_changed?: string
-          id?: string
-          new_value?: string | null
-          note?: string | null
-          office_id?: string | null
-          old_value?: string | null
-          origin?: string
-          proposed?: Json | null
-          reported_by?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          source_id?: string | null
-          status?: string
-          target_table?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "civic_office_pending_changes_office_id_fkey"
-            columns: ["office_id"]
-            isOneToOne: false
-            referencedRelation: "civic_offices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "civic_office_pending_changes_source_id_fkey"
-            columns: ["source_id"]
-            isOneToOne: false
-            referencedRelation: "civic_office_sources"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      civic_office_sources: {
-        Row: {
-          active: boolean
-          ballot_election_date: string | null
-          ballot_state: string | null
-          check_frequency_hours: number
-          created_at: string
-          geoid: string | null
-          id: string
-          is_official: boolean
-          jurisdiction_level: string | null
-          kind: string
-          label: string
-          last_changed_at: string | null
-          last_checked_at: string | null
-          last_error: string | null
-          last_page_text: string | null
-          last_result: Json | null
-          last_success_at: string | null
-          race_id: string | null
-          read_method: string | null
-          source_health: string | null
-          source_url: string
-          target_table: string | null
-        }
-        Insert: {
-          active?: boolean
-          ballot_election_date?: string | null
-          ballot_state?: string | null
-          check_frequency_hours?: number
-          created_at?: string
-          geoid?: string | null
-          id?: string
-          is_official?: boolean
-          jurisdiction_level?: string | null
-          kind?: string
-          label: string
-          last_changed_at?: string | null
-          last_checked_at?: string | null
-          last_error?: string | null
-          last_page_text?: string | null
-          last_result?: Json | null
-          last_success_at?: string | null
-          race_id?: string | null
-          read_method?: string | null
-          source_health?: string | null
-          source_url: string
-          target_table?: string | null
-        }
-        Update: {
-          active?: boolean
-          ballot_election_date?: string | null
-          ballot_state?: string | null
-          check_frequency_hours?: number
-          created_at?: string
-          geoid?: string | null
-          id?: string
-          is_official?: boolean
-          jurisdiction_level?: string | null
-          kind?: string
-          label?: string
-          last_changed_at?: string | null
-          last_checked_at?: string | null
-          last_error?: string | null
-          last_page_text?: string | null
-          last_result?: Json | null
-          last_success_at?: string | null
-          race_id?: string | null
-          read_method?: string | null
-          source_health?: string | null
-          source_url?: string
-          target_table?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "civic_office_sources_race_id_fkey"
-            columns: ["race_id"]
-            isOneToOne: false
-            referencedRelation: "election_races"
             referencedColumns: ["id"]
           },
         ]
@@ -4237,6 +4348,222 @@ export type Database = {
       }
     }
     Views: {
+      civic_budget_percent_of_total: {
+        Row: {
+          amount: number | null
+          category: string | null
+          data_source: string | null
+          department_or_fund: string | null
+          fiscal_year: string | null
+          geoid: string | null
+          id: string | null
+          last_verified_at: string | null
+          office_id: string | null
+          percent_of_total: number | null
+          revenue_or_expense: string | null
+          source_url: string | null
+          total_amount: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "civic_budgets_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "civic_offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      civic_budget_year_over_year: {
+        Row: {
+          amount: number | null
+          category: string | null
+          change_amount: number | null
+          change_percent: number | null
+          department_or_fund: string | null
+          fiscal_year: string | null
+          geoid: string | null
+          id: string | null
+          prior_amount: number | null
+          prior_fiscal_year: string | null
+          revenue_or_expense: string | null
+        }
+        Relationships: []
+      }
+      civic_office_pending_changes: {
+        Row: {
+          candidate_id: string | null
+          contest_ref: string | null
+          data_type: string | null
+          extracted_at: string | null
+          field_changed: string | null
+          id: string | null
+          new_value: string | null
+          note: string | null
+          office_id: string | null
+          old_value: string | null
+          origin: string | null
+          proposed: Json | null
+          reported_by: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source_id: string | null
+          status: string | null
+          target_id: string | null
+          target_table: string | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          contest_ref?: string | null
+          data_type?: string | null
+          extracted_at?: string | null
+          field_changed?: string | null
+          id?: string | null
+          new_value?: string | null
+          note?: string | null
+          office_id?: string | null
+          old_value?: string | null
+          origin?: string | null
+          proposed?: Json | null
+          reported_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_id?: string | null
+          status?: string | null
+          target_id?: string | null
+          target_table?: string | null
+        }
+        Update: {
+          candidate_id?: string | null
+          contest_ref?: string | null
+          data_type?: string | null
+          extracted_at?: string | null
+          field_changed?: string | null
+          id?: string | null
+          new_value?: string | null
+          note?: string | null
+          office_id?: string | null
+          old_value?: string | null
+          origin?: string | null
+          proposed?: Json | null
+          reported_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_id?: string | null
+          status?: string | null
+          target_id?: string | null
+          target_table?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "civic_office_pending_changes_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "civic_offices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "civic_office_pending_changes_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "civic_data_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "civic_office_pending_changes_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "civic_office_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      civic_office_sources: {
+        Row: {
+          active: boolean | null
+          ballot_election_date: string | null
+          ballot_state: string | null
+          check_frequency_hours: number | null
+          created_at: string | null
+          data_type: string | null
+          geoid: string | null
+          id: string | null
+          is_official: boolean | null
+          jurisdiction_level: string | null
+          kind: string | null
+          label: string | null
+          last_changed_at: string | null
+          last_checked_at: string | null
+          last_error: string | null
+          last_page_text: string | null
+          last_result: Json | null
+          last_success_at: string | null
+          race_id: string | null
+          read_method: string | null
+          source_health: string | null
+          source_url: string | null
+          target_table: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          ballot_election_date?: string | null
+          ballot_state?: string | null
+          check_frequency_hours?: number | null
+          created_at?: string | null
+          data_type?: string | null
+          geoid?: string | null
+          id?: string | null
+          is_official?: boolean | null
+          jurisdiction_level?: string | null
+          kind?: string | null
+          label?: string | null
+          last_changed_at?: string | null
+          last_checked_at?: string | null
+          last_error?: string | null
+          last_page_text?: string | null
+          last_result?: Json | null
+          last_success_at?: string | null
+          race_id?: string | null
+          read_method?: string | null
+          source_health?: string | null
+          source_url?: string | null
+          target_table?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          ballot_election_date?: string | null
+          ballot_state?: string | null
+          check_frequency_hours?: number | null
+          created_at?: string | null
+          data_type?: string | null
+          geoid?: string | null
+          id?: string | null
+          is_official?: boolean | null
+          jurisdiction_level?: string | null
+          kind?: string | null
+          label?: string | null
+          last_changed_at?: string | null
+          last_checked_at?: string | null
+          last_error?: string | null
+          last_page_text?: string | null
+          last_result?: Json | null
+          last_success_at?: string | null
+          race_id?: string | null
+          read_method?: string | null
+          source_health?: string | null
+          source_url?: string | null
+          target_table?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "civic_office_sources_race_id_fkey"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "election_races"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_level: {
         Row: {
           stage_name: string | null
@@ -4592,6 +4919,10 @@ export type Database = {
         Returns: number
       }
       refresh_city_active: { Args: { _place: string }; Returns: undefined }
+      report_budget_issue: {
+        Args: { _budget_id: string; _correct_value: string; _note: string }
+        Returns: string
+      }
       report_office_issue: {
         Args: {
           _correct_value: string
