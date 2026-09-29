@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Trophy, ChevronRight, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { COUNT_LABELS, COUNT_STEP, type MyChallenge } from "@/hooks/useChallenge";
+import { countPhrase, COUNT_STEP, type MyChallenge } from "@/hooks/useChallenge";
 
 function daysLeft(iso: string) {
   const d = Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000);
@@ -51,7 +51,7 @@ export function ChallengeCard({ c }: { c: MyChallenge }) {
         {c.description && <p className="text-sm text-muted-foreground mt-1">{c.description}</p>}
       </div>
       <p className="text-sm text-foreground">
-        You have {c.my_count} {COUNT_LABELS[c.counts_what]} in this challenge.
+        You have {countPhrase(c.my_count, c.counts_what)} in this challenge.
       </p>
       <ChallengeStanding c={c} />
       {live && (

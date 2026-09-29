@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useMyJourney, EVENT_LABELS, type MyJourney } from "@/hooks/useJourney";
-import { useMyChallenge, useMyBadges, COUNT_LABELS } from "@/hooks/useChallenge";
+import { useMyChallenge, useMyBadges, countPhrase } from "@/hooks/useChallenge";
 import { ChallengeStanding } from "@/components/games/ChallengeCard";
 import { BadgeRow } from "@/components/games/BadgeRow";
 import { Trophy, Award } from "lucide-react";
@@ -120,7 +120,7 @@ export default function ProgressPage() {
       {challenge && (
         <div className="rounded-2xl p-5 bg-card border border-border space-y-2" data-testid="progress-challenge">
           <div className="flex items-center gap-2"><Trophy className="h-4 w-4 text-primary" /><h2 className="font-semibold text-foreground">{challenge.title}</h2></div>
-          <p className="text-sm text-foreground">You have {challenge.my_count} {COUNT_LABELS[challenge.counts_what]} in this challenge.</p>
+          <p className="text-sm text-foreground">You have {countPhrase(challenge.my_count, challenge.counts_what)} in this challenge.</p>
           <ChallengeStanding c={challenge} />
         </div>
       )}

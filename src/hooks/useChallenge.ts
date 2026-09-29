@@ -40,6 +40,17 @@ export const COUNT_LABELS: Record<string, string> = {
   actions_logged: "civic actions logged",
 };
 
+const COUNT_ONE: Record<string, string> = {
+  lessons_completed: "lesson finished",
+  compass_taken: "Compass quiz taken",
+  surveys_answered: "survey answered",
+  actions_logged: "civic action logged",
+};
+
+export function countPhrase(n: number, what: string) {
+  return `${n} ${n === 1 ? COUNT_ONE[what] ?? COUNT_LABELS[what] : COUNT_LABELS[what]}`;
+}
+
 export const COUNT_STEP: Record<string, { text: string; to: string }> = {
   lessons_completed: { text: "Finish a lesson", to: "/app/learn" },
   compass_taken: { text: "Take the Civic Compass quiz", to: "/app/compass" },
