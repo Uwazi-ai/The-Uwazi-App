@@ -19,6 +19,9 @@ import { MyBallotCard } from "@/components/ballot/MyBallotCard";
 import { CandidateRacesSection } from "@/components/voting/CandidateRacesSection";
 import { useMyBallotSelections, useSaveSelection } from "@/hooks/useMyBallot";
 import { useNextElection, formatElectionDate } from "@/hooks/useNextElection";
+import { useMyDistricts } from "@/hooks/useMyOffices";
+import { contestMatchesDistricts } from "@/lib/districts";
+import MyOfficialsCard from "@/components/voting/MyOfficialsCard";
 
 /* ══════════════════════════════════════════════════════
    CONSTANTS
