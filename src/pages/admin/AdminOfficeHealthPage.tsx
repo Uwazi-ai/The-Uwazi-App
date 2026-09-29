@@ -20,7 +20,7 @@ type Source = {
   id: string; geoid: string | null; label: string; source_url: string; jurisdiction_level: string | null;
   check_frequency_hours: number; last_checked_at: string | null; last_changed_at: string | null;
   last_success_at: string | null; last_error: string | null; last_result: any; active: boolean; created_at: string;
-  source_health: Health; last_page_text: string | null;
+  source_health: Health; last_page_text: string | null; read_method: string | null;
 };
 
 const FIELD_LABEL: Record<string, string> = {
@@ -255,7 +255,9 @@ export default function AdminOfficeHealthPage() {
             </a>
             <div className="text-xs text-muted-foreground">
               Checks every {s.check_frequency_hours} hours. Last check: {when(s.last_checked_at)}. Last change: {when(s.last_changed_at)}.
+              {s.read_method && <> Read by: {s.read_method === "firecrawl" ? "web reading service" : "direct read"}.</>}
             </div>
+
             {s.last_error && <p className="text-xs text-destructive">{s.last_error}</p>}
             {s.last_result && (
               <div className="rounded-lg bg-muted/40 p-3 text-sm space-y-1">
