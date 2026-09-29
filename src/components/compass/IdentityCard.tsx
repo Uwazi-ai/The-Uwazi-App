@@ -122,6 +122,9 @@ export function IdentityCard({ label, scores, stage, fallbackTitle }: Props) {
               </span>
             ))}
           </div>
+          {badges.length > 0 && (
+            <div className="flex justify-center"><BadgeRow badges={badges.slice(0, 4)} compact /></div>
+          )}
           {since && <p className="text-xs text-center text-muted-foreground">Member since {since}</p>}
         </div>
       </div>
