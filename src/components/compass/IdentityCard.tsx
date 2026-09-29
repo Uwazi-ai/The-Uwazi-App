@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CompassRose } from "./CompassRose";
 import { dimMeta, stageColor, topSlugs } from "@/lib/compassDims";
+import { useMyBadges } from "@/hooks/useChallenge";
+import { BadgeRow } from "@/components/games/BadgeRow";
 
 const db = supabase as any;
 const BUCKET = "identity-photos";
