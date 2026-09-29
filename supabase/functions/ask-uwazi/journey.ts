@@ -113,6 +113,11 @@ export async function buildJourneyTurn(
       updated_at: new Date().toISOString(),
     });
 
+    const { data: challenge } = await userClient.rpc("get_my_challenge");
+    const challengeText = challenge && challenge.active && !challenge.ended_at
+      ? `A live Civic Games challenge called "${challenge.title}" is running until ${new Date(challenge.ends_at).toLocaleDateString("en-US")}. They have ${challenge.my_count} so far. If it fits the question, you may close by naming the challenge as their next step. Never name another person or another person's count.`
+      : "No live challenge right now.";
+
     const step = journey?.next_step;
     const stepText = !step ? "none" : step.type === "lesson" ? `a 3 minute lesson called "${step.title}"`
       : step.type === "compass" ? "take the Civic Compass quiz"
