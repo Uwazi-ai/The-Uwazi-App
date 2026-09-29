@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { AdminAvatar } from "@/components/admin/AdminAvatar";
 import { JourneyResearchPanels } from "@/components/admin/JourneyResearchPanels";
+import { CompassFactsAdmin } from "@/components/admin/CompassFactsAdmin";
 
 function formatTimeAgo(d: string) {
   const diff = Date.now() - new Date(d).getTime();
@@ -61,6 +62,7 @@ export default function AdminOverviewPage() {
 
       {/* Top Stats */}
       <JourneyResearchPanels />
+      <CompassFactsAdmin />
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {topStats.map((s) => (

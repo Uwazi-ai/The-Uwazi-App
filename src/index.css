@@ -59,6 +59,22 @@ html, body {
     --primary: 87 58% 56%;
     --primary-foreground: 0 0% 4%;
 
+    /* Civic Compass dimension colors */
+    --dim-accountability: 87 58% 56%;
+    --dim-participation: 199 85% 58%;
+    --dim-safety: 4 80% 62%;
+    --dim-housing: 32 92% 58%;
+    --dim-transit: 262 70% 68%;
+    --dim-education: 48 95% 58%;
+    --dim-health: 330 75% 64%;
+    --dim-economy: 160 60% 48%;
+
+    /* Identity card frame by stage */
+    --stage-getting-started: 0 0% 55%;
+    --stage-informed: 199 85% 58%;
+    --stage-engaged: 87 58% 56%;
+    --stage-leader: 45 90% 55%;
+
     /* Background */
     --background: var(--bg-base);
     --foreground: 240 7% 97%;
