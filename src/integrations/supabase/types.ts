@@ -1357,6 +1357,7 @@ export type Database = {
           jurisdiction_level: string | null
           last_verified_at: string | null
           office_title: string
+          seat_key: string
           source_url: string | null
           term_end: string | null
           updated_at: string
@@ -1372,6 +1373,7 @@ export type Database = {
           jurisdiction_level?: string | null
           last_verified_at?: string | null
           office_title: string
+          seat_key?: string
           source_url?: string | null
           term_end?: string | null
           updated_at?: string
@@ -1387,6 +1389,7 @@ export type Database = {
           jurisdiction_level?: string | null
           last_verified_at?: string | null
           office_title?: string
+          seat_key?: string
           source_url?: string | null
           term_end?: string | null
           updated_at?: string
@@ -4557,6 +4560,7 @@ export type Database = {
         Args: { _exclude?: string[]; _uid: string }
         Returns: string
       }
+      norm_office_title: { Args: { t: string }; Returns: string }
       office_recent_decisions: {
         Args: never
         Returns: {
