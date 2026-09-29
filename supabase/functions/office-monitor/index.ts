@@ -221,7 +221,7 @@ async function diffBudget(db: any, src: any, text: string) {
   const { data: existing } = await db.from('civic_budgets').select('id, fiscal_year, department_or_fund, category, revenue_or_expense, amount').eq('geoid', src.geoid);
   const { data: cal } = await db.from('civic_budget_calendar').select('id, fiscal_year, milestone, milestone_date').eq('geoid', src.geoid);
   const { data: pending } = await db.from('civic_data_pending_changes')
-    .select('field_changed, proposed, target_id, new_value').eq('source_id', src.id).eq('status', 'pending');
+    .select('field_changed, proposed, target_id, target_table, new_value').eq('source_id', src.id).eq('status', 'pending');
   const seen = new Set((pending ?? []).map((p: any) => p.target_table === 'civic_budget_calendar' || p.field_changed === 'new_milestone'
     ? `m|${p.proposed?.fiscal_year}|${p.proposed?.milestone}|${p.proposed?.milestone_date}`
     : `b|${bkey(p.proposed?.fiscal_year, p.proposed?.department_or_fund, p.proposed?.category, p.proposed?.revenue_or_expense)}|${Number(p.proposed?.amount ?? p.new_value)}`));
@@ -308,7 +308,7 @@ async function extract(text: string, label: string): Promise<{ offices: Office[]
 
 const BLOCK_RE = /access denied|forbidden|attention required|verify you are human|captcha|request blocked/i;
 
-async function readWithFirecrawl(url: string): Promise<string> {
+async function readWithFirecrawl(url: string, waitFor = 4000): Promise<string> {
   if (!LOVABLE_API_KEY || !FIRECRAWL_API_KEY) throw new Error('The web reading service is not set up.');
   const res = await fetch('https://connector-gateway.lovable.dev/firecrawl/v2/scrape', {
     method: 'POST',
@@ -317,7 +317,7 @@ async function readWithFirecrawl(url: string): Promise<string> {
       'X-Connection-Api-Key': FIRECRAWL_API_KEY,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ url, formats: ['markdown'], onlyMainContent: true, waitFor: 4000 }),
+    body: JSON.stringify({ url, formats: ['markdown'], onlyMainContent: true, waitFor }),
     signal: AbortSignal.timeout(90000),
   });
   const body = await res.text();
@@ -339,7 +339,7 @@ async function checkSource(db: any, src: any) {
   let readMethod = 'fetch';
   try {
     let text = '';
-    let needsFirecrawl = src.source_health === 'blocked' || /\.pdf(\?|$)/i.test(src.source_url);
+    let needsFirecrawl = src.data_type === 'budget' || src.source_health === 'blocked' || /\.pdf(\?|$)/i.test(src.source_url);
     if (!needsFirecrawl) {
       try {
         const page = await fetch(src.source_url, {
@@ -359,7 +359,7 @@ async function checkSource(db: any, src: any) {
     if (needsFirecrawl) {
       readMethod = 'firecrawl';
       try {
-        text = await readWithFirecrawl(src.source_url);
+        text = await readWithFirecrawl(src.source_url, src.data_type === 'budget' ? 8000 : 4000);
       } catch (ce) {
         const e: any = new Error(`This site blocks automated readers. ${(ce as Error).message}`);
         e.health = 'blocked'; e.readMethod = 'firecrawl'; throw e;
