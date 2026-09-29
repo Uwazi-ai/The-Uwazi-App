@@ -119,6 +119,9 @@ export function DesktopSidebar() {
                     <item.icon size={18} />
                   </div>
                   {item.label}
+                  {item.to === "/app/admin/office-health" && !!citiesWaiting && (
+                    <span className="ml-auto rounded-full bg-destructive px-1.5 text-[10px] font-semibold text-destructive-foreground" title="New city waiting for review">{citiesWaiting}</span>
+                  )}
                 </NavLink>
               ))}
           </>
