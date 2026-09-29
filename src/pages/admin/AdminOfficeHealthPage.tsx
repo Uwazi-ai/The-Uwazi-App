@@ -52,7 +52,9 @@ const isStale = (s: Source) => s.active && (!s.last_success_at || Date.now() - n
 const isBadHealth = (s: Source) => s.source_health === "blocked" || s.source_health === "unclear" || s.source_health === "broken";
 const needsAttention = (s: Source) => isBadHealth(s) || isOverdue(s) || isStale(s);
 
-const emptyManual = { office_title: "", current_holder: "", term_end: "", jurisdiction_level: "city", geoid: "", data_source: "", source_url: "" };
+const emptyManual = { office_title: "", current_holder: "", term_end: "", jurisdiction_level: "city", geoid: "", data_source: "", source_url: "", district_type: "", district_code: "" };
+const emptyBoundary = { jurisdiction_geoid: "", district_type: "council", geojson_url: "", source_url: "" };
+const DISTRICT_TYPE_LABEL: Record<string, string> = { council: "City council", commission: "County commission", school_board: "School board", ward: "Ward" };
 
 export default function AdminOfficeHealthPage() {
   const qc = useQueryClient();
