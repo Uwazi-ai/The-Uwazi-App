@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.trg_city_auto_reviewed() FROM PUBLIC, anon, authenticated;
