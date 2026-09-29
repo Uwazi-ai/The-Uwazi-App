@@ -781,6 +781,9 @@ Deno.serve(async (req) => {
         "election board can help — you can find them at vote.gov.";
     }
 
+    if (journeyTurn.greeting && !finalText.trimStart().startsWith("Welcome back")) {
+      finalText = `${journeyTurn.greeting}\n\n${finalText}`;
+    }
     if (journeyTurn.calibrationQuestion) {
       const q = `\n\n**Quick question:** ${journeyTurn.calibrationQuestion} Just reply in your own words.`;
       const fu = finalText.match(/<followups>[\s\S]*?<\/followups>\s*$/i);

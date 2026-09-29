@@ -134,6 +134,7 @@ export async function buildJourneyTurn(
         : "Do not greet them again.",
       "If it fits the question, end with one short line that suggests the next step. Skip it if it does not fit.",
       "Do not suggest a lesson yourself. The app adds lesson offers.",
+      "Write in plain words and short sentences. Do not use em dashes, semicolons, or parentheses.",
       "</turn_context>",
     ].join("\n");
 
