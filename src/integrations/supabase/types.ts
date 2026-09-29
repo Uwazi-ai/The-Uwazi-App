@@ -1651,6 +1651,51 @@ export type Database = {
           },
         ]
       }
+      compass_office_matches: {
+        Row: {
+          created_at: string
+          id: string
+          match_score: number
+          office_id: string
+          policy_priorities: Json
+          reasoning: string
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_score: number
+          office_id: string
+          policy_priorities?: Json
+          reasoning: string
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_score?: number
+          office_id?: string
+          policy_priorities?: Json
+          reasoning?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compass_office_matches_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "civic_offices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compass_office_matches_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "compass_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compass_questions: {
         Row: {
           active: boolean
