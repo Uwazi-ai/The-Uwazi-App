@@ -50,6 +50,8 @@ function ConfidenceTrend({ points }: { points: { score: number; at: string }[] }
 
 export default function ProgressPage() {
   const { journey, loading, reload } = useMyJourney();
+  const { challenge } = useMyChallenge();
+  const badges = useMyBadges();
   const navigate = useNavigate();
 
   if (loading) {
