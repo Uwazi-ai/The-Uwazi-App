@@ -134,6 +134,7 @@ export async function buildJourneyTurn(
       `Stage: ${journey?.stage ?? "Getting Started"} with ${journey?.total_points ?? 0} points.`,
       `Next step: ${stepText}.`,
       `Issues they scored low on: ${lowNames}.`,
+      challengeText,
       greeting
         ? `This is the first message of a new chat. Start your reply with exactly: "${greeting}" Then, if it fits, add one short sentence on what changed on ${labels.lead_name} in their city this week, only if you can verify it. Then answer the question.`
         : "Do not greet them again.",
