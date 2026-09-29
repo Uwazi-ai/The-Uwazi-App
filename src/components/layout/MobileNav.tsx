@@ -52,12 +52,6 @@ export function MobileNav() {
             key={item.to}
             to={item.to}
             end={item.to === "/app"}
-            onClick={(e) => {
-              if (item.premium && !isPremium) {
-                e.preventDefault();
-                openMyCityUnlockModal();
-              }
-            }}
             className={({ isActive }) =>
               `bottom-nav-item flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-medium tracking-[0.02em] transition-all duration-150 ${
                 isActive ? "active text-primary" : "text-muted-foreground"
@@ -68,13 +62,6 @@ export function MobileNav() {
               <>
                 <div className={`relative p-1 rounded-lg transition-colors ${isActive ? "bg-primary/[0.12]" : ""}`}>
                   <item.icon size={22} />
-                  {item.premium && !isPremium && (
-                    <span
-                      className="absolute top-0 right-0"
-                      style={{ width: 8, height: 8, borderRadius: "50%", background: "#9BD34B" }}
-                      aria-label="Premium feature"
-                    />
-                  )}
                 </div>
                 <span>{item.label}</span>
               </>
