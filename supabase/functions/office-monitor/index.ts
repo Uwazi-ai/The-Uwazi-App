@@ -78,23 +78,67 @@ async function extract(text: string, label: string): Promise<{ offices: Office[]
   return { offices, unclear: !!parsed.unclear };
 }
 
+const BLOCK_RE = /access denied|forbidden|attention required|verify you are human|captcha|request blocked/i;
+
+async function readWithFirecrawl(url: string): Promise<string> {
+  if (!LOVABLE_API_KEY || !FIRECRAWL_API_KEY) throw new Error('The web reading service is not set up.');
+  const res = await fetch('https://connector-gateway.lovable.dev/firecrawl/v2/scrape', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      'X-Connection-Api-Key': FIRECRAWL_API_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ url, formats: ['markdown'], onlyMainContent: true, waitFor: 4000 }),
+    signal: AbortSignal.timeout(90000),
+  });
+  const body = await res.text();
+  if (!res.ok) throw new Error(`The web reading service failed [${res.status}]: ${body.slice(0, 300)}`);
+  let data: any = {};
+  try { data = JSON.parse(body); } catch { /* empty */ }
+  const md = data.markdown ?? data.data?.markdown ?? '';
+  if (!md || md.trim().length < 200) throw new Error('The web reading service returned an empty page.');
+  return String(md).slice(0, 60000);
+}
+
 async function checkSource(db: any, src: any) {
   const now = new Date().toISOString();
+  let readMethod = 'fetch';
   try {
-    const page = await fetch(src.source_url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (UWAZI office monitor; +https://uwaziapp.uwazi.ai)' },
-      signal: AbortSignal.timeout(20000),
-    });
-    if (page.status === 401 || page.status === 403) {
-      const e: any = new Error(`This site blocks automated readers. The page returned ${page.status}.`); e.health = 'blocked'; throw e;
+    let text = '';
+    let needsFirecrawl = src.source_health === 'blocked';
+    if (!needsFirecrawl) {
+      try {
+        const page = await fetch(src.source_url, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (UWAZI office monitor; +https://uwaziapp.uwazi.ai)' },
+          signal: AbortSignal.timeout(20000),
+        });
+        if (page.status === 401 || page.status === 403) needsFirecrawl = true;
+        else if (!page.ok) throw new Error(`Page returned ${page.status}`);
+        else {
+          text = htmlToText(await page.text());
+          if (text.length < 3000 && BLOCK_RE.test(text)) { needsFirecrawl = true; text = ''; }
+        }
+      } catch (fe) {
+        if (!needsFirecrawl) throw fe;
+      }
     }
-    if (!page.ok) throw new Error(`Page returned ${page.status}`);
-    const text = htmlToText(await page.text());
-    if (text.length < 3000 && /access denied|forbidden|attention required|verify you are human|captcha|request blocked/i.test(text)) {
-      const e: any = new Error('This site blocks automated readers. It showed an access denied page.'); e.health = 'blocked'; e.pageText = text; throw e;
+    if (needsFirecrawl) {
+      readMethod = 'firecrawl';
+      try {
+        text = await readWithFirecrawl(src.source_url);
+      } catch (ce) {
+        const e: any = new Error(`This site blocks automated readers. ${(ce as Error).message}`);
+        e.health = 'blocked'; e.readMethod = 'firecrawl'; throw e;
+      }
+      if (text.length < 3000 && BLOCK_RE.test(text)) {
+        const e: any = new Error('This site blocks automated readers. It showed an access denied page.');
+        e.health = 'blocked'; e.readMethod = 'firecrawl'; e.pageText = text; throw e;
+      }
     }
     const { offices, unclear } = await extract(text, src.label);
     const health = offices.length ? 'ok' : 'unclear';
+
 
     const { data: existing } = await db.from('civic_offices').select('*').eq('source_url', src.source_url);
     const { data: pending } = await db.from('civic_office_pending_changes')
