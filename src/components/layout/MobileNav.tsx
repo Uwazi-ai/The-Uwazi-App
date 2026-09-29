@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Building2, ChevronRight, User } from "lucide-react";
+import { Building2, ChevronRight, Compass, User } from "lucide-react";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { openMyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
@@ -17,6 +17,7 @@ const navItems = [
   { to: "/app/watch", icon: WatchIcon, label: "Watch" },
   { to: "/app/ask", icon: AskUwaziIcon, label: "Ask" },
   { to: "/app/vote", icon: VotingHubIcon, label: "Vote" },
+  { to: "/app/compass", icon: Compass, label: "Compass" },
   { to: "/app/my-city", icon: Building2, label: "My City", premium: true },
 ];
 
