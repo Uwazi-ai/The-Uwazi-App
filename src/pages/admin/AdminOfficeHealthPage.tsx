@@ -72,7 +72,7 @@ export default function AdminOfficeHealthPage() {
   const sources = useQuery({
     queryKey: ["office-sources"],
     queryFn: async () => {
-      const { data, error } = await db.from("civic_office_sources").select("*").order("created_at", { ascending: false });
+      const { data, error } = await db.from("civic_data_sources").select("*").order("created_at", { ascending: false });
       if (error) throw error;
       return data as Source[];
     },
@@ -80,8 +80,8 @@ export default function AdminOfficeHealthPage() {
   const changes = useQuery({
     queryKey: ["office-changes"],
     queryFn: async () => {
-      const { data, error } = await db.from("civic_office_pending_changes")
-        .select("*, civic_offices(office_title, current_holder), civic_office_sources(label, source_url)")
+      const { data, error } = await db.from("civic_data_pending_changes")
+        .select("*, civic_offices(office_title, current_holder), civic_data_sources(label, source_url)")
         .eq("status", "pending").order("extracted_at", { ascending: true });
       if (error) throw error;
       const rows = (data ?? []) as any[];
@@ -154,7 +154,7 @@ export default function AdminOfficeHealthPage() {
     mutationFn: async () => {
       if (!form.label.trim() || !/^https?:\/\//.test(form.source_url.trim())) throw new Error("Add a name and a full web address.");
       const hours = Math.max(1, parseInt(form.check_frequency_hours) || 168);
-      const { error } = await db.from("civic_office_sources").insert({
+      const { error } = await db.from("civic_data_sources").insert({
         label: form.label.trim(), source_url: form.source_url.trim(), geoid: form.geoid.trim() || null,
         jurisdiction_level: form.jurisdiction_level.trim() || null, check_frequency_hours: hours, active: false,
         kind: form.kind, is_official: form.is_official,
@@ -202,7 +202,7 @@ export default function AdminOfficeHealthPage() {
 
   const setActive = async (s: Source, active: boolean) => {
     if (active && !confirm("Did you compare the first check with the live page? Turn this source on only if it looks right.")) return;
-    const { error } = await db.from("civic_office_sources").update({ active }).eq("id", s.id);
+    const { error } = await db.from("civic_data_sources").update({ active }).eq("id", s.id);
     if (error) toast.error(error.message); else { toast.success(active ? "Source is on." : "Source is off."); refresh(); }
   };
 
@@ -292,8 +292,8 @@ export default function AdminOfficeHealthPage() {
             <div className="flex flex-wrap gap-2 items-center">
               <Button size="sm" onClick={() => review(c.id, true)}><Check className="h-4 w-4 mr-1" />Approve</Button>
               <Button size="sm" variant="outline" onClick={() => review(c.id, false)}><X className="h-4 w-4 mr-1" />Reject</Button>
-              {(c.proposed?.source_url || c.civic_office_sources?.source_url) && (
-                <a href={c.proposed?.source_url ?? c.civic_office_sources.source_url} target="_blank" rel="noreferrer" className="text-xs text-primary inline-flex items-center gap-1">
+              {(c.proposed?.source_url || c.civic_data_sources?.source_url) && (
+                <a href={c.proposed?.source_url ?? c.civic_data_sources.source_url} target="_blank" rel="noreferrer" className="text-xs text-primary inline-flex items-center gap-1">
                   Check the live page <ExternalLink className="h-3 w-3" />
                 </a>
               )}
