@@ -184,12 +184,14 @@ export type Database = {
       }
       badges: {
         Row: {
+          art_key: string | null
           description: string | null
           emoji: string | null
           icon_url: string | null
           id: string
           name: string
           rarity: string | null
+          rule: Json
           slug: string
           track_id: string | null
           unlock_condition: string | null
@@ -197,12 +199,14 @@ export type Database = {
           xp_value: number | null
         }
         Insert: {
+          art_key?: string | null
           description?: string | null
           emoji?: string | null
           icon_url?: string | null
           id?: string
           name: string
           rarity?: string | null
+          rule?: Json
           slug: string
           track_id?: string | null
           unlock_condition?: string | null
@@ -210,12 +214,14 @@ export type Database = {
           xp_value?: number | null
         }
         Update: {
+          art_key?: string | null
           description?: string | null
           emoji?: string | null
           icon_url?: string | null
           id?: string
           name?: string
           rarity?: string | null
+          rule?: Json
           slug?: string
           track_id?: string | null
           unlock_condition?: string | null
@@ -885,6 +891,104 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      challenge_progress: {
+        Row: {
+          challenge_id: string
+          count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_progress_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      challenges: {
+        Row: {
+          active: boolean
+          badge_id: string | null
+          counts_what: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          ended_at: string | null
+          ends_at: string
+          id: string
+          scope: string
+          starts_at: string
+          title: string
+          updated_at: string
+          winner_badge_id: string | null
+          winning_zip: string | null
+        }
+        Insert: {
+          active?: boolean
+          badge_id?: string | null
+          counts_what: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ended_at?: string | null
+          ends_at: string
+          id?: string
+          scope?: string
+          starts_at?: string
+          title: string
+          updated_at?: string
+          winner_badge_id?: string | null
+          winning_zip?: string | null
+        }
+        Update: {
+          active?: boolean
+          badge_id?: string | null
+          counts_what?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ended_at?: string | null
+          ends_at?: string
+          id?: string
+          scope?: string
+          starts_at?: string
+          title?: string
+          updated_at?: string
+          winner_badge_id?: string | null
+          winning_zip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenges_winner_badge_id_fkey"
+            columns: ["winner_badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       city_onboarding: {
         Row: {
@@ -4158,6 +4262,28 @@ export type Database = {
         Returns: number
       }
       award_report_unlock: { Args: { _session_id: string }; Returns: number }
+      challenge_zip_board: {
+        Args: { _challenge: string }
+        Returns: {
+          eligible: number
+          participants: number
+          participation_rate: number
+          rank: number
+          total_count: number
+          zip_code: string
+        }[]
+      }
+      challenge_zip_board_admin: {
+        Args: { _challenge: string }
+        Returns: {
+          eligible: number
+          participants: number
+          participation_rate: number
+          shown: boolean
+          total_count: number
+          zip_code: string
+        }[]
+      }
       city_search_again: { Args: { _id: string }; Returns: string }
       city_top_identity: {
         Args: never
@@ -4247,6 +4373,10 @@ export type Database = {
         }[]
       }
       email_queue_dispatch: { Args: never; Returns: undefined }
+      end_challenge: {
+        Args: { _challenge: string; _zip: string }
+        Returns: Json
+      }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
@@ -4266,6 +4396,7 @@ export type Database = {
           role: string
         }[]
       }
+      get_my_challenge: { Args: never; Returns: Json }
       get_my_city_status: {
         Args: never
         Returns: {
@@ -4399,6 +4530,10 @@ export type Database = {
       }
       recompute_next_step: { Args: { _uid: string }; Returns: undefined }
       redeem_code: { Args: { p_code: string }; Returns: Json }
+      refresh_challenge_progress: {
+        Args: { _challenge: string }
+        Returns: number
+      }
       refresh_city_active: { Args: { _place: string }; Returns: undefined }
       report_office_issue: {
         Args: {
