@@ -176,6 +176,7 @@ export default function AdminOfficeHealthPage() {
       const { error } = await db.rpc("add_manual_office", {
         _office_title: manual.office_title, _current_holder: manual.current_holder, _term_end: manual.term_end,
         _jurisdiction_level: manual.jurisdiction_level, _geoid: manual.geoid, _data_source: manual.data_source, _source_url: manual.source_url,
+        _district_type: manual.district_type || null, _district_code: manual.district_code || null,
       });
       if (error) throw error;
     },
