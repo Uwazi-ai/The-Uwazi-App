@@ -434,6 +434,50 @@ export default function AdminOfficeHealthPage() {
         </Card>
       )}
 
+      {isAdmin && (
+        <Card className="p-4 space-y-3">
+          <h2 className="text-lg font-semibold text-foreground">Add district boundaries</h2>
+          <p className="text-sm text-muted-foreground">Paste a link to an official map file in GeoJSON form. We save one district per shape. They stay off until you check the names and turn them on.</p>
+          <div className="grid md:grid-cols-2 gap-3">
+            <div><Label>Area code, GEOID</Label><Input value={boundary.jurisdiction_geoid} onChange={(e) => setBoundary({ ...boundary, jurisdiction_geoid: e.target.value })} placeholder="2938000" /></div>
+            <div><Label>District type</Label>
+              <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={boundary.district_type} onChange={(e) => setBoundary({ ...boundary, district_type: e.target.value })}>
+                {Object.keys(DISTRICT_TYPE_LABEL).map((k) => <option key={k} value={k}>{DISTRICT_TYPE_LABEL[k]}</option>)}
+              </select>
+            </div>
+            <div className="md:col-span-2"><Label>Map file web address</Label><Input value={boundary.geojson_url} onChange={(e) => setBoundary({ ...boundary, geojson_url: e.target.value })} placeholder="https://" /></div>
+            <div className="md:col-span-2"><Label>Official page web address</Label><Input value={boundary.source_url} onChange={(e) => setBoundary({ ...boundary, source_url: e.target.value })} placeholder="https://" /></div>
+          </div>
+          <Button onClick={importBoundaries} disabled={importing}>{importing ? "Reading the map file…" : "Import districts"}</Button>
+
+          <div className="space-y-2 pt-2">
+            <div className="text-sm font-medium text-foreground">Imports</div>
+            {!batches.data?.length && <p className="text-sm text-muted-foreground">No district maps yet.</p>}
+            {batches.data?.map((b) => (
+              <div key={b.import_batch_id} className="rounded-lg border border-border p-3 space-y-2">
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="font-medium text-foreground">{DISTRICT_TYPE_LABEL[b.district_type] ?? b.district_type}</span>
+                  <Badge variant="outline">{b.feature_count} districts</Badge>
+                  <Badge variant={b.active_count > 0 ? "default" : "outline"}>{b.active_count > 0 ? "On" : "Off"}</Badge>
+                  <span className="text-xs text-muted-foreground">{when(b.imported_at)}</span>
+                </div>
+                <div className="text-xs text-muted-foreground">{(b.names ?? []).join(" · ")}</div>
+                {b.source_url && (
+                  <a href={b.source_url} target="_blank" rel="noreferrer" className="text-xs text-primary inline-flex items-center gap-1 break-all">
+                    Check the official page <ExternalLink className="h-3 w-3 shrink-0" />
+                  </a>
+                )}
+                <div>
+                  {b.active_count > 0
+                    ? <Button size="sm" variant="ghost" onClick={() => setBatchActive(b.import_batch_id, false)}>Turn off</Button>
+                    : <Button size="sm" onClick={() => setBatchActive(b.import_batch_id, true)}><Power className="h-4 w-4 mr-1" />Activate</Button>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
       <section className="space-y-2">
         <h2 className="text-lg font-semibold text-foreground">Office list, {offices.data?.length ?? 0} offices</h2>
         {!offices.data?.length && <p className="text-sm text-muted-foreground">No offices yet. Add one by hand above.</p>}
@@ -441,6 +485,7 @@ export default function AdminOfficeHealthPage() {
           <div key={o.id} className="text-sm border-b border-border py-1">
             {o.office_title}: {o.current_holder ?? "no one listed"}{o.term_end ? `, term ${o.term_end}` : ""}
             <span className="text-xs text-muted-foreground"> · checked {when(o.last_verified_at)}</span>
+            <span className="text-xs text-muted-foreground"> · {o.district_code ? `${DISTRICT_TYPE_LABEL[o.district_type] ?? o.district_type ?? "District"} ${o.district_code}` : "City wide"}</span>
           </div>
         ))}
       </section>
