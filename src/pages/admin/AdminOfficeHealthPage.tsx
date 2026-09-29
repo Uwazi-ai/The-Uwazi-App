@@ -28,7 +28,7 @@ type Source = {
 
 const FIELD_LABEL: Record<string, string> = {
   current_holder: "Person in office", office_title: "Office name", term_end: "Term", new_office: "New office or person", other: "Something else",
-  new_candidate: "New candidate", party: "Party", withdrawn: "Candidate withdrew",
+  new_candidate: "New candidate", party: "Party", withdrawn: "Candidate withdrew", district_code: "District number",
 };
 const ORIGIN_LABEL: Record<string, string> = { user_reported: "User report", scraper: "Page check", manual: "Added by hand" };
 const HEALTH: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -261,7 +261,7 @@ export default function AdminOfficeHealthPage() {
       <CitiesSection canRun={isAdmin} />
 
 
-      <section className="space-y-3">
+      <section className="space-y-3 pb-20 md:pb-0">
         <h2 className="text-lg font-semibold text-foreground">Review queue</h2>
         <p className="text-xs text-muted-foreground">User reports come first. Then the oldest changes.</p>
         {!pending.length && <Card className="p-4 text-sm text-muted-foreground">Nothing to review right now.</Card>}
