@@ -5,7 +5,6 @@ import {
   BookOpen,
   Play,
   CheckSquare,
-  FileText,
   TrendingUp,
   type LucideIcon,
 } from "lucide-react";
