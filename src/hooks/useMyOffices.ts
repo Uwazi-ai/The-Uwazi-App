@@ -14,7 +14,7 @@ export type MyOffice = {
   district_code: string | null;
   source_url: string | null;
   last_verified_at: string | null;
-  match_level: "city" | "district";
+  match_level: "city" | "district" | "county" | "school";
 };
 
 export type UserDistricts = {
@@ -51,3 +51,19 @@ export function useMyDistricts() {
 }
 
 export const ADD_ADDRESS_LINE = "Add your street address to see your exact district.";
+
+const GROUPS = [
+  { key: "city", label: "Your city" },
+  { key: "county", label: "Your county" },
+  { key: "school", label: "Your school district" },
+] as const;
+
+/** Splits offices into city, county, and school district groups, keeping their order. Empty groups are left out. */
+export function groupOffices<T extends { jurisdiction_level?: string | null; match_level?: string | null }>(items: T[]) {
+  const keyOf = (o: T) => {
+    const l = o.match_level === "county" || o.jurisdiction_level === "county" ? "county"
+      : o.match_level === "school" || o.jurisdiction_level === "school" ? "school" : "city";
+    return l;
+  };
+  return GROUPS.map((g) => ({ ...g, items: items.filter((o) => keyOf(o) === g.key) })).filter((g) => g.items.length);
+}

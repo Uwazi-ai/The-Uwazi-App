@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { useMyDistricts, ADD_ADDRESS_LINE } from "@/hooks/useMyOffices";
+import { useMyDistricts, ADD_ADDRESS_LINE, groupOffices } from "@/hooks/useMyOffices";
 import CityComingNotice from "@/components/voting/CityComingNotice";
 import { LoadingScreen } from "@/components/LoadingScreen";
 
