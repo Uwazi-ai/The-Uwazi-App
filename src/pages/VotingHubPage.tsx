@@ -165,8 +165,10 @@ function usePublishedElection(state: string | null | undefined) {
 }
 
 function useBallotContests(state: string | null | undefined) {
+  const { data: districts } = useMyDistricts();
+  const resolved = districts?.resolved ?? null;
   return useQuery({
-    queryKey: ["ballot-contests", state, ELECTION_DATE],
+    queryKey: ["ballot-contests", state, ELECTION_DATE, resolved],
     queryFn: async () => {
       if (!state) return [];
       const { data } = await supabase
@@ -176,7 +178,7 @@ function useBallotContests(state: string | null | undefined) {
         .eq("election_date", ELECTION_DATE)
         .eq("contest_type", "ballot_measure")
         .order("sort_order", { ascending: true });
-      return data || [];
+      return (data || []).filter((c: any) => contestMatchesDistricts(c, resolved));
     },
     enabled: !!state,
   });
