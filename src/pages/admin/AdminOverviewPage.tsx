@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { AdminAvatar } from "@/components/admin/AdminAvatar";
+import { JourneyResearchPanels } from "@/components/admin/JourneyResearchPanels";
 
 function formatTimeAgo(d: string) {
   const diff = Date.now() - new Date(d).getTime();
@@ -59,6 +60,8 @@ export default function AdminOverviewPage() {
       </div>
 
       {/* Top Stats */}
+      <JourneyResearchPanels />
+
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {topStats.map((s) => (
           <Card key={s.label} className="bg-card border-border p-4">

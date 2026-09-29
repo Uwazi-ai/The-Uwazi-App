@@ -16,7 +16,8 @@ import remarkGfm from "remark-gfm";
 import { useAskUwaziContext, getSuggestedPrompts, useAskUwaziSession, type ChatSession } from "@/hooks/useAskUwazi";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useMyJourney } from "@/hooks/useJourney";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { isToday, isYesterday, differenceInDays } from "date-fns";
@@ -38,6 +39,7 @@ interface Message {
   saved?: boolean;
   sources?: Source[];
   didSearch?: boolean;
+  nudge?: { lesson_id: string; title: string } | null;
 }
 
 
@@ -79,7 +81,7 @@ function groupChatsByDate(chats: ChatSession[]): { label: string; chats: ChatSes
 async function streamChat({ messages, onDelta, onDone, onError }: {
   messages: { role: string; content: string }[];
   onDelta: (text: string) => void;
-  onDone: (meta: { sources: Source[]; didSearch: boolean }) => void;
+  onDone: (meta: { sources: Source[]; didSearch: boolean; nudge?: { lesson_id: string; title: string } | null }) => void;
   onError: (msg: string) => void;
 }) {
   const history = messages.slice(0, -1).map((m) => ({ role: m.role, content: m.content }));
@@ -103,6 +105,7 @@ async function streamChat({ messages, onDelta, onDone, onError }: {
       reply?: string;
       citations?: { title?: string; url?: string }[];
       tools_used?: string[];
+      lesson_nudge?: { lesson_id: string; title: string } | null;
     } | null;
 
     const reply = data?.reply;
@@ -117,7 +120,7 @@ async function streamChat({ messages, onDelta, onDone, onError }: {
       .map((c) => ({ title: c.title || c.url!, url: c.url! }));
 
     onDelta(reply);
-    onDone({ sources, didSearch: (data?.tools_used ?? []).includes("web_search") || sources.length > 0 });
+    onDone({ sources, didSearch: (data?.tools_used ?? []).includes("web_search") || sources.length > 0, nudge: data?.lesson_nudge ?? null });
   } catch (err) {
     onError(err instanceof Error ? err.message : "Unknown error");
   }
@@ -343,6 +346,7 @@ export default function AskUwaziPage() {
     chatHistory, loadSession, deleteSession,
   } = useAskUwaziSession();
   const suggestedPrompts = getSuggestedPrompts(ctx);
+  const { journey: askJourney } = useMyJourney();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -522,7 +526,7 @@ export default function AskUwaziPage() {
         setMessages((prev) => {
           const final = prev.map((m) =>
             m.id === "streaming"
-              ? { ...m, id: Date.now().toString(), sources: searchSources, didSearch }
+              ? { ...m, id: Date.now().toString(), sources: searchSources, didSearch, nudge: meta.nudge ?? null }
               : m
           );
           saveMessages(final.map((m) => ({ role: m.role, content: m.content })), ctx.zipCode);
@@ -758,6 +762,9 @@ export default function AskUwaziPage() {
                   ASK UWAZI
                 </h1>
                 <p className="text-sm text-muted-foreground mb-1">Your Political Co-Pilot</p>
+                {askJourney?.personalization && askJourney.lead_name && (
+                  <p className="text-sm text-foreground mt-2" data-testid="ask-greeting">Welcome back. You lead with {askJourney.lead_name}. Ask what changed on that in your city this week.</p>
+                )}
 
                 {/* Location pill */}
                 {ctx.zipCode && (
@@ -881,6 +888,14 @@ export default function AskUwaziPage() {
                             <SourcesPanel sources={msg.sources} />
                           )}
                         </div>
+                        {msg.id !== "streaming" && msg.nudge && (
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 rounded-xl border border-primary/30 bg-primary/10 p-3">
+                            <p className="text-sm text-foreground flex-1">Want a 3 minute lesson on this?</p>
+                            <Link to={`/app/learn?lesson=${msg.nudge.lesson_id}`} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-center">
+                              Open: {msg.nudge.title}
+                            </Link>
+                          </div>
+                        )}
                         {msg.id !== "streaming" && <NonpartisanNotice message={msg} />}
                         {msg.id !== "streaming" && (
                           <div className="flex items-center gap-0.5 pl-1 flex-wrap">

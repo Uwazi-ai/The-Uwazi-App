@@ -13,6 +13,7 @@ import { SYSTEM_PROMPT } from "./prompt.ts";
 import { KCEB_RULES } from "./kceb-rules.ts";
 import KCEB from "./kceb-nov-2026.json" with { type: "json" };
 import { CLAY_RULES } from "./clay-rules.ts";
+import { buildJourneyTurn } from "./journey.ts";
 import CLAY from "./clay-nov-2026.json" with { type: "json" };
 
 // deno-lint-ignore no-explicit-any
@@ -649,9 +650,28 @@ Deno.serve(async (req) => {
       },
     ];
 
+    const callRoute = async (sys: string, msg: string): Promise<string> => {
+      try {
+        const r = await fetch(ANTHROPIC_URL, {
+          method: "POST",
+          headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json", ...WORKSPACE_HEADER },
+          body: JSON.stringify({ model: MODELS.route, max_tokens: 8, system: sys, messages: [{ role: "user", content: msg }] }),
+          signal: AbortSignal.timeout(6000),
+        });
+        const j = await r.json();
+        return j?.content?.[0]?.text ?? "";
+      } catch { return ""; }
+    };
+    const journeyTurn = await buildJourneyTurn(supabase, user.id, message, Array.isArray(history) ? history.length : 0, callRoute);
+
     const messages: Record<string, unknown>[] = [
       ...history,
-      { role: "user", content: message },
+      {
+        role: "user",
+        content: journeyTurn.contextText
+          ? [{ type: "text", text: journeyTurn.contextText }, { type: "text", text: message }]
+          : message,
+      },
     ];
 
     let finalText = "";
@@ -761,6 +781,15 @@ Deno.serve(async (req) => {
         "election board can help — you can find them at vote.gov.";
     }
 
+    if (journeyTurn.greeting && !finalText.trimStart().startsWith("Welcome back")) {
+      finalText = `${journeyTurn.greeting}\n\n${finalText}`;
+    }
+    if (journeyTurn.calibrationQuestion) {
+      const q = `\n\n**Quick question:** ${journeyTurn.calibrationQuestion} Just reply in your own words.`;
+      const fu = finalText.match(/<followups>[\s\S]*?<\/followups>\s*$/i);
+      finalText = fu ? finalText.slice(0, fu.index).trimEnd() + q + "\n\n" + fu[0] : finalText + q;
+    }
+
     // Conversation persistence is handled client-side in ask_uwazi_sessions.
     void session_id;
 
@@ -779,6 +808,7 @@ Deno.serve(async (req) => {
 
     return json({
       reply: finalText,
+      lesson_nudge: journeyTurn.nudge,
       citations,
       model,
       tools_used: [...new Set(toolsUsed)],

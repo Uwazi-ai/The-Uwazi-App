@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -11,8 +11,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 
 const db = supabase as any;
 
-export function CompassOfficesReport() {
+export function CompassOfficesReport({ sessionId }: { sessionId?: string | null }) {
   const [target, setTarget] = useState<any | null>(null);
+  useEffect(() => {
+    if (!sessionId) return;
+    db.rpc("award_report_unlock", { _session_id: sessionId }).then(({ data }: any) => {
+      if (data > 0) toast.success(`+${data} points for opening your full report`);
+    });
+  }, [sessionId]);
   const [field, setField] = useState("current_holder");
   const [value, setValue] = useState("");
   const [note, setNote] = useState("");
