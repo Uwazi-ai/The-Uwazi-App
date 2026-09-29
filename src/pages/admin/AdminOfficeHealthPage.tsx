@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/contexts/ProfileContext";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,26 +15,49 @@ import { ExternalLink, Check, X, Play, Power, MessageCircle } from "lucide-react
 const db = supabase as any;
 const DAY = 86400000;
 
+type Health = "ok" | "blocked" | "unclear" | "broken" | null;
 type Source = {
   id: string; geoid: string | null; label: string; source_url: string; jurisdiction_level: string | null;
   check_frequency_hours: number; last_checked_at: string | null; last_changed_at: string | null;
   last_success_at: string | null; last_error: string | null; last_result: any; active: boolean; created_at: string;
+  source_health: Health; last_page_text: string | null;
 };
 
 const FIELD_LABEL: Record<string, string> = {
   current_holder: "Person in office", office_title: "Office name", term_end: "Term", new_office: "New office or person", other: "Something else",
 };
+const ORIGIN_LABEL: Record<string, string> = { user_reported: "User report", scraper: "Page check", manual: "Added by hand" };
+const HEALTH: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+  ok: { label: "Healthy", variant: "default" },
+  blocked: { label: "Blocked", variant: "destructive" },
+  unclear: { label: "Unclear", variant: "secondary" },
+  broken: { label: "Broken", variant: "destructive" },
+};
 
 function when(d: string | null) {
   return d ? new Date(d).toLocaleString() : "Never";
 }
+function waited(d: string) {
+  const ms = Date.now() - new Date(d).getTime();
+  const days = Math.floor(ms / DAY);
+  if (days >= 1) return `Waiting ${days} ${days === 1 ? "day" : "days"}`;
+  const hours = Math.floor(ms / 3600000);
+  return hours >= 1 ? `Waiting ${hours} ${hours === 1 ? "hour" : "hours"}` : "Waiting less than an hour";
+}
 const isOverdue = (s: Source) => s.active && (!s.last_checked_at || new Date(s.last_checked_at).getTime() + s.check_frequency_hours * 3600000 < Date.now());
 const isStale = (s: Source) => s.active && (!s.last_success_at || Date.now() - new Date(s.last_success_at).getTime() > 45 * DAY);
+const isBadHealth = (s: Source) => s.source_health === "blocked" || s.source_health === "unclear" || s.source_health === "broken";
+const needsAttention = (s: Source) => isBadHealth(s) || isOverdue(s) || isStale(s);
+
+const emptyManual = { office_title: "", current_holder: "", term_end: "", jurisdiction_level: "city", geoid: "", data_source: "", source_url: "" };
 
 export default function AdminOfficeHealthPage() {
   const qc = useQueryClient();
+  const { isAdmin } = useProfile();
   const [form, setForm] = useState({ label: "", source_url: "", geoid: "", jurisdiction_level: "city", check_frequency_hours: "168" });
+  const [manual, setManual] = useState(emptyManual);
   const [running, setRunning] = useState<string | null>(null);
+  const [showText, setShowText] = useState<string | null>(null);
 
   const sources = useQuery({
     queryKey: ["office-sources"],
@@ -50,7 +74,18 @@ export default function AdminOfficeHealthPage() {
         .select("*, civic_offices(office_title, current_holder), civic_office_sources(label, source_url)")
         .eq("status", "pending").order("extracted_at", { ascending: true });
       if (error) throw error;
-      return data as any[];
+      const rows = (data ?? []) as any[];
+      return rows.sort((a, b) =>
+        (a.origin === "user_reported" ? 0 : 1) - (b.origin === "user_reported" ? 0 : 1) ||
+        new Date(a.extracted_at).getTime() - new Date(b.extracted_at).getTime());
+    },
+  });
+  const decisions = useQuery({
+    queryKey: ["office-decisions"],
+    queryFn: async () => {
+      const { data, error } = await db.rpc("office_recent_decisions");
+      if (error) throw error;
+      return (data ?? []) as any[];
     },
   });
   const offices = useQuery({
@@ -62,9 +97,7 @@ export default function AdminOfficeHealthPage() {
   });
 
   const refresh = () => {
-    qc.invalidateQueries({ queryKey: ["office-sources"] });
-    qc.invalidateQueries({ queryKey: ["office-changes"] });
-    qc.invalidateQueries({ queryKey: ["civic-offices-admin"] });
+    ["office-sources", "office-changes", "office-decisions", "civic-offices-admin"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
   };
 
   const addSource = useMutation({
@@ -78,6 +111,20 @@ export default function AdminOfficeHealthPage() {
       if (error) throw error;
     },
     onSuccess: () => { toast.success("Source added. Run a first check next."); setForm({ ...form, label: "", source_url: "", geoid: "" }); refresh(); },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const addManual = useMutation({
+    mutationFn: async () => {
+      if (!manual.office_title.trim()) throw new Error("Add the office name.");
+      if (!/^https?:\/\//.test(manual.source_url.trim())) throw new Error("Add the full web address of the official page.");
+      const { error } = await db.rpc("add_manual_office", {
+        _office_title: manual.office_title, _current_holder: manual.current_holder, _term_end: manual.term_end,
+        _jurisdiction_level: manual.jurisdiction_level, _geoid: manual.geoid, _data_source: manual.data_source, _source_url: manual.source_url,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Sent to the review queue. Another admin or reviewer will approve it."); setManual(emptyManual); refresh(); },
     onError: (e: any) => toast.error(e.message),
   });
 
@@ -105,40 +152,60 @@ export default function AdminOfficeHealthPage() {
   };
 
   const list = sources.data ?? [];
-  const active = list.filter((s) => s.active);
+  const sorted = [...list].sort((a, b) => Number(needsAttention(b)) - Number(needsAttention(a)));
+  const pending = changes.data ?? [];
+  const oldPending = pending.filter((c) => Date.now() - new Date(c.extracted_at).getTime() > 7 * DAY).length;
+  const attention = [
+    { label: "Blocked", value: list.filter((s) => s.source_health === "blocked").length },
+    { label: "Unclear", value: list.filter((s) => s.source_health === "unclear").length },
+    { label: "Broken", value: list.filter((s) => s.source_health === "broken").length },
+    { label: "Overdue", value: list.filter(isOverdue).length },
+    { label: "Stale, 45 days", value: list.filter(isStale).length },
+    { label: "Waiting more than 7 days", value: oldPending },
+  ];
+  const attentionTotal = list.filter(needsAttention).length + oldPending;
   const stats = [
+    { label: "Needs attention", value: attentionTotal },
     { label: "Sources checked", value: list.filter((s) => s.last_checked_at).length },
-    { label: "Changed", value: list.filter((s) => s.last_changed_at).length },
-    { label: "Overdue", value: active.filter(isOverdue).length },
-    { label: "Stale, 45 days", value: active.filter(isStale).length },
-    { label: "To review", value: changes.data?.length ?? 0 },
+    { label: "To review", value: pending.length },
+    { label: "Offices on file", value: offices.data?.length ?? 0 },
   ];
 
   return (
     <div className="p-4 md:p-8 space-y-6 max-w-5xl mx-auto">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Office Data Health</h1>
-        <p className="text-sm text-muted-foreground">We watch official web pages for changes to who holds each office. Nothing changes the office list until you approve it.</p>
+        <p className="text-sm text-muted-foreground">We watch official web pages for changes to who holds each office. Nothing changes the office list until someone approves it.</p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        {stats.map((s) => (
-          <Card key={s.label} className="p-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {stats.map((s, i) => (
+          <Card key={s.label} className={`p-4 ${i === 0 && s.value > 0 ? "border-destructive" : ""}`}>
             <div className="text-2xl font-bold text-foreground">{s.value}</div>
             <div className="text-xs text-muted-foreground">{s.label}</div>
           </Card>
         ))}
       </div>
+      <Card className="p-4">
+        <div className="text-sm font-medium text-foreground mb-2">Needs attention</div>
+        <div className="flex flex-wrap gap-2">
+          {attention.map((a) => (
+            <Badge key={a.label} variant={a.value ? "destructive" : "outline"}>{a.label}: {a.value}</Badge>
+          ))}
+        </div>
+      </Card>
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-foreground">Review queue</h2>
-        {!changes.data?.length && <Card className="p-4 text-sm text-muted-foreground">Nothing to review right now.</Card>}
-        {changes.data?.map((c) => (
+        <p className="text-xs text-muted-foreground">User reports come first. Then the oldest changes.</p>
+        {!pending.length && <Card className="p-4 text-sm text-muted-foreground">Nothing to review right now.</Card>}
+        {pending.map((c) => (
           <Card key={c.id} className="p-4 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant={c.origin === "user_reported" ? "destructive" : "secondary"}>{c.origin === "user_reported" ? "User report" : "Page check"}</Badge>
+              <Badge variant={c.origin === "user_reported" ? "destructive" : "secondary"}>{ORIGIN_LABEL[c.origin] ?? c.origin}</Badge>
               <span className="font-medium text-foreground">{c.civic_offices?.office_title ?? c.proposed?.office_title ?? "New office"}</span>
               <span className="text-xs text-muted-foreground">{FIELD_LABEL[c.field_changed] ?? c.field_changed}</span>
+              <span className={`text-xs ${Date.now() - new Date(c.extracted_at).getTime() > 7 * DAY ? "text-destructive" : "text-muted-foreground"}`}>{waited(c.extracted_at)}</span>
             </div>
             <div className="text-sm grid md:grid-cols-2 gap-2">
               <div><span className="text-muted-foreground">Now: </span>{c.old_value ?? "Not in our list"}</div>
@@ -146,12 +213,12 @@ export default function AdminOfficeHealthPage() {
                 ? `${c.proposed?.office_title}, held by ${c.proposed?.current_holder ?? "no one listed"}${c.proposed?.term_end ? `, term ${c.proposed.term_end}` : ""}`
                 : c.new_value ?? "No new value given"}</div>
             </div>
-            {c.note && <p className="text-sm text-muted-foreground">Note from user: {c.note}</p>}
+            {c.note && <p className="text-sm text-muted-foreground">Note: {c.note}</p>}
             <div className="flex flex-wrap gap-2 items-center">
               <Button size="sm" onClick={() => review(c.id, true)}><Check className="h-4 w-4 mr-1" />Approve</Button>
               <Button size="sm" variant="outline" onClick={() => review(c.id, false)}><X className="h-4 w-4 mr-1" />Reject</Button>
-              {c.civic_office_sources?.source_url && (
-                <a href={c.civic_office_sources.source_url} target="_blank" rel="noreferrer" className="text-xs text-primary inline-flex items-center gap-1">
+              {(c.proposed?.source_url || c.civic_office_sources?.source_url) && (
+                <a href={c.proposed?.source_url ?? c.civic_office_sources.source_url} target="_blank" rel="noreferrer" className="text-xs text-primary inline-flex items-center gap-1">
                   Check the live page <ExternalLink className="h-3 w-3" />
                 </a>
               )}
@@ -160,13 +227,26 @@ export default function AdminOfficeHealthPage() {
         ))}
       </section>
 
+      <section className="space-y-2">
+        <h2 className="text-lg font-semibold text-foreground">Recent decisions</h2>
+        {!decisions.data?.length && <Card className="p-4 text-sm text-muted-foreground">No decisions yet.</Card>}
+        {decisions.data?.map((d) => (
+          <div key={d.id} className="text-sm border-b border-border py-1 flex flex-wrap gap-x-2">
+            <Badge variant={d.status === "approved" ? "default" : "outline"}>{d.status === "approved" ? "Approved" : "Rejected"}</Badge>
+            <span className="text-foreground">{d.office_title ?? "Office"}: {d.new_value ?? ""}</span>
+            <span className="text-xs text-muted-foreground">by {d.reviewer_email ?? "unknown"} on {when(d.reviewed_at)}</span>
+          </div>
+        ))}
+      </section>
+
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-foreground">Sources</h2>
-        {list.map((s) => (
+        {sorted.map((s) => (
           <Card key={s.id} className="p-4 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-medium text-foreground">{s.label}</span>
               <Badge variant={s.active ? "default" : "outline"}>{s.active ? "On" : "Off"}</Badge>
+              {s.source_health ? <Badge variant={HEALTH[s.source_health].variant}>{HEALTH[s.source_health].label}</Badge> : <Badge variant="outline">Not checked</Badge>}
               {isOverdue(s) && <Badge variant="secondary">Overdue</Badge>}
               {isStale(s) && <Badge variant="destructive">Stale</Badge>}
             </div>
@@ -176,7 +256,7 @@ export default function AdminOfficeHealthPage() {
             <div className="text-xs text-muted-foreground">
               Checks every {s.check_frequency_hours} hours. Last check: {when(s.last_checked_at)}. Last change: {when(s.last_changed_at)}.
             </div>
-            {s.last_error && <p className="text-xs text-destructive">Last check failed: {s.last_error}</p>}
+            {s.last_error && <p className="text-xs text-destructive">{s.last_error}</p>}
             {s.last_result && (
               <div className="rounded-lg bg-muted/40 p-3 text-sm space-y-1">
                 <div className="text-xs text-muted-foreground">What the last check found</div>
@@ -186,35 +266,63 @@ export default function AdminOfficeHealthPage() {
                 ))}
               </div>
             )}
+            {s.last_page_text && (
+              <div>
+                <Button size="sm" variant="ghost" onClick={() => setShowText(showText === s.id ? null : s.id)}>
+                  {showText === s.id ? "Hide page text" : "See what the checker read"}
+                </Button>
+                {showText === s.id && (
+                  <pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap rounded-lg bg-muted/40 p-3 text-xs text-muted-foreground">{s.last_page_text}</pre>
+                )}
+              </div>
+            )}
             <div className="flex flex-wrap gap-2">
               <Button size="sm" variant="outline" disabled={running === s.id} onClick={() => runCheck(s.id)}>
                 <Play className="h-4 w-4 mr-1" />{running === s.id ? "Checking…" : s.last_checked_at ? "Check now" : "Run first check"}
               </Button>
-              {!s.active ? (
+              {isAdmin && (!s.active ? (
                 <Button size="sm" disabled={!s.last_success_at} onClick={() => setActive(s, true)}><Power className="h-4 w-4 mr-1" />Activate</Button>
               ) : (
                 <Button size="sm" variant="ghost" onClick={() => setActive(s, false)}>Turn off</Button>
-              )}
+              ))}
             </div>
           </Card>
         ))}
       </section>
 
       <Card className="p-4 space-y-3">
-        <h2 className="text-lg font-semibold text-foreground">Add a source</h2>
-        <p className="text-sm text-muted-foreground">New sources start off. Run a first check, compare it with the live page, then turn it on. If a page is hard to read, leave it off and enter offices by hand.</p>
+        <h2 className="text-lg font-semibold text-foreground">Add office by hand</h2>
+        <p className="text-sm text-muted-foreground">Use this when a page blocks our checker or is hard to read. Link the official page you used. It goes to the review queue first.</p>
         <div className="grid md:grid-cols-2 gap-3">
-          <div><Label>Name</Label><Input value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder="KCMO City Council" /></div>
-          <div><Label>Web address</Label><Input value={form.source_url} onChange={(e) => setForm({ ...form, source_url: e.target.value })} placeholder="https://" /></div>
-          <div><Label>Area code, GEOID</Label><Input value={form.geoid} onChange={(e) => setForm({ ...form, geoid: e.target.value })} placeholder="2938000" /></div>
-          <div><Label>Level</Label><Input value={form.jurisdiction_level} onChange={(e) => setForm({ ...form, jurisdiction_level: e.target.value })} placeholder="city" /></div>
-          <div><Label>Check every how many hours</Label><Input type="number" value={form.check_frequency_hours} onChange={(e) => setForm({ ...form, check_frequency_hours: e.target.value })} /></div>
+          <div><Label>Office name</Label><Input value={manual.office_title} onChange={(e) => setManual({ ...manual, office_title: e.target.value })} placeholder="City Council District 1" /></div>
+          <div><Label>Person in office</Label><Input value={manual.current_holder} onChange={(e) => setManual({ ...manual, current_holder: e.target.value })} /></div>
+          <div><Label>Term ends</Label><Input value={manual.term_end} onChange={(e) => setManual({ ...manual, term_end: e.target.value })} placeholder="2027" /></div>
+          <div><Label>Level</Label><Input value={manual.jurisdiction_level} onChange={(e) => setManual({ ...manual, jurisdiction_level: e.target.value })} placeholder="city" /></div>
+          <div><Label>Area code, GEOID</Label><Input value={manual.geoid} onChange={(e) => setManual({ ...manual, geoid: e.target.value })} placeholder="2938000" /></div>
+          <div><Label>Where it came from</Label><Input value={manual.data_source} onChange={(e) => setManual({ ...manual, data_source: e.target.value })} placeholder="KCMO City Clerk" /></div>
+          <div className="md:col-span-2"><Label>Official web address, required</Label><Input value={manual.source_url} onChange={(e) => setManual({ ...manual, source_url: e.target.value })} placeholder="https://" /></div>
         </div>
-        <Button onClick={() => addSource.mutate()} disabled={addSource.isPending}>Add source</Button>
+        <Button onClick={() => addManual.mutate()} disabled={addManual.isPending}>Send for review</Button>
       </Card>
+
+      {isAdmin && (
+        <Card className="p-4 space-y-3">
+          <h2 className="text-lg font-semibold text-foreground">Add a source</h2>
+          <p className="text-sm text-muted-foreground">New sources start off. Run a first check, compare it with the live page, then turn it on. If a page is hard to read, leave it off and add offices by hand.</p>
+          <div className="grid md:grid-cols-2 gap-3">
+            <div><Label>Name</Label><Input value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder="KCMO City Council" /></div>
+            <div><Label>Web address</Label><Input value={form.source_url} onChange={(e) => setForm({ ...form, source_url: e.target.value })} placeholder="https://" /></div>
+            <div><Label>Area code, GEOID</Label><Input value={form.geoid} onChange={(e) => setForm({ ...form, geoid: e.target.value })} placeholder="2938000" /></div>
+            <div><Label>Level</Label><Input value={form.jurisdiction_level} onChange={(e) => setForm({ ...form, jurisdiction_level: e.target.value })} placeholder="city" /></div>
+            <div><Label>Check every how many hours</Label><Input type="number" value={form.check_frequency_hours} onChange={(e) => setForm({ ...form, check_frequency_hours: e.target.value })} /></div>
+          </div>
+          <Button onClick={() => addSource.mutate()} disabled={addSource.isPending}>Add source</Button>
+        </Card>
+      )}
 
       <section className="space-y-2">
         <h2 className="text-lg font-semibold text-foreground">Office list, {offices.data?.length ?? 0} offices</h2>
+        {!offices.data?.length && <p className="text-sm text-muted-foreground">No offices yet. Add one by hand above.</p>}
         {offices.data?.map((o) => (
           <div key={o.id} className="text-sm border-b border-border py-1">
             {o.office_title}: {o.current_holder ?? "no one listed"}{o.term_end ? `, term ${o.term_end}` : ""}
