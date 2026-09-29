@@ -14,6 +14,7 @@ import {
   PartnerOrgsIcon,
 } from "@/components/icons/UwaziIcons";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useCitiesWaiting } from "@/components/admin/CitiesSection";
 import { openMyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
 
 import { Building2, Compass, Ticket, ShieldCheck } from "lucide-react";
@@ -57,6 +58,7 @@ export function DesktopSidebar() {
   const { user, signOut } = useAuth();
   const { displayName, avatarUrl, isAdmin, isProgramAdmin, isReviewer } = useProfile();
   const { isPremium } = useSubscription();
+  const { data: citiesWaiting } = useCitiesWaiting(!!(isAdmin || isReviewer));
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
