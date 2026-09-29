@@ -255,7 +255,9 @@ export default function AdminOfficeHealthPage() {
             </a>
             <div className="text-xs text-muted-foreground">
               Checks every {s.check_frequency_hours} hours. Last check: {when(s.last_checked_at)}. Last change: {when(s.last_changed_at)}.
+              {s.read_method && <> Read by: {s.read_method === "firecrawl" ? "web reading service" : "direct read"}.</>}
             </div>
+
             {s.last_error && <p className="text-xs text-destructive">{s.last_error}</p>}
             {s.last_result && (
               <div className="rounded-lg bg-muted/40 p-3 text-sm space-y-1">
