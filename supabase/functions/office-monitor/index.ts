@@ -121,7 +121,7 @@ async function diffCandidates(db: any, src: any, text: string) {
   }
 
   const { contests, unclear } = await extractCandidates(text, src.label, targets.map((t) => t.name));
-  const { data: pending } = await db.from('civic_office_pending_changes')
+  const { data: pending } = await db.from('civic_data_pending_changes')
     .select('candidate_id, contest_ref, field_changed, new_value').eq('source_id', src.id).eq('status', 'pending');
   const pendingKeys = new Set((pending ?? []).map((p: any) =>
     `${p.contest_ref}|${p.candidate_id ?? 'new'}|${p.field_changed}|${nameKey(p.new_value)}`));
@@ -159,6 +159,98 @@ async function diffCandidates(db: any, src: any, text: string) {
   }
   const found = contests.reduce((n, c) => n + c.candidates.length, 0);
   return { rows, result: { contests, unclear, unmatched, candidates_found: found }, health: found ? 'ok' : 'unclear' };
+}
+
+
+type BudgetLine = { fiscal_year: string; department_or_fund: string; category: string | null; amount: number; revenue_or_expense: 'revenue' | 'expense' };
+type Milestone = { fiscal_year: string; milestone: 'proposal' | 'hearing' | 'adoption' | 'fiscal_year_start'; milestone_date: string; label: string | null };
+
+async function extractBudget(text: string, label: string) {
+  const parsed = await aiJson(
+    'You are RaiaG, a careful data extractor for UWAZI. Read this official city budget page. ' +
+    'Pull two lists, using only what is actually written on the page. ' +
+    'First, budget lines from the adopted budget: fiscal year, department or fund, category, amount, and whether it is revenue or expense. ' +
+    'Use the highest level summary table on the page, one row per department, fund, goal area or revenue source. Skip subtotal and grand total rows. ' +
+    'Only use adopted figures. Skip actual, estimated, requested or proposed columns. If a table shows adopted figures for two fiscal years, include both years. ' +
+    'Write the fiscal year like FY 2026-27. Write the amount as a plain number in dollars. For category, use the table heading, like Goal area, Fund type or Revenue source. ' +
+    'Second, dated budget calendar milestones: proposal, hearing, adoption, or fiscal_year_start. Only include a milestone when the page gives a full date. Write dates as YYYY-MM-DD. ' +
+    'For hearing milestones, put the place or short name in label. ' +
+    'Never guess. Never use outside knowledge. Never do math to make a number. If something is not on the page, leave it out. Return empty lists rather than guess.',
+    `Source: ${label}\n\nPage text:\n${text}`,
+    'budget',
+    {
+      type: 'object', additionalProperties: false, required: ['lines', 'milestones'],
+      properties: {
+        lines: { type: 'array', items: {
+          type: 'object', additionalProperties: false,
+          required: ['fiscal_year', 'department_or_fund', 'category', 'amount', 'revenue_or_expense'],
+          properties: {
+            fiscal_year: { type: 'string' }, department_or_fund: { type: 'string' }, category: { type: ['string', 'null'] },
+            amount: { type: 'number' }, revenue_or_expense: { type: 'string', enum: ['revenue', 'expense'] },
+          },
+        } },
+        milestones: { type: 'array', items: {
+          type: 'object', additionalProperties: false, required: ['fiscal_year', 'milestone', 'milestone_date', 'label'],
+          properties: {
+            fiscal_year: { type: 'string' },
+            milestone: { type: 'string', enum: ['proposal', 'hearing', 'adoption', 'fiscal_year_start'] },
+            milestone_date: { type: 'string' }, label: { type: ['string', 'null'] },
+          },
+        } },
+      },
+    },
+  );
+  const fy = (s: string) => {
+    const m = String(s ?? '').match(/(\d{4})\s*[-\/]\s*(\d{2,4})/);
+    if (m) return `FY ${m[1]}-${m[2].slice(-2)}`;
+    const y = String(s ?? '').match(/\d{4}/);
+    return y ? `FY ${y[0]}` : '';
+  };
+  const lines: BudgetLine[] = (parsed?.lines ?? [])
+    .map((l: BudgetLine) => ({ ...l, fiscal_year: fy(l.fiscal_year), department_or_fund: String(l.department_or_fund ?? '').trim().slice(0, 200), category: l.category?.trim().slice(0, 100) || null }))
+    .filter((l: BudgetLine) => l.fiscal_year && l.department_or_fund && Number.isFinite(l.amount) && l.amount >= 0 && !/\btotal\b/i.test(l.department_or_fund));
+  const milestones: Milestone[] = (parsed?.milestones ?? [])
+    .map((m: Milestone) => ({ ...m, fiscal_year: fy(m.fiscal_year), label: m.label?.trim().slice(0, 200) || null }))
+    .filter((m: Milestone) => m.fiscal_year && /^\d{4}-\d{2}-\d{2}$/.test(m.milestone_date) && !isNaN(Date.parse(m.milestone_date)));
+  return { lines, milestones };
+}
+
+async function diffBudget(db: any, src: any, text: string) {
+  const { lines, milestones } = await extractBudget(text, src.label);
+  const bkey = (fy: string, d: string, c: string | null, r: string) => `${fy}|${norm(d)}|${norm(c)}|${r}`;
+  const { data: existing } = await db.from('civic_budgets').select('id, fiscal_year, department_or_fund, category, revenue_or_expense, amount').eq('geoid', src.geoid);
+  const { data: cal } = await db.from('civic_budget_calendar').select('id, fiscal_year, milestone, milestone_date').eq('geoid', src.geoid);
+  const { data: pending } = await db.from('civic_data_pending_changes')
+    .select('field_changed, proposed, target_id, target_table, new_value').eq('source_id', src.id).eq('status', 'pending');
+  const seen = new Set((pending ?? []).map((p: any) => p.target_table === 'civic_budget_calendar' || p.field_changed === 'new_milestone'
+    ? `m|${p.proposed?.fiscal_year}|${p.proposed?.milestone}|${p.proposed?.milestone_date}`
+    : `b|${bkey(p.proposed?.fiscal_year, p.proposed?.department_or_fund, p.proposed?.category, p.proposed?.revenue_or_expense)}|${Number(p.proposed?.amount ?? p.new_value)}`));
+  const base = { source_id: src.id, office_id: null, origin: 'scraper', data_type: 'budget' };
+  const rows: any[] = [];
+  for (const l of lines) {
+    const k = bkey(l.fiscal_year, l.department_or_fund, l.category, l.revenue_or_expense);
+    const match = (existing ?? []).find((e: any) => bkey(e.fiscal_year, e.department_or_fund, e.category, e.revenue_or_expense) === k);
+    if (match && Number(match.amount) === Number(l.amount)) continue;
+    const sk = `b|${k}|${Number(l.amount)}`;
+    if (seen.has(sk)) continue;
+    seen.add(sk);
+    const proposed = { ...l, geoid: src.geoid, source_url: src.source_url };
+    rows.push(match
+      ? { ...base, target_table: 'civic_budgets', target_id: match.id, field_changed: 'amount', old_value: String(match.amount), new_value: String(l.amount), proposed }
+      : { ...base, target_table: 'civic_budgets', target_id: null, field_changed: 'new_budget_line', old_value: null,
+          new_value: `${l.department_or_fund}, ${l.fiscal_year}, $${Math.round(l.amount).toLocaleString('en-US')}`, proposed });
+  }
+  for (const m of milestones) {
+    if ((cal ?? []).some((c: any) => c.fiscal_year === m.fiscal_year && c.milestone === m.milestone && c.milestone_date === m.milestone_date)) continue;
+    const sk = `m|${m.fiscal_year}|${m.milestone}|${m.milestone_date}`;
+    if (seen.has(sk)) continue;
+    seen.add(sk);
+    rows.push({ ...base, target_table: 'civic_budget_calendar', target_id: null, field_changed: 'new_milestone', old_value: null,
+      new_value: `${m.milestone.replace(/_/g, ' ')} on ${m.milestone_date}${m.label ? `, ${m.label}` : ''}`,
+      proposed: { ...m, geoid: src.geoid, source_url: src.source_url } });
+  }
+  const found = lines.length + milestones.length;
+  return { rows, result: { budget_lines: lines, milestones, lines_found: lines.length, milestones_found: milestones.length }, health: found ? 'ok' : 'unclear' };
 }
 
 async function extract(text: string, label: string): Promise<{ offices: Office[]; unclear: boolean }> {
@@ -216,7 +308,7 @@ async function extract(text: string, label: string): Promise<{ offices: Office[]
 
 const BLOCK_RE = /access denied|forbidden|attention required|verify you are human|captcha|request blocked/i;
 
-async function readWithFirecrawl(url: string): Promise<string> {
+async function readWithFirecrawl(url: string, waitFor = 4000): Promise<string> {
   if (!LOVABLE_API_KEY || !FIRECRAWL_API_KEY) throw new Error('The web reading service is not set up.');
   const res = await fetch('https://connector-gateway.lovable.dev/firecrawl/v2/scrape', {
     method: 'POST',
@@ -225,7 +317,7 @@ async function readWithFirecrawl(url: string): Promise<string> {
       'X-Connection-Api-Key': FIRECRAWL_API_KEY,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ url, formats: ['markdown'], onlyMainContent: true, waitFor: 4000 }),
+    body: JSON.stringify({ url, formats: ['markdown'], onlyMainContent: true, waitFor }),
     signal: AbortSignal.timeout(90000),
   });
   const body = await res.text();
@@ -234,7 +326,12 @@ async function readWithFirecrawl(url: string): Promise<string> {
   try { data = JSON.parse(body); } catch { /* empty */ }
   const md = data.markdown ?? data.data?.markdown ?? '';
   if (!md || md.trim().length < 200) throw new Error('The web reading service returned an empty page.');
-  return String(md).slice(0, 60000);
+  // Keep link text, drop link addresses. Budget portals put a very long table of contents first.
+  const clean = String(md)
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+    .replace(/\[([^\]]*)\]\((?:[^()]|\([^)]*\))*\)/g, '$1')
+    .replace(/[ \t]+/g, ' ').replace(/\n\s*\n+/g, '\n');
+  return clean.slice(0, 60000);
 }
 
 async function checkSource(db: any, src: any) {
@@ -242,7 +339,7 @@ async function checkSource(db: any, src: any) {
   let readMethod = 'fetch';
   try {
     let text = '';
-    let needsFirecrawl = src.source_health === 'blocked' || /\.pdf(\?|$)/i.test(src.source_url);
+    let needsFirecrawl = src.data_type === 'budget' || src.source_health === 'blocked' || /\.pdf(\?|$)/i.test(src.source_url);
     if (!needsFirecrawl) {
       try {
         const page = await fetch(src.source_url, {
@@ -262,7 +359,7 @@ async function checkSource(db: any, src: any) {
     if (needsFirecrawl) {
       readMethod = 'firecrawl';
       try {
-        text = await readWithFirecrawl(src.source_url);
+        text = await readWithFirecrawl(src.source_url, src.data_type === 'budget' ? 8000 : 4000);
       } catch (ce) {
         const e: any = new Error(`This site blocks automated readers. ${(ce as Error).message}`);
         e.health = 'blocked'; e.readMethod = 'firecrawl'; throw e;
@@ -272,14 +369,16 @@ async function checkSource(db: any, src: any) {
         e.health = 'blocked'; e.readMethod = 'firecrawl'; e.pageText = text; throw e;
       }
     }
-    if (src.kind === 'candidates') {
-      const { rows, result: r, health } = await diffCandidates(db, src, text);
+    if (src.kind === 'candidates' || src.data_type === 'budget') {
+      const { rows, result: r, health } = src.data_type === 'budget'
+        ? await diffBudget(db, src, text)
+        : await diffCandidates(db, src, text);
       if (rows.length) {
-        const { error: insErr } = await db.from('civic_office_pending_changes').insert(rows);
+        const { error: insErr } = await db.from('civic_data_pending_changes').insert(rows);
         if (insErr) throw new Error(`Could not save changes: ${insErr.message}`);
       }
       const result = { ...r, changes_found: rows.length, checked_at: now, read_method: readMethod };
-      await db.from('civic_office_sources').update({
+      await db.from('civic_data_sources').update({
         last_checked_at: now, last_success_at: now, last_error: null, last_result: result,
         source_health: health, last_page_text: text.slice(0, 20000), read_method: readMethod,
         ...(rows.length ? { last_changed_at: now } : {}),
@@ -292,7 +391,7 @@ async function checkSource(db: any, src: any) {
 
 
     const { data: existing } = await db.from('civic_offices').select('*').eq('source_url', src.source_url);
-    const { data: pending } = await db.from('civic_office_pending_changes')
+    const { data: pending } = await db.from('civic_data_pending_changes')
       .select('office_id, field_changed, new_value, proposed').eq('source_id', src.id).eq('status', 'pending');
     const pendingKeys = new Set((pending ?? []).map((p: any) =>
       `${p.office_id ?? 'new'}|${p.field_changed}|${norm(p.new_value)}`));
@@ -317,10 +416,10 @@ async function checkSource(db: any, src: any) {
         }
       }
     }
-    if (rows.length) await db.from('civic_office_pending_changes').insert(rows);
+    if (rows.length) await db.from('civic_data_pending_changes').insert(rows);
 
     const result = { offices, unclear, changes_found: rows.length, checked_at: now, read_method: readMethod };
-    await db.from('civic_office_sources').update({
+    await db.from('civic_data_sources').update({
       last_checked_at: now, last_success_at: now, last_error: null, last_result: result,
       source_health: health, last_page_text: text.slice(0, 20000), read_method: readMethod,
       ...(rows.length ? { last_changed_at: now } : {}),
@@ -329,7 +428,7 @@ async function checkSource(db: any, src: any) {
   } catch (e) {
     const msg = (e as Error).message;
     console.error(`office-monitor ${src.id}: ${msg}`);
-    await db.from('civic_office_sources').update({ last_checked_at: now, last_error: msg, source_health: (e as any).health ?? 'broken',
+    await db.from('civic_data_sources').update({ last_checked_at: now, last_error: msg, source_health: (e as any).health ?? 'broken',
       read_method: (e as any).readMethod ?? readMethod,
       ...((e as any).pageText ? { last_page_text: String((e as any).pageText).slice(0, 20000) } : {}) }).eq('id', src.id);
     return { source_id: src.id, ok: false, error: msg };
@@ -354,14 +453,14 @@ Deno.serve(async (req) => {
       const { data: isAdmin } = await db.rpc('is_office_reviewer', { _user_id: u.user.id });
       if (!isAdmin) return json({ error: 'Admins and reviewers only' }, 403);
     }
-    const { data: src } = await db.from('civic_office_sources').select('*').eq('id', body.source_id).single();
+    const { data: src } = await db.from('civic_data_sources').select('*').eq('id', body.source_id).single();
     if (!src) return json({ error: 'Source not found' }, 404);
     return json(await checkSource(db, src));
   }
 
   // Cron: all active sources that are due
   if (!CRON_SECRET || req.headers.get('x-cron-secret') !== CRON_SECRET) return json({ error: 'Unauthorized' }, 401);
-  const { data: sources } = await db.from('civic_office_sources').select('*').eq('active', true);
+  const { data: sources } = await db.from('civic_data_sources').select('*').eq('active', true);
   const due = (sources ?? []).filter((s: any) =>
     !s.last_checked_at || new Date(s.last_checked_at).getTime() + s.check_frequency_hours * 3600_000 < Date.now()
   ).slice(0, MAX_PER_RUN);
