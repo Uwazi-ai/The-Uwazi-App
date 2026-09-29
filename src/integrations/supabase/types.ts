@@ -237,6 +237,7 @@ export type Database = {
           source_url: string
           updated_at: string
           website: string | null
+          withdrawn_at: string | null
         }
         Insert: {
           bio?: string | null
@@ -250,6 +251,7 @@ export type Database = {
           source_url: string
           updated_at?: string
           website?: string | null
+          withdrawn_at?: string | null
         }
         Update: {
           bio?: string | null
@@ -263,6 +265,7 @@ export type Database = {
           source_url?: string
           updated_at?: string
           website?: string | null
+          withdrawn_at?: string | null
         }
         Relationships: [
           {
@@ -1022,6 +1025,8 @@ export type Database = {
       }
       civic_office_pending_changes: {
         Row: {
+          candidate_id: string | null
+          contest_ref: string | null
           extracted_at: string
           field_changed: string
           id: string
@@ -1036,8 +1041,11 @@ export type Database = {
           reviewed_by: string | null
           source_id: string | null
           status: string
+          target_table: string | null
         }
         Insert: {
+          candidate_id?: string | null
+          contest_ref?: string | null
           extracted_at?: string
           field_changed: string
           id?: string
@@ -1052,8 +1060,11 @@ export type Database = {
           reviewed_by?: string | null
           source_id?: string | null
           status?: string
+          target_table?: string | null
         }
         Update: {
+          candidate_id?: string | null
+          contest_ref?: string | null
           extracted_at?: string
           field_changed?: string
           id?: string
@@ -1068,6 +1079,7 @@ export type Database = {
           reviewed_by?: string | null
           source_id?: string | null
           status?: string
+          target_table?: string | null
         }
         Relationships: [
           {
@@ -1089,11 +1101,15 @@ export type Database = {
       civic_office_sources: {
         Row: {
           active: boolean
+          ballot_election_date: string | null
+          ballot_state: string | null
           check_frequency_hours: number
           created_at: string
           geoid: string | null
           id: string
+          is_official: boolean
           jurisdiction_level: string | null
+          kind: string
           label: string
           last_changed_at: string | null
           last_checked_at: string | null
@@ -1101,17 +1117,23 @@ export type Database = {
           last_page_text: string | null
           last_result: Json | null
           last_success_at: string | null
+          race_id: string | null
           read_method: string | null
           source_health: string | null
           source_url: string
+          target_table: string | null
         }
         Insert: {
           active?: boolean
+          ballot_election_date?: string | null
+          ballot_state?: string | null
           check_frequency_hours?: number
           created_at?: string
           geoid?: string | null
           id?: string
+          is_official?: boolean
           jurisdiction_level?: string | null
+          kind?: string
           label: string
           last_changed_at?: string | null
           last_checked_at?: string | null
@@ -1119,17 +1141,23 @@ export type Database = {
           last_page_text?: string | null
           last_result?: Json | null
           last_success_at?: string | null
+          race_id?: string | null
           read_method?: string | null
           source_health?: string | null
           source_url: string
+          target_table?: string | null
         }
         Update: {
           active?: boolean
+          ballot_election_date?: string | null
+          ballot_state?: string | null
           check_frequency_hours?: number
           created_at?: string
           geoid?: string | null
           id?: string
+          is_official?: boolean
           jurisdiction_level?: string | null
+          kind?: string
           label?: string
           last_changed_at?: string | null
           last_checked_at?: string | null
@@ -1137,11 +1165,21 @@ export type Database = {
           last_page_text?: string | null
           last_result?: Json | null
           last_success_at?: string | null
+          race_id?: string | null
           read_method?: string | null
           source_health?: string | null
           source_url?: string
+          target_table?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "civic_office_sources_race_id_fkey"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "election_races"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       civic_offices: {
         Row: {

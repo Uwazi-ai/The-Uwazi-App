@@ -21,10 +21,13 @@ type Source = {
   check_frequency_hours: number; last_checked_at: string | null; last_changed_at: string | null;
   last_success_at: string | null; last_error: string | null; last_result: any; active: boolean; created_at: string;
   source_health: Health; last_page_text: string | null; read_method: string | null;
+  kind: "office" | "candidates"; target_table: string | null; race_id: string | null;
+  ballot_state: string | null; ballot_election_date: string | null; is_official: boolean;
 };
 
 const FIELD_LABEL: Record<string, string> = {
   current_holder: "Person in office", office_title: "Office name", term_end: "Term", new_office: "New office or person", other: "Something else",
+  new_candidate: "New candidate", party: "Party", withdrawn: "Candidate withdrew",
 };
 const ORIGIN_LABEL: Record<string, string> = { user_reported: "User report", scraper: "Page check", manual: "Added by hand" };
 const HEALTH: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -54,7 +57,8 @@ const emptyManual = { office_title: "", current_holder: "", term_end: "", jurisd
 export default function AdminOfficeHealthPage() {
   const qc = useQueryClient();
   const { isAdmin } = useProfile();
-  const [form, setForm] = useState({ label: "", source_url: "", geoid: "", jurisdiction_level: "city", check_frequency_hours: "168" });
+  const [form, setForm] = useState({ label: "", source_url: "", geoid: "", jurisdiction_level: "city", check_frequency_hours: "168",
+    kind: "office", target_table: "ballot_candidates", race_id: "", ballot_state: "MO", ballot_election_date: "2026-11-03", is_official: true });
   const [manual, setManual] = useState(emptyManual);
   const [running, setRunning] = useState<string | null>(null);
   const [showText, setShowText] = useState<string | null>(null);
@@ -96,6 +100,14 @@ export default function AdminOfficeHealthPage() {
     },
   });
 
+  const races = useQuery({
+    queryKey: ["election-races-admin"],
+    queryFn: async () => {
+      const { data } = await db.from("election_races").select("id, state, office, district, election_date").order("state").order("office");
+      return (data ?? []) as any[];
+    },
+  });
+
   const refresh = () => {
     ["office-sources", "office-changes", "office-decisions", "civic-offices-admin"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
   };
@@ -107,6 +119,13 @@ export default function AdminOfficeHealthPage() {
       const { error } = await db.from("civic_office_sources").insert({
         label: form.label.trim(), source_url: form.source_url.trim(), geoid: form.geoid.trim() || null,
         jurisdiction_level: form.jurisdiction_level.trim() || null, check_frequency_hours: hours, active: false,
+        kind: form.kind, is_official: form.is_official,
+        ...(form.kind === "candidates" ? {
+          target_table: form.target_table,
+          race_id: form.target_table === "race_candidates" ? form.race_id || null : null,
+          ballot_state: form.target_table === "ballot_candidates" ? form.ballot_state.trim().toUpperCase() : null,
+          ballot_election_date: form.target_table === "ballot_candidates" ? form.ballot_election_date : null,
+        } : {}),
       });
       if (error) throw error;
     },
@@ -136,7 +155,9 @@ export default function AdminOfficeHealthPage() {
       const d = error instanceof FunctionsHttpError ? await error.context.text() : error.message;
       toast.error(`Check failed. ${d}`);
     } else if (!data?.ok) toast.error(`Check failed. ${data?.error ?? ""}`);
-    else toast.success(`Check done. Found ${data.offices.length} offices and ${data.changes_found} changes to review.`);
+    else toast.success(data.contests
+      ? `Check done. Found ${data.candidates_found} candidates and ${data.changes_found} changes to review.`
+      : `Check done. Found ${data.offices.length} offices and ${data.changes_found} changes to review.`);
     refresh();
   };
 
@@ -148,7 +169,7 @@ export default function AdminOfficeHealthPage() {
 
   const review = async (id: string, approve: boolean) => {
     const { error } = await db.rpc("review_office_change", { _change_id: id, _approve: approve });
-    if (error) toast.error(error.message); else { toast.success(approve ? "Saved to the office list." : "Change closed."); refresh(); }
+    if (error) toast.error(error.message); else { toast.success(approve ? "Saved. Voters will see it now." : "Change closed."); refresh(); }
   };
 
   const list = sources.data ?? [];
@@ -175,7 +196,7 @@ export default function AdminOfficeHealthPage() {
     <div className="p-4 md:p-8 space-y-6 max-w-5xl mx-auto">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Office Data Health</h1>
-        <p className="text-sm text-muted-foreground">We watch official web pages for changes to who holds each office. Nothing changes the office list until someone approves it.</p>
+        <p className="text-sm text-muted-foreground">We watch web pages for changes to offices and candidates. Nothing changes what voters see until someone approves it.</p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -203,14 +224,17 @@ export default function AdminOfficeHealthPage() {
           <Card key={c.id} className="p-4 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant={c.origin === "user_reported" ? "destructive" : "secondary"}>{ORIGIN_LABEL[c.origin] ?? c.origin}</Badge>
-              <span className="font-medium text-foreground">{c.civic_offices?.office_title ?? c.proposed?.office_title ?? "New office"}</span>
+              <span className="font-medium text-foreground">{c.civic_offices?.office_title ?? c.proposed?.office_title ?? c.proposed?.contest ?? "New office"}</span>
+              {c.target_table && <Badge variant="outline">Candidate</Badge>}
               <span className="text-xs text-muted-foreground">{FIELD_LABEL[c.field_changed] ?? c.field_changed}</span>
               <span className={`text-xs ${Date.now() - new Date(c.extracted_at).getTime() > 7 * DAY ? "text-destructive" : "text-muted-foreground"}`}>{waited(c.extracted_at)}</span>
             </div>
             <div className="text-sm grid md:grid-cols-2 gap-2">
-              <div><span className="text-muted-foreground">Now: </span>{c.old_value ?? "Not in our list"}</div>
+              <div><span className="text-muted-foreground">Now: </span>{c.old_value ?? (c.field_changed === "party" ? "No party listed" : "Not in our list")}</div>
               <div><span className="text-muted-foreground">Proposed: </span>{c.field_changed === "new_office"
                 ? `${c.proposed?.office_title}, held by ${c.proposed?.current_holder ?? "no one listed"}${c.proposed?.term_end ? `, term ${c.proposed.term_end}` : ""}`
+                : c.field_changed === "new_candidate"
+                ? `${c.proposed?.name}${c.proposed?.party ? `, ${c.proposed.party}` : ""}${c.proposed?.is_incumbent ? ", in office now" : ""}`
                 : c.new_value ?? "No new value given"}</div>
             </div>
             {c.note && <p className="text-sm text-muted-foreground">Note: {c.note}</p>}
@@ -245,6 +269,8 @@ export default function AdminOfficeHealthPage() {
           <Card key={s.id} className="p-4 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-medium text-foreground">{s.label}</span>
+              <Badge variant="outline">{s.kind === "candidates" ? "Candidates" : "Offices"}</Badge>
+              {!s.is_official && <Badge variant="secondary">Not official</Badge>}
               <Badge variant={s.active ? "default" : "outline"}>{s.active ? "On" : "Off"}</Badge>
               {s.source_health ? <Badge variant={HEALTH[s.source_health].variant}>{HEALTH[s.source_health].label}</Badge> : <Badge variant="outline">Not checked</Badge>}
               {isOverdue(s) && <Badge variant="secondary">Overdue</Badge>}
@@ -262,7 +288,13 @@ export default function AdminOfficeHealthPage() {
             {s.last_result && (
               <div className="rounded-lg bg-muted/40 p-3 text-sm space-y-1">
                 <div className="text-xs text-muted-foreground">What the last check found</div>
-                {s.last_result.unclear && <div className="text-xs">The page was unclear, so nothing was pulled. Enter this office by hand.</div>}
+                {s.last_result.unclear && <div className="text-xs">The page was unclear, so nothing was pulled. {s.kind === "candidates" ? "Check the page yourself." : "Enter this office by hand."}</div>}
+                {(s.last_result.contests ?? []).map((c: any, i: number) => (
+                  <div key={i}><span className="font-medium">{c.contest}:</span> {c.candidates.map((x: any) => `${x.name}${x.party ? `, ${x.party}` : ""}${x.withdrawn ? ", withdrew" : ""}`).join(". ") || "no one listed"}</div>
+                ))}
+                {!!s.last_result.unmatched?.length && (
+                  <div className="text-xs text-muted-foreground">Not on our ballot, so skipped: {s.last_result.unmatched.join(". ")}</div>
+                )}
                 {(s.last_result.offices ?? []).map((o: any, i: number) => (
                   <div key={i}>{o.office_title}: {o.current_holder ?? "no one listed"}{o.term_end ? `, term ${o.term_end}` : ""}</div>
                 ))}
@@ -317,6 +349,36 @@ export default function AdminOfficeHealthPage() {
             <div><Label>Area code, GEOID</Label><Input value={form.geoid} onChange={(e) => setForm({ ...form, geoid: e.target.value })} placeholder="2938000" /></div>
             <div><Label>Level</Label><Input value={form.jurisdiction_level} onChange={(e) => setForm({ ...form, jurisdiction_level: e.target.value })} placeholder="city" /></div>
             <div><Label>Check every how many hours</Label><Input type="number" value={form.check_frequency_hours} onChange={(e) => setForm({ ...form, check_frequency_hours: e.target.value })} /></div>
+            <div><Label>What this page lists</Label>
+              <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value })}>
+                <option value="office">People in office</option>
+                <option value="candidates">Candidates</option>
+              </select>
+            </div>
+            {form.kind === "candidates" && (
+              <div><Label>Which candidate list to update</Label>
+                <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={form.target_table} onChange={(e) => setForm({ ...form, target_table: e.target.value })}>
+                  <option value="ballot_candidates">My Ballot, a whole ballot</option>
+                  <option value="race_candidates">Candidates page, one race</option>
+                </select>
+              </div>
+            )}
+            {form.kind === "candidates" && form.target_table === "race_candidates" && (
+              <div className="md:col-span-2"><Label>Race</Label>
+                <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={form.race_id} onChange={(e) => setForm({ ...form, race_id: e.target.value })}>
+                  <option value="">Pick a race</option>
+                  {races.data?.map((r) => <option key={r.id} value={r.id}>{r.state}, {r.office}{r.district ? ` District ${r.district}` : ""}</option>)}
+                </select>
+              </div>
+            )}
+            {form.kind === "candidates" && form.target_table === "ballot_candidates" && (<>
+              <div><Label>State</Label><Input value={form.ballot_state} onChange={(e) => setForm({ ...form, ballot_state: e.target.value })} placeholder="MO" /></div>
+              <div><Label>Election date</Label><Input type="date" value={form.ballot_election_date} onChange={(e) => setForm({ ...form, ballot_election_date: e.target.value })} /></div>
+            </>)}
+            <label className="flex items-center gap-2 text-sm text-foreground md:col-span-2">
+              <input type="checkbox" checked={form.is_official} onChange={(e) => setForm({ ...form, is_official: e.target.checked })} />
+              This is an official government or election board page
+            </label>
           </div>
           <Button onClick={() => addSource.mutate()} disabled={addSource.isPending}>Add source</Button>
         </Card>
