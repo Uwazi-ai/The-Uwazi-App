@@ -310,6 +310,8 @@ Deno.serve(async (req) => {
       mo_house_district: moHouse,
       mo_senate_district: moSenate,
       us_congressional_district: usCongress,
+      resolved,
+      precision,
       districts_resolved_at: new Date().toISOString(),
     });
   } catch (err) {
