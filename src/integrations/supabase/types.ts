@@ -4362,10 +4362,6 @@ export type Database = {
         }
         Returns: Json
       }
-      delete_email: {
-        Args: { message_id: number; queue_name: string }
-        Returns: boolean
-      }
       dimension_lesson: {
         Args: { _ascending: boolean; _exclude?: string[]; _uid: string }
         Returns: string
@@ -4383,14 +4379,9 @@ export type Database = {
           source_url: string
         }[]
       }
-      email_queue_dispatch: { Args: never; Returns: undefined }
       end_challenge: {
         Args: { _challenge: string; _zip: string }
         Returns: Json
-      }
-      enqueue_email: {
-        Args: { payload: Json; queue_name: string }
-        Returns: number
       }
       get_episode_like_count: { Args: { _episode_id: string }; Returns: number }
       get_invite_by_token: {
@@ -4517,15 +4508,6 @@ export type Database = {
         Args: { _lat: number; _lon: number }
         Returns: Json
       }
-      move_to_dlq: {
-        Args: {
-          dlq_name: string
-          message_id: number
-          payload: Json
-          source_queue: string
-        }
-        Returns: number
-      }
       next_stage_lesson: {
         Args: { _exclude?: string[]; _uid: string }
         Returns: string
@@ -4553,14 +4535,6 @@ export type Database = {
           _office_id: string
         }
         Returns: string
-      }
-      read_email_batch: {
-        Args: { batch_size: number; queue_name: string; vt: number }
-        Returns: {
-          message: Json
-          msg_id: number
-          read_ct: number
-        }[]
       }
       recompute_next_step: { Args: { _uid: string }; Returns: undefined }
       redeem_code: { Args: { p_code: string }; Returns: Json }
