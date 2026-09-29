@@ -273,6 +273,7 @@ export default function VotingHubPage() {
       {(hubState === "READY" || hubState === "BALLOT_PENDING") && profile?.state_code && (
         <>
           <PollingPlaceCard />
+          <MyOfficialsCard />
           <MyBallotCard state={profile.state_code} partyPreference={profile.party_preference} />
           <RegistrationCheckCard profile={profile} />
           <CandidateRacesSection
