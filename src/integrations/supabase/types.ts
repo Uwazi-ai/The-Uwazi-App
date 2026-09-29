@@ -1003,6 +1003,8 @@ export type Database = {
           place_name: string | null
           proposed_sources: Json
           requested_by_count: number
+          reviewed_at: string | null
+          reviewed_by: string | null
           school_district_geoid: string | null
           state: string | null
           status: string
@@ -1020,6 +1022,8 @@ export type Database = {
           place_name?: string | null
           proposed_sources?: Json
           requested_by_count?: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           school_district_geoid?: string | null
           state?: string | null
           status?: string
@@ -1037,6 +1041,8 @@ export type Database = {
           place_name?: string | null
           proposed_sources?: Json
           requested_by_count?: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           school_district_geoid?: string | null
           state?: string | null
           status?: string
@@ -4310,6 +4316,8 @@ export type Database = {
           place_name: string | null
           proposed_sources: Json
           requested_by_count: number
+          reviewed_at: string | null
+          reviewed_by: string | null
           school_district_geoid: string | null
           state: string | null
           status: string
@@ -4582,6 +4590,10 @@ export type Database = {
       }
       review_office_change: {
         Args: { _approve: boolean; _change_id: string }
+        Returns: string
+      }
+      set_city_review: {
+        Args: { _action: string; _id: string }
         Returns: string
       }
       set_contest_verification: {
