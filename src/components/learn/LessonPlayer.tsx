@@ -134,11 +134,16 @@ export default function LessonPlayer({ lesson, onClose, onComplete }: LessonPlay
             <p className="text-muted-foreground text-sm">
               {passed ? "You crushed it." : "Review the lesson and try again for full XP."}
             </p>
+            {xpAwarded === 0 && (
+              <p className="text-muted-foreground text-sm mt-2">
+                You already earned points for this lesson. Nice to see you back.
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             <div className="bg-card rounded-xl p-3 border border-border">
-              <p className="text-2xl font-bold text-primary">+{lesson.xp_reward}</p>
+              <p className="text-2xl font-bold text-primary">+{xpAwarded ?? lesson.xp_reward}</p>
               <p className="text-xs text-muted-foreground">XP Earned</p>
             </div>
             <div className="bg-card rounded-xl p-3 border border-border">
