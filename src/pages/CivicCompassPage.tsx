@@ -35,17 +35,23 @@ export default function CivicCompassPage() {
   const [stage, setStage] = useState<"intro" | "quiz" | "saving" | "done">("intro");
   const [top, setTop] = useState<Top[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      const [q, d] = await Promise.all([
-        db.from("compass_questions").select("id, dimension_id, prompt_text, weight, reverse_scored").eq("active", true).order("order_index").limit(20),
-        db.from("compass_dimensions").select("id, name, slug"),
-      ]);
-      setQuestions(q.data ?? []);
-      setDims(d.data ?? []);
-    })();
-  }, []);
+  const loadQuestions = async () => {
+    setLoadFailed(false);
+    const [q, d] = await Promise.all([
+      db.from("compass_questions").select("id, dimension_id, prompt_text, weight, reverse_scored").eq("active", true).order("order_index").limit(20),
+      db.from("compass_dimensions").select("id, name, slug"),
+    ]);
+    if (q.error || d.error || !q.data?.length) {
+      setLoadFailed(true);
+      return;
+    }
+    setQuestions(q.data);
+    setDims(d.data ?? []);
+  };
+
+  useEffect(() => { loadQuestions(); }, []);
 
   const answer = (v: number) => {
     const q = questions[idx];
@@ -120,7 +126,21 @@ export default function CivicCompassPage() {
           <p className="text-muted-foreground">
             You will see {questions.length || 16} short statements. Pick how much you agree with each one. At the end, we show the issues you care about most. It takes about 3 minutes.
           </p>
-          <Button size="lg" disabled={!questions.length} onClick={() => setStage("quiz")}>{questions.length ? "Start the quiz" : "Loading the quiz…"}</Button>
+          {loadFailed ? (
+            <div className="space-y-3">
+              <p className="text-sm text-destructive">We could not load the quiz. Check your connection and try again.</p>
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                <Button size="lg" onClick={loadQuestions}>Try again</Button>
+                <Button size="lg" variant="outline" asChild>
+                  <Link to="/app/ask?q=What%20is%20the%20Civic%20Compass%20quiz%3F">
+                    <MessageCircle className="h-4 w-4 mr-2" /> Ask UWAZI
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button size="lg" disabled={!questions.length} onClick={() => setStage("quiz")}>{questions.length ? "Start the quiz" : "Loading the quiz…"}</Button>
+          )}
         </div>
       )}
 
