@@ -110,6 +110,25 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Free ZIP center fallback. Used when we have no map point yet, so ZIP only users still get their city and county.
+    if (lat == null && lng == null && zip) {
+      try {
+        const zRes = await fetch(`https://api.zippopotam.us/us/${zip}`);
+        if (zRes.ok) {
+          const zData = await zRes.json();
+          const first = zData?.places?.[0];
+          if (first) {
+            lat = Number(first.latitude);
+            lng = Number(first.longitude);
+            state = state ?? first["state abbreviation"] ?? null;
+          }
+        }
+      } catch (e) {
+        console.warn("ZIP center lookup failed:", e);
+      }
+    }
+
+
     if (!zip) {
       return json({
         error: "ADDRESS_NOT_FOUND",
