@@ -48,7 +48,9 @@ async function extractCandidates(text: string, label: string, contestHints: stri
   const parsed = await aiJson(
     'You are RaiaG, a careful data extractor for UWAZI. Read the page text. List each race or contest on the page and the candidates running in it, exactly as the page states. ' +
     'For each candidate give the name, the party only if the page shows it, whether the page marks them as the incumbent, and whether the page says they withdrew or dropped out. ' +
-    'Never guess. Never use outside knowledge. If party is not shown, use null. ' +
+    'Write the party as a full word, like Democratic or Republican, even when the page uses a letter like D or R. If party is not shown, use null. ' +
+    'Never guess. Never use outside knowledge. ' +
+    'Only list candidates for the upcoming general election. If the page also lists primary candidates who lost or were not nominated, leave them out. ' +
     'When a contest matches one of the known contest names given below, use that exact name. ' +
     'If the page is unclear about who is running in which contest, return an empty list and set unclear to true.',
     `Source: ${label}\n\nKnown contest names:\n${contestHints.slice(0, 150).join('\n') || 'none'}\n\nPage text:\n${text}`,
@@ -86,6 +88,8 @@ const sameName = (a: string, b: string) => {
 const partyKey = (p: string | null | undefined) => {
   const n = norm(p);
   if (!n) return '';
+  const short: Record<string, string> = { d: 'democrat', r: 'republican', l: 'libertarian', g: 'green', i: 'independent' };
+  if (short[n]) return short[n];
   if (n.startsWith('dem')) return 'democrat';
   if (n.startsWith('rep')) return 'republican';
   if (n.startsWith('lib')) return 'libertarian';
