@@ -44,7 +44,7 @@ function parseGeoJson(text: string): any {
   throw new Error('That file is not map data we can read.');
 }
 
-const CODE_KEYS = [/^district$/i, /district.*(num|no|id|code)/i, /^(council|ward|precinct)(_?(num|no|id|code))?$/i, /^(coun_dist|councildist|dist)$/i];
+const CODE_KEYS = [/^district$/i, /district.*(num|no|id|code)/i, /^(council|ward|precinct)(_?(num|no|id|code))?$/i, /^(coun_dist|councildist|dist)$/i, /^dist_?(id|no|num)$/i];
 const NAME_KEYS = [/^name$/i, /district.*name/i, /^label$/i, /^title$/i, /council.*member/i, /^rep$/i];
 
 function pickProp(props: Record<string, any>, patterns: RegExp[]): string | null {
