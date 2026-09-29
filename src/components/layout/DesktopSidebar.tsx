@@ -17,7 +17,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useCitiesWaiting } from "@/components/admin/CitiesSection";
 import { openMyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
 
-import { Building2, Compass, Ticket, ShieldCheck } from "lucide-react";
+import { Building2, Compass, Ticket, ShieldCheck, Trophy } from "lucide-react";
 
 const mainNav = [
   { to: "/app", icon: HomeIcon, label: "Home" },
@@ -45,6 +45,7 @@ const adminNav: AdminNavItem[] = [
   { to: "/app/admin/platform", icon: PlatformSettingsIcon, label: "Platform Settings" },
   { to: "/app/admin/ballot-review", icon: ShieldCheck, label: "Ballot Review" },
   { to: "/app/admin/office-health", icon: ShieldCheck, label: "Office Data Health", reviewer: true },
+  { to: "/app/admin/challenges", icon: Trophy, label: "Civic Games" },
   { to: "/app/admin/partner-orgs", icon: PartnerOrgsIcon, label: "Partner Orgs" },
   { to: "/app/admin/codes", icon: Ticket, label: "Redemption Codes" },
   { to: "/app/admin/security", icon: Lock, label: "Security" },

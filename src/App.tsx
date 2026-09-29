@@ -57,6 +57,7 @@ import AdminSecurityPage from "./pages/admin/AdminSecurityPage";
 import AdminSEOPage from "./pages/admin/AdminSEOPage";
 import AdminBallotReviewPage from "./pages/admin/AdminBallotReviewPage";
 import AdminOfficeHealthPage from "./pages/admin/AdminOfficeHealthPage";
+import AdminChallengesPage from "./pages/admin/AdminChallengesPage";
 import UnsubscribePage from "./pages/UnsubscribePage";
 import MyCity from "./pages/MyCity";
 import MyBallotEntryPage from "./pages/MyBallotEntryPage";
@@ -144,6 +145,7 @@ const App = () => (
                 <Route path="/app/admin/seo" element={<AdminRoute><AdminSEOPage /></AdminRoute>} />
                 <Route path="/app/admin/ballot-review" element={<AdminRoute><AdminBallotReviewPage /></AdminRoute>} />
                 <Route path="/app/admin/office-health" element={<AdminRoute allowReviewer><AdminOfficeHealthPage /></AdminRoute>} />
+                <Route path="/app/admin/challenges" element={<AdminRoute><AdminChallengesPage /></AdminRoute>} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
