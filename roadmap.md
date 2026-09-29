@@ -1,5 +1,8 @@
 # November 3 Readiness
 
+## Progress and loading UI
+- [x] Restore phone scrolling on Progress and use the UWAZI pinwheel while it loads.
+
 - [x] Chatbot time limit + friendly fallback
 - [ ] Chatbot working — BLOCKED: Anthropic rejects the saved workspace ID
 - [x] November 3 election dates added (MO + KS)
