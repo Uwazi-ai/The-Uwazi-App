@@ -167,6 +167,8 @@ Deno.serve(async (req) => {
 
     // STEP B2 — US Census geocoder (free, no key): coordinates, county, districts
     let place: string | null = null;
+    const resolved: Record<string, string> = {};
+    let censusMatched = false;
     try {
       const cUrl = `https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=${encodeURIComponent(
         address,
@@ -176,6 +178,7 @@ Deno.serve(async (req) => {
         const cData = await cRes.json();
         const m = cData?.result?.addressMatches?.[0];
         if (m) {
+          censusMatched = true;
           lat = lat ?? m.coordinates?.y ?? null;
           lng = lng ?? m.coordinates?.x ?? null;
           const g: Record<string, any[]> = m.geographies || {};
@@ -183,13 +186,24 @@ Deno.serve(async (req) => {
             const k = Object.keys(g).find((key) => re.test(key));
             return k ? g[k]?.[0] ?? null : null;
           };
-          county = county ?? pick(/^Counties$/)?.BASENAME ?? null;
-          place = pick(/^Incorporated Places$/)?.BASENAME ?? null;
+          const countyRow = pick(/^Counties$/);
+          const placeRow = pick(/^Incorporated Places$/);
+          county = county ?? countyRow?.BASENAME ?? null;
+          place = placeRow?.BASENAME ?? null;
           const cd = pick(/Congressional Districts/)?.BASENAME;
           const up = pick(/State Legislative Districts - Upper/)?.BASENAME;
           const lo = pick(/State Legislative Districts - Lower/)?.BASENAME;
+          const sdu = pick(/Unified School Districts/);
+          const vtd = pick(/Voting Districts/);
           const st = state ?? m.addressComponents?.state ?? null;
           state = st;
+          if (placeRow?.GEOID) resolved.place = String(placeRow.GEOID);
+          if (countyRow?.GEOID) resolved.county = String(countyRow.GEOID);
+          if (cd) resolved.congressional = String(cd);
+          if (up) resolved.state_senate = String(up);
+          if (lo) resolved.state_house = String(lo);
+          if (sdu?.GEOID) resolved.school_district = String(sdu.GEOID);
+          if (vtd?.GEOID || vtd?.BASENAME) resolved.voting_district = String(vtd.GEOID ?? vtd.BASENAME);
           if (!usCongress && cd) usCongress = `${st ?? ""} Congressional District ${cd}`.trim();
           if (!moSenate && up) moSenate = `State Senate District ${up}`;
           if (!moHouse && lo) moHouse = `State House District ${lo}`;
@@ -199,6 +213,25 @@ Deno.serve(async (req) => {
       console.warn("Census geocoder failed:", e);
     }
     if (county) county = county.replace(/\s+County$/i, "");
+
+    // STEP B3 — district boundaries. Street address only. We store codes, never the address or the map point.
+    const precision: "address" | "zip" = censusMatched ? "address" : "zip";
+    if (precision === "address" && lat != null && lng != null) {
+      try {
+        const { data: matched, error: matchErr } = await admin.rpc("match_district_codes", { _lat: lat, _lon: lng });
+        if (matchErr) console.warn("District match failed:", matchErr.message);
+        if (matched && typeof matched === "object") Object.assign(resolved, matched as Record<string, string>);
+      } catch (e) {
+        console.warn("District match request failed:", e);
+      }
+    }
+    if (Object.keys(resolved).length) {
+      const { error: udErr } = await admin.from("user_districts").upsert(
+        { user_id: userId, resolved, precision, resolved_at: new Date().toISOString() },
+        { onConflict: "user_id" },
+      );
+      if (udErr) console.warn("Saving districts failed:", udErr.message);
+    }
 
     let authorityKey: string | null = null;
     if (state === "MO") {
