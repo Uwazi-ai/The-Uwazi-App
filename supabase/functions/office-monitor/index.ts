@@ -238,7 +238,7 @@ async function checkSource(db: any, src: any) {
   let readMethod = 'fetch';
   try {
     let text = '';
-    let needsFirecrawl = src.source_health === 'blocked';
+    let needsFirecrawl = src.source_health === 'blocked' || /\.pdf(\?|$)/i.test(src.source_url);
     if (!needsFirecrawl) {
       try {
         const page = await fetch(src.source_url, {
