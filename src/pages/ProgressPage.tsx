@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import { IdentityCard } from "@/components/compass/IdentityCard";
 import { Compass, ChevronRight, MessageCircle, TrendingUp, History, Flag } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -88,6 +89,10 @@ export default function ProgressPage() {
           <h1 className="font-heading text-3xl md:text-4xl text-foreground leading-tight">Your progress</h1>
         )}
       </div>
+
+      {journey.personalization && journey.label && journey.dimension_scores && (
+        <IdentityCard label={journey.label} scores={journey.dimension_scores} stage={journey.stage} />
+      )}
 
       <div className="rounded-2xl p-5 bg-card border border-border space-y-3">
         <div className="flex items-baseline justify-between gap-3">

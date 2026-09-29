@@ -1447,6 +1447,35 @@ export type Database = {
           },
         ]
       }
+      compass_budget_priorities: {
+        Row: {
+          allocation: Json
+          created_at: string
+          id: string
+          session_id: string
+        }
+        Insert: {
+          allocation: Json
+          created_at?: string
+          id?: string
+          session_id: string
+        }
+        Update: {
+          allocation?: Json
+          created_at?: string
+          id?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compass_budget_priorities_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "compass_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compass_dimensions: {
         Row: {
           created_at: string
@@ -1470,6 +1499,44 @@ export type Database = {
           slug?: string
         }
         Relationships: []
+      }
+      compass_facts: {
+        Row: {
+          active: boolean
+          created_at: string
+          dimension_id: string
+          geoid: string | null
+          id: string
+          source_url: string
+          text: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          dimension_id: string
+          geoid?: string | null
+          id?: string
+          source_url: string
+          text: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          dimension_id?: string
+          geoid?: string | null
+          id?: string
+          source_url?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compass_facts_dimension_id_fkey"
+            columns: ["dimension_id"]
+            isOneToOne: false
+            referencedRelation: "compass_dimensions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       compass_questions: {
         Row: {
@@ -4071,6 +4138,14 @@ export type Database = {
       }
       award_report_unlock: { Args: { _session_id: string }; Returns: number }
       city_search_again: { Args: { _id: string }; Returns: string }
+      city_top_identity: {
+        Args: never
+        Returns: {
+          area: string
+          label: string
+          people: number
+        }[]
+      }
       claim_cities_for_discovery: {
         Args: { _limit: number }
         Returns: {
