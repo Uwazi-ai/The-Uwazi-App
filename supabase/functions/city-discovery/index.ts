@@ -83,12 +83,13 @@ async function rankHits(goal: string, hits: Hit[]): Promise<Hit[]> {
   return ((r?.matches ?? []) as number[]).filter((i) => hits[i]).map((i) => hits[i]);
 }
 
-async function censusName(url: string): Promise<string | null> {
+async function censusName(layer: string, geoid: string): Promise<string | null> {
   try {
-    const r = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    const u = `https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/${layer}/query?where=GEOID%3D%27${encodeURIComponent(geoid)}%27&outFields=NAME&returnGeometry=false&f=json`;
+    const r = await fetch(u, { signal: AbortSignal.timeout(20000) });
     if (!r.ok) return null;
     const d = await r.json();
-    return d?.[1]?.[0] ? String(d[1][0]) : null;
+    return d?.features?.[0]?.attributes?.NAME ?? null;
   } catch { return null; }
 }
 
@@ -168,14 +169,9 @@ async function discoverCity(db: any, city: any) {
   const notOfficial: string[] = [];
   const name = city.place_name ?? 'this city';
   const st = city.state ?? '';
-  const stFips = String(city.place_geoid).slice(0, 2);
   try {
-    const countyName = city.county_geoid
-      ? await censusName(`https://api.census.gov/data/2020/dec/pl?get=NAME&for=county:${String(city.county_geoid).slice(2)}&in=state:${stFips}`)
-      : null;
-    const schoolName = city.school_district_geoid
-      ? await censusName(`https://api.census.gov/data/2022/acs/acs5?get=NAME&for=school%20district%20(unified):${String(city.school_district_geoid).slice(2)}&in=state:${stFips}`)
-      : null;
+    const countyName = city.county_geoid ? await censusName('State_County/MapServer/1', city.county_geoid) : null;
+    const schoolName = city.school_district_geoid ? await censusName('School/MapServer/0', city.school_district_geoid) : null;
     const countyShort = countyName?.split(',')[0] ?? null;
     const schoolShort = schoolName?.split(',')[0] ?? null;
     const officialNames = [name, countyShort?.replace(/\s+County$/i, '') ?? ''].filter(Boolean);
