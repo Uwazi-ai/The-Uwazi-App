@@ -12,6 +12,7 @@ const db = supabase as any;
 const STATUS: Record<string, string> = {
   requested: "Waiting for search", discovering: "Searching now", proposed: "Ready for review",
   needs_human: "Needs a person", approved: "Approved", active: "Live", failed: "Search failed",
+  reviewed: "Reviewed", set_aside: "Set aside",
 };
 
 /** How many new cities wait for an admin. Used in the sidebar and on Office Data Health. */
@@ -20,7 +21,7 @@ export function useCitiesWaiting(enabled = true) {
     queryKey: ["cities-waiting"],
     enabled,
     queryFn: async () => {
-      const { count } = await db.from("city_onboarding").select("id", { count: "exact", head: true }).in("status", ["proposed", "needs_human"]);
+      const { count } = await db.from("city_onboarding").select("id", { count: "exact", head: true }).in("status", ["proposed", "needs_human"]).is("reviewed_at", null);
       return count ?? 0;
     },
     refetchInterval: 120000,
@@ -62,6 +63,19 @@ export default function CitiesSection({ canRun }: { canRun: boolean }) {
       return ((data ?? []) as any[]).map((d) => String(d.domain));
     },
   });
+  const mapped = useQuery({
+    queryKey: ["active-boundary-places"],
+    queryFn: async () => {
+      const { data } = await db.from("district_boundaries").select("jurisdiction_geoid").eq("active", true);
+      return new Set(((data ?? []) as any[]).map((d) => String(d.jurisdiction_geoid)));
+    },
+  });
+  const review = async (id: string, action: "reviewed" | "set_aside" | "bring_back") => {
+    const { error } = await db.rpc("set_city_review", { _id: id, _action: action });
+    if (error) return toast.error(error.message);
+    toast.success(action === "reviewed" ? "Marked as reviewed." : action === "set_aside" ? "Set aside." : "Brought back for review.");
+    refresh();
+  };
   const markOfficial = async (cityId: string, url: string, label: string) => {
     const { data, error } = await supabase.functions.invoke("city-discovery", { body: { mark_official: { city_id: cityId, url, label } } });
     if (error) {
@@ -72,7 +86,7 @@ export default function CitiesSection({ canRun }: { canRun: boolean }) {
     refresh();
     qc.invalidateQueries({ queryKey: ["official-domains"] });
   };
-  const refresh = () => ["city-onboarding", "cities-waiting", "office-sources", "office-changes", "district-batches"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  const refresh = () => ["city-onboarding", "cities-waiting", "active-boundary-places", "office-sources", "office-changes", "district-batches"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
 
   const runNow = async () => {
     const { data, error } = await supabase.functions.invoke("city-discovery", { body: {} });
@@ -105,11 +119,23 @@ export default function CitiesSection({ canRun }: { canRun: boolean }) {
             <div className="font-medium text-foreground">{c.place_name ?? c.place_geoid}{c.state ? `, ${c.state}` : ""}</div>
             <div className="flex gap-2 items-center">
               <Badge variant={c.status === "proposed" || c.status === "needs_human" ? "destructive" : "secondary"}>{STATUS[c.status] ?? c.status}</Badge>
+              {["proposed", "needs_human"].includes(c.status) && (
+                <>
+                  <Button size="sm" onClick={() => review(c.id, "reviewed")}>Mark as reviewed</Button>
+                  <Button size="sm" variant="outline" onClick={() => review(c.id, "set_aside")}>Set aside</Button>
+                </>
+              )}
+              {c.status === "set_aside" && (
+                <Button size="sm" variant="outline" onClick={() => review(c.id, "bring_back")}>Bring back</Button>
+              )}
               {canRun && !["discovering", "active", "requested"].includes(c.status) && (
                 <Button size="sm" variant="outline" onClick={() => again(c.id)}>Search again</Button>
               )}
             </div>
           </div>
+          {c.status === "active" && mapped.data && !mapped.data.has(c.place_geoid) && (
+            <div className="text-xs text-muted-foreground">Live at city level. Add a district map to match people to their council seat.</div>
+          )}
           <div className="text-xs text-muted-foreground">
             {c.requested_by_count} {c.requested_by_count === 1 ? "person asked" : "people asked"}. First asked {new Date(c.first_requested_at).toLocaleDateString()}.
           </div>
