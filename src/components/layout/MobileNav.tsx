@@ -59,12 +59,9 @@ export function MobileNav() {
             }
           >
             {({ isActive }) => (
-              <>
-                <div className={`relative p-1 rounded-lg transition-colors ${isActive ? "bg-primary/[0.12]" : ""}`}>
-                  <item.icon size={22} />
-                </div>
-                <span>{item.label}</span>
-              </>
+              <div className={`relative p-1 rounded-lg transition-colors ${isActive ? "bg-primary/[0.12]" : ""}`}>
+                <item.icon size={22} />
+              </div>
             )}
           </NavLink>
         ))}
@@ -83,7 +80,6 @@ export function MobileNav() {
               <div className={`relative p-1 rounded-lg transition-colors ${open ? "bg-primary/[0.12]" : ""}`}>
                 <Menu className="size-[22px]" />
               </div>
-              <span>Menu</span>
             </Button>
           </SheetTrigger>
           <SheetContent
