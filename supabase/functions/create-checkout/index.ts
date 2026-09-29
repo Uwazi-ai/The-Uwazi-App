@@ -10,7 +10,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { priceId, quantity, customerEmail, userId, returnUrl, environment } = await req.json();
+    const { priceId, customerEmail, userId, returnUrl, environment } = await req.json();
     if (!priceId || typeof priceId !== "string" || !/^[a-zA-Z0-9_-]+$/.test(priceId)) {
       return new Response(JSON.stringify({ error: "Invalid priceId" }), {
         status: 400,
@@ -41,7 +41,7 @@ serve(async (req) => {
         if (isAllowedOrigin(new URL(returnUrl).origin)) safeReturnUrl = returnUrl;
       } catch { /* keep default */ }
     }
-    const qty = Number.isInteger(quantity) && quantity >= 1 && quantity <= 10 ? quantity : 1;
+    const qty = 1; // One subscription per checkout, never set by the caller.
     const isRecurring = stripePrice.type === "recurring";
 
     const session = await stripe.checkout.sessions.create({
