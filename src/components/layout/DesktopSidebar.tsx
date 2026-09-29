@@ -29,7 +29,7 @@ const mainNav = [
   { to: "/app/progress", icon: ProgressIcon, label: "Progress" },
 ];
 
-type AdminNavItem = { to: string; icon: any; label: string; programAdmin?: boolean };
+type AdminNavItem = { to: string; icon: any; label: string; programAdmin?: boolean; reviewer?: boolean };
 
 const adminNav: AdminNavItem[] = [
   { to: "/app/admin", icon: AdminOverviewIcon, label: "Admin Overview", programAdmin: true },
@@ -43,7 +43,7 @@ const adminNav: AdminNavItem[] = [
   { to: "/app/admin/surveys", icon: SurveysIcon, label: "Surveys", programAdmin: true },
   { to: "/app/admin/platform", icon: PlatformSettingsIcon, label: "Platform Settings" },
   { to: "/app/admin/ballot-review", icon: ShieldCheck, label: "Ballot Review" },
-  { to: "/app/admin/office-health", icon: ShieldCheck, label: "Office Data Health" },
+  { to: "/app/admin/office-health", icon: ShieldCheck, label: "Office Data Health", reviewer: true },
   { to: "/app/admin/partner-orgs", icon: PartnerOrgsIcon, label: "Partner Orgs" },
   { to: "/app/admin/codes", icon: Ticket, label: "Redemption Codes" },
   { to: "/app/admin/security", icon: Lock, label: "Security" },
@@ -55,7 +55,7 @@ const bottomNav = [
 
 export function DesktopSidebar() {
   const { user, signOut } = useAuth();
-  const { displayName, avatarUrl, isAdmin, isProgramAdmin } = useProfile();
+  const { displayName, avatarUrl, isAdmin, isProgramAdmin, isReviewer } = useProfile();
   const { isPremium } = useSubscription();
   const navigate = useNavigate();
 
@@ -104,15 +104,15 @@ export function DesktopSidebar() {
           </NavLink>
         ))}
 
-        {isProgramAdmin && (
+        {(isProgramAdmin || isReviewer) && (
           <>
             <div className="mt-4 mb-2 px-[22px]">
               <p className="text-[10px] font-semibold tracking-[0.06em] uppercase text-muted-foreground">
-                {isAdmin ? "SUPER ADMIN" : "PROGRAM ADMIN"}
+                {isAdmin ? "SUPER ADMIN" : isProgramAdmin ? "PROGRAM ADMIN" : "REVIEWER"}
               </p>
             </div>
             {adminNav
-              .filter((item) => isAdmin || item.programAdmin)
+              .filter((item) => isAdmin || (isProgramAdmin && item.programAdmin) || (isReviewer && item.reviewer))
               .map((item) => (
                 <NavLink key={item.to} to={item.to} end={item.to === "/app/admin"} className={linkClass}>
                   <div className="nav-icon-wrap">

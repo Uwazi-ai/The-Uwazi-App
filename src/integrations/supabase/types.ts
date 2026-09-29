@@ -1015,8 +1015,10 @@ export type Database = {
           last_changed_at: string | null
           last_checked_at: string | null
           last_error: string | null
+          last_page_text: string | null
           last_result: Json | null
           last_success_at: string | null
+          source_health: string | null
           source_url: string
         }
         Insert: {
@@ -1030,8 +1032,10 @@ export type Database = {
           last_changed_at?: string | null
           last_checked_at?: string | null
           last_error?: string | null
+          last_page_text?: string | null
           last_result?: Json | null
           last_success_at?: string | null
+          source_health?: string | null
           source_url: string
         }
         Update: {
@@ -1045,8 +1049,10 @@ export type Database = {
           last_changed_at?: string | null
           last_checked_at?: string | null
           last_error?: string | null
+          last_page_text?: string | null
           last_result?: Json | null
           last_success_at?: string | null
+          source_health?: string | null
           source_url?: string
         }
         Relationships: []
@@ -3578,6 +3584,18 @@ export type Database = {
           role: string
         }[]
       }
+      add_manual_office: {
+        Args: {
+          _current_holder: string
+          _data_source: string
+          _geoid: string
+          _jurisdiction_level: string
+          _office_title: string
+          _source_url: string
+          _term_end: string
+        }
+        Returns: string
+      }
       ask_categories_summary: {
         Args: { period_days: number }
         Returns: {
@@ -3665,12 +3683,20 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_office_reviewer: { Args: { _user_id: string }; Returns: boolean }
       is_org_admin: {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
       is_org_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_program_admin: { Args: { _user_id: string }; Returns: boolean }
+      list_office_reviewers: {
+        Args: never
+        Returns: {
+          email: string
+          user_id: string
+        }[]
+      }
       log_episode_video_access: {
         Args: {
           _context?: Json
@@ -3692,6 +3718,20 @@ export type Database = {
         }
         Returns: number
       }
+      office_recent_decisions: {
+        Args: never
+        Returns: {
+          field_changed: string
+          id: string
+          new_value: string
+          office_title: string
+          origin: string
+          reviewed_at: string
+          reviewer_email: string
+          status: string
+        }[]
+      }
+      office_reviewer_count: { Args: never; Returns: number }
       owns_compass_session: { Args: { _session_id: string }; Returns: boolean }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
@@ -3723,6 +3763,10 @@ export type Database = {
           old_status: string
         }[]
       }
+      set_office_reviewer: {
+        Args: { _email: string; _grant: boolean }
+        Returns: string
+      }
       signups_by_day: {
         Args: { period_days: number }
         Returns: {
@@ -3732,7 +3776,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "super_admin" | "program_admin" | "user"
+      app_role: "super_admin" | "program_admin" | "user" | "reviewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3860,7 +3904,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["super_admin", "program_admin", "user"],
+      app_role: ["super_admin", "program_admin", "user", "reviewer"],
     },
   },
 } as const

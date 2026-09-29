@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { OfficeReviewersCard } from "@/components/admin/OfficeReviewersCard";
 
 const flags = [
   { key: "maintenance_mode", label: "Maintenance Mode", desc: "Shows a banner to all users" },
@@ -222,6 +223,8 @@ export default function AdminPlatformPage() {
       </Card>
 
 
+
+      <OfficeReviewersCard />
 
       {/* Admin Management */}
       <Card className="bg-card border-border p-4 space-y-4">
