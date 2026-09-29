@@ -570,12 +570,11 @@ export default function AskUwaziPage() {
     if (!q || autoSentRef.current || isStreaming || !session?.access_token) return;
     autoSentRef.current = true;
     // Small delay so the page finishes its first render before sending
-    const t = setTimeout(() => handleSend(q), 300);
+    setTimeout(() => handleSend(q), 300);
     // Strip the query param so refresh doesn't re-send
     const next = new URLSearchParams(searchParams);
     next.delete("q");
     setSearchParams(next, { replace: true });
-    return () => clearTimeout(t);
   }, [searchParams, isStreaming, handleSend, setSearchParams, session?.access_token]);
 
   const handleNewChat = useCallback(() => {
