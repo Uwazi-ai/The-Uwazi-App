@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Compass, Lock, ArrowLeft, Sparkles } from "lucide-react";
+import { Compass, Lock, ArrowLeft, Sparkles, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ const THRESHOLD = 0.6;
 const LIKERT = [
   { v: 1, label: "Strongly disagree" },
   { v: 2, label: "Disagree" },
-  { v: 3, label: "Neutral" },
+  { v: 3, label: "Not sure" },
   { v: 4, label: "Agree" },
   { v: 5, label: "Strongly agree" },
 ];
@@ -102,7 +102,7 @@ export default function CivicCompassPage() {
       setTop(topDims);
       setStage("done");
     } catch (e: any) {
-      setError(e?.message ?? "Something went wrong saving your results.");
+      setError(e?.message ?? "We could not save your results. Check your connection and try again.");
       setStage("quiz");
     }
   };
@@ -118,9 +118,9 @@ export default function CivicCompassPage() {
           </div>
           <h1 className="text-3xl font-extrabold text-foreground">Civic Compass</h1>
           <p className="text-muted-foreground">
-            {questions.length || 16} quick statements. Tell us how much you agree, and we'll show which community issues you lead with.
+            You will see {questions.length || 16} short statements. Pick how much you agree with each one. At the end, we show the issues you care about most. It takes about 3 minutes.
           </p>
-          <Button size="lg" disabled={!questions.length} onClick={() => setStage("quiz")}>Start the quiz</Button>
+          <Button size="lg" disabled={!questions.length} onClick={() => setStage("quiz")}>{questions.length ? "Start the quiz" : "Loading the quiz…"}</Button>
         </div>
       )}
 
@@ -129,7 +129,7 @@ export default function CivicCompassPage() {
           <div className="space-y-2">
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>Question {idx + 1} of {questions.length}</span>
-              <span>{Math.round((idx / questions.length) * 100)}%</span>
+              <span>{questions.length - idx} left</span>
             </div>
             <Progress value={(idx / questions.length) * 100} />
           </div>
@@ -149,12 +149,12 @@ export default function CivicCompassPage() {
               </Button>
             ))}
           </div>
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && <p className="text-sm text-destructive">{error} Your answers are still here.</p>}
           <div className="flex justify-between">
             <Button variant="ghost" size="sm" disabled={idx === 0 || stage === "saving"} onClick={() => setIdx(idx - 1)}>
               <ArrowLeft className="h-4 w-4 mr-1" /> Back
             </Button>
-            {stage === "saving" && <span className="text-sm text-muted-foreground">Calculating your compass…</span>}
+            {stage === "saving" && <span className="text-sm text-muted-foreground">Finding your top issues…</span>}
             {error && <Button size="sm" onClick={() => finish(answers)}>Try again</Button>}
           </div>
         </div>
@@ -168,15 +168,25 @@ export default function CivicCompassPage() {
             <h2 className="text-2xl font-extrabold text-foreground">
               {top.length
                 ? `You lead with ${joinNames(top.map((t) => t.name))}`
-                : "You have a balanced civic compass"}
+                : "You care about many issues about the same"}
             </h2>
             {!top.length && (
-              <p className="text-sm text-muted-foreground">No single issue stood out strongly — you weigh many priorities evenly.</p>
+              <p className="text-sm text-muted-foreground">No one issue stood out. That is a good thing. It means you see many sides of your community.</p>
+            )}
+            {top.length > 0 && (
+              <p className="text-sm text-muted-foreground">These are the issues you agreed with most. Each one scored at least 60 out of 100.</p>
             )}
             <div className="flex flex-wrap justify-center gap-2 pt-2">
               {top.map((t) => (
-                <span key={t.slug} className="px-3 py-1 rounded-full bg-primary/15 text-primary text-sm font-medium">{t.name}</span>
+                <span key={t.slug} className="px-3 py-1 rounded-full bg-primary/15 text-primary text-sm font-medium">{t.name} · {Math.round(t.score * 100)}</span>
               ))}
+            </div>
+            <div className="pt-2">
+              <Button asChild variant="secondary">
+                <Link to={`/app/ask?q=${encodeURIComponent("What do my top values mean for my city?")}`}>
+                  <MessageCircle className="h-4 w-4 mr-1" /> Ask UWAZI what this means for my city
+                </Link>
+              </Button>
             </div>
           </div>
 
@@ -190,7 +200,7 @@ export default function CivicCompassPage() {
               <Lock className="h-6 w-6 text-primary" />
               <h3 className="text-lg font-bold text-foreground">Your full Civic Compass report</h3>
               <p className="text-sm text-muted-foreground max-w-xs">
-                See all 8 dimensions, what they mean for your ballot, and where to get involved locally.
+                See your score for all 8 issues. Learn how they connect to your ballot and where you can help in your area.
               </p>
               <Button asChild>
                 <Link to="/app/upgrade"><Sparkles className="h-4 w-4 mr-1" /> Unlock with UWAZI+</Link>
@@ -199,7 +209,7 @@ export default function CivicCompassPage() {
           </div>
 
           <div className="text-center">
-            <Button variant="ghost" onClick={restart}>Retake the quiz</Button>
+            <Button variant="ghost" onClick={restart}>Take the quiz again</Button>
           </div>
         </div>
       )}

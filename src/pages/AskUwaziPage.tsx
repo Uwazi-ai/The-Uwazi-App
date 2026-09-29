@@ -567,14 +567,14 @@ export default function AskUwaziPage() {
   const autoSentRef = useRef(false);
   useEffect(() => {
     const q = searchParams.get("q");
-    if (!q || autoSentRef.current || isStreaming) return;
+    if (!q || autoSentRef.current || isStreaming || !session?.access_token) return;
     autoSentRef.current = true;
     handleSend(q);
-    // Strip the query param so refresh doesn't re-send
-    const next = new URLSearchParams(searchParams);
-    next.delete("q");
-    setSearchParams(next, { replace: true });
-  }, [searchParams, isStreaming, handleSend, setSearchParams]);
+    // Strip ?q= without a router navigation (a navigation remounts this page and wipes the chat)
+    const url = new URL(window.location.href);
+    url.searchParams.delete("q");
+    window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+  }, [searchParams, isStreaming, handleSend, session?.access_token]);
 
   const handleNewChat = useCallback(() => {
     setMessages([]);
