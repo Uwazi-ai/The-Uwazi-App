@@ -27,6 +27,136 @@ function htmlToText(html: string) {
 
 const norm = (s: string | null | undefined) => (s ?? '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
+async function aiJson(instructions: string, input: string, name: string, schema: any): Promise<any | null> {
+  if (!LOVABLE_API_KEY) throw new Error('AI key missing');
+  const res = await fetch('https://ai.gateway.lovable.dev/v1/responses', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'openai/gpt-6-astra', instructions, input, text: { format: { type: 'json_schema', name, strict: true, schema } } }),
+  });
+  if (!res.ok) throw new Error(`AI request failed [${res.status}]: ${(await res.text()).slice(0, 300)}`);
+  const data = await res.json();
+  const out = data.output_text ??
+    (data.output ?? []).flatMap((o: any) => o.content ?? []).map((c: any) => c.text ?? '').join('');
+  return out ? JSON.parse(out) : null;
+}
+
+type Cand = { name: string; party: string | null; is_incumbent: boolean; withdrawn: boolean };
+type Contest = { contest: string; candidates: Cand[] };
+
+async function extractCandidates(text: string, label: string, contestHints: string[]): Promise<{ contests: Contest[]; unclear: boolean }> {
+  const parsed = await aiJson(
+    'You are RaiaG, a careful data extractor for UWAZI. Read the page text. List each race or contest on the page and the candidates running in it, exactly as the page states. ' +
+    'For each candidate give the name, the party only if the page shows it, whether the page marks them as the incumbent, and whether the page says they withdrew or dropped out. ' +
+    'Never guess. Never use outside knowledge. If party is not shown, use null. ' +
+    'When a contest matches one of the known contest names given below, use that exact name. ' +
+    'If the page is unclear about who is running in which contest, return an empty list and set unclear to true.',
+    `Source: ${label}\n\nKnown contest names:\n${contestHints.slice(0, 150).join('\n') || 'none'}\n\nPage text:\n${text}`,
+    'candidates',
+    {
+      type: 'object', additionalProperties: false, required: ['unclear', 'contests'],
+      properties: {
+        unclear: { type: 'boolean' },
+        contests: { type: 'array', items: {
+          type: 'object', additionalProperties: false, required: ['contest', 'candidates'],
+          properties: {
+            contest: { type: 'string' },
+            candidates: { type: 'array', items: {
+              type: 'object', additionalProperties: false, required: ['name', 'party', 'is_incumbent', 'withdrawn'],
+              properties: { name: { type: 'string' }, party: { type: ['string', 'null'] }, is_incumbent: { type: 'boolean' }, withdrawn: { type: 'boolean' } },
+            } },
+          },
+        } },
+      },
+    },
+  );
+  if (!parsed) return { contests: [], unclear: true };
+  const contests = (parsed.contests ?? []).filter((c: Contest) => c.contest?.trim())
+    .map((c: Contest) => ({ ...c, candidates: (c.candidates ?? []).filter((x) => x.name?.trim()) }));
+  return { contests, unclear: !!parsed.unclear };
+}
+
+const nameKey = (s: string | null | undefined) => norm(s).replace(/\b(jr|sr|ii|iii|iv)\b/g, '').replace(/\s+/g, ' ').trim();
+const sameName = (a: string, b: string) => {
+  const x = nameKey(a), y = nameKey(b);
+  if (x === y) return true;
+  const xs = x.split(' '), ys = y.split(' ');
+  return xs[0] === ys[0] && xs[xs.length - 1] === ys[ys.length - 1];
+};
+const partyKey = (p: string | null | undefined) => {
+  const n = norm(p);
+  if (!n) return '';
+  if (n.startsWith('dem')) return 'democrat';
+  if (n.startsWith('rep')) return 'republican';
+  if (n.startsWith('lib')) return 'libertarian';
+  if (n.startsWith('gre')) return 'green';
+  if (n.startsWith('non')) return 'nonpartisan';
+  if (n.startsWith('ind')) return 'independent';
+  return n;
+};
+
+async function diffCandidates(db: any, src: any, text: string) {
+  type Target = { id: string; name: string; candidates: any[] };
+  let targets: Target[] = [];
+  if (src.target_table === 'race_candidates') {
+    const { data: race } = await db.from('election_races').select('id, office, district').eq('id', src.race_id).single();
+    if (!race) throw new Error('The race for this source was not found.');
+    const { data: cands } = await db.from('race_candidates').select('id, name, party, status').eq('race_id', race.id);
+    targets = [{ id: race.id, name: `${race.office}${race.district ? ` District ${race.district}` : ''}`, candidates: cands ?? [] }];
+  } else {
+    const { data: contests } = await db.from('ballot_contests').select('id, office_name, party, district_id')
+      .eq('state', src.ballot_state).eq('election_date', src.ballot_election_date).neq('contest_type', 'measure').not('office_name', 'is', null);
+    const ids = (contests ?? []).map((c: any) => c.id);
+    const { data: cands } = ids.length
+      ? await db.from('ballot_candidates').select('id, contest_id, name, party, withdrawn_at').in('contest_id', ids)
+      : { data: [] };
+    targets = (contests ?? []).map((c: any) => ({
+      id: c.id, name: `${c.office_name}${c.party ? ` (${c.party})` : ''}`,
+      candidates: (cands ?? []).filter((x: any) => x.contest_id === c.id),
+    }));
+  }
+
+  const { contests, unclear } = await extractCandidates(text, src.label, targets.map((t) => t.name));
+  const { data: pending } = await db.from('civic_office_pending_changes')
+    .select('candidate_id, contest_ref, field_changed, new_value').eq('source_id', src.id).eq('status', 'pending');
+  const pendingKeys = new Set((pending ?? []).map((p: any) =>
+    `${p.contest_ref}|${p.candidate_id ?? 'new'}|${p.field_changed}|${nameKey(p.new_value)}`));
+
+  const rows: any[] = [];
+  const unmatched: string[] = [];
+  for (const c of contests) {
+    const t = targets.length === 1 && src.target_table === 'race_candidates'
+      ? targets[0]
+      : targets.find((x) => norm(x.name) === norm(c.contest));
+    if (!t) { unmatched.push(c.contest); continue; }
+    for (const cand of c.candidates) {
+      const match = t.candidates.find((x) => sameName(x.name, cand.name));
+      const base = { source_id: src.id, office_id: null, origin: 'scraper', target_table: src.target_table, contest_ref: t.id };
+      const push = (r: any) => {
+        const key = `${t.id}|${r.candidate_id ?? 'new'}|${r.field_changed}|${nameKey(r.new_value)}`;
+        if (!pendingKeys.has(key)) { pendingKeys.add(key); rows.push({ ...base, ...r }); }
+      };
+      if (!match) {
+        if (cand.withdrawn) continue;
+        push({ candidate_id: null, field_changed: 'new_candidate', old_value: null, new_value: cand.name,
+          proposed: { contest: t.name, name: cand.name, party: cand.party, is_incumbent: cand.is_incumbent } });
+        continue;
+      }
+      const isOut = src.target_table === 'race_candidates' ? match.status === 'withdrew' : !!match.withdrawn_at;
+      if (cand.withdrawn && !isOut) {
+        push({ candidate_id: match.id, field_changed: 'withdrawn', old_value: `${match.name}, running`, new_value: `${match.name}, withdrew`,
+          proposed: { contest: t.name, name: match.name } });
+      }
+      if (cand.party && partyKey(cand.party) !== partyKey(match.party)) {
+        push({ candidate_id: match.id, field_changed: 'party', old_value: match.party, new_value: cand.party,
+          proposed: { contest: t.name, name: match.name, party: cand.party } });
+      }
+    }
+  }
+  const found = contests.reduce((n, c) => n + c.candidates.length, 0);
+  return { rows, result: { contests, unclear, unmatched, candidates_found: found }, health: found ? 'ok' : 'unclear' };
+}
+
 async function extract(text: string, label: string): Promise<{ offices: Office[]; unclear: boolean }> {
   if (!LOVABLE_API_KEY) throw new Error('AI key missing');
   const res = await fetch('https://ai.gateway.lovable.dev/v1/responses', {
@@ -138,6 +268,21 @@ async function checkSource(db: any, src: any) {
         e.health = 'blocked'; e.readMethod = 'firecrawl'; e.pageText = text; throw e;
       }
     }
+    if (src.kind === 'candidates') {
+      const { rows, result: r, health } = await diffCandidates(db, src, text);
+      if (rows.length) {
+        const { error: insErr } = await db.from('civic_office_pending_changes').insert(rows);
+        if (insErr) throw new Error(`Could not save changes: ${insErr.message}`);
+      }
+      const result = { ...r, changes_found: rows.length, checked_at: now, read_method: readMethod };
+      await db.from('civic_office_sources').update({
+        last_checked_at: now, last_success_at: now, last_error: null, last_result: result,
+        source_health: health, last_page_text: text.slice(0, 20000), read_method: readMethod,
+        ...(rows.length ? { last_changed_at: now } : {}),
+      }).eq('id', src.id);
+      return { source_id: src.id, ok: true, ...result };
+    }
+
     const { offices, unclear } = await extract(text, src.label);
     const health = offices.length ? 'ok' : 'unclear';
 
