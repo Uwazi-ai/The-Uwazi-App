@@ -274,6 +274,12 @@ export default function AdminOfficeHealthPage() {
                 ? `${c.proposed?.name}${c.proposed?.party ? `, ${c.proposed.party}` : ""}${c.proposed?.is_incumbent ? ", in office now" : ""}`
                 : c.new_value ?? "No new value given"}</div>
             </div>
+            {(c.proposed?.district_type || c.proposed?.district_code) && (
+              <div className="text-sm text-muted-foreground">
+                District: {DISTRICT_TYPE_LABEL[c.proposed?.district_type] ?? c.proposed?.district_type ?? "not set"}
+                {c.field_changed === "district_code" ? ` ${c.new_value || "none"}` : c.proposed?.district_code ? ` ${c.proposed.district_code}` : ""}
+              </div>
+            )}
             {c.note && <p className="text-sm text-muted-foreground">Note: {c.note}</p>}
             <div className="flex flex-wrap gap-2 items-center">
               <Button size="sm" onClick={() => review(c.id, true)}><Check className="h-4 w-4 mr-1" />Approve</Button>
