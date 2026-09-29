@@ -1,6 +1,7 @@
 /// <reference types="npm:@types/react@18.3.1" />
 import type * as React from 'npm:react@18.3.1'
 import { template as securityIncident } from './security-incident.tsx'
+import { template as cityOnboarding } from './city-onboarding.tsx'
 
 export interface TemplateEntry {
   displayName?: string
@@ -13,4 +14,5 @@ export interface TemplateEntry {
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'security-incident': securityIncident,
+  'city-onboarding': cityOnboarding,
 }

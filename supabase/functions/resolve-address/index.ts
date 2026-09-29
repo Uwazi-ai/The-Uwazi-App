@@ -277,6 +277,21 @@ Deno.serve(async (req) => {
       if (udErr) console.warn("Saving districts failed:", udErr.message);
     }
 
+    // City auto discovery. Ask for a new city when we have no active sources or maps for it.
+    let cityStatus: string | null = null;
+    if (resolved.place) {
+      try {
+        const { data: cs, error: csErr } = await admin.rpc("request_city_onboarding", {
+          _place: resolved.place, _name: place ?? null, _state: state ?? null,
+          _county: resolved.county ?? null, _school: resolved.school_district ?? null,
+        });
+        if (csErr) console.warn("City request failed:", csErr.message);
+        cityStatus = (cs as string) ?? null;
+      } catch (e) {
+        console.warn("City request error:", e);
+      }
+    }
+
     let authorityKey: string | null = null;
     if (state === "MO") {
       if (place === "Kansas City" && ["Jackson", "Clay", "Platte", "Cass"].includes(county ?? "")) authorityKey = "mo-kcmo-eb";
@@ -333,6 +348,7 @@ Deno.serve(async (req) => {
       us_congressional_district: usCongress,
       resolved,
       precision,
+      city_status: cityStatus,
       districts_resolved_at: new Date().toISOString(),
     });
   } catch (err) {

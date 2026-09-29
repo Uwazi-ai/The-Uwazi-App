@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useMyOffices, useMyDistricts, ADD_ADDRESS_LINE } from "@/hooks/useMyOffices";
+import CityComingNotice from "@/components/voting/CityComingNotice";
 
 const db = supabase as any;
 
@@ -39,6 +40,7 @@ export function CompassOfficesReport({ sessionId }: { sessionId?: string | null 
   return (
     <div className="bg-card rounded-2xl p-6 shadow-card border border-border space-y-3">
       <h3 className="text-lg font-bold text-foreground">Who works on these issues near you</h3>
+      <CityComingNotice showAsk={offices.length > 0} />
       {!offices.length ? (
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">We do not have local offices for your area yet.</p>

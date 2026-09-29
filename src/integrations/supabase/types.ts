@@ -886,6 +886,60 @@ export type Database = {
         }
         Relationships: []
       }
+      city_onboarding: {
+        Row: {
+          county_geoid: string | null
+          discovered_at: string | null
+          first_requested_at: string
+          id: string
+          last_error: string | null
+          notes: string | null
+          notified_at: string | null
+          place_geoid: string
+          place_name: string | null
+          proposed_sources: Json
+          requested_by_count: number
+          school_district_geoid: string | null
+          state: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          county_geoid?: string | null
+          discovered_at?: string | null
+          first_requested_at?: string
+          id?: string
+          last_error?: string | null
+          notes?: string | null
+          notified_at?: string | null
+          place_geoid: string
+          place_name?: string | null
+          proposed_sources?: Json
+          requested_by_count?: number
+          school_district_geoid?: string | null
+          state?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          county_geoid?: string | null
+          discovered_at?: string | null
+          first_requested_at?: string
+          id?: string
+          last_error?: string | null
+          notes?: string | null
+          notified_at?: string | null
+          place_geoid?: string
+          place_name?: string | null
+          proposed_sources?: Json
+          requested_by_count?: number
+          school_district_geoid?: string | null
+          state?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       civic_alerts: {
         Row: {
           alert_type: string | null
@@ -4016,6 +4070,33 @@ export type Database = {
         Returns: number
       }
       award_report_unlock: { Args: { _session_id: string }; Returns: number }
+      city_search_again: { Args: { _id: string }; Returns: string }
+      claim_cities_for_discovery: {
+        Args: { _limit: number }
+        Returns: {
+          county_geoid: string | null
+          discovered_at: string | null
+          first_requested_at: string
+          id: string
+          last_error: string | null
+          notes: string | null
+          notified_at: string | null
+          place_geoid: string
+          place_name: string | null
+          proposed_sources: Json
+          requested_by_count: number
+          school_district_geoid: string | null
+          state: string | null
+          status: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "city_onboarding"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       claim_promo_code: {
         Args: { _code: string; _user_id: string }
         Returns: Json
@@ -4087,6 +4168,13 @@ export type Database = {
           org_name: string
           org_slug: string
           role: string
+        }[]
+      }
+      get_my_city_status: {
+        Args: never
+        Returns: {
+          place_name: string
+          status: string
         }[]
       }
       get_my_journey: { Args: never; Returns: Json }
@@ -4215,12 +4303,23 @@ export type Database = {
       }
       recompute_next_step: { Args: { _uid: string }; Returns: undefined }
       redeem_code: { Args: { p_code: string }; Returns: Json }
+      refresh_city_active: { Args: { _place: string }; Returns: undefined }
       report_office_issue: {
         Args: {
           _correct_value: string
           _field: string
           _note: string
           _office_id: string
+        }
+        Returns: string
+      }
+      request_city_onboarding: {
+        Args: {
+          _county: string
+          _name: string
+          _place: string
+          _school: string
+          _state: string
         }
         Returns: string
       }
@@ -4248,6 +4347,12 @@ export type Database = {
         }[]
       }
       stage_name_for: { Args: { _points: number }; Returns: string }
+      super_admin_emails: {
+        Args: never
+        Returns: {
+          email: string
+        }[]
+      }
     }
     Enums: {
       app_role: "super_admin" | "program_admin" | "user" | "reviewer"

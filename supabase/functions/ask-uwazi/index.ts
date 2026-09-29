@@ -684,6 +684,19 @@ Deno.serve(async (req) => {
       } catch (e) {
         console.warn("get_my_offices failed", e);
       }
+      try {
+        const { data: ud2 } = await supabase.from("user_districts").select("resolved").eq("user_id", user.id).maybeSingle();
+        const placeId = (ud2 as any)?.resolved?.place;
+        if (placeId) {
+          const { data: co } = await supabase.from("city_onboarding").select("place_name, status").eq("place_geoid", placeId).maybeSingle();
+          if (co && co.status !== "active") {
+            officesText = (officesText ?? "") +
+              `\nWe are still adding ${co.place_name ?? "this person's city"} to UWAZI. Say so plainly: "We are adding ${co.place_name ?? "your city"} now. Here is what we have today." Share only the offices listed above. Never guess local officeholders.`;
+          }
+        }
+      } catch (e) {
+        console.warn("city status lookup failed", e);
+      }
     }
 
     const contextParts = [journeyTurn.contextText, officesText].filter(Boolean) as string[];

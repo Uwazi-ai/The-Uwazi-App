@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { MessageCircle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMyOffices, useMyDistricts, ADD_ADDRESS_LINE } from "@/hooks/useMyOffices";
+import CityComingNotice from "./CityComingNotice";
 
 /** The offices that match where this person lives. Shown on the Voting Hub. */
 export default function MyOfficialsCard() {
@@ -18,6 +19,7 @@ export default function MyOfficialsCard() {
         className="rounded-2xl p-5 space-y-3"
         style={{ background: "var(--card-bg, rgba(255,255,255,0.03))", border: "1px solid rgba(255,255,255,0.08)" }}
       >
+        <CityComingNotice showAsk={false} />
         {!offices.length ? (
           <p className="text-sm text-muted-foreground">We do not have your local offices yet. Ask UWAZI and we will help you find them.</p>
         ) : (

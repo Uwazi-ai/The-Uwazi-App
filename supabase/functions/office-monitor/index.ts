@@ -346,11 +346,14 @@ Deno.serve(async (req) => {
   // Admin: run one source now
   if (body.source_id) {
     if (typeof body.source_id !== 'string' || !/^[0-9a-f-]{36}$/i.test(body.source_id)) return json({ error: 'Bad source id' }, 400);
-    const token = req.headers.get('Authorization')?.replace('Bearer ', '');
-    const { data: u } = await db.auth.getUser(token ?? '');
-    if (!u?.user) return json({ error: 'Please sign in' }, 401);
-    const { data: isAdmin } = await db.rpc('is_office_reviewer', { _user_id: u.user.id });
-    if (!isAdmin) return json({ error: 'Admins and reviewers only' }, 403);
+    const isSystem = !!CRON_SECRET && req.headers.get('x-cron-secret') === CRON_SECRET;
+    if (!isSystem) {
+      const token = req.headers.get('Authorization')?.replace('Bearer ', '');
+      const { data: u } = await db.auth.getUser(token ?? '');
+      if (!u?.user) return json({ error: 'Please sign in' }, 401);
+      const { data: isAdmin } = await db.rpc('is_office_reviewer', { _user_id: u.user.id });
+      if (!isAdmin) return json({ error: 'Admins and reviewers only' }, 403);
+    }
     const { data: src } = await db.from('civic_office_sources').select('*').eq('id', body.source_id).single();
     if (!src) return json({ error: 'Source not found' }, 404);
     return json(await checkSource(db, src));

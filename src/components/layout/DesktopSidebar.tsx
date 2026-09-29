@@ -14,6 +14,7 @@ import {
   PartnerOrgsIcon,
 } from "@/components/icons/UwaziIcons";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useCitiesWaiting } from "@/components/admin/CitiesSection";
 import { openMyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
 
 import { Building2, Compass, Ticket, ShieldCheck } from "lucide-react";
@@ -57,6 +58,7 @@ export function DesktopSidebar() {
   const { user, signOut } = useAuth();
   const { displayName, avatarUrl, isAdmin, isProgramAdmin, isReviewer } = useProfile();
   const { isPremium } = useSubscription();
+  const { data: citiesWaiting } = useCitiesWaiting(!!(isAdmin || isReviewer));
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -119,6 +121,9 @@ export function DesktopSidebar() {
                     <item.icon size={18} />
                   </div>
                   {item.label}
+                  {item.to === "/app/admin/office-health" && !!citiesWaiting && (
+                    <span className="ml-auto rounded-full bg-destructive px-1.5 text-[10px] font-semibold text-destructive-foreground" title="New city waiting for review">{citiesWaiting}</span>
+                  )}
                 </NavLink>
               ))}
           </>

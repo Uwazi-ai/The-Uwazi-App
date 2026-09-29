@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Check, X, Play, Power, MessageCircle } from "lucide-react";
+import CitiesSection, { useCitiesWaiting } from "@/components/admin/CitiesSection";
 
 const db = supabase as any;
 const DAY = 86400000;
@@ -59,6 +60,7 @@ const DISTRICT_TYPE_LABEL: Record<string, string> = { council: "City council", c
 export default function AdminOfficeHealthPage() {
   const qc = useQueryClient();
   const { isAdmin } = useProfile();
+  const citiesWaiting = useCitiesWaiting();
   const [form, setForm] = useState({ label: "", source_url: "", geoid: "", jurisdiction_level: "city", check_frequency_hours: "168",
     kind: "office", target_table: "ballot_candidates", race_id: "", ballot_state: "MO", ballot_election_date: "2026-11-03", is_official: true });
   const [manual, setManual] = useState(emptyManual);
@@ -252,6 +254,12 @@ export default function AdminOfficeHealthPage() {
           ))}
         </div>
       </Card>
+
+      {!!citiesWaiting.data && (
+        <Badge variant="destructive">New city waiting for review: {citiesWaiting.data}</Badge>
+      )}
+      <CitiesSection canRun={isAdmin} />
+
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-foreground">Review queue</h2>
