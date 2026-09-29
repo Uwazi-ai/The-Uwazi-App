@@ -20,7 +20,7 @@ type Source = {
   id: string; geoid: string | null; label: string; source_url: string; jurisdiction_level: string | null;
   check_frequency_hours: number; last_checked_at: string | null; last_changed_at: string | null;
   last_success_at: string | null; last_error: string | null; last_result: any; active: boolean; created_at: string;
-  source_health: Health; last_page_text: string | null;
+  source_health: Health; last_page_text: string | null; read_method: string | null;
 };
 
 const FIELD_LABEL: Record<string, string> = {
