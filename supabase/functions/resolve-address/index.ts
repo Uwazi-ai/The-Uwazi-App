@@ -198,8 +198,9 @@ Deno.serve(async (req) => {
         const m = cData?.result?.addressMatches?.[0];
         if (m) {
           censusMatched = true;
-          lat = lat ?? m.coordinates?.y ?? null;
-          lng = lng ?? m.coordinates?.x ?? null;
+          // The census point is the exact address, so it wins over any ZIP center we guessed earlier.
+          lat = m.coordinates?.y ?? lat ?? null;
+          lng = m.coordinates?.x ?? lng ?? null;
           const g: Record<string, any[]> = m.geographies || {};
           const pick = (re: RegExp) => {
             const k = Object.keys(g).find((key) => re.test(key));
