@@ -22,12 +22,12 @@ type Source = {
   check_frequency_hours: number; last_checked_at: string | null; last_changed_at: string | null;
   last_success_at: string | null; last_error: string | null; last_result: any; active: boolean; created_at: string;
   source_health: Health; last_page_text: string | null; read_method: string | null;
-  kind: "office" | "candidates"; target_table: string | null; race_id: string | null;
+  kind: "office" | "candidates" | "budget"; data_type?: "office" | "budget"; target_table: string | null; race_id: string | null;
   ballot_state: string | null; ballot_election_date: string | null; is_official: boolean;
 };
 
 const FIELD_LABEL: Record<string, string> = {
-  current_holder: "Person in office", office_title: "Office name", term_end: "Term", new_office: "New office or person", other: "Something else",
+  current_holder: "Person in office", office_title: "Office name", term_end: "Term", new_office: "New office or person", other: "Something else", new_budget_line: "New budget line", amount: "Amount", new_milestone: "New budget date", milestone_date: "Budget date",
   new_candidate: "New candidate", party: "Party", withdrawn: "Candidate withdrew", district_code: "District number",
 };
 const ORIGIN_LABEL: Record<string, string> = { user_reported: "User report", scraper: "Page check", manual: "Added by hand" };
