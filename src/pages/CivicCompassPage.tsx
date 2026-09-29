@@ -53,6 +53,17 @@ export default function CivicCompassPage() {
 
   useEffect(() => { loadQuestions(); }, []);
 
+  // If the statements have not loaded after 8 seconds, stop waiting and show the error state.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setQuestions((qs) => {
+        if (!qs.length) setLoadFailed(true);
+        return qs;
+      });
+    }, 8000);
+    return () => clearTimeout(t);
+  }, []);
+
   const answer = (v: number) => {
     const q = questions[idx];
     const next = { ...answers, [q.id]: v };
@@ -126,13 +137,13 @@ export default function CivicCompassPage() {
           <p className="text-muted-foreground">
             You will see {questions.length || 16} short statements. Pick how much you agree with each one. At the end, we show the issues you care about most. It takes about 3 minutes.
           </p>
-          {loadFailed ? (
+          {loadFailed && !questions.length ? (
             <div className="space-y-3">
-              <p className="text-sm text-destructive">We could not load the quiz. Check your connection and try again.</p>
+              <p className="text-sm text-destructive">We could not load the quiz right now. Check your connection and try again.</p>
               <div className="flex flex-col sm:flex-row gap-2 justify-center">
                 <Button size="lg" onClick={loadQuestions}>Try again</Button>
                 <Button size="lg" variant="outline" asChild>
-                  <Link to="/app/ask?q=What%20is%20the%20Civic%20Compass%20quiz%3F">
+                  <Link to={`/app/ask?q=${encodeURIComponent("How do I find out what my city is working on?")}`}>
                     <MessageCircle className="h-4 w-4 mr-2" /> Ask UWAZI
                   </Link>
                 </Button>
