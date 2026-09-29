@@ -29,6 +29,7 @@ export default function LessonPlayer({ lesson, onClose, onComplete }: LessonPlay
   const [quizAnswers, setQuizAnswers] = useState<Record<string, number | null>>({});
   const [revealedQuiz, setRevealedQuiz] = useState<Set<string>>(new Set());
   const [completed, setCompleted] = useState(false);
+  const [xpAwarded, setXpAwarded] = useState<number | null>(null);
   const [startTime] = useState(Date.now());
 
   const isSlide = step < slides.length;
@@ -94,8 +95,9 @@ export default function LessonPlayer({ lesson, onClose, onComplete }: LessonPlay
       return;
     }
     const xp = Array.isArray(awarded) ? awarded[0]?.xp_awarded ?? 0 : 0;
+    setXpAwarded(xp);
 
-    toast.success(`+${xp} XP earned! 🎓`);
+    if (xp > 0) toast.success(`+${xp} XP earned! 🎓`);
     onComplete();
   }, [user, lesson, completed, correctCount, quizQuestions.length, slides.length, startTime, onComplete]);
 
