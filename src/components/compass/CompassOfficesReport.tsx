@@ -47,19 +47,27 @@ export function CompassOfficesReport({ sessionId }: { sessionId?: string | null 
           </Button>
         </div>
       ) : (
-        <ul className="divide-y divide-border">
-          {offices.map((o: any) => (
-            <li key={o.id} className="py-2 flex items-start justify-between gap-3">
-              <div className="text-sm">
-                <div className="font-medium text-foreground">{o.office_title}</div>
-                <div className="text-muted-foreground">{o.current_holder ?? "No one listed"}{o.term_end ? `. Term: ${o.term_end}` : ""}</div>
-              </div>
-              <button className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1 shrink-0" onClick={() => setTarget(o)}>
-                <Flag className="h-3 w-3" /> Report inaccurate info
-              </button>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="divide-y divide-border">
+            {offices.map((o: any) => (
+              <li key={o.id} className="py-2 flex items-start justify-between gap-3">
+                <div className="text-sm">
+                  <div className="font-medium text-foreground">{o.office_title}</div>
+                  <div className="text-muted-foreground">{o.current_holder ?? "No one listed"}{o.term_end ? `. Term: ${o.term_end}` : ""}</div>
+                </div>
+                <button className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1 shrink-0" onClick={() => setTarget(o)}>
+                  <Flag className="h-3 w-3" /> Report inaccurate info
+                </button>
+              </li>
+            ))}
+          </ul>
+          {districts?.precision === "zip" && (
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">{ADD_ADDRESS_LINE}</p>
+              <Button asChild size="sm"><Link to="/app/settings">Add your address</Link></Button>
+            </div>
+          )}
+        </>
       )}
       <Dialog open={!!target} onOpenChange={(o) => !o && setTarget(null)}>
         <DialogContent>
