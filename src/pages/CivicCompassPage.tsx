@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useSubscription } from "@/hooks/useSubscription";
+import { CompassOfficesReport } from "@/components/compass/CompassOfficesReport";
 
 const db = supabase as any;
 const THRESHOLD = 0.6;
@@ -28,6 +30,7 @@ function joinNames(n: string[]) {
 
 export default function CivicCompassPage() {
   const { user } = useAuth();
+  const { isPremium } = useSubscription();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [dims, setDims] = useState<Dimension[]>([]);
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -221,6 +224,7 @@ export default function CivicCompassPage() {
             </div>
           </div>
 
+          {isPremium ? <CompassOfficesReport /> : (
           <div className="relative bg-card rounded-2xl p-6 shadow-card overflow-hidden border border-border">
             <div className="space-y-3 blur-sm select-none pointer-events-none min-h-[280px] flex flex-col justify-center" aria-hidden>
               {[80, 65, 55, 40, 70, 50].map((w, i) => (
@@ -238,6 +242,7 @@ export default function CivicCompassPage() {
               </Button>
             </div>
           </div>
+          )}
 
           <div className="text-center">
             <Button variant="ghost" onClick={restart}>Take the quiz again</Button>
