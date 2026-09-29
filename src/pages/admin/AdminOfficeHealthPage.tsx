@@ -281,7 +281,7 @@ export default function AdminOfficeHealthPage() {
                 <Play className="h-4 w-4 mr-1" />{running === s.id ? "Checking…" : s.last_checked_at ? "Check now" : "Run first check"}
               </Button>
               {isAdmin && (!s.active ? (
-                <Button size="sm" disabled={!s.last_success_at} onClick={() => setActive(s, true)}><Power className="h-4 w-4 mr-1" />Activate</Button>
+                <Button size="sm" disabled={!s.last_success_at || /wikipedia\.org/i.test(s.source_url)} onClick={() => setActive(s, true)}><Power className="h-4 w-4 mr-1" />Activate</Button>
               ) : (
                 <Button size="sm" variant="ghost" onClick={() => setActive(s, false)}>Turn off</Button>
               ))}
