@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useMyDistricts, ADD_ADDRESS_LINE } from "@/hooks/useMyOffices";
 import CityComingNotice from "@/components/voting/CityComingNotice";
-import LoadingScreen from "@/components/LoadingScreen";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 const db = supabase as any;
 const MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
