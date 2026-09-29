@@ -216,6 +216,29 @@ Deno.serve(async (req) => {
 
     // STEP B3 — district boundaries. Street address only. We store codes, never the address or the map point.
     const precision: "address" | "zip" = censusMatched ? "address" : "zip";
+    if (precision === "zip" && lat != null && lng != null) {
+      // ZIP only. Take the city and county codes, then stop. No district level match.
+      try {
+        const pUrl = `https://geocoding.geo.census.gov/geocoder/geographies/coordinates?x=${lng}&y=${lat}&benchmark=Public_AR_Current&vintage=Current_Current&layers=all&format=json`;
+        const pRes = await fetch(pUrl);
+        if (pRes.ok) {
+          const pData = await pRes.json();
+          const g: Record<string, any[]> = pData?.result?.geographies || {};
+          const pick = (re: RegExp) => {
+            const k = Object.keys(g).find((key) => re.test(key));
+            return k ? g[k]?.[0] ?? null : null;
+          };
+          const placeRow = pick(/^Incorporated Places$/);
+          const countyRow = pick(/^Counties$/);
+          if (placeRow?.GEOID) resolved.place = String(placeRow.GEOID);
+          if (countyRow?.GEOID) resolved.county = String(countyRow.GEOID);
+          if (!place && placeRow?.BASENAME) place = placeRow.BASENAME;
+          if (!county && countyRow?.BASENAME) county = String(countyRow.BASENAME).replace(/\s+County$/i, "");
+        }
+      } catch (e) {
+        console.warn("Census point lookup failed:", e);
+      }
+    }
     if (precision === "address" && lat != null && lng != null) {
       try {
         const { data: matched, error: matchErr } = await admin.rpc("match_district_codes", { _lat: lat, _lon: lng });
