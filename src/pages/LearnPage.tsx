@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useMyPath } from "@/hooks/useJourney";
+import { YourPath } from "@/components/journey/YourPath";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BookOpen, Zap, Clock, ChevronRight, ChevronDown,
@@ -19,16 +22,34 @@ export default function LearnPage() {
   const { tracks, lessons, progress, loading, getLessonsForTrack, getTrackProgress, totalXp, completedCount } = useLessonTracks();
   const [activeLesson, setActiveLesson] = useState<EnrichedLesson | null>(null);
   const [expandedTrack, setExpandedTrack] = useState<string | null>(null);
+  const { path, reload: reloadPath } = useMyPath();
+  const [params, setParams] = useSearchParams();
 
   const tracksStarted = tracks.filter(t => getTrackProgress(t.id).completed > 0).length;
   const literacyScore = lessons.length > 0 ? Math.round((completedCount / lessons.length) * 100) : 0;
 
+  const openLesson = (id: string) => {
+    const l = lessons.find(x => x.id === id);
+    if (l) setActiveLesson(l);
+  };
+
+  // Deep link: /app/learn?lesson=<id> opens that lesson right away.
+  useEffect(() => {
+    const id = params.get("lesson");
+    if (!id || loading) return;
+    openLesson(id);
+    params.delete("lesson");
+    setParams(params, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params, loading, lessons]);
+
   if (activeLesson) {
+    const close = () => { setActiveLesson(null); reloadPath(); };
     return (
       <LessonPlayer
         lesson={activeLesson}
-        onClose={() => setActiveLesson(null)}
-        onComplete={() => setActiveLesson(null)}
+        onClose={close}
+        onComplete={() => { close(); window.location.reload(); }}
       />
     );
   }
@@ -48,6 +69,8 @@ export default function LearnPage() {
       className="w-full max-w-5xl mx-auto px-3 sm:px-4 md:px-8 py-5 md:py-8 pb-24 md:pb-8 space-y-6 sm:space-y-8 min-h-screen overflow-x-hidden"
       style={{ paddingTop: "max(1.25rem, env(safe-area-inset-top))" }}
     >
+      <YourPath path={path} onOpen={openLesson} />
+
       {/* Hero */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <p className="text-[11px] sm:text-xs font-bold tracking-widest text-primary uppercase mb-2">Civic Education</p>
