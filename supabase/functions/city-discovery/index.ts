@@ -2,6 +2,7 @@
 // Nothing here turns anything on. Every source and map lands turned off.
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { sendAndLog } from '../_shared/transactional-email-templates/send-and-log.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -255,11 +256,8 @@ async function discoverCity(db: any, city: any) {
     const { data: admins } = await db.rpc('super_admin_emails');
     const emailed: string[] = [];
     for (const a of admins ?? []) {
-      const r = await fetch(`${SUPABASE_URL}/functions/v1/send-transactional-email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SERVICE_KEY}` },
-        body: JSON.stringify({
-          templateName: 'city-onboarding', recipientEmail: a.email,
+      try {
+        const r = await sendAndLog('city-onboarding', a.email, {
           idempotencyKey: `city-${city.id}-${discoveredAt}-${a.email}`,
           templateData: {
             city: `${name}${st ? `, ${st}` : ''}`, status, askedCount: city.requested_by_count, link: ADMIN_LINK,
@@ -269,10 +267,11 @@ async function discoverCity(db: any, city: any) {
               : undefined,
             notOfficial,
           },
-        }),
-      });
-      const t = await r.text();
-      emailed.push(`${r.ok ? 'queued' : `failed ${r.status} ${t.slice(0, 120)}`}`);
+        });
+        emailed.push(r.sent ? 'queued' : 'skipped, this address is blocked');
+      } catch (e) {
+        emailed.push(`failed ${((e as Error).message ?? '').slice(0, 120)}`);
+      }
     }
     await db.from('city_onboarding').update({
       notified_at: emailed.some((e) => e === 'queued') ? new Date().toISOString() : null,

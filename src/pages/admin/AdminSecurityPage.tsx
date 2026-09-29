@@ -489,20 +489,15 @@ async function notifyIncident(
   i: { title: string; severity: string; status: string; description?: string | null; detected_at?: string; resolved_at?: string | null },
 ) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    await supabase.functions.invoke("send-transactional-email", {
+    await supabase.functions.invoke("notify-security-incident", {
       body: {
-        templateName: "security-incident",
-        templateData: {
-          action,
-          title: i.title,
-          severity: i.severity,
-          status: i.status,
-          description: i.description ?? undefined,
-          detectedAt: i.detected_at,
-          resolvedAt: i.resolved_at ?? undefined,
-          actor: user?.email,
-        },
+        action,
+        title: i.title,
+        severity: i.severity,
+        status: i.status,
+        description: i.description ?? undefined,
+        detectedAt: i.detected_at,
+        resolvedAt: i.resolved_at ?? undefined,
       },
     });
   } catch (e) {
