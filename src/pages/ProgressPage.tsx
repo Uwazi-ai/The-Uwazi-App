@@ -26,7 +26,6 @@ function AnimatedCounter({ value, color }: { value: number; color: string }) {
 export default function ProgressPage() {
   const { civicScore, streak, earnedBadges, allBadges, loading } = useGamification();
   const [animatedScore, setAnimatedScore] = useState(0);
-  const [billsTracked, setBillsTracked] = useState(0);
   const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotion();
   const { user } = useAuth();
@@ -37,16 +36,6 @@ export default function ProgressPage() {
   const quizzesPassed = civicScore?.quizzes_passed ?? 0;
   const currentStreak = streak?.current_streak ?? 0;
   const nextBadgeThreshold = Math.max(200, Math.ceil((xpEarned + 1) / 200) * 200);
-
-  // Bills tracked count (preserves existing query patterns)
-  useEffect(() => {
-    if (!user) return;
-    supabase
-      .from("user_tracked_bills")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .then(({ count }) => setBillsTracked(count ?? 0));
-  }, [user]);
 
   useEffect(() => {
     if (loading) return;
@@ -213,12 +202,11 @@ export default function ProgressPage() {
           initial={motionInit}
           animate={motionAnim}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4"
+          className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4"
         >
           {[
             { label: "Lessons Done",   value: lessonsCompleted, icon: "📚", color: "#3b82f6", dest: "/app/learn" },
             { label: "Quizzes Passed", value: quizzesPassed,    icon: "✅", color: "#9bd34b", dest: "/app/learn" },
-            { label: "Bills Tracked",  value: billsTracked,     icon: "📄", color: "#14b8a6", dest: "/app/legislation" },
             { label: "Badges Earned",  value: badgesEarned,     icon: "🏆", color: "#f97316", dest: "#badges" },
           ].map((s) => (
             <button
@@ -318,21 +306,6 @@ export default function ProgressPage() {
                 <div className="flex-1 text-left">
                   <p className="text-sm font-bold text-foreground">Complete a civic lesson</p>
                   <p className="text-[11px] text-muted-foreground">+25 XP · 5 min</p>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </button>
-            )}
-
-            {billsTracked < 3 && (
-              <button
-                onClick={() => navigate("/app/legislation")}
-                className="w-full flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all hover:scale-[1.01]"
-                style={{ background: "rgba(20,184,166,0.07)", borderColor: "rgba(20,184,166,0.2)" }}
-              >
-                <span className="text-xl">📄</span>
-                <div className="flex-1 text-left">
-                  <p className="text-sm font-bold text-foreground">Track a bill that affects you</p>
-                  <p className="text-[11px] text-muted-foreground">+25 XP · 2 min</p>
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </button>

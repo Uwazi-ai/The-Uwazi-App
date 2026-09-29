@@ -7,7 +7,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { openMyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
 import {
   HomeIcon, LearnIcon, WatchIcon, AskUwaziIcon, VotingHubIcon,
-  LegislationIcon, ProgressIcon,
+  ProgressIcon,
   SavedIcon, SettingsIcon,
 } from "@/components/icons/UwaziIcons";
 
@@ -22,7 +22,6 @@ const navItems = [
 
 const drawerItems = [
   { to: "/app/settings", icon: User, label: "You" },
-  { to: "/app/legislation", icon: LegislationIcon, label: "Legislation" },
   { to: "/app/progress", icon: ProgressIcon, label: "Progress" },
   { to: "/app/saved", icon: SavedIcon, label: "Saved" },
   { to: "/app/settings", icon: SettingsIcon, label: "Settings" },

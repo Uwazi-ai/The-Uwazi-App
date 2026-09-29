@@ -758,57 +758,6 @@ export type Database = {
         }
         Relationships: []
       }
-      bill_summaries: {
-        Row: {
-          bill_id: string
-          community_impact_template: string
-          created_at: string
-          id: string
-          jurisdiction: string
-          plain_summary: string
-          updated_at: string
-        }
-        Insert: {
-          bill_id: string
-          community_impact_template: string
-          created_at?: string
-          id?: string
-          jurisdiction?: string
-          plain_summary: string
-          updated_at?: string
-        }
-        Update: {
-          bill_id?: string
-          community_impact_template?: string
-          created_at?: string
-          id?: string
-          jurisdiction?: string
-          plain_summary?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      bill_upvotes: {
-        Row: {
-          bill_id: string
-          created_at: string | null
-          id: string
-          user_id: string
-        }
-        Insert: {
-          bill_id: string
-          created_at?: string | null
-          id?: string
-          user_id: string
-        }
-        Update: {
-          bill_id?: string
-          created_at?: string | null
-          id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       campaign_recipients: {
         Row: {
           campaign_id: string | null
@@ -3213,45 +3162,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_tracked_bills: {
-        Row: {
-          bill_id: string
-          bill_number: string | null
-          bill_title: string | null
-          id: string
-          jurisdiction: string
-          last_action: string | null
-          last_action_date: string | null
-          status: string | null
-          tracked_at: string
-          user_id: string
-        }
-        Insert: {
-          bill_id: string
-          bill_number?: string | null
-          bill_title?: string | null
-          id?: string
-          jurisdiction?: string
-          last_action?: string | null
-          last_action_date?: string | null
-          status?: string | null
-          tracked_at?: string
-          user_id: string
-        }
-        Update: {
-          bill_id?: string
-          bill_number?: string | null
-          bill_title?: string | null
-          id?: string
-          jurisdiction?: string
-          last_action?: string | null
-          last_action_date?: string | null
-          status?: string | null
-          tracked_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       uwazi_question_log: {
         Row: {
           complexity_level: string | null
@@ -3570,13 +3480,6 @@ export type Database = {
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
-      }
-      get_bill_upvote_counts: {
-        Args: { _bill_ids: string[] }
-        Returns: {
-          bill_id: string
-          count: number
-        }[]
       }
       get_episode_like_count: { Args: { _episode_id: string }; Returns: number }
       get_invite_by_token: {

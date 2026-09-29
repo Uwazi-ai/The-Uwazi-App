@@ -6,7 +6,7 @@ import { Lock } from "lucide-react";
 import uwaziLogo from "@/assets/uwazi-app-logo.png";
 import {
   HomeIcon, AskUwaziIcon, LearnIcon, WatchIcon,
-  VotingHubIcon, LegislationIcon, ProgressIcon,
+  VotingHubIcon, ProgressIcon,
   SettingsIcon, SignOutIcon, AdminOverviewIcon,
   UsersIcon, AnalyticsIcon, IntelligenceIcon,
   LessonManagerIcon, CivicContentIcon, AlertsIcon,
@@ -25,7 +25,6 @@ const mainNav = [
   { to: "/app/watch", icon: WatchIcon, label: "Watch" },
   { to: "/app/vote", icon: VotingHubIcon, label: "Voting Hub" },
   { to: "/app/my-city", icon: Building2, label: "My City" },
-  { to: "/app/legislation", icon: LegislationIcon, label: "Legislation" },
   { to: "/app/progress", icon: ProgressIcon, label: "Progress" },
 ];
 

@@ -5,7 +5,6 @@ import {
   BookOpen,
   Play,
   CheckSquare,
-  FileText,
   TrendingUp,
   type LucideIcon,
 } from "lucide-react";
@@ -33,7 +32,7 @@ const STEPS: TourStep[] = [
     color: "hsl(var(--primary))",
     bg: "hsl(var(--primary) / 0.15)",
     name: "Ask Uwazi",
-    step: "Step 1 of 6",
+    step: "Step 1 of 5",
     route: "/app/ask",
     desc:
       "Get instant, nonpartisan answers to any civic question — from how a bill works to what your local representatives voted for. Powered by AI, grounded in facts.",
@@ -43,7 +42,7 @@ const STEPS: TourStep[] = [
     color: "#3b82f6",
     bg: "rgba(59,130,246,0.15)",
     name: "Learn",
-    step: "Step 2 of 6",
+    step: "Step 2 of 5",
     route: "/app/learn",
     desc:
       "Short, Duolingo-style civic lessons built around your community. Earn XP, track your Civic Literacy Score, and level up your understanding of democracy.",
@@ -53,7 +52,7 @@ const STEPS: TourStep[] = [
     color: "#a855f7",
     bg: "rgba(168,85,247,0.15)",
     name: "Watch",
-    step: "Step 3 of 6",
+    step: "Step 3 of 5",
     route: "/app/watch",
     desc:
       "Original civic video content — from policy breakdowns to community stories. Stream episodes on the issues that affect your neighborhood most.",
@@ -63,27 +62,17 @@ const STEPS: TourStep[] = [
     color: "#f97316",
     bg: "rgba(249,115,22,0.15)",
     name: "Voting Hub",
-    step: "Step 4 of 6",
+    step: "Step 4 of 5",
     route: "/app/vote",
     desc:
       "Everything you need to show up — your candidates, your polling location, your ballot, and a countdown to your next election. Your vote, demystified.",
-  },
-  {
-    icon: FileText,
-    color: "#14b8a6",
-    bg: "rgba(20,184,166,0.15)",
-    name: "Legislation Tracker",
-    step: "Step 5 of 6",
-    route: "/app/legislation",
-    desc:
-      "Track real bills in Congress and your state legislature. Get plain-language summaries, see how legislation affects your ZIP code, and follow the bills that matter.",
   },
   {
     icon: TrendingUp,
     color: "hsl(var(--primary))",
     bg: "hsl(var(--primary) / 0.15)",
     name: "Your Progress",
-    step: "Step 6 of 6",
+    step: "Step 5 of 5",
     route: "/app/progress",
     desc:
       "Every action earns Civic XP. Build streaks, unlock badges, and watch your Civic Score grow — because an informed citizen is a powerful one.",
