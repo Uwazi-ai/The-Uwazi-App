@@ -207,6 +207,7 @@ export function useBallotCandidates(contestIds: string[]) {
         .from("ballot_candidates")
         .select("*")
         .in("contest_id", contestIds)
+        .is("withdrawn_at" as any, null)
         .order("sort_order", { ascending: true });
       return (data || []) as BallotCandidate[];
     },
