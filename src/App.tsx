@@ -66,6 +66,7 @@ import MyBallotReviewPage from "./pages/MyBallotReviewPage";
 import MyBallotExportPage from "./pages/MyBallotExportPage";
 import { InAppBrowserProvider } from "@/contexts/InAppBrowserContext";
 import OAuthConsentPage from "./pages/OAuthConsentPage";
+import CivicCompassPage from "./pages/CivicCompassPage";
 
 const queryClient = new QueryClient();
 
@@ -121,6 +122,7 @@ const App = () => (
                 <Route path="/app/legislation" element={<LegislationPage />} />
                 <Route path="/app/legislation/:congress/:type/:number" element={<BillDetailPage />} />
                 <Route path="/app/progress" element={<ProgressPage />} />
+                <Route path="/app/compass" element={<CivicCompassPage />} />
                 <Route path="/app/profile" element={<Navigate to="/app/settings" replace />} />
                 <Route path="/app/settings" element={<SettingsPage />} />
                 <Route path="/app/settings/subscription" element={<ManageSubscriptionPage />} />
