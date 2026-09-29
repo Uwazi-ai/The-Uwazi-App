@@ -33,12 +33,17 @@ async function loadMatches(sessionId: string): Promise<Match[]> {
 
 /** Share of every $100 for each office, only if city budget rows exist. */
 async function loadBudgetShares(): Promise<Record<string, number>> {
-  const { data, error } = await db.from("civic_budgets").select("office_id, amount");
+  // Only this person's city, only spending, only the newest fiscal year.
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: ud } = await db.from("user_districts").select("resolved").eq("user_id", user?.id).maybeSingle();
+  const place = ud?.resolved?.place;
+  if (!place) return {};
+  const { data, error } = await db.from("civic_budget_percent_of_total")
+    .select("office_id, percent_of_total, fiscal_year").eq("geoid", place).eq("revenue_or_expense", "expense");
   if (error || !data?.length) return {};
-  const total = data.reduce((s: number, r: any) => s + (Number(r.amount) || 0), 0);
-  if (!total) return {};
+  const latest = [...data].sort((a: any, b: any) => String(b.fiscal_year).localeCompare(String(a.fiscal_year)))[0].fiscal_year;
   const out: Record<string, number> = {};
-  for (const r of data) if (r.office_id) out[r.office_id] = (out[r.office_id] ?? 0) + (Number(r.amount) / total) * 100;
+  for (const r of data) if (r.office_id && r.fiscal_year === latest) out[r.office_id] = (out[r.office_id] ?? 0) + Number(r.percent_of_total || 0);
   return out;
 }
 
