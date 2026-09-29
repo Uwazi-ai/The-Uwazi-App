@@ -1152,6 +1152,169 @@ export type Database = {
           },
         ]
       }
+      compass_dimensions: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      compass_questions: {
+        Row: {
+          active: boolean
+          created_at: string
+          dimension_id: string
+          id: string
+          order_index: number
+          prompt_text: string
+          reverse_scored: boolean
+          weight: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          dimension_id: string
+          id?: string
+          order_index?: number
+          prompt_text: string
+          reverse_scored?: boolean
+          weight?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          dimension_id?: string
+          id?: string
+          order_index?: number
+          prompt_text?: string
+          reverse_scored?: boolean
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compass_questions_dimension_id_fkey"
+            columns: ["dimension_id"]
+            isOneToOne: false
+            referencedRelation: "compass_dimensions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compass_responses: {
+        Row: {
+          answer_value: number
+          created_at: string
+          id: string
+          question_id: string
+          session_id: string
+        }
+        Insert: {
+          answer_value: number
+          created_at?: string
+          id?: string
+          question_id: string
+          session_id: string
+        }
+        Update: {
+          answer_value?: number
+          created_at?: string
+          id?: string
+          question_id?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compass_responses_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "compass_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compass_responses_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "compass_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compass_results: {
+        Row: {
+          computed_at: string
+          dimension_scores: Json
+          id: string
+          session_id: string
+          top_dimensions: Json
+        }
+        Insert: {
+          computed_at?: string
+          dimension_scores?: Json
+          id?: string
+          session_id: string
+          top_dimensions?: Json
+        }
+        Update: {
+          computed_at?: string
+          dimension_scores?: Json
+          id?: string
+          session_id?: string
+          top_dimensions?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compass_results_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "compass_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compass_sessions: {
+        Row: {
+          completed_at: string | null
+          district_geoid: string | null
+          id: string
+          locale: string | null
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          district_geoid?: string | null
+          id?: string
+          locale?: string | null
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          district_geoid?: string | null
+          id?: string
+          locale?: string | null
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       election_authorities: {
         Row: {
           county_name: string | null
@@ -3470,6 +3633,7 @@ export type Database = {
         }
         Returns: number
       }
+      owns_compass_session: { Args: { _session_id: string }; Returns: boolean }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
