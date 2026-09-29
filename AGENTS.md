@@ -8,3 +8,7 @@
 - New cities are found by the city-discovery function from city_onboarding rows that resolve-address requests; it only creates sources and boundary batches with active=false, and a city flips to active by trigger once one source and one boundary batch for its place_geoid are on. Why: nothing a search finds reaches voters without admin approval.
 - Compass 2.0: identity photos live in a private bucket keyed by user id; city identity summary only via city_top_identity (25+ research-consented, never rows). Why: photos and answers stay private.
 - Civic Games counts are rebuilt only by refresh_challenge_progress from user_points_ledger (distinct source_id per event), and challenge_progress is never written by the client; ZIP boards come from challenge_zip_board, which hides ZIPs under 10 participants and never returns a user. Why: standings must be earned server side and no one is ever shown by name.
+
+<!-- LOVABLE:BEGIN -->
+- AppLayout keeps the content column as the vertical scroll container and avoids overflow-x-hidden on main. Why: main's overflow traps long pages on phones and hides actions.
+<!-- LOVABLE:END -->
