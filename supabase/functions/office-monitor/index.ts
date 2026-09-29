@@ -4,6 +4,8 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+const FIRECRAWL_API_KEY = Deno.env.get('FIRECRAWL_API_KEY');
+
 const CRON_SECRET = Deno.env.get('SCRAPER_CRON_SECRET');
 const MAX_PER_RUN = 5;
 
