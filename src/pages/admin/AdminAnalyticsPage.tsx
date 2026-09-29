@@ -213,7 +213,7 @@ export default function AdminAnalyticsPage() {
     if (!filteredQuestions.length) return;
     const headers = "Time,Question,Category,SubTopic,Complexity,ZIP,HasLesson,Intent\n";
     const rows = filteredQuestions.map(q =>
-      `"${q.created_at}","${q.question_text.replace(/"/g, '""')}","${q.topic_category || ''}","${q.sub_topic || ''}","${q.complexity_level || ''}","${q.zip_code || ''}","${q.has_matching_lesson ? 'Yes' : 'No'}","${q.intent_type || ''}"`
+      csvRow([q.created_at, q.question_text, q.topic_category || '', q.sub_topic || '', q.complexity_level || '', q.zip_code || '', q.has_matching_lesson ? 'Yes' : 'No', q.intent_type || ''])
     ).join("\n");
     const blob = new Blob([headers + rows], { type: "text/csv" });
     const a = document.createElement("a");

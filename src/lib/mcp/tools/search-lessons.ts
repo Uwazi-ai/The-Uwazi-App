@@ -26,8 +26,12 @@ export default defineTool({
       .order("order_index")
       .limit(25);
 
-    if (query) q = q.or(`title.ilike.%${query}%,description.ilike.%${query}%`);
-    if (track) q = q.ilike("track_name", `%${track}%`);
+    if (query) {
+      // Keep only plain words so the text cannot change the filter.
+      const safe = query.replace(/[^\p{L}\p{N}\s'-]/gu, " ").trim().slice(0, 100);
+      if (safe) q = q.or(`title.ilike."%${safe}%",description.ilike."%${safe}%"`);
+    }
+    if (track) q = q.ilike("track_name", `%${track.replace(/[%_\\]/g, "").slice(0, 100)}%`);
 
     const { data, error } = await q;
     if (error) return errorResult(error.message);
