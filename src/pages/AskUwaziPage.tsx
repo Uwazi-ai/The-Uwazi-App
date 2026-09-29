@@ -16,7 +16,8 @@ import remarkGfm from "remark-gfm";
 import { useAskUwaziContext, getSuggestedPrompts, useAskUwaziSession, type ChatSession } from "@/hooks/useAskUwazi";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useMyJourney } from "@/hooks/useJourney";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { isToday, isYesterday, differenceInDays } from "date-fns";
@@ -345,6 +346,7 @@ export default function AskUwaziPage() {
     chatHistory, loadSession, deleteSession,
   } = useAskUwaziSession();
   const suggestedPrompts = getSuggestedPrompts(ctx);
+  const { journey: askJourney } = useMyJourney();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
