@@ -168,10 +168,10 @@ async function checkSource(db: any, src: any) {
     }
     if (rows.length) await db.from('civic_office_pending_changes').insert(rows);
 
-    const result = { offices, unclear, changes_found: rows.length, checked_at: now };
+    const result = { offices, unclear, changes_found: rows.length, checked_at: now, read_method: readMethod };
     await db.from('civic_office_sources').update({
       last_checked_at: now, last_success_at: now, last_error: null, last_result: result,
-      source_health: health, last_page_text: text.slice(0, 20000),
+      source_health: health, last_page_text: text.slice(0, 20000), read_method: readMethod,
       ...(rows.length ? { last_changed_at: now } : {}),
     }).eq('id', src.id);
     return { source_id: src.id, ok: true, ...result };
@@ -179,8 +179,10 @@ async function checkSource(db: any, src: any) {
     const msg = (e as Error).message;
     console.error(`office-monitor ${src.id}: ${msg}`);
     await db.from('civic_office_sources').update({ last_checked_at: now, last_error: msg, source_health: (e as any).health ?? 'broken',
+      read_method: (e as any).readMethod ?? readMethod,
       ...((e as any).pageText ? { last_page_text: String((e as any).pageText).slice(0, 20000) } : {}) }).eq('id', src.id);
     return { source_id: src.id, ok: false, error: msg };
+
   }
 }
 
