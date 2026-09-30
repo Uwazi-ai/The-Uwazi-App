@@ -9,18 +9,24 @@ import { CompassRose } from "./CompassRose";
 import { dimMeta, stageColor, topSlugs } from "@/lib/compassDims";
 import { useMyBadges } from "@/hooks/useChallenge";
 import { BadgeRow } from "@/components/games/BadgeRow";
+import { usePersonas, shortName } from "@/lib/personas";
 
 const db = supabase as any;
 const BUCKET = "identity-photos";
 
 interface Props {
   label: string | null;
+  persona?: string | null;
+  streak?: string | null;
   scores: Record<string, number>;
   stage: string | null;
   fallbackTitle?: string;
 }
 
-export function IdentityCard({ label, scores, stage, fallbackTitle }: Props) {
+export function IdentityCard({ label, persona, streak, scores, stage, fallbackTitle }: Props) {
+  const { bySlug } = usePersonas();
+  const pp = bySlug(persona);
+  const ps = bySlug(streak);
   const { user } = useAuth();
   const cardRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -52,7 +58,11 @@ export function IdentityCard({ label, scores, stage, fallbackTitle }: Props) {
   };
   const frame = resolve(stageColor(stage));
   const card = resolve("hsl(var(--card))");
-  const bg = tops.length
+  // Persona tint at 12 percent over the card surface. Resolved so the shared picture matches.
+  const pColor = pp ? resolve(`hsl(var(--persona-${pp.color}))`, 0.12) : null;
+  const bg = pColor
+    ? `linear-gradient(${pColor}, ${pColor}), ${card}`
+    : tops.length
     ? `linear-gradient(145deg, ${resolve(tops[0].color, 0.3)}, ${card} 55%, ${resolve((tops[1] ?? tops[0]).color, 0.22)})`
     : card;
 
@@ -104,13 +114,14 @@ export function IdentityCard({ label, scores, stage, fallbackTitle }: Props) {
       <div ref={cardRef} data-testid="identity-card" className="rounded-3xl p-1" style={{ background: frame }}>
         <div className="rounded-[20px] p-5 space-y-4" style={{ background: bg }}>
           <div className="flex items-center justify-between gap-3">
-            <p className="text-[11px] font-bold tracking-[0.2em] text-muted-foreground">UWAZI CIVIC IDENTITY</p>
+            <p className="text-[11px] font-bold tracking-[0.2em] text-muted-foreground">YOUR CIVIC PERSONA</p>
             {stage && <span className="text-[11px] font-bold px-2 py-0.5 rounded-full text-background" style={{ background: frame }}>{stage}</span>}
           </div>
           <div className="flex items-center gap-4">
             {photo && <img src={photo} alt="You" className="h-16 w-16 rounded-full object-cover border-2" style={{ borderColor: frame }} />}
             <div className="min-w-0">
-              <h3 className="font-heading text-2xl text-foreground leading-tight">{label ?? fallbackTitle ?? "Civic Compass"}</h3>
+              <h3 className="font-heading text-2xl leading-tight" data-testid="card-headline" style={{ color: pp ? resolve(`hsl(var(--persona-${pp.color}))`) : undefined }}>{pp?.name ?? label ?? fallbackTitle ?? "Civic Compass"}</h3>
+              {ps && <p className="text-sm font-semibold" data-testid="card-streak" style={{ color: resolve(`hsl(var(--persona-${ps.color}))`) }}>with a {shortName(ps)} streak</p>}
               {city && <p className="text-sm text-muted-foreground">{city}</p>}
             </div>
           </div>
