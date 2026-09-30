@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ExternalLink, Check, X, Play, Power, MessageCircle } from "lucide-react";
 import CitiesSection, { useCitiesWaiting } from "@/components/admin/CitiesSection";
 
@@ -68,6 +69,8 @@ export default function AdminOfficeHealthPage() {
   const [importing, setImporting] = useState(false);
   const [running, setRunning] = useState<string | null>(null);
   const [showText, setShowText] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkRunning, setBulkRunning] = useState(false);
 
   const sources = useQuery({
     queryKey: ["office-sources"],
@@ -216,6 +219,31 @@ export default function AdminOfficeHealthPage() {
     if (error) toast.error(error.message); else { toast.success(approve ? "Saved. Voters will see it now." : "Change closed."); refresh(); }
   };
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const reviewMany = async (approve: boolean) => {
+    const ids = [...selected];
+    if (!ids.length) return;
+    if (approve && !confirm(`Approve ${ids.length} changes? Voters will see them right away.`)) return;
+    setBulkRunning(true);
+    let done = 0, failed = 0;
+    for (const id of ids) {
+      const { error } = await db.rpc("review_office_change", { _change_id: id, _approve: approve });
+      error ? failed++ : done++;
+    }
+    setBulkRunning(false);
+    setSelected(new Set());
+    if (failed) toast.error(`${done} done. ${failed} failed. Try those one at a time.`);
+    else toast.success(approve ? `${done} approved. Voters will see them now.` : `${done} changes closed.`);
+    refresh();
+  };
+
   const list = sources.data ?? [];
   const sorted = [...list].sort((a, b) => Number(needsAttention(b)) - Number(needsAttention(a)));
   const pending = changes.data ?? [];
@@ -279,9 +307,37 @@ export default function AdminOfficeHealthPage() {
         <h2 className="text-lg font-semibold text-foreground">Review queue</h2>
         <p className="text-xs text-muted-foreground">User reports come first. Then the oldest changes.</p>
         {!pending.length && <Card className="p-4 text-sm text-muted-foreground">Nothing to review right now.</Card>}
+        {pending.length > 1 && (
+          <Card className="p-3 flex flex-wrap items-center gap-2 sticky top-2 z-10">
+            <Checkbox
+              id="select-all-pending"
+              checked={pending.every((c) => selected.has(c.id))}
+              onCheckedChange={(v) => setSelected(v ? new Set(pending.map((c) => c.id)) : new Set())}
+            />
+            <Label htmlFor="select-all-pending" className="text-xs text-muted-foreground mr-auto">
+              {selected.size ? `${selected.size} selected` : `Select all ${pending.length}`}
+            </Label>
+            {selected.size > 0 && (
+              <>
+                <Button size="sm" disabled={bulkRunning} onClick={() => reviewMany(true)}>
+                  <Check className="h-4 w-4 mr-1" />Approve selected
+                </Button>
+                <Button size="sm" variant="outline" disabled={bulkRunning} onClick={() => reviewMany(false)}>
+                  <X className="h-4 w-4 mr-1" />Reject selected
+                </Button>
+              </>
+            )}
+          </Card>
+        )}
         {pending.map((c) => (
           <Card key={c.id} className="p-4 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
+              <Checkbox
+                className="mr-1"
+                checked={selected.has(c.id)}
+                onCheckedChange={() => toggleSelect(c.id)}
+                aria-label="Select this change"
+              />
               <Badge variant={c.origin === "user_reported" ? "destructive" : "secondary"}>{ORIGIN_LABEL[c.origin] ?? c.origin}</Badge>
               <span className="font-medium text-foreground">{c.data_type === "budget"
                 ? (c.target_table === "civic_budget_calendar" ? `Budget calendar, ${c.proposed?.fiscal_year ?? ""}` : `${c.proposed?.department_or_fund ?? "Budget line"}, ${c.proposed?.fiscal_year ?? ""}`)
