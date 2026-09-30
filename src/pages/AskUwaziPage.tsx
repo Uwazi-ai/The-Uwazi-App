@@ -902,7 +902,7 @@ export default function AskUwaziPage() {
                           <div className="flex flex-col sm:flex-row sm:items-center gap-2 rounded-xl border border-primary/30 bg-primary/10 p-3">
                             <div className="flex-1">
                               <p className="text-sm text-foreground">Want a 3 minute lesson on this?</p>
-                              <WhyAmISeeing rule="Your question matched the topic of this lesson. We only suggest lessons you have not finished." onChanged={reloadAskJourney} />
+                              <WhyAmISeeing rule="Your question touched an issue you scored lower on in the Compass. This is a lesson on that issue you have not finished yet." onChanged={reloadAskJourney} />
                             </div>
                             <Link to={`/app/learn?lesson=${msg.nudge.lesson_id}`} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-center">
                               Open: {msg.nudge.title}
