@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { usePersonas, shortName, PERSONA_TOPIC } from "@/lib/personas";
+import { PersonaBadge } from "@/components/compass/PersonaBadge";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, BookmarkPlus, BookmarkCheck, Share2, RotateCcw, MapPin,
@@ -770,7 +771,7 @@ export default function AskUwaziPage() {
                   <div className="mt-2 space-y-1">
                     <p className="text-sm text-foreground" data-testid="ask-greeting">
                       {askPersona
-                        ? <>Welcome back, {shortName(askPersona)}. Here is what changed on {PERSONA_TOPIC[askPersona.slug] ?? "your issues"} in your city this week. Ask me about it.</>
+                        ? <><PersonaBadge slug={askPersona.slug} size="chip" className="inline-block align-middle mr-2" label={`${askPersona.name} badge`} />Welcome back, {shortName(askPersona)}. Here is what changed on {PERSONA_TOPIC[askPersona.slug] ?? "your issues"} in your city this week. Ask me about it.</>
                         : askJourney.lead_name
                         ? <>Welcome back. You lead with {askJourney.lead_name}. Ask what changed on that in your city this week.</>
                         : <>Welcome back. Your Compass says {askJourney.label}. Ask what changed in your city this week.</>}
