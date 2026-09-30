@@ -1,0 +1,9 @@
+ALTER TABLE public.videos ADD COLUMN description text NOT NULL DEFAULT '', ADD COLUMN placement text NOT NULL DEFAULT 'home_row' CHECK (placement IN ('home_row','welcome','both'));
+ALTER TABLE public.videos ADD CONSTRAINT videos_dimension_slug_fk FOREIGN KEY (dimension_slug) REFERENCES public.compass_dimensions(slug);
+CREATE OR REPLACE FUNCTION public.set_single_welcome_video() RETURNS trigger LANGUAGE plpgsql SET search_path = public AS $$ BEGIN IF NEW.placement IN ('welcome','both') THEN UPDATE public.videos SET placement = 'home_row' WHERE id <> NEW.id AND placement IN ('welcome','both'); END IF; RETURN NEW; END; $$;
+CREATE TRIGGER set_single_welcome_video BEFORE INSERT OR UPDATE OF placement ON public.videos FOR EACH ROW EXECUTE FUNCTION public.set_single_welcome_video();
+CREATE UNIQUE INDEX videos_one_welcome_idx ON public.videos ((true)) WHERE placement IN ('welcome','both');
+INSERT INTO public.videos (title, description, tag, length_seconds, url, poster_url, placement, active, sort_order) SELECT 'Welcome to UWAZI', '', 'Welcome', 60, url, poster_url, 'welcome', true, 0 FROM public.video_assets WHERE key='welcome_home' AND NOT EXISTS (SELECT 1 FROM public.videos WHERE placement IN ('welcome','both'));
+CREATE POLICY "Members view active home video media" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'home-video-media' AND (public.is_admin(auth.uid()) OR EXISTS (SELECT 1 FROM public.videos v WHERE v.active AND (v.url LIKE '%/home-video-media/' || storage.objects.name OR v.poster_url LIKE '%/home-video-media/' || storage.objects.name))));
+CREATE POLICY "Super admins upload home video media" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'home-video-media' AND public.is_admin(auth.uid()));
+CREATE POLICY "Super admins remove home video media" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'home-video-media' AND public.is_admin(auth.uid()));

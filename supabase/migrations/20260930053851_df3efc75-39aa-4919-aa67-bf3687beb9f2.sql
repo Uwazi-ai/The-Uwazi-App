@@ -1,0 +1,3 @@
+GRANT SELECT ON public.videos TO anon;
+CREATE POLICY "Public reads active videos" ON public.videos FOR SELECT TO anon USING (active);
+CREATE POLICY "Public views active video media" ON storage.objects FOR SELECT TO anon USING (bucket_id = 'home-video-media' AND EXISTS (SELECT 1 FROM public.videos v WHERE v.active AND (split_part(v.url, '/home-video-media/', 2) = storage.objects.name OR split_part(v.poster_url, '/home-video-media/', 2) = storage.objects.name)));

@@ -48,8 +48,8 @@ export default function HomePage() {
     (async () => {
       const [profile, asset, clips, prefs, recent, district] = await Promise.all([
         db.from("profiles").select("home_welcome_seen").eq("user_id", user.id).maybeSingle(),
-        db.from("video_assets").select("key,url,poster_url").eq("key", "welcome_home").maybeSingle(),
-        db.from("videos").select("id,title,tag,length_seconds,url,poster_url,dimension_slug,sort_order").eq("active", true).order("sort_order"),
+         db.from("videos").select("*").eq("active", true).in("placement", ["welcome", "both"]).limit(1).maybeSingle(),
+         db.from("videos").select("*").eq("active", true).in("placement", ["home_row", "both"]).order("sort_order").order("created_at", { ascending: false }),
         db.from("user_preferences").select("autoplay_on_cellular").eq("user_id", user.id).maybeSingle(),
         db.rpc("home_city_updates"),
         db.from("user_districts").select("resolved").eq("user_id", user.id).maybeSingle(),

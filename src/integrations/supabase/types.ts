@@ -4664,9 +4664,11 @@ export type Database = {
         Row: {
           active: boolean
           created_at: string
+          description: string
           dimension_slug: string | null
           id: string
           length_seconds: number
+          placement: string
           poster_url: string
           sort_order: number
           tag: string
@@ -4677,9 +4679,11 @@ export type Database = {
         Insert: {
           active?: boolean
           created_at?: string
+          description?: string
           dimension_slug?: string | null
           id?: string
           length_seconds: number
+          placement?: string
           poster_url: string
           sort_order?: number
           tag: string
@@ -4690,9 +4694,11 @@ export type Database = {
         Update: {
           active?: boolean
           created_at?: string
+          description?: string
           dimension_slug?: string | null
           id?: string
           length_seconds?: number
+          placement?: string
           poster_url?: string
           sort_order?: number
           tag?: string
@@ -4700,7 +4706,15 @@ export type Database = {
           updated_at?: string
           url?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "videos_dimension_slug_fk"
+            columns: ["dimension_slug"]
+            isOneToOne: false
+            referencedRelation: "compass_dimensions"
+            referencedColumns: ["slug"]
+          },
+        ]
       }
       voting_plan: {
         Row: {

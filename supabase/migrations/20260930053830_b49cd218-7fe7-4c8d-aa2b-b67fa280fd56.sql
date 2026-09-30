@@ -1,0 +1,4 @@
+DROP POLICY "Members view active home video media" ON storage.objects;
+CREATE POLICY "Members view active home video media" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'home-video-media' AND (public.is_admin(auth.uid()) OR EXISTS (SELECT 1 FROM public.videos v WHERE v.active AND (split_part(v.url, '/home-video-media/', 2) = storage.objects.name OR split_part(v.poster_url, '/home-video-media/', 2) = storage.objects.name))));
+CREATE INDEX videos_active_media_url_idx ON public.videos ((split_part(url, '/home-video-media/', 2))) WHERE active;
+CREATE INDEX videos_active_media_poster_idx ON public.videos ((split_part(poster_url, '/home-video-media/', 2))) WHERE active;

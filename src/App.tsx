@@ -22,6 +22,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import LearnPage from "./pages/LearnPage";
 import WatchPage from "./pages/WatchPage";
+import EpisodesFeedPage from "./pages/EpisodesFeedPage";
 import CandidatesPage from "./pages/CandidatesPage";
 import CandidateDetailPage from "./pages/CandidateDetailPage";
 import ProgressPage from "./pages/ProgressPage";
@@ -44,6 +45,7 @@ import AdminSurveysPage from "./pages/admin/AdminSurveysPage";
 import AdminResearchSurveysPage from "./pages/admin/AdminResearchSurveysPage";
 import ResearchSurveyPage from "./pages/ResearchSurveyPage";
 import AdminEpisodesPage from "./pages/admin/AdminEpisodesPage";
+import AdminVideoLibraryPage from "./pages/admin/AdminVideoLibraryPage";
 import AdminPartnerOrgsPage from "./pages/admin/AdminPartnerOrgsPage";
 import UpgradePage from "./pages/UpgradePage";
 import AdminCodesPage from "./pages/admin/AdminCodesPage";
@@ -124,6 +126,7 @@ const App = () => (
                 <Route path="/app/saved" element={<SavedPage />} />
                 <Route path="/app/learn" element={<LearnPage />} />
                 <Route path="/app/watch" element={<WatchPage />} />
+                <Route path="/app/episodes" element={<EpisodesFeedPage />} />
                 <Route path="/app/progress" element={<ProgressPage />} />
                 <Route path="/app/compass" element={<CivicCompassPage />} />
                 <Route path="/app/profile" element={<Navigate to="/app/settings" replace />} />
@@ -140,7 +143,8 @@ const App = () => (
                 <Route path="/app/admin/analytics" element={<AdminRoute allowProgramAdmin><AdminAnalyticsPage /></AdminRoute>} />
                 <Route path="/app/admin/intelligence" element={<AdminRoute allowProgramAdmin><AdminIntelligencePage /></AdminRoute>} />
                 <Route path="/app/admin/lessons" element={<AdminRoute allowProgramAdmin><AdminLessonsPage /></AdminRoute>} />
-                <Route path="/app/admin/content" element={<AdminRoute allowProgramAdmin><AdminEpisodesPage /></AdminRoute>} />
+                <Route path="/app/admin/content" element={<AdminRoute><AdminVideoLibraryPage /></AdminRoute>} />
+                <Route path="/app/admin/episodes" element={<AdminRoute allowProgramAdmin><AdminEpisodesPage /></AdminRoute>} />
                 <Route path="/app/admin/alerts" element={<AdminRoute allowProgramAdmin><AdminAlertsPage /></AdminRoute>} />
                 <Route path="/app/admin/platform" element={<AdminRoute><AdminPlatformPage /></AdminRoute>} />
                 <Route path="/app/admin/crm" element={<AdminRoute allowProgramAdmin><AdminCRMPage /></AdminRoute>} />
