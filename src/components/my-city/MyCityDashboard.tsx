@@ -99,7 +99,7 @@ export function MyCityDashboard() {
 
   if (isLoading) return <LoadingScreen fullScreen={false} />;
 
-  const city = isCounty ? "Jackson County" : all?.cityName ?? "your city";
+  const city = isCounty ? "your county" : all?.cityName ?? "your city";
   const lines = (data?.lines ?? []).filter((l) => l.fiscal_year === fy);
   const spend = lines.filter((l) => l.revenue_or_expense === "expense").sort((a, b) => b.amount - a.amount);
   const revenue = lines.filter((l) => l.revenue_or_expense === "revenue").sort((a, b) => b.amount - a.amount);
