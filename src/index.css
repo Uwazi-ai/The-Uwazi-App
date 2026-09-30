@@ -705,3 +705,4 @@ body {
   .pack-spark, .badge-shock, .pack-shine { display: none; }
   .tilt-card, .tilt-foil { transition: none !important; }
 }
+.tilt-flat .badge-shock, .tilt-flat .pack-shine { display: none !important; }
