@@ -667,3 +667,42 @@ body {
   .prog-rose, .prog-bar { animation: none !important; transform: none !important; }
   .prog-ring, .prog-flip-inner { transition: none !important; }
 }
+
+/* Identity card tilt and holographic foil. */
+.tilt-card { position: relative; transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .5s cubic-bezier(.2,.8,.2,1); transform-style: preserve-3d; touch-action: pan-y; }
+.tilt-card.tilting { transition: transform .08s linear; }
+.tilt-foil { position: absolute; inset: 0; pointer-events: none; border-radius: inherit; mix-blend-mode: screen; opacity: .35; z-index: 2;
+  background: linear-gradient(115deg, transparent 22%, hsl(var(--primary)) 38%, hsl(var(--city-tone-1)) 50%, hsl(var(--city-tone-2)) 62%, transparent 78%);
+  background-size: 260% 260%; background-position: var(--fx, 50%) var(--fy, 50%); transition: background-position .5s ease; }
+.tilt-card.tilting .tilt-foil { transition: none; }
+.tilt-flat { transform: none !important; }
+.tilt-flat .tilt-foil { background-position: 50% 50% !important; }
+
+/* Card pack opening. */
+.pack-glow { background: radial-gradient(circle at 50% 45%, hsl(var(--primary) / .18), transparent 60%), hsl(var(--background)); }
+.pack-float { animation: pack-float 3.2s ease-in-out infinite; }
+.pack-hint { animation: pack-hint 1.8s ease-in-out infinite; }
+.pack-beam { position: absolute; left: 50%; bottom: 50%; width: 46px; height: 60vh; margin-left: -23px; transform-origin: 50% 100%;
+  background: linear-gradient(to top, hsl(var(--primary) / .75), transparent); filter: blur(6px); opacity: 0; border-radius: 999px;
+  animation: pack-beam 1.2s ease-out forwards; animation-delay: calc(var(--i) * 40ms); }
+.pack-shine { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; overflow: hidden; }
+.pack-shine::after { content: ""; position: absolute; top: -20%; bottom: -20%; width: 40%; left: -60%; transform: skewX(-20deg);
+  background: linear-gradient(90deg, transparent, hsl(var(--foreground) / .35), transparent); animation: pack-shine 900ms ease-out forwards; }
+.pack-spark { position: absolute; width: 6px; height: 6px; border-radius: 999px; opacity: 0; animation: pack-spark 3.2s linear infinite; animation-delay: var(--d); }
+.badge-socket { animation: badge-socket 1.6s ease-in-out infinite; }
+.badge-shock { position: absolute; inset: -4px; border-radius: 999px; border: 2px solid var(--shock, hsl(var(--primary))); animation: badge-shock 800ms ease-out forwards; pointer-events: none; }
+.badge-drop { animation: badge-drop 700ms cubic-bezier(.3,1.6,.5,1) both; }
+@keyframes pack-float { 0%,100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-10px) rotate(1.5deg); } }
+@keyframes pack-hint { 0%,100% { opacity: .25; } 50% { opacity: 1; } }
+@keyframes pack-beam { 0% { opacity: 0; transform: rotate(var(--r)) scaleY(.2); } 30% { opacity: 1; } 100% { opacity: 0; transform: rotate(var(--r)) scaleY(1.2); } }
+@keyframes pack-shine { to { left: 130%; } }
+@keyframes pack-spark { 0% { opacity: 0; transform: translateY(0) scale(.6); } 15% { opacity: .9; } 100% { opacity: 0; transform: translateY(-160px) scale(1.1); } }
+@keyframes badge-socket { 0%,100% { transform: scale(1); opacity: .55; } 50% { transform: scale(1.1); opacity: 1; } }
+@keyframes badge-shock { from { transform: scale(1); opacity: .9; } to { transform: scale(2.8); opacity: 0; } }
+@keyframes badge-drop { 0% { transform: translateY(-140px) scale(.8); opacity: 0; } 60% { opacity: 1; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .pack-float, .pack-hint, .pack-beam, .pack-spark, .badge-socket, .badge-shock, .badge-drop, .pack-shine::after { animation: none !important; }
+  .pack-spark, .badge-shock, .pack-shine { display: none; }
+  .tilt-card, .tilt-foil { transition: none !important; }
+}
+.tilt-flat .badge-shock, .tilt-flat .pack-shine { display: none !important; }

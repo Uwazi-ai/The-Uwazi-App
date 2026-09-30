@@ -4836,6 +4836,7 @@ export type Database = {
           zip_code: string
         }[]
       }
+      award_lesson_badges: { Args: { _uid: string }; Returns: undefined }
       award_lesson_completion: {
         Args: {
           _lesson_id: string

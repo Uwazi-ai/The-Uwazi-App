@@ -18,6 +18,7 @@ import { dimMeta } from "@/lib/compassDims";
 import { IdentityFit } from "@/components/compass/IdentityFit";
 import { PersonaHeadline, type PersonaState } from "@/lib/personas";
 import { motion, animate } from "framer-motion";
+import { PackOpening } from "@/components/compass/PackOpening";
 
 const db = supabase as any;
 const THRESHOLD = 0.6;
@@ -227,7 +228,8 @@ export default function CivicCompassPage() {
       const goal = Number(j?.next_stage_points ?? total) || 1;
       setReveal({ points: pts, from: Math.max(0, ((total - pts) / goal) * 100), to: Math.min(100, (total / goal) * 100), next: j?.next_stage ?? null, stage: j?.stage ?? done?.stage ?? "" });
       setShown(0); setRevealed(false);
-      setStage("reveal");
+      const seen = localStorage.getItem(`uwazi-pack-${session.id}`);
+      setStage(done?.persona && !seen ? "reveal" : "done");
     } catch (e: any) {
       setError(e?.message ?? "We could not save your results. Check your connection and try again.");
       setStage("consent");
@@ -325,25 +327,10 @@ export default function CivicCompassPage() {
         <BudgetSliders value={budget} onChange={setBudget} onBack={() => setStage("quiz")} onDone={() => setStage("consent")} />
       )}
 
-      {stage === "reveal" && reveal && (
-        <div className="space-y-6 text-center" data-testid="reveal">
-          <motion.p initial={{ scale: 0.6 }} animate={{ scale: 1 }} className="text-5xl font-extrabold text-primary">+{shown}</motion.p>
-          <p className="text-foreground font-medium">You just did something most people never do. You learned what matters to you in your city.</p>
-          <div className="space-y-1 text-left">
-            <div className="flex justify-between text-xs text-muted-foreground"><span>{reveal.stage}</span>{reveal.next && <span>{reveal.next}</span>}</div>
-            <div className="h-2 rounded-full bg-muted overflow-hidden">
-              <motion.div className="h-full bg-primary" initial={{ width: `${reveal.from}%` }} animate={{ width: `${reveal.to}%` }} transition={{ delay: 1.2, duration: 0.9 }} />
-            </div>
-          </div>
-          {revealed && (
-            <motion.div initial={{ opacity: 0.2, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="space-y-3">
-              <div className="flex justify-center"><CompassRose scores={finalScores} size={240} /></div>
-              {persona.persona ? <PersonaHeadline state={persona} /> : (
-                <h2 className="font-heading text-3xl text-foreground">{label ?? (top.length ? `You lead with ${joinNames(top.map((t) => t.name))}` : "You see many sides")}</h2>
-              )}
-              <Button size="lg" onClick={() => setStage("done")}>See my card</Button>
-            </motion.div>
-          )}
+      {stage === "reveal" && reveal && persona.persona && (
+        <div data-testid="reveal">
+          <PackOpening persona={persona.persona} streak={persona.streak} scores={finalScores} points={reveal.points}
+            onDone={() => { if (sessionId) localStorage.setItem(`uwazi-pack-${sessionId}`, "1"); setStage("done"); }} />
         </div>
       )}
 

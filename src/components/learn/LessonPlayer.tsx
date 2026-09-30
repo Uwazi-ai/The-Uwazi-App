@@ -1,3 +1,4 @@
+import { checkBadgesNow } from "@/components/games/BadgeEarned";
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -96,6 +97,7 @@ export default function LessonPlayer({ lesson, onClose, onComplete }: LessonPlay
     }
     const xp = Array.isArray(awarded) ? awarded[0]?.xp_awarded ?? 0 : 0;
     setXpAwarded(xp);
+    checkBadgesNow();
 
     if (xp > 0) toast.success(`+${xp} XP earned! 🎓`);
     onComplete();

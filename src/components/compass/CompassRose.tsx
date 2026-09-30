@@ -7,11 +7,13 @@ interface Props {
   size?: number;
   showIcons?: boolean;
   highlight?: string[];
+  /** Draw the outline point to point, then drop in the nodes. Used on the pack card. */
+  draw?: boolean;
 }
 
 const MIN = 0.12;
 
-export function CompassRose({ scores, needle, size = 220, showIcons = true, highlight }: Props) {
+export function CompassRose({ scores, needle, size = 220, showIcons = true, highlight, draw = false }: Props) {
   const c = size / 2;
   const R = size * 0.34;
   const iconR = size * 0.44;
@@ -37,6 +39,11 @@ export function CompassRose({ scores, needle, size = 220, showIcons = true, high
         const [x, y] = pt(i, R);
         return <line key={d.slug} x1={c} y1={c} x2={x} y2={y} stroke="hsl(var(--border))" strokeWidth={1} />;
       })}
+      {draw ? (
+        <motion.polygon points={shape} initial={{ pathLength: 0, fillOpacity: 0 }} animate={{ pathLength: 1, fillOpacity: 1 }}
+          transition={{ pathLength: { duration: 1.4, ease: "easeInOut" }, fillOpacity: { delay: 1.2, duration: 0.4 } }}
+          fill="hsl(var(--primary) / 0.22)" stroke="hsl(var(--primary))" strokeWidth={2} strokeLinejoin="round" data-testid="rose-draw" />
+      ) : (
       <motion.polygon
         points={shape}
         animate={{ points: shape }}
@@ -46,9 +53,14 @@ export function CompassRose({ scores, needle, size = 220, showIcons = true, high
         strokeWidth={2}
         strokeLinejoin="round"
       />
+      )}
       {DIM_ORDER.map((d, i) => {
         const v = Math.max(MIN, Math.min(1, scores[d.slug] ?? MIN));
         const [x, y] = pt(i, R * v);
+        if (draw) return (
+          <motion.circle key={d.slug} cx={x} cy={y} r={4} fill={d.color} initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            style={{ transformOrigin: `${x}px ${y}px` }} transition={{ delay: 1.4 + i * 0.05, type: "spring", stiffness: 300, damping: 14 }} />
+        );
         return (
           <motion.circle key={d.slug} animate={{ cx: x, cy: y, r: needle === d.slug ? 6 : 4 }}
             transition={{ type: "spring", stiffness: 140, damping: 14 }} fill={d.color} />
