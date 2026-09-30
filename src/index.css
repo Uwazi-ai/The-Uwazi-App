@@ -628,3 +628,26 @@ body {
   .city-tile, .city-bar-segment, .city-pulse { animation: none !important; transform: none !important; }
   .city-tile:hover { transform: none; box-shadow: none; }
 }
+
+/* Civic persona colors. Bright on dark surfaces, deeper on light. */
+:root {
+  --persona-primary: var(--primary);
+  --persona-blue: 214 90% 66%;
+  --persona-orange: 28 95% 62%;
+  --persona-coral: 8 88% 70%;
+  --persona-purple: 268 75% 74%;
+  --persona-teal: 172 62% 52%;
+  --persona-sky: 195 90% 66%;
+  --persona-gold: 45 95% 58%;
+  --persona-silver: 220 12% 76%;
+}
+.light, [data-theme="light"] {
+  --persona-blue: 214 80% 38%;
+  --persona-orange: 24 90% 36%;
+  --persona-coral: 6 72% 42%;
+  --persona-purple: 268 55% 42%;
+  --persona-teal: 172 80% 26%;
+  --persona-sky: 198 85% 32%;
+  --persona-gold: 40 90% 30%;
+  --persona-silver: 220 10% 38%;
+}
