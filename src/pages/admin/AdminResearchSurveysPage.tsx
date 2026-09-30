@@ -41,7 +41,7 @@ function cleanFilter(f: Def["target_dimension_filter"]) {
 
 function Editor({ initial, onClose }: { initial: Def; onClose: () => void }) {
   const { user } = useAuth();
-  const { personas } = usePersonas();
+  const { list: personas } = usePersonas();
   const qc = useQueryClient();
   const [d, setD] = useState<Def>(initial);
   const [count, setCount] = useState<number | null>(null);
