@@ -13,6 +13,8 @@ import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { OfficeReviewersCard } from "@/components/admin/OfficeReviewersCard";
+import { PlusRequestsAdmin } from "@/components/admin/PlusRequestsAdmin";
+import { HomeVideoAdmin } from "@/components/admin/HomeVideoAdmin";
 import { OfficialDomainsCard } from "@/components/admin/OfficialDomainsCard";
 
 const flags = [
@@ -225,6 +227,8 @@ export default function AdminPlatformPage() {
 
 
 
+      <HomeVideoAdmin />
+      <PlusRequestsAdmin />
       <OfficeReviewersCard />
       <OfficialDomainsCard />
 

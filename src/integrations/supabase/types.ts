@@ -3101,6 +3101,36 @@ export type Database = {
         }
         Relationships: []
       }
+      plus_access_requests: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          reason: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          reason: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          reason?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
@@ -3123,6 +3153,7 @@ export type Database = {
           election_authority_key: string | null
           email_opt_in: boolean | null
           full_address: string | null
+          home_welcome_seen: boolean
           id: string
           is_admin: boolean | null
           is_suspended: boolean | null
@@ -3185,6 +3216,7 @@ export type Database = {
           election_authority_key?: string | null
           email_opt_in?: boolean | null
           full_address?: string | null
+          home_welcome_seen?: boolean
           id?: string
           is_admin?: boolean | null
           is_suspended?: boolean | null
@@ -3247,6 +3279,7 @@ export type Database = {
           election_authority_key?: string | null
           email_opt_in?: boolean | null
           full_address?: string | null
+          home_welcome_seen?: boolean
           id?: string
           is_admin?: boolean | null
           is_suspended?: boolean | null
@@ -4460,6 +4493,7 @@ export type Database = {
       user_preferences: {
         Row: {
           accessibility_settings: Json | null
+          autoplay_on_cellular: boolean
           content_depth: string | null
           created_at: string
           id: string
@@ -4472,6 +4506,7 @@ export type Database = {
         }
         Insert: {
           accessibility_settings?: Json | null
+          autoplay_on_cellular?: boolean
           content_depth?: string | null
           created_at?: string
           id?: string
@@ -4484,6 +4519,7 @@ export type Database = {
         }
         Update: {
           accessibility_settings?: Json | null
+          autoplay_on_cellular?: boolean
           content_depth?: string | null
           created_at?: string
           id?: string
@@ -4599,6 +4635,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      video_assets: {
+        Row: {
+          created_at: string
+          key: string
+          poster_url: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          poster_url: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          poster_url?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      videos: {
+        Row: {
+          active: boolean
+          created_at: string
+          dimension_slug: string | null
+          id: string
+          length_seconds: number
+          poster_url: string
+          sort_order: number
+          tag: string
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          dimension_slug?: string | null
+          id?: string
+          length_seconds: number
+          poster_url: string
+          sort_order?: number
+          tag: string
+          title: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          dimension_slug?: string | null
+          id?: string
+          length_seconds?: number
+          poster_url?: string
+          sort_order?: number
+          tag?: string
+          title?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
       }
       voting_plan: {
         Row: {
@@ -5301,6 +5403,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      home_city_updates: { Args: never; Returns: Json }
       import_district_boundary: {
         Args: {
           _batch: string

@@ -1,0 +1,1 @@
+ALTER TABLE public.user_preferences ADD COLUMN autoplay_on_cellular boolean NOT NULL DEFAULT false;

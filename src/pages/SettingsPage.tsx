@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   User, MapPin, Bell, Camera, Save, LogOut, Lock, Trash2,
   Check, X, Loader2, Eye, EyeOff, AlertTriangle, ChevronLeft, Download, Monitor,
-  Sun, Moon, Laptop, Pencil, Database, ShieldCheck,
+  Sun, Moon, Laptop, Pencil, Database, ShieldCheck, Wifi,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -20,6 +20,7 @@ import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -126,6 +127,7 @@ export default function SettingsPage() {
   const [notifyStreakReminders, setNotifyStreakReminders] = useState(true);
   const [notifyCivicAlerts, setNotifyCivicAlerts] = useState(true);
   const [savedToggle, setSavedToggle] = useState<string | null>(null);
+  const [autoplayOnCellular, setAutoplayOnCellular] = useState(false);
 
   // Change password
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -176,6 +178,7 @@ export default function SettingsPage() {
       setLoading(false);
     };
     fetchProfile();
+    supabase.from("user_preferences").select("autoplay_on_cellular").eq("user_id", user.id).maybeSingle().then(({ data }) => setAutoplayOnCellular(data?.autoplay_on_cellular ?? false));
   }, [user]);
 
   const handleAvatarClick = () => fileInputRef.current?.click();
@@ -623,6 +626,7 @@ export default function SettingsPage() {
             </div>
           </div>
         ))}
+        <div className="flex items-center justify-between gap-4 border-t border-border pt-4"><div><p className="flex items-center gap-2 text-sm font-medium"><Wifi className="h-4 w-4 text-primary" /> Play clips on cellular</p><p className="text-xs text-muted-foreground">Previews play on Wi-Fi by default. Turn this on to use mobile data.</p></div><Switch aria-label="Play clips on cellular" checked={autoplayOnCellular} onCheckedChange={async (value) => { if (!user) return; const { error } = await supabase.from("user_preferences").upsert({ user_id: user.id, autoplay_on_cellular: value }, { onConflict: "user_id" }); if (error) toast.error("Could not save your choice."); else setAutoplayOnCellular(value); }} /></div>
         <ReminderSettings />
       </motion.div>
 
