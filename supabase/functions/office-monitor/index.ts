@@ -351,8 +351,6 @@ async function checkSource(db: any, src: any) {
         else {
           text = htmlToText(await page.text());
           if (text.length < 3000 && BLOCK_RE.test(text)) { needsFirecrawl = true; text = ''; }
-          // Pages built by scripts come back nearly empty. Use the backup reader for those too.
-          else if (text.trim().length < 400) { needsFirecrawl = true; text = ''; }
         }
       } catch (fe) {
         if (!needsFirecrawl) throw fe;
@@ -388,7 +386,15 @@ async function checkSource(db: any, src: any) {
       return { source_id: src.id, ok: true, ...result };
     }
 
-    const { offices, unclear } = await extract(text, src.label);
+    let { offices, unclear } = await extract(text, src.label);
+    // Pages built by scripts can come back as a shell with no names. Try the backup reader once.
+    if (!offices.length && readMethod === 'fetch') {
+      try {
+        const fc = await readWithFirecrawl(src.source_url, 6000);
+        const again = await extract(fc, src.label);
+        text = fc; readMethod = 'firecrawl'; offices = again.offices; unclear = again.unclear;
+      } catch (_) { /* keep the plain read result */ }
+    }
     const health = offices.length ? 'ok' : 'unclear';
 
 
