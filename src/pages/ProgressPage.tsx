@@ -3,7 +3,7 @@ import { ChevronRight, MessageCircle, Flag } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { useMyJourney, EVENT_LABELS, type MyJourney } from "@/hooks/useJourney";
+import { useMyJourney, EVENT_LABELS } from "@/hooks/useJourney";
 import { useMyChallenge, useMyBadges } from "@/hooks/useChallenge";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Input } from "@/components/ui/input";
@@ -13,28 +13,13 @@ import { usePersonas, personaColor, shortName } from "@/lib/personas";
 import { PersonaBadge, PERSONA_PATHS } from "@/components/compass/PersonaBadge";
 import { DIM_ORDER, dimMeta, stageColor, topSlugs } from "@/lib/compassDims";
 import { useAuth } from "@/contexts/AuthContext";
+import { stepInfo } from "@/lib/journeyStep";
 import { TiltCard } from "@/components/compass/TiltCard";
 import { Award } from "lucide-react";
 
 const db = supabase as any;
 const tile = "city-tile min-w-0 rounded-[20px] border border-border bg-card p-4 sm:p-5";
 const eyebrow = "text-[11px] font-bold uppercase tracking-[0.18em]";
-
-function stepInfo(step: MyJourney["next_step"]): { title: string; sub: string; to: string | null; action?: "civic"; cta: string } {
-  if (!step) return { title: "Explore My City", sub: "See what is happening near you.", to: "/app/my-city", cta: "Explore My City" };
-  switch (step.type) {
-    case "compass":
-      return { title: "Take the Civic Compass quiz", sub: "It takes about 3 minutes. You earn 50 points.", to: "/app/compass", cta: "Take the quiz, +50 points" };
-    case "survey":
-      return { title: step.title ? `Answer: ${step.title}` : "Answer a short survey", sub: "Your voice helps your community. You earn 15 points.", to: step.ref ? `/app/survey/${step.ref}` : "/app", cta: "Answer the survey, +15 points" };
-    case "lesson":
-      return { title: step.title ? `Start: ${step.title}` : "Start your next lesson", sub: "A short lesson. You earn 25 points.", to: `/app/learn?lesson=${step.ref}`, cta: "Start the lesson, +25 points" };
-    case "office_action":
-      return { title: step.title ? `Reach out to ${step.title}` : "Reach out to a local leader", sub: "Call, email, or go to a meeting. Then tap below. You earn 30 points.", to: null, action: "civic", cta: "I took action, +30 points" };
-    default:
-      return { title: "Explore My City", sub: "See what is happening near you.", to: "/app/my-city", cta: "Explore My City" };
-  }
-}
 
 const STEP_RULE: Record<string, string> = {
   compass: "You have not taken the Compass in the last 90 days. So it comes first.",
