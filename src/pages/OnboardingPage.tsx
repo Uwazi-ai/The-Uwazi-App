@@ -226,6 +226,18 @@ function AddressScreen({ onDone, onSkip, saving }: { onDone: () => void; onSkip:
         </p>
       </div>
 
+      {notFound && !zipOnly && (
+        <div className="rounded-[20px] border border-destructive/40 bg-destructive/10 p-4 space-y-3">
+          <p className="text-sm text-foreground">
+            We could not find that address. Check the spelling, or use your ZIP code instead.
+          </p>
+          <Button variant="outline" className="h-10 w-full"
+            onClick={() => { setZipOnly(true); setNotFound(false); }}>
+            Use my ZIP code
+          </Button>
+        </div>
+      )}
+
       <button type="button" onClick={() => setZipOnly((v) => !v)} className="text-xs text-primary hover:underline">
         {zipOnly ? "Have a street address? Use that instead." : "Only have a ZIP code? Use that instead."}
       </button>
