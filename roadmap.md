@@ -1,6 +1,6 @@
 ## Home and Plus
-- [ ] Build one private video library, super admin Content manager, Watch catalog, and Home playback.
-- [ ] Verify test upload, member playback, personalization, dismissal, and cleanup.
+- [x] Build one private video library, super admin Content manager, Watch catalog, and Home playback.
+- [ ] Verify playback and personalization on a separate non admin account. Admin upload, signed in player, dismissal, and removal were checked. Browser video decoding was not confirmed.
 - [x] Rebuild Home with journey, local tiles, video playback, and admin video controls.
 - [x] Rebuild Plus with existing prices and seven-day trial checkout.
 - [x] Verify Home, missing-data hiding, welcome and clip playback, Progress step, and Plus copy in a signed-in browser with mocked video responses. No test account or persistent video data was created.
