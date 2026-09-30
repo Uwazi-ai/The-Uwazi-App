@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useLocation } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { Award } from "lucide-react";
@@ -19,7 +20,7 @@ export function BadgeEarned({ badge, onClose }: { badge: B; onClose: () => void 
   const [dropped, setDropped] = useState(!!reduce);
   useEffect(() => { if (reduce) return; const t = setTimeout(() => setDropped(true), 700); return () => clearTimeout(t); }, [reduce]);
   const persona = badge.art_key && PERSONA_PATHS[badge.art_key];
-  return (
+  return createPortal(
     <div role="dialog" aria-label={`Badge earned. ${badge.name}.`} data-testid="badge-earned"
       className="fixed inset-0 z-[60] bg-background/85 backdrop-blur-sm flex flex-col items-center justify-center gap-5 px-6 text-center cursor-pointer"
       onClick={onClose}>
@@ -44,7 +45,8 @@ export function BadgeEarned({ badge, onClose }: { badge: B; onClose: () => void 
           <p className="text-xs text-muted-foreground pt-2">Tap anywhere to keep going.</p>
         </motion.div>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }
 

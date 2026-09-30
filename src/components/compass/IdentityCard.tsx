@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import html2canvas from "html2canvas-pro";
 import { Camera, Share2, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +10,7 @@ import { useMyBadges } from "@/hooks/useChallenge";
 import { BadgeRow } from "@/components/games/BadgeRow";
 import { usePersonas, shortName } from "@/lib/personas";
 import { PersonaBadge } from "./PersonaBadge";
+import { TiltCard, captureFlat } from "./TiltCard";
 
 const db = supabase as any;
 const BUCKET = "identity-photos";
@@ -91,7 +91,7 @@ export function IdentityCard({ label, persona, streak, scores, stage, fallbackTi
     if (!cardRef.current) return;
     setBusy(true);
     try {
-      const canvas = await html2canvas(cardRef.current, { backgroundColor: null, scale: 2 });
+      const canvas = await captureFlat(cardRef.current);
       const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/png"));
       if (!blob) throw new Error("no image");
       const file = new File([blob], "my-uwazi-card.png", { type: "image/png" });
@@ -112,7 +112,7 @@ export function IdentityCard({ label, persona, streak, scores, stage, fallbackTi
 
   return (
     <div className="space-y-3">
-      <div ref={cardRef} data-testid="identity-card" className="rounded-3xl p-1" style={{ background: frame }}>
+      <TiltCard ref={cardRef} data-testid="identity-card" className="rounded-3xl p-1" style={{ background: frame }}>
         <div className="rounded-[20px] p-5 space-y-4" style={{ background: bg }}>
           <div className="flex items-center justify-between gap-3">
             <p className="text-[11px] font-bold tracking-[0.2em] text-muted-foreground">YOUR CIVIC PERSONA</p>
@@ -140,7 +140,7 @@ export function IdentityCard({ label, persona, streak, scores, stage, fallbackTi
           )}
           {since && <p className="text-xs text-center text-muted-foreground">Member since {since}</p>}
         </div>
-      </div>
+      </TiltCard>
       <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ""; }} />
       <div className="flex flex-wrap gap-2 justify-center">
         <Button size="sm" variant="outline" disabled={busy} onClick={() => fileRef.current?.click()}>

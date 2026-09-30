@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { Compass, Share2 } from "lucide-react";
@@ -91,7 +92,7 @@ export function PackOpening({ persona, streak, scores, points, onDone }: Props) 
     finally { setBusy(false); }
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 pack-glow overflow-y-auto overflow-x-hidden" data-testid="pack" data-phase={phase}>
       <div className="min-h-full flex flex-col items-center justify-center px-4 py-10 gap-6">
         <div className="relative flex items-center justify-center" style={{ width: 320, height: 460 }}>
@@ -193,6 +194,7 @@ export function PackOpening({ persona, streak, scores, points, onDone }: Props) 
           </motion.div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

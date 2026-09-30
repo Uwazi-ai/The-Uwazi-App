@@ -12,6 +12,7 @@ import { useOrgTracking } from "@/hooks/useOrgTracking";
 import { useTrackActivity } from "@/hooks/useTrackActivity";
 import { useNativePush } from "@/hooks/useNativePush";
 import { MyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
+import { BadgeWatcher } from "@/components/games/BadgeEarned";
 
 const pageVariants = {
   initial: { opacity: 0, y: 8 },
@@ -68,6 +69,7 @@ export function AppLayout() {
         <PWAInstallPrompt />
         {!isAskPage && <FeedbackButton />}
         <MyCityUnlockModal />
+        <BadgeWatcher />
       </div>
     </ProfileProvider>
   );
