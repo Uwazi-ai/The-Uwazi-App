@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.save_voting_plan(uuid, jsonb) FROM anon;
