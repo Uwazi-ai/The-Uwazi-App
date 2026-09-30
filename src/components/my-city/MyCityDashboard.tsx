@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ExternalLink, Flag, MessageCircle, TrendingDown, TrendingUp } from "lucide-react";
+import { ExternalLink, Flag, Lock, MessageCircle, TrendingDown, TrendingUp } from "lucide-react";
+import { PlusMark, openPaywall } from "@/components/plus/Paywall";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -74,7 +75,7 @@ function TotalNumber({ amount }: { amount: number }) {
     <span className="text-[68px] leading-none lg:text-[128px]">${(shown / divisor).toFixed(divisor === 1 ? 0 : 1)}</span><span className="text-3xl lg:text-5xl">{suffix}</span>
   </span>;
 }
-export function MyCityDashboard() {
+export function MyCityDashboard({ preview = false }: { preview?: boolean }) {
   const { user } = useAuth();
   const [fy, setFy] = useState<string | null>(null);
   const [target, setTarget] = useState<Line | null>(null);
