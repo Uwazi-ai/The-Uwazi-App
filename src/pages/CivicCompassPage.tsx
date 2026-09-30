@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
 import { CompassOfficesReport } from "@/components/compass/CompassOfficesReport";
+import { PlusMark, openPaywall } from "@/components/plus/Paywall";
 import { CompassRose } from "@/components/compass/CompassRose";
 import { SwipeCard } from "@/components/compass/SwipeCard";
 import { BudgetSliders, defaultBudget, type Budget } from "@/components/compass/BudgetSliders";
@@ -401,6 +402,23 @@ export default function CivicCompassPage() {
             </div>
           </div>
 
+          {!isPremium && (
+            <section className="relative overflow-hidden rounded-2xl border border-primary bg-card p-6 shadow-card" data-testid="report-cta">
+              <div className="pointer-events-none absolute inset-x-6 bottom-4 space-y-2 opacity-40 blur-sm" aria-hidden>
+                {[80, 60, 70].map((w, i) => <div key={i} className="h-2.5 rounded-full bg-muted" style={{ width: `${w}%` }} />)}
+              </div>
+              <div className="relative space-y-3 pb-8">
+                <PlusMark />
+                <h3 className="font-heading text-2xl leading-tight text-foreground">Your full Compass report</h3>
+                <p className="text-sm leading-relaxed text-foreground">See the real offices that match your values, why they matter, and what to watch. Unlock your full report with UWAZI Plus.</p>
+                <div className="flex flex-wrap items-center gap-3 pt-1">
+                  <Button size="lg" onClick={() => openPaywall("report")}><Lock className="h-4 w-4 mr-1" />Upgrade</Button>
+                  <span className="text-xs text-muted-foreground">Your first week is free.</span>
+                </div>
+              </div>
+            </section>
+          )}
+
           <IdentityCard label={label} persona={persona.persona} streak={persona.streak} scores={finalScores} stage={journeyStage}
             fallbackTitle={top.length ? `You lead with ${top[0].name}` : "You see many sides"} />
 
@@ -426,25 +444,7 @@ export default function CivicCompassPage() {
             </Button>
           </div>
 
-          {isPremium ? <CompassOfficesReport sessionId={sessionId} /> : (
-          <div className="relative bg-card rounded-2xl p-6 shadow-card overflow-hidden border border-border">
-            <div className="space-y-3 blur-sm select-none pointer-events-none min-h-[280px] flex flex-col justify-center" aria-hidden>
-              {[80, 65, 55, 40, 70, 50].map((w, i) => (
-                <div key={i} className="h-3 rounded-full bg-muted" style={{ width: `${w}%` }} />
-              ))}
-            </div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-background/70 backdrop-blur-sm space-y-3">
-              <Lock className="h-6 w-6 text-primary" />
-              <h3 className="text-lg font-bold text-foreground">Your full Civic Compass report</h3>
-              <p className="text-sm text-muted-foreground max-w-xs">
-                See who represents you. Learn how your issues connect to your ballot and where you can help.
-              </p>
-              <Button asChild>
-                <Link to="/app/upgrade"><Sparkles className="h-4 w-4 mr-1" /> Unlock with UWAZI+</Link>
-              </Button>
-            </div>
-          </div>
-          )}
+          {isPremium && <CompassOfficesReport sessionId={sessionId} />}
 
           <div className="text-center flex flex-col sm:flex-row gap-2 justify-center">
             <Button asChild variant="outline"><Link to="/app/progress">See your journey</Link></Button>
