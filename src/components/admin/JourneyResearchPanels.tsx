@@ -33,7 +33,8 @@ export function JourneyResearchPanels() {
   if (isLoading) return <div className="h-40 rounded-xl bg-card animate-pulse" />;
   if (error || !data) return <p className="text-sm text-destructive">We could not load the journey numbers. Refresh the page to try again.</p>;
 
-  const idMax = Math.max(1, ...data.identities.map((i: any) => i.count));
+  const personas = data.personas ?? [];
+  const idMax = Math.max(1, ...personas.map((i: any) => i.count));
   const stMax = Math.max(1, ...data.stages.map((s: any) => s.count));
 
   return (
@@ -44,9 +45,10 @@ export function JourneyResearchPanels() {
       </div>
       <div className="grid md:grid-cols-2 gap-4">
         <Card className="p-5 space-y-3">
-          <h3 className="font-semibold text-foreground">Who people are</h3>
-          {data.identities.length ? data.identities.map((i: any) => <Bar key={i.label} label={i.label} value={i.count} max={idMax} />)
+          <h3 className="font-semibold text-foreground">Civic personas</h3>
+          {personas.length ? personas.map((i: any) => <Bar key={i.slug} label={i.label} value={i.count} max={idMax} />)
             : <p className="text-sm text-muted-foreground">No one yet.</p>}
+          <p className="text-xs text-muted-foreground" data-testid="persona-changed">{data.persona_changed_30d ?? 0} people got a different persona on a new quiz in the last 30 days.</p>
         </Card>
         <Card className="p-5 space-y-3">
           <h3 className="font-semibold text-foreground">Stages</h3>

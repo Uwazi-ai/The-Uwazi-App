@@ -16,7 +16,7 @@ export function PeopleInCity() {
       <Users className="h-6 w-6 text-primary shrink-0" />
       <div>
         <p className="font-semibold text-foreground">People in your {row.area === "city" ? "city" : "area"}</p>
-        <p className="text-sm text-muted-foreground">The most common identity near you is <span className="text-foreground font-medium">{row.label}</span>. {row.people} neighbors have taken the quiz.</p>
+        <p className="text-sm text-muted-foreground">The most common civic persona near you is <span className="text-foreground font-medium">{row.label}</span>. {row.people} neighbors have taken the quiz.</p>
       </div>
     </div>
   );
