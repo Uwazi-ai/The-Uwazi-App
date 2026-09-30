@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useEpisodeVideoUrl } from "@/hooks/useEpisodeVideoUrl";
 
-export type LibraryVideo = { id: string; title: string; description: string; tag: string; length_seconds: number; url: string; poster_url: string; dimension_slug: string | null; placement: "home_row" | "welcome" | "both"; sort_order: number; active: boolean; created_at: string };
+export type LibraryVideo = { id: string; title: string; description: string; tag: string; length_seconds: number; url: string; poster_url: string; dimension_slug: string | null; placement: "home_row" | "welcome" | "both"; sort_order: number; active: boolean; created_at: string; episode_id?: string | null; is_free?: boolean };
 export const VIDEO_BUCKET = "home-video-media";
 
 export async function mediaUrl(value: string): Promise<string> {
