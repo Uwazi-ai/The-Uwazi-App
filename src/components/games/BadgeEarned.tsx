@@ -12,7 +12,7 @@ export const BADGE_CHECK_EVENT = "uwazi:badges-check";
 /** Ask the watcher to look for new badges now, for example right after a lesson. */
 export const checkBadgesNow = () => window.dispatchEvent(new Event(BADGE_CHECK_EVENT));
 
-interface B { id: string; name: string; description: string | null; art_key: string | null; emoji: string | null }
+interface B { id: string; name: string; description: string | null; art_key: string | null; art_tone?: string | null; emoji: string | null }
 
 /** Badge drop overlay: socket pulse, drop with a bounce, shockwave, and "Badge earned". Tap to close. */
 export function BadgeEarned({ badge, onClose }: { badge: B; onClose: () => void }) {
@@ -29,7 +29,7 @@ export function BadgeEarned({ badge, onClose }: { badge: B; onClose: () => void 
         {dropped && (
           <span className="relative badge-drop">
             {!reduce && <span className="badge-shock" />}
-            {persona ? <PersonaBadge slug={badge.art_key!} size="medallion" label={`${badge.name} badge`} /> : (
+            {persona ? <PersonaBadge slug={badge.art_key!} tone={badge.art_tone} size="medallion" label={`${badge.name} badge`} /> : (
               <span className="h-20 w-20 rounded-full border-2 border-primary bg-primary/15 flex items-center justify-center text-4xl">
                 {badge.emoji ?? <Award className="h-10 w-10 text-primary" />}
               </span>
@@ -65,7 +65,7 @@ export function BadgeWatcher() {
     busy.current = true;
     try {
       const key = `uwazi-seen-badges-${user.id}`;
-      const { data } = await db.from("user_badges").select("badges(id, name, description, art_key, emoji, rule)").eq("user_id", user.id);
+      const { data } = await db.from("user_badges").select("badges(id, name, description, art_key, art_tone, emoji, rule)").eq("user_id", user.id);
       const all: (B & { rule: any })[] = (data ?? []).map((r: any) => r.badges).filter(Boolean);
       const raw = localStorage.getItem(key);
       const seen = new Set<string>(raw ? JSON.parse(raw) : []);

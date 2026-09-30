@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { PersonaBadge } from "@/components/compass/PersonaBadge";
 
 export interface Persona {
+  suggested_prompts?: string[];
   slug: string; name: string; top_dimension_slug: string | null; one_line: string; strength: string;
   blind_spot: string; color: string; icon_key: string; next_step_lean: string; sort_order: number;
 }

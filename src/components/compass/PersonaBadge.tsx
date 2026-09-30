@@ -24,9 +24,9 @@ function tokenColor(name: string) {
   return v ? `hsl(${v})` : "currentColor";
 }
 
-function useColors(slug: string, locked: boolean) {
+function useColors(slug: string, locked: boolean, tone?: string | null) {
   const read = () => ({
-    color: tokenColor(locked ? "muted-foreground" : `persona-${PERSONA_TOKEN[slug] ?? "silver"}`),
+    color: tokenColor(locked ? "muted-foreground" : `persona-${tone ?? PERSONA_TOKEN[slug] ?? "silver"}`),
     bg: tokenColor("background"),
     card: tokenColor("card"),
   });
@@ -37,17 +37,17 @@ function useColors(slug: string, locked: boolean) {
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme"] });
     return () => obs.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, locked]);
+  }, [slug, locked, tone]);
   return c;
 }
 
 export type BadgeSize = "chip" | "card" | "medallion";
 const PX: Record<BadgeSize, number> = { chip: 40, card: 64, medallion: 88 };
 
-interface Props { slug: string; size?: BadgeSize; locked?: boolean; label?: string; className?: string }
+interface Props { slug: string; size?: BadgeSize; locked?: boolean; label?: string; className?: string; tone?: string | null }
 
-export function PersonaBadge({ slug, size = "chip", locked = false, label, className }: Props) {
-  const { color, bg } = useColors(slug, locked);
+export function PersonaBadge({ slug, size = "chip", locked = false, label, className, tone }: Props) {
+  const { color, bg } = useColors(slug, locked, tone);
   const px = PX[size];
   const path = PERSONA_PATHS[slug] ?? PERSONA_PATHS.steward;
   const c = px / 2;

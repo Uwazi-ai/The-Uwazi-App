@@ -29,6 +29,7 @@ export interface EarnedBadge {
   name: string;
   description: string | null;
   art_key: string | null;
+  art_tone?: string | null;
   emoji: string | null;
   earned_at: string | null;
 }
@@ -90,7 +91,7 @@ export function useMyBadges() {
     (async () => {
       const { data } = await db
         .from("user_badges")
-        .select("earned_at, badges(id, name, description, art_key, emoji)")
+        .select("earned_at, badges(id, name, description, art_key, art_tone, emoji)")
         .eq("user_id", user.id)
         .order("earned_at", { ascending: false });
       setBadges(
