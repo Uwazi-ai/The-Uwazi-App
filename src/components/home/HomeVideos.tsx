@@ -51,6 +51,8 @@ export function WatchAndLearn({ videos, topIssues, allowCellular }: { videos: Ho
   const [mostVisible, setMostVisible] = useState<string | null>(null);
   const [wifi, setWifi] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
+  const ratios = useRef<Record<string, number>>({});
+  const [pageVisible, setPageVisible] = useState(document.visibilityState === "visible");
   const { user } = useAuth();
   useEffect(() => {
     const connection = (navigator as Navigator & { connection?: { type?: string; effectiveType?: string; addEventListener?: (type: string, fn: () => void) => void; removeEventListener?: (type: string, fn: () => void) => void } }).connection;
@@ -59,10 +61,16 @@ export function WatchAndLearn({ videos, topIssues, allowCellular }: { videos: Ho
     return () => connection?.removeEventListener?.("change", check);
   }, []);
   useEffect(() => {
+    const onVisibility = () => setPageVisible(document.visibilityState === "visible");
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
+  useEffect(() => {
     if (!scroller.current || !videos.length) return;
     const observer = new IntersectionObserver((entries) => {
-      const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-      if (visible[0]) setMostVisible((visible[0].target as HTMLElement).dataset.clipId ?? null);
+      entries.forEach((entry) => { const id = (entry.target as HTMLElement).dataset.clipId; if (id) ratios.current[id] = entry.intersectionRatio; });
+      const first = Object.entries(ratios.current).sort((a, b) => b[1] - a[1])[0];
+      setMostVisible(first && first[1] >= 0.5 ? first[0] : null);
     }, { root: scroller.current, threshold: [0, .25, .5, .75, 1] });
     scroller.current.querySelectorAll("[data-clip-id]").forEach((el) => observer.observe(el));
     return () => observer.disconnect();
@@ -73,7 +81,7 @@ export function WatchAndLearn({ videos, topIssues, allowCellular }: { videos: Ho
   return <section className="space-y-3" aria-label="Watch and learn" data-testid="video-row">
     <div className="flex items-end justify-between gap-3"><h2 className="font-heading text-xl text-foreground">Watch and learn</h2><Link to="/app/watch" className="flex items-center gap-1 text-xs font-semibold text-primary">All in Favor <ArrowUpRight className="h-4 w-4" /></Link></div>
     <div ref={scroller} className="flex snap-x gap-3 overflow-x-auto pb-2" data-testid="clip-scroller">
-      {ordered.map((clip) => <Clip key={clip.id} clip={clip} active={!!user && !selected && !reduced && (wifi || allowCellular) && mostVisible === clip.id && document.visibilityState === "visible"} onOpen={() => setSelected(clip)} />)}
+      {ordered.map((clip) => <Clip key={clip.id} clip={clip} active={!!user && !selected && !reduced && (wifi || allowCellular) && mostVisible === clip.id && pageVisible} onOpen={() => setSelected(clip)} />)}
     </div>
     {selected && <FullVideo item={selected} onClose={() => setSelected(null)} />}
   </section>;
