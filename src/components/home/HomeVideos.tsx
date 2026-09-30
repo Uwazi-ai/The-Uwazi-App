@@ -11,7 +11,7 @@ export type HomeVideo = LibraryVideo;
 export type WelcomeVideo = LibraryVideo;
 
 function FullVideo({ item, onClose }: { item: LibraryVideo; onClose: () => void }) {
-  const url = useVideoSource(item.url);
+  const url = useMediaSource(item);
   const poster = useVideoSource(item.poster_url);
   return <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}><DialogContent className="max-w-5xl border-border bg-background p-2 sm:p-4 [&>button]:text-foreground"><DialogTitle className="sr-only">{item.title}</DialogTitle><video src={url} poster={poster} autoPlay controls playsInline className="max-h-[80dvh] w-full bg-background object-contain" onEnded={onClose} /><p className="px-2 text-sm text-muted-foreground">{item.description}</p></DialogContent></Dialog>;
 }
@@ -20,7 +20,7 @@ export function WelcomeHero({ video, seen, onDismiss }: { video: WelcomeVideo | 
   const [open, setOpen] = useState(false);
   const [closed, setClosed] = useState(false);
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const source = useVideoSource(video?.url);
+  const source = useMediaSource(video);
   const poster = useVideoSource(video?.poster_url);
   if (!video || seen || closed) return null;
   const finish = () => { setOpen(false); setClosed(true); onDismiss(); };
