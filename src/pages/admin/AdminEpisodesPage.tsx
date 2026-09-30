@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,6 +45,7 @@ interface Episode {
   date: string | null;
   video_url: string | null;
   is_free: boolean;
+  plus_only?: boolean;
   is_published: boolean;
   sort_order: number;
   created_at: string;
@@ -88,6 +89,12 @@ export default function AdminEpisodesPage() {
     free: episodes.filter((e) => e.is_free).length,
     topics: new Set(episodes.map((e) => e.topic)).size,
   };
+
+  useEffect(() => {
+    const h = () => queryClient.invalidateQueries({ queryKey: ["admin-episodes"] });
+    window.addEventListener("uwazi:episodes-changed", h);
+    return () => window.removeEventListener("uwazi:episodes-changed", h);
+  }, [queryClient]);
 
   const togglePublished = async (ep: Episode) => {
     const { error } = await supabase
@@ -390,9 +397,19 @@ function SortableEpisodeRow({ ep, selected, onToggleSelect, onTogglePublished, o
       </td>
       <td className="p-3 text-muted-foreground hidden md:table-cell">{ep.date || "—"}</td>
       <td className="p-3">
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${ep.is_free ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"}`}>
-          {ep.is_free ? "FREE" : "PLUS"}
-        </span>
+        <button
+          type="button"
+          title="Tap to change. Always free, Plus only, or free while it is one of the newest"
+          onClick={async () => {
+            const next = ep.is_free ? { is_free: false, plus_only: true } : ep.plus_only ? { is_free: false, plus_only: false } : { is_free: true, plus_only: false };
+            const { error } = await (supabase as any).from("episodes").update(next).eq("id", ep.id);
+            if (error) return toast.error("Could not save that.");
+            window.dispatchEvent(new CustomEvent("uwazi:episodes-changed"));
+          }}
+          className={`text-xs font-semibold px-2 py-0.5 rounded-full ${ep.is_free ? "bg-primary/20 text-primary" : ep.plus_only ? "bg-secondary text-foreground" : "bg-muted text-muted-foreground"}`}
+        >
+          {ep.is_free ? "ALWAYS FREE" : ep.plus_only ? "PLUS ONLY" : "NEWEST 5 FREE"}
+        </button>
       </td>
       <td className="p-3">
         <Switch

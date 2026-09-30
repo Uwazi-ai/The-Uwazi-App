@@ -13,6 +13,7 @@ import { useTrackActivity } from "@/hooks/useTrackActivity";
 import { useNativePush } from "@/hooks/useNativePush";
 import { MyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
 import { BadgeWatcher } from "@/components/games/BadgeEarned";
+import { PaywallHost } from "@/components/plus/Paywall";
 
 const pageVariants = {
   initial: { opacity: 0, y: 8 },
@@ -70,6 +71,7 @@ export function AppLayout() {
         {!isAskPage && <FeedbackButton />}
         <MyCityUnlockModal />
         <BadgeWatcher />
+        <PaywallHost />
       </div>
     </ProfileProvider>
   );

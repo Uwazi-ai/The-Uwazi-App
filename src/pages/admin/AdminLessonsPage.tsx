@@ -173,6 +173,7 @@ export default function AdminLessonsPage() {
                     <Button size="sm" variant="outline" className="h-7 px-2 text-[10px]" onClick={() => togglePublish(l.id, l.is_published ?? false)}>
                       {l.is_published ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
                     </Button>
+                    <Button size="sm" variant={(l as any).plus_only ? "default" : "outline"} className="h-7 px-2 text-[10px]" title="Plus only" onClick={async () => { await (supabase as any).from("lessons").update({ plus_only: !(l as any).plus_only }).eq("id", l.id); queryClient.invalidateQueries({ queryKey: ["admin-lessons"] }); toast.success((l as any).plus_only ? "Now free" : "Now Plus only"); }}>{(l as any).plus_only ? "Plus" : "Free"}</Button>
                     <Button size="sm" variant="outline" className="h-7 px-2 text-[10px]" onClick={() => duplicate(l)}><Copy className="h-3 w-3" /></Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>

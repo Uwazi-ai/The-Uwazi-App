@@ -631,6 +631,7 @@ body {
 
 /* Civic persona colors. Bright on dark surfaces, deeper on light. */
 :root {
+  --plus-chip: 0 0% 3%;
   --persona-primary: var(--primary);
   --persona-blue: 211 100% 68%;
   --persona-orange: 29 100% 63%;

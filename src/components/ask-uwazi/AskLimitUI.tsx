@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { PlusMark, openPaywall } from "@/components/plus/Paywall";
 
 function fmtCountdown(ms: number) {
   if (ms <= 0) return "0:00:00";
@@ -28,68 +30,16 @@ export function AskLimitPaywall({ resetAt, onReset }: { resetAt: string; onReset
 
   const countdown = fmtCountdown(remaining);
 
+  const resetClock = new Date(resetAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   return (
-    <div
-      style={{
-        background: "#0f0f0f",
-        borderTop: "1px solid rgba(155,211,75,0.2)",
-        padding: "20px 16px",
-      }}
-    >
-      <div className="max-w-3xl mx-auto">
-        <div className="flex items-center gap-2">
-          <span style={{ fontSize: 20 }}>🔒</span>
-          <h3 style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: 15, color: "#fff" }}>
-            You've used your 5 free questions
-          </h3>
-        </div>
-        <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#666", marginTop: 6 }}>
-          Free questions reset in <span style={{ color: "#EF9F27" }}>{countdown}</span>
+    <div className="border-t border-primary/30 bg-card px-4 py-5" data-testid="ask-limit-wall">
+      <div className="mx-auto max-w-3xl space-y-3">
+        <PlusMark className="h-6" />
+        <p className="text-base text-foreground">
+          You have used your 5 questions for now. They reset in <span className="font-heading text-primary">{countdown}</span>, at {resetClock}. UWAZI Plus is unlimited.
         </p>
-
-        <ul className="mt-4 space-y-2">
-          {[
-            "Unlimited Ask Uwazi questions",
-            "My City — neighborhood investment tracker",
-            "Premium video feed + all future Uwazi+ features",
-          ].map((f) => (
-            <li key={f} className="flex items-center gap-2">
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#9BD34B", flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: "#777" }}>{f}</span>
-            </li>
-          ))}
-        </ul>
-
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }} className="my-3.5" />
-
-        <div className="flex justify-between items-baseline">
-          <div>
-            <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: 22, color: "#9BD34B" }}>$4.99</span>
-            <span style={{ fontSize: 12, color: "#666" }}>/month</span>
-          </div>
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: "#EF9F27" }}>
-            Price goes up Jul 16
-          </span>
-        </div>
-
-        <button
-          onClick={() => navigate("/app/upgrade?plan=beta_monthly")}
-          className="w-full mt-3 transition hover:brightness-110"
-          style={{
-            background: "#9BD34B",
-            color: "#080808",
-            borderRadius: 9,
-            padding: 13,
-            fontFamily: "'Archivo Black', sans-serif",
-            fontSize: 13,
-          }}
-        >
-          Unlock Unlimited — Subscribe to Uwazi+
-        </button>
-
-        <p className="text-center" style={{ fontSize: 11, color: "#555", marginTop: 10 }}>
-          Or wait {countdown} for your free questions to reset
-        </p>
+        <Button className="w-full" size="lg" onClick={() => navigate("/app/upgrade?plan=monthly")}>Upgrade</Button>
+        <button className="block w-full text-center text-xs text-muted-foreground underline" onClick={() => openPaywall("ask")}>See what Plus adds</button>
       </div>
     </div>
   );

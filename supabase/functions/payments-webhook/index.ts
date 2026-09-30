@@ -46,7 +46,7 @@ async function upsertSubscription(sub: any, env: StripeEnv) {
     return;
   }
   const item = sub.items?.data?.[0];
-  const priceId = item?.price?.metadata?.lovable_external_id || item?.price?.id;
+  const priceId = item?.price?.lookup_key || item?.price?.metadata?.lovable_external_id || item?.price?.id;
   const productId = item?.price?.product;
   const periodStart = sub.current_period_start;
   const periodEnd = sub.current_period_end;

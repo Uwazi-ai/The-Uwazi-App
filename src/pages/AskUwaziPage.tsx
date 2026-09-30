@@ -82,7 +82,8 @@ function groupChatsByDate(chats: ChatSession[]): { label: string; chats: ChatSes
   return order.map((label) => ({ label, chats: groups[label] }));
 }
 
-async function streamChat({ messages, onDelta, onDone, onError }: {
+async function streamChat({ messages, onDelta, onDone, onError, source = "typed" }: {
+  source?: "typed" | "card";
   messages: { role: string; content: string }[];
   onDelta: (text: string) => void;
   onDone: (meta: { sources: Source[]; didSearch: boolean; nudge?: { lesson_id: string; title: string } | null }) => void;
@@ -97,7 +98,7 @@ async function streamChat({ messages, onDelta, onDone, onError }: {
 
   try {
     const response = await supabase.functions.invoke('ask-uwazi', {
-      body: { message: userQuestion, history },
+      body: { message: userQuestion, history, source },
     });
 
     if (response.error) {
@@ -446,7 +447,7 @@ export default function AskUwaziPage() {
     toast.success("Chat saved!");
   }, [messages, session]);
 
-  const handleSend = useCallback(async (text?: string) => {
+  const handleSend = useCallback(async (text?: string, source: "typed" | "card" = text ? "card" : "typed") => {
     const msg = text || input.trim();
     if (!msg || isStreaming || limited) return;
 
@@ -521,6 +522,7 @@ export default function AskUwaziPage() {
     };
 
     await streamChat({
+      source,
       messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
       onDelta: (chunk) => {
         if (isSearching) setIsSearching(false);
@@ -542,7 +544,25 @@ export default function AskUwaziPage() {
         setIsSearching(false);
         setCurrentSources([]);
       },
-      onError: (err) => { toast.error(err); setIsStreaming(false); setIsSearching(false); },
+      onError: async (err) => {
+        setIsStreaming(false); setIsSearching(false);
+        // A server side limit hit comes back as an error. Show the wall instead of a raw error.
+        try {
+          const r = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-ask-limit`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+            body: JSON.stringify({ peek: true }),
+          });
+          const d = await r.json().catch(() => ({}));
+          if (r.status === 429 && d?.reset_at) {
+            setLimited({ reset_at: d.reset_at });
+            setLimitInfo({ is_plus: false, remaining: 0, reset_at: d.reset_at });
+            setMessages((prev) => prev.slice(0, -1));
+            return;
+          }
+        } catch { /* fall through */ }
+        toast.error(err);
+      },
     });
 
   }, [input, isStreaming, limited, messages, session, saveMessages, ctx.zipCode, isSubscribed, fetchDailyCount]);

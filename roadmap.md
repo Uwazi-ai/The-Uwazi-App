@@ -37,3 +37,6 @@
 ## Hardening pass 2
 - [x] Why am I seeing this, Your data page, identity fit, unverified actions, /fair page
 - [x] Hardening pass 3: nightly backups, RESTORE.md, health check with alerts, Platform health card
+- [ ] Plus tiers: free user and student browser checks on a real free test account (blocked: needs a free test login)
+- [ ] Student ID fallback privacy approach (blocked: Derek to confirm)
+- [ ] Low income and community free tier (later, Elimu school partnership build, no UI now)

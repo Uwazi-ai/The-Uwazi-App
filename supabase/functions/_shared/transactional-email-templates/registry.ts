@@ -3,6 +3,7 @@ import type * as React from 'npm:react@18.3.1'
 import { template as securityIncident } from './security-incident.tsx'
 import { template as cityOnboarding } from './city-onboarding.tsx'
 import { template as platformHealthAlert } from './platform-health-alert.tsx'
+import { template as studentVerify } from './student-verify.tsx'
 
 export interface TemplateEntry {
   displayName?: string
@@ -17,4 +18,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'security-incident': securityIncident,
   'city-onboarding': cityOnboarding,
   'platform-health-alert': platformHealthAlert,
+  'student-verify': studentVerify,
 }

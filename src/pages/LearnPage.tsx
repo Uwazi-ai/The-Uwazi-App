@@ -1,3 +1,5 @@
+import { usePlan } from "@/hooks/usePlan";
+import { openPaywall } from "@/components/plus/Paywall";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useMyPath } from "@/hooks/useJourney";
@@ -28,9 +30,15 @@ export default function LearnPage() {
   const tracksStarted = tracks.filter(t => getTrackProgress(t.id).completed > 0).length;
   const literacyScore = lessons.length > 0 ? Math.round((completedCount / lessons.length) * 100) : 0;
 
+  const { isPlus } = usePlan();
+  // Plus only lessons are locked for free users, except their Your path lessons so the journey never stops.
+  const pathIds = new Set([path?.stage_lesson?.id, path?.weakest?.id, path?.top?.id].filter(Boolean) as string[]);
+  const plusLocked = (l: EnrichedLesson) => !isPlus && !!(l as any).plus_only && !pathIds.has(l.id);
   const openLesson = (id: string) => {
     const l = lessons.find(x => x.id === id);
-    if (l) setActiveLesson(l);
+    if (!l) return;
+    if (plusLocked(l)) return openPaywall("lesson");
+    setActiveLesson(l);
   };
 
   // Deep link: /app/learn?lesson=<id> opens that lesson right away.
@@ -178,7 +186,7 @@ export default function LearnPage() {
                         return (
                           <button
                             key={lesson.id}
-                            onClick={() => !isLocked && setActiveLesson(lesson)}
+                            onClick={() => { if (isLocked) return; if (plusLocked(lesson)) return openPaywall("lesson"); setActiveLesson(lesson); }}
                             disabled={isLocked}
                             className={`w-full text-left flex items-center gap-3 rounded-lg border transition-all p-3 ${
                               isLocked
@@ -212,6 +220,9 @@ export default function LearnPage() {
                               }`}>
                                 {lesson.title}
                               </p>
+                              {plusLocked(lesson) && (
+                                <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary" data-testid="lesson-plus-tag"><Lock className="h-3 w-3" />Plus</span>
+                              )}
                               <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{lesson.description}</p>
                               <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                                 <span className="flex items-center gap-1">

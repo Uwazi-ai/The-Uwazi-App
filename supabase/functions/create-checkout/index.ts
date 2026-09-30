@@ -41,6 +41,19 @@ serve(async (req) => {
         if (isAllowedOrigin(new URL(returnUrl).origin)) safeReturnUrl = returnUrl;
       } catch { /* keep default */ }
     }
+    // Student price only for verified students.
+    if (priceId.startsWith("uwazi_plus_student")) {
+      const { createClient } = await import("npm:@supabase/supabase-js@2");
+      const auth = req.headers.get("Authorization") ?? "";
+      const uc = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: auth } } });
+      const { data: { user } } = await uc.auth.getUser();
+      const { data: ok } = user ? await uc.rpc("is_verified_student", { _user_id: user.id }) : { data: false };
+      if (!user || !ok || user.id !== userId) {
+        return new Response(JSON.stringify({ error: "Please confirm your school first." }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
     const qty = 1; // One subscription per checkout, never set by the caller.
     const isRecurring = stripePrice.type === "recurring";
     const plusPrices = ["uwazi_plus_beta_monthly", "uwazi_plus_beta_yearly", "uwazi_plus_monthly", "uwazi_plus_yearly"];
@@ -49,7 +62,7 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       line_items: [{ price: stripePrice.id, quantity: qty }],
       mode: isRecurring ? "subscription" : "payment",
-      ui_mode: "embedded",
+      ui_mode: "embedded_page",
       return_url: safeReturnUrl,
       ...(customerEmail && { customer_email: customerEmail }),
       ...(userId && {

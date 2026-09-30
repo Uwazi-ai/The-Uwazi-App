@@ -6,6 +6,7 @@ import { PersonaBadge } from "@/components/compass/PersonaBadge";
 
 export interface Persona {
   suggested_prompts?: string[];
+  archetype_intro?: string | null; archetype_examples?: string | null;
   slug: string; name: string; top_dimension_slug: string | null; one_line: string; strength: string;
   blind_spot: string; color: string; icon_key: string; next_step_lean: string; sort_order: number;
 }
@@ -66,6 +67,7 @@ export function PersonaHeadline({ state, size = "lg" }: { state: PersonaState; s
       <h2 className={`font-heading ${size === "lg" ? "text-4xl" : "text-3xl"} leading-tight`} style={{ color: personaColor(p.color) }} data-testid="persona-name">{p.name}</h2>
       {s && <p className="text-sm font-semibold" style={{ color: personaColor(s.color) }} data-testid="persona-streak">with a {shortName(s)} streak</p>}
       <p className="text-foreground">{p.one_line}</p>
+      {p.archetype_intro && <p className="text-sm italic text-foreground/90" data-testid="persona-archetype">{p.archetype_intro}</p>}
       {state.evidence && <p className="text-sm text-muted-foreground" data-testid="persona-evidence">{state.evidence}</p>}
     </div>
   );

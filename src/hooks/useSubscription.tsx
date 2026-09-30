@@ -17,6 +17,7 @@ export function useSubscription() {
   const { user } = useAuth();
   const [subscription, setSubscription] = useState<SubscriptionRow | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [plan, setPlan] = useState<"free" | "plus" | "plus_student">("free");
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
@@ -38,12 +39,13 @@ export function useSubscription() {
         .maybeSingle(),
       supabase
         .from("profiles")
-        .select("is_admin")
+        .select("is_admin, plan")
         .eq("user_id", user.id)
         .maybeSingle(),
     ]);
     setSubscription((subRes.data as SubscriptionRow | null) ?? null);
     setIsAdmin(Boolean((profileRes.data as { is_admin?: boolean } | null)?.is_admin));
+    setPlan(((profileRes.data as any)?.plan ?? "free") as any);
     setLoading(false);
   }, [user]);
 
@@ -69,6 +71,7 @@ export function useSubscription() {
   const isPremium = (() => {
     // Admins always have full Uwazi+ access
     if (isAdmin) return true;
+    if (plan === "plus" || plan === "plus_student") return true;
     if (!subscription) return false;
     const periodOk = !subscription.current_period_end || new Date(subscription.current_period_end) > new Date();
     if (["active", "trialing"].includes(subscription.status) && periodOk) return true;
@@ -76,5 +79,5 @@ export function useSubscription() {
     return false;
   })();
 
-  return { subscription, isPremium, loading, refresh };
+  return { subscription, isPremium, plan, loading, refresh };
 }

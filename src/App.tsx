@@ -48,6 +48,7 @@ import AdminEpisodesPage from "./pages/admin/AdminEpisodesPage";
 import AdminVideoLibraryPage from "./pages/admin/AdminVideoLibraryPage";
 import AdminPartnerOrgsPage from "./pages/admin/AdminPartnerOrgsPage";
 import UpgradePage from "./pages/UpgradePage";
+import StudentConfirmPage from "./pages/StudentConfirmPage";
 import AdminCodesPage from "./pages/admin/AdminCodesPage";
 import CheckoutReturnPage from "./pages/CheckoutReturnPage";
 import ManageSubscriptionPage from "./pages/ManageSubscriptionPage";
@@ -134,6 +135,7 @@ const App = () => (
                 <Route path="/app/settings/data" element={<YourDataPage />} />
                 <Route path="/app/settings/subscription" element={<ManageSubscriptionPage />} />
                 <Route path="/app/upgrade" element={<UpgradePage />} />
+                <Route path="/app/student/confirm" element={<StudentConfirmPage />} />
                 <Route path="/app/redeem" element={<RedeemPage />} />
                 <Route path="/app/checkout/return" element={<CheckoutReturnPage />} />
 
