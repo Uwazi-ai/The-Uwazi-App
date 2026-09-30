@@ -43,6 +43,8 @@ serve(async (req) => {
     }
     const qty = 1; // One subscription per checkout, never set by the caller.
     const isRecurring = stripePrice.type === "recurring";
+    const plusPrices = ["uwazi_plus_beta_monthly", "uwazi_plus_beta_yearly", "uwazi_plus_monthly", "uwazi_plus_yearly"];
+    const isPlusTrial = isRecurring && plusPrices.includes(priceId);
 
     const session = await stripe.checkout.sessions.create({
       line_items: [{ price: stripePrice.id, quantity: qty }],
@@ -52,7 +54,7 @@ serve(async (req) => {
       ...(customerEmail && { customer_email: customerEmail }),
       ...(userId && {
         metadata: { userId },
-        ...(isRecurring && { subscription_data: { metadata: { userId }, trial_period_days: 7 } }),
+        ...(isRecurring && { subscription_data: { metadata: { userId }, ...(isPlusTrial && { trial_period_days: 7 }) } }),
       }),
     });
 
