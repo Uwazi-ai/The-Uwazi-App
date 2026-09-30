@@ -5373,6 +5373,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      home_city_updates: { Args: never; Returns: Json }
       import_district_boundary: {
         Args: {
           _batch: string
