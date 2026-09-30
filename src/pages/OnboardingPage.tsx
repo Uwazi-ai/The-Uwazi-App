@@ -135,6 +135,7 @@ function AddressScreen({ onDone, onSkip, saving }: { onDone: () => void; onSkip:
   const [stateCode, setStateCode] = useState("");
   const [zip, setZip] = useState("");
   const [busy, setBusy] = useState(false);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     if (/^\d{5}$/.test(zip)) setStateCode((s) => s || getStateFromZip(zip));
