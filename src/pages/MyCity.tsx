@@ -3,6 +3,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { MyCityDashboard } from "@/components/my-city/MyCityDashboard";
 import { MyCityPaywall } from "@/components/my-city/MyCityPaywall";
 import { openMyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export default function MyCity() {
   const { isPremium, loading } = useSubscription();
@@ -14,7 +15,7 @@ export default function MyCity() {
   }, [loading, isPremium]);
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center" style={{ background: "#080808" }} />;
+    return <LoadingScreen fullScreen={false} label="Loading My City" />;
   }
 
   return isPremium ? <MyCityDashboard /> : <MyCityPaywall />;

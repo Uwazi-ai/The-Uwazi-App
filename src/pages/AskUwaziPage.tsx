@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/drawer";
 import { RegistrationOptInCard } from "@/components/ask-uwazi/RegistrationOptInCard";
 import { AskLimitPill, AskLimitPaywall } from "@/components/ask-uwazi/AskLimitUI";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 interface Source {
   title: string;
@@ -606,27 +607,7 @@ export default function AskUwaziPage() {
   const isEmpty = messages.length === 0;
 
   if (sessionLoading || ctx.loading) {
-    return (
-      <div className="flex items-center justify-center bg-background" style={{ height: "100dvh" }}>
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="h-12 w-12 rounded-2xl glass flex items-center justify-center">
-              <img src={uwaziLogo} alt="UWAZI logo" className="h-6 w-6" />
-            </div>
-            <motion.div className="absolute inset-0 rounded-2xl border-2 border-primary/30"
-              animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity }} />
-          </div>
-          <div className="flex items-center gap-1.5">
-            {[0, 1, 2].map((i) => (
-              <motion.div key={i} className="h-1.5 w-1.5 rounded-full bg-primary"
-                animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
-                transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }} />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingScreen fullScreen={false} label="Loading Ask UWAZI" />;
   }
 
   const stateName = ctx.state ? (STATE_NAMES[ctx.state] || ctx.state) : null;
