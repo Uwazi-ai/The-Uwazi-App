@@ -157,7 +157,12 @@ function AddressScreen({ onDone, onSkip, saving }: { onDone: () => void; onSkip:
         full_address: zipOnly ? null : full,
         street_address: zipOnly ? null : street.trim(),
       }).eq("user_id", user.id);
-      await supabase.functions.invoke("resolve-address", { body: { address: full } });
+      const { data } = await supabase.functions.invoke("resolve-address", { body: { address: full } });
+      if (!zipOnly && data && data.address_matched === false) {
+        setNotFound(true);
+        setBusy(false);
+        return;
+      }
       onDone();
     } catch {
       toast.error("We could not check that address. You can add it later in settings.");
