@@ -35,7 +35,8 @@ type AdminNavItem = { to: string; icon: any; label: string; programAdmin?: boole
 const adminNav: AdminNavItem[] = [
   { to: "/app/admin", icon: AdminOverviewIcon, label: "Admin Overview", programAdmin: true },
   { to: "/app/admin/users", icon: UsersIcon, label: "Users" },
-  { to: "/app/admin/content", icon: WatchIcon, label: "Content", programAdmin: true },
+  { to: "/app/admin/content", icon: WatchIcon, label: "Content" },
+  { to: "/app/admin/episodes", icon: WatchIcon, label: "Episodes", programAdmin: true },
   { to: "/app/admin/analytics", icon: AnalyticsIcon, label: "Analytics", programAdmin: true },
   { to: "/app/admin/intelligence", icon: IntelligenceIcon, label: "Intelligence", programAdmin: true },
   { to: "/app/admin/lessons", icon: LessonManagerIcon, label: "Lesson Manager", programAdmin: true },

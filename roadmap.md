@@ -1,8 +1,9 @@
 ## Home and Plus
+- [x] Build one private video library, super admin Content manager, Watch catalog, and Home playback.
+- [ ] Verify playback and personalization on a separate non admin account. Admin upload, signed in player, dismissal, and removal were checked. Browser video decoding was not confirmed.
 - [x] Rebuild Home with journey, local tiles, video playback, and admin video controls.
 - [x] Rebuild Plus with existing prices and seven-day trial checkout.
 - [x] Verify Home, missing-data hiding, welcome and clip playback, Progress step, and Plus copy in a signed-in browser with mocked video responses. No test account or persistent video data was created.
-- [ ] Add real welcome and clip media URLs in Admin Platform. No video media is published yet.
 - [ ] Set a student and low-income eligibility policy, review turnaround, and fulfillment process. Requests currently queue for manual review only.
 - [ ] Complete a Stripe sandbox checkout to verify the seven-day trial in Stripe.
 

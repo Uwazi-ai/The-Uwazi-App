@@ -18,6 +18,6 @@
 - Badge celebrations play from one BadgeWatcher in AppLayout, which diffs user_badges against a per-user seen list; persona badges are skipped there because the Compass pack shows them. Why: one place shows every badge over any screen.
 - Research surveys live in survey_definitions, survey_dispatch and research_survey_responses, separate from the older outreach surveys tables; sending goes through send_research_survey or the hourly dispatch_due_surveys job, answers only through submit_research_survey, and admins read only research_survey_results totals. Why: only research-consented matching people get surveys and no answer is ever tied to a name on screen.
 
-- Home videos live in admin-managed video_assets and videos, while Home reads journey steps from the same shared mapper as Progress. Why: the welcome and clips remain optional and next-step copy stays consistent.
+- Home and Watch use videos, edited in Content, with private media; journey steps share a mapper. Why: one reviewed library and consistent next steps.
 - Clip autoplay is controlled by user_preferences.autoplay_on_cellular and the visible Wi-Fi preview only. Why: a single clip may use network and battery at a time.
 - Plus checkout sets a seven-day subscription trial for recurring plans. Why: the promised first week must be reflected in the actual purchase.
