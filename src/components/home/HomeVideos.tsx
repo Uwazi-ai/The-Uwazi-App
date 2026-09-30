@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Play, X, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -54,6 +54,19 @@ function Clip({ clip, active, onOpen }: { clip: HomeVideo; active: boolean; onOp
   </div>;
 }
 
+const LESSON_BY_TOPIC: [RegExp, string][] = [
+  [/hous|home|zoning/i, "how-housing-gets-built"],
+  [/school|educat|youth/i, "who-runs-your-schools"],
+  [/health|wellbeing/i, "public-health-near-you"],
+  [/road|bus|transit|transport|mobility|infrastructure/i, "roads-buses-and-you"],
+];
+const DIM_TO_SLUG: Record<string, string> = { "housing-development": "how-housing-gets-built", "education-youth": "who-runs-your-schools", "health-wellbeing": "public-health-near-you", "infrastructure-mobility": "roads-buses-and-you" };
+function lessonSlugFor(clip: HomeVideo) {
+  const dim = clip.dimension_slug?.replace(/_/g, "-");
+  if (dim && DIM_TO_SLUG[dim]) return DIM_TO_SLUG[dim];
+  return LESSON_BY_TOPIC.find(([re]) => re.test(`${clip.tag} ${clip.title}`))?.[1] ?? null;
+}
+
 export function WatchAndLearn({ videos, topIssues, allowCellular }: { videos: HomeVideo[]; topIssues: string[]; allowCellular: boolean }) {
   const [selected, setSelected] = useState<HomeVideo | null>(null);
   const [mostVisible, setMostVisible] = useState<string | null>(null);
@@ -62,6 +75,17 @@ export function WatchAndLearn({ videos, topIssues, allowCellular }: { videos: Ho
   const ratios = useRef<Record<string, number>>({});
   const [pageVisible, setPageVisible] = useState(document.visibilityState === "visible");
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [lessonIds, setLessonIds] = useState<Record<string, string>>({});
+  useEffect(() => {
+    supabase.from("lessons").select("id,slug").eq("is_published", true).in("slug", Object.values(DIM_TO_SLUG))
+      .then(({ data }) => setLessonIds(Object.fromEntries((data ?? []).map((l) => [l.slug, l.id]))));
+  }, []);
+  const openClip = (clip: HomeVideo) => {
+    const slug = lessonSlugFor(clip);
+    const id = slug ? lessonIds[slug] : undefined;
+    if (id) navigate(`/app/learn?lesson=${id}`); else setSelected(clip);
+  };
   useEffect(() => {
     const connection = (navigator as Navigator & { connection?: { type?: string; effectiveType?: string; addEventListener?: (type: string, fn: () => void) => void; removeEventListener?: (type: string, fn: () => void) => void } }).connection;
     const check = () => setWifi(navigator.onLine && connection?.type === "wifi");
@@ -89,7 +113,7 @@ export function WatchAndLearn({ videos, topIssues, allowCellular }: { videos: Ho
   return <section className="space-y-3" aria-label="Watch and learn" data-testid="video-row">
     <div className="flex items-end justify-between gap-3"><h2 className="font-heading text-xl text-foreground">Watch and learn</h2><Link to="/app/watch" className="flex items-center gap-1 text-xs font-semibold text-primary">All in Favor <ArrowUpRight className="h-4 w-4" /></Link></div>
     <div ref={scroller} className="flex snap-x gap-3 overflow-x-auto pb-2" data-testid="clip-scroller">
-      {ordered.map((clip) => <Clip key={clip.id} clip={clip} active={!!user && !selected && !reduced && (wifi || allowCellular) && mostVisible === clip.id && pageVisible} onOpen={() => setSelected(clip)} />)}
+      {ordered.map((clip) => <Clip key={clip.id} clip={clip} active={!!user && !selected && !reduced && (wifi || allowCellular) && mostVisible === clip.id && pageVisible} onOpen={() => openClip(clip)} />)}
     </div>
     <Button asChild variant="ghost" size="sm"><Link to="/app/watch">See all <ArrowUpRight className="h-4 w-4" /></Link></Button>
     {selected && <FullVideo item={selected} onClose={() => setSelected(null)} />}
