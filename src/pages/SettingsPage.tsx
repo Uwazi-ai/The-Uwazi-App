@@ -11,7 +11,7 @@ import { useProfile } from "@/contexts/ProfileContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Link, useNavigate } from "react-router-dom";
 import { RefreshCw } from "lucide-react";
-import uwaziPlusLogo from "@/assets/uwazi-plus-logo.png";
+import { PlusLogo } from "@/components/plus/PlusLogo";
 import { Crown, Sparkles, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -449,7 +449,7 @@ export default function SettingsPage() {
             : "1px solid rgba(250, 204, 21, 0.3)",
         }}>
         <div className="p-6 flex items-center gap-4">
-          <img src={uwaziPlusLogo} alt="Uwazi+" className="h-14 w-14 shrink-0 object-contain" />
+          <PlusLogo on_dark={false} className="h-8" />
           <div className="flex-1 min-w-0">
             {isPremium ? (
               <>

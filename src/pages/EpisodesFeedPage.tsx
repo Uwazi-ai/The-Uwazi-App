@@ -11,6 +11,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import { openPaywall } from "@/components/plus/Paywall";
+import { PlusLogo } from "@/components/plus/PlusLogo";
 import { useEpisodeVideoUrl } from "@/hooks/useEpisodeVideoUrl";
 
 interface Episode {
@@ -503,7 +504,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
         <button type="button" onClick={onPaywall} data-testid="locked-episode" aria-label={`${episode.title}. Plus only. Tap to unlock.`}
           className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/50">
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black/70"><Lock size={24} className="text-primary" /></span>
-          <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">Plus</span>
+          <PlusLogo on_dark className="h-5" />
           <span className="max-w-xs px-6 text-center text-sm text-white/80">Free covers the 5 newest episodes. Tap to watch this one with Plus.</span>
         </button>
       )}

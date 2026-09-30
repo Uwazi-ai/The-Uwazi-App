@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { PlusMark, openPaywall } from "@/components/plus/Paywall";
+import { openPaywall } from "@/components/plus/Paywall";
+import { PlusLogo } from "@/components/plus/PlusLogo";
 
 function fmtCountdown(ms: number) {
   if (ms <= 0) return "0:00:00";
@@ -34,7 +35,7 @@ export function AskLimitPaywall({ resetAt, onReset }: { resetAt: string; onReset
   return (
     <div className="border-t border-primary/30 bg-card px-4 py-5" data-testid="ask-limit-wall">
       <div className="mx-auto max-w-3xl space-y-3">
-        <PlusMark className="h-6" />
+        <PlusLogo on_dark={false} className="h-6" />
         <p className="text-base text-foreground">
           You have used your 5 questions for now. They reset in <span className="font-heading text-primary">{countdown}</span>, at {resetClock}. UWAZI Plus is unlimited.
         </p>
