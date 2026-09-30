@@ -47,17 +47,22 @@ export default function HomePage() {
     if (!user) return;
     let cancelled = false;
     (async () => {
-      const [profile, asset, clips, prefs, recent, district] = await Promise.all([
+      const [profile, asset, clips, prefs, recent, district, shows] = await Promise.all([
         db.from("profiles").select("home_welcome_seen").eq("user_id", user.id).maybeSingle(),
          db.from("videos").select("*").eq("active", true).in("placement", ["welcome", "both"]).limit(1).maybeSingle(),
          db.from("videos").select("*").eq("active", true).in("placement", ["home_row", "both"]).order("sort_order").order("created_at", { ascending: false }),
         db.from("user_preferences").select("autoplay_on_cellular").eq("user_id", user.id).maybeSingle(),
         db.rpc("home_city_updates"),
         db.from("user_districts").select("resolved").eq("user_id", user.id).maybeSingle(),
+        db.from("episodes").select("id,title,description,topic,video_url,is_free,sort_order,created_at").eq("is_published", true).order("sort_order"),
       ]);
       if (cancelled) return;
       setSeen(profile.data?.home_welcome_seen ?? true);
-      setWelcome(asset.data ?? null); setVideos(clips.data ?? []);
+      const episodes = ((shows.data ?? []) as EpisodeRow[]).map(episodeToVideo);
+      const hero = asset.data ?? episodes[0] ?? null;
+      const libraryClips = (clips.data ?? []) as HomeVideo[];
+      const rest = episodes.filter((item) => item.id !== hero?.id);
+      setWelcome(hero); setVideos(libraryClips.length ? [...libraryClips, ...rest] : rest);
       setAllowCellular(prefs.data?.autoplay_on_cellular ?? false);
       setUpdates(Array.isArray(recent.data) ? recent.data : []);
       const place = district.data?.resolved?.place;
