@@ -16,11 +16,12 @@ function FullVideo({ item, onClose }: { item: { title: string; url: string; post
 export function WelcomeHero({ video, seen, onDismiss }: { video: WelcomeVideo | null; seen: boolean; onDismiss: () => void }) {
   const [open, setOpen] = useState(false);
   const [closed, setClosed] = useState(false);
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (!video || seen || closed) return null;
   const finish = () => { setOpen(false); setClosed(true); onDismiss(); };
   return <>
     <section className="relative h-[208px] overflow-hidden rounded-[22px] bg-secondary" aria-label="Welcome to UWAZI" data-testid="welcome-hero">
-      <video src={video.url} poster={video.poster_url} muted autoPlay loop playsInline preload="metadata" className="h-full w-full object-cover" />
+      <video src={reduced ? undefined : video.url} poster={video.poster_url} muted autoPlay={!reduced} loop playsInline preload="metadata" className="h-full w-full object-cover" />
       <div className="absolute inset-0 bg-background/25 pointer-events-none" />
       <span className="absolute left-4 top-4 rounded-full border border-border bg-background/75 px-3 py-1 text-[11px] font-bold text-foreground backdrop-blur-md">WELCOME TO UWAZI</span>
       <Button size="icon" variant="secondary" onClick={finish} title="Close welcome video" aria-label="Close welcome video" className="absolute right-3 top-3 rounded-full"><X /></Button>
@@ -56,7 +57,7 @@ export function WatchAndLearn({ videos, topIssues, allowCellular }: { videos: Ho
   const { user } = useAuth();
   useEffect(() => {
     const connection = (navigator as Navigator & { connection?: { type?: string; effectiveType?: string; addEventListener?: (type: string, fn: () => void) => void; removeEventListener?: (type: string, fn: () => void) => void } }).connection;
-    const check = () => setWifi(connection?.type === "wifi" || (navigator.onLine && !connection));
+    const check = () => setWifi(navigator.onLine && connection?.type === "wifi");
     check(); connection?.addEventListener?.("change", check);
     return () => connection?.removeEventListener?.("change", check);
   }, []);
