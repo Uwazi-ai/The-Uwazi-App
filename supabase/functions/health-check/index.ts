@@ -17,8 +17,8 @@ Deno.serve(async (req) => {
   if (!auth.ok) return json({ error: 'Unauthorized' }, 401);
   let body: any = {};
   try { body = await req.json(); } catch { /* empty */ }
-  // Test only: a super admin can force one check to fail by hand.
-  const forceFail = auth.manual && ['office_check', 'backup'].includes(body?.force_fail) ? body.force_fail : null;
+  // Test only: a super admin or the private job key can force one check to fail.
+  const forceFail = ['office_check', 'backup'].includes(body?.force_fail) ? body.force_fail : null;
 
   const { data: office } = await db.from('civic_data_sources').select('last_checked_at').eq('active', true)
     .order('last_checked_at', { ascending: false, nullsFirst: false }).limit(1).maybeSingle();

@@ -40,8 +40,10 @@ Deno.serve(async (req) => {
   if (!auth.ok) return json({ error: 'Unauthorized' }, 401);
 
   // The schedule fires at 8 and 9 UTC. Only the run that lands on 3am Central does work.
+  let body: any = {};
+  try { body = await req.json(); } catch { /* empty */ }
   const now = chicagoParts();
-  if (!auth.manual && now.hour !== 3) return json({ skipped: true, reason: 'Not 3am Central' });
+  if (!auth.manual && body?.run_now !== true && now.hour !== 3) return json({ skipped: true, reason: 'Not 3am Central' });
 
   const folder = now.date;
   const { data: run } = await db.from('backup_runs').insert({ folder }).select('id').single();
