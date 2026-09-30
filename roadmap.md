@@ -1,3 +1,8 @@
+## Home and Plus
+- [x] Rebuild Home with journey, local tiles, video playback, and admin video controls.
+- [x] Rebuild Plus with existing prices and seven-day trial checkout.
+- [ ] Verify with two video assets and a disposable account, then remove test data.
+
 # November 3 Readiness
 
 ## My City visual redesign
