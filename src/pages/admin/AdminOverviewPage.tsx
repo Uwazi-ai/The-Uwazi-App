@@ -1,3 +1,4 @@
+import { UnverifiedActionsPanel } from "@/components/admin/UnverifiedActionsPanel";
 import { useAdminStats, useRecentSignups, useTopScores, useZipBreakdown, useSignupChart } from "@/hooks/useAdminData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
@@ -62,6 +63,7 @@ export default function AdminOverviewPage() {
 
       {/* Top Stats */}
       <JourneyResearchPanels />
+      <UnverifiedActionsPanel />
       <CompassFactsAdmin />
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">

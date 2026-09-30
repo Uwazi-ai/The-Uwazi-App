@@ -18,6 +18,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useMyJourney } from "@/hooks/useJourney";
+import { WhyAmISeeing } from "@/components/journey/WhyAmISeeing";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { isToday, isYesterday, differenceInDays } from "date-fns";
@@ -346,7 +347,7 @@ export default function AskUwaziPage() {
     chatHistory, loadSession, deleteSession,
   } = useAskUwaziSession();
   const suggestedPrompts = getSuggestedPrompts(ctx);
-  const { journey: askJourney } = useMyJourney();
+  const { journey: askJourney, reload: reloadAskJourney } = useMyJourney();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -762,9 +763,18 @@ export default function AskUwaziPage() {
                   ASK UWAZI
                 </h1>
                 <p className="text-sm text-muted-foreground mb-1">Your Political Co-Pilot</p>
-                {askJourney?.personalization && askJourney.lead_name && (
-                  <p className="text-sm text-foreground mt-2" data-testid="ask-greeting">Welcome back. You lead with {askJourney.lead_name}. Ask what changed on that in your city this week.</p>
-                )}
+                {askJourney?.personalization && (askJourney.lead_name || askJourney.label) ? (
+                  <div className="mt-2 space-y-1">
+                    <p className="text-sm text-foreground" data-testid="ask-greeting">
+                      {askJourney.lead_name
+                        ? <>Welcome back. You lead with {askJourney.lead_name}. Ask what changed on that in your city this week.</>
+                        : <>Welcome back. You are {askJourney.label}. Ask what changed in your city this week.</>}
+                    </p>
+                    <WhyAmISeeing rule="This greeting uses your identity from the Civic Compass. It names the issue you scored highest on." onChanged={reloadAskJourney} />
+                  </div>
+                ) : askJourney ? (
+                  <p className="text-sm text-foreground mt-2" data-testid="ask-greeting-generic">Welcome. Ask anything about your city.</p>
+                ) : null}
 
                 {/* Location pill */}
                 {ctx.zipCode && (
@@ -890,7 +900,10 @@ export default function AskUwaziPage() {
                         </div>
                         {msg.id !== "streaming" && msg.nudge && (
                           <div className="flex flex-col sm:flex-row sm:items-center gap-2 rounded-xl border border-primary/30 bg-primary/10 p-3">
-                            <p className="text-sm text-foreground flex-1">Want a 3 minute lesson on this?</p>
+                            <div className="flex-1">
+                              <p className="text-sm text-foreground">Want a 3 minute lesson on this?</p>
+                              <WhyAmISeeing rule="Your question matched the topic of this lesson. We only suggest lessons you have not finished." onChanged={reloadAskJourney} />
+                            </div>
                             <Link to={`/app/learn?lesson=${msg.nudge.lesson_id}`} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-center">
                               Open: {msg.nudge.title}
                             </Link>
