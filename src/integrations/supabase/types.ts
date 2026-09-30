@@ -4573,6 +4573,33 @@ export type Database = {
           },
         ]
       }
+      voting_plan: {
+        Row: {
+          created_at: string
+          election_id: string
+          id: string
+          steps: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          election_id: string
+          id?: string
+          steps?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          election_id?: string
+          id?: string
+          steps?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       voting_plan_items: {
         Row: {
           ballot_item_id: string | null
@@ -5382,6 +5409,13 @@ export type Database = {
       review_office_change: {
         Args: { _approve: boolean; _change_id: string }
         Returns: string
+      }
+      save_voting_plan: {
+        Args: { _election_id: string; _steps: Json }
+        Returns: {
+          points_awarded: number
+          steps: Json
+        }[]
       }
       send_research_survey: { Args: { _survey_id: string }; Returns: number }
       set_city_review: {
