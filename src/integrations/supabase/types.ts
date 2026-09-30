@@ -1840,6 +1840,51 @@ export type Database = {
           },
         ]
       }
+      compass_personas: {
+        Row: {
+          blind_spot: string
+          color: string
+          created_at: string
+          icon_key: string
+          name: string
+          next_step_lean: string
+          one_line: string
+          slug: string
+          sort_order: number
+          strength: string
+          top_dimension_slug: string | null
+          updated_at: string
+        }
+        Insert: {
+          blind_spot: string
+          color: string
+          created_at?: string
+          icon_key: string
+          name: string
+          next_step_lean?: string
+          one_line: string
+          slug: string
+          sort_order?: number
+          strength: string
+          top_dimension_slug?: string | null
+          updated_at?: string
+        }
+        Update: {
+          blind_spot?: string
+          color?: string
+          created_at?: string
+          icon_key?: string
+          name?: string
+          next_step_lean?: string
+          one_line?: string
+          slug?: string
+          sort_order?: number
+          strength?: string
+          top_dimension_slug?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       compass_questions: {
         Row: {
           active: boolean
@@ -2401,6 +2446,7 @@ export type Database = {
       identity_feedback: {
         Row: {
           chosen_dimension: string
+          chosen_persona: string | null
           created_at: string
           id: string
           original_label: string | null
@@ -2409,6 +2455,7 @@ export type Database = {
         }
         Insert: {
           chosen_dimension: string
+          chosen_persona?: string | null
           created_at?: string
           id?: string
           original_label?: string | null
@@ -2417,6 +2464,7 @@ export type Database = {
         }
         Update: {
           chosen_dimension?: string
+          chosen_persona?: string | null
           created_at?: string
           id?: string
           original_label?: string | null
@@ -2945,6 +2993,36 @@ export type Database = {
           logo_url?: string | null
           name?: string
           slug?: string
+        }
+        Relationships: []
+      }
+      persona_history: {
+        Row: {
+          created_at: string
+          id: string
+          persona: string
+          session_id: string | null
+          source: string
+          streak: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          persona: string
+          session_id?: string | null
+          source?: string
+          streak?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          persona?: string
+          session_id?: string | null
+          source?: string
+          streak?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -5041,6 +5119,10 @@ export type Database = {
       }
       office_reviewer_count: { Args: never; Returns: number }
       owns_compass_session: { Args: { _session_id: string }; Returns: boolean }
+      persona_evidence: {
+        Args: { _persona: string; _uid: string }
+        Returns: string
+      }
       persona_label: { Args: { _scores: Json }; Returns: Json }
       platform_health: { Args: never; Returns: Json }
       propose_office_district: {
