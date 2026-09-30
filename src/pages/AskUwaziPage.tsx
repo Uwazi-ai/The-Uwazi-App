@@ -634,7 +634,7 @@ export default function AskUwaziPage() {
   const webSearchSuggestions = [
     "Who is running for mayor in my area?",
     "What's the latest on immigration legislation?",
-    "Research candidates on my ballot",
+    ctx.ballotCovered ? "Research candidates on my ballot" : "How do I vote in my state?",
     "Current voting record of my senator",
   ];
 
@@ -809,9 +809,13 @@ export default function AskUwaziPage() {
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   {(askPersona?.suggested_prompts?.length ? [
                     ...askPersona.suggested_prompts.slice(0, 3).map((q, i) => ({ icon: [Landmark, FileText, CalendarDays][i], title: q, sub: `For ${shortName(askPersona)}s like you`, prompt: q })),
-                    { icon: Vote, title: "What's on my ballot?", sub: "See your local races", prompt: suggestedPrompts[0] || "What's on my ballot?" },
+                    ctx.ballotCovered
+                      ? { icon: Vote, title: "What's on my ballot?", sub: "See your local races", prompt: suggestedPrompts[0] || "What's on my ballot?" }
+                      : { icon: Landmark, title: "Who represents me?", sub: "Find your officials", prompt: "Who represents me?" },
                   ] : [
-                    { icon: Vote, title: "What's on my ballot?", sub: "See your local races", prompt: suggestedPrompts[0] || "What's on my ballot?" },
+                    ctx.ballotCovered
+                      ? { icon: Vote, title: "What's on my ballot?", sub: "See your local races", prompt: suggestedPrompts[0] || "What's on my ballot?" }
+                      : { icon: Vote, title: "How do I vote?", sub: "Steps for your state", prompt: "How do I vote in my state?" },
                     { icon: FileText, title: "Explain a bill", sub: "Plain language breakdown", prompt: suggestedPrompts[2] || "Explain a bill in plain language" },
                     { icon: Landmark, title: "Who represents me?", sub: "Find your officials", prompt: suggestedPrompts[1] || "Who represents me?" },
                     { icon: CalendarDays, title: "Next election", sub: "Dates and deadlines", prompt: suggestedPrompts[3] || "When is the next election?" },

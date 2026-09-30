@@ -8,6 +8,7 @@
 // Secrets: ANTHROPIC_API_KEY
 // ============================================================
 
+import { buildVotingContext, VOTING_Q } from "./voting.ts";
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SYSTEM_PROMPT } from "./prompt.ts";
 import { KCEB_RULES } from "./kceb-rules.ts";
@@ -761,7 +762,12 @@ Deno.serve(async (req) => {
       .map((h: any) => ({ role: h.role, content: h.content.slice(0, 8000) }));
     while (safeHistory.length && safeHistory[0].role !== "user") safeHistory.shift();
 
-    const contextParts = [journeyTurn.contextText, officesText, budgetText].filter(Boolean) as string[];
+    let votingText: string | null = null;
+    if (VOTING_Q.test(message)) {
+      try { votingText = await buildVotingContext(supabase, user.id, savedPrecinct, kcebLookup); }
+      catch (e) { console.warn("voting context failed", e); }
+    }
+    const contextParts = [journeyTurn.contextText, officesText, budgetText, votingText].filter(Boolean) as string[];
     const messages: Record<string, unknown>[] = [
       ...safeHistory,
       {
