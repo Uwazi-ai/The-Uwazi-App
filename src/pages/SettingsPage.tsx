@@ -1,3 +1,4 @@
+import { ReminderSettings } from "@/components/notifications/ReminderSettings";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -615,6 +616,7 @@ export default function SettingsPage() {
             </div>
           </div>
         ))}
+        <ReminderSettings />
       </motion.div>
 
       {/* Security */}
