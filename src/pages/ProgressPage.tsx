@@ -26,7 +26,7 @@ function stepInfo(step: MyJourney["next_step"]): { title: string; sub: string; t
     case "compass":
       return { title: "Take the Civic Compass quiz", sub: "It takes about 3 minutes. You earn 50 points.", to: "/app/compass", cta: "Take the quiz, +50 points" };
     case "survey":
-      return { title: step.title ? `Answer: ${step.title}` : "Answer a short survey", sub: "Your voice helps your community. You earn 15 points.", to: "/app/home", cta: "Answer the survey, +15 points" };
+      return { title: step.title ? `Answer: ${step.title}` : "Answer a short survey", sub: "Your voice helps your community. You earn 15 points.", to: step.ref ? `/app/survey/${step.ref}` : "/app", cta: "Answer the survey, +15 points" };
     case "lesson":
       return { title: step.title ? `Start: ${step.title}` : "Start your next lesson", sub: "A short lesson. You earn 25 points.", to: `/app/learn?lesson=${step.ref}`, cta: "Start the lesson, +25 points" };
     case "office_action":

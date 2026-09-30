@@ -41,6 +41,8 @@ import AdminAlertsPage from "./pages/admin/AdminAlertsPage";
 import AdminPlatformPage from "./pages/admin/AdminPlatformPage";
 import AdminCRMPage from "./pages/admin/AdminCRMPage";
 import AdminSurveysPage from "./pages/admin/AdminSurveysPage";
+import AdminResearchSurveysPage from "./pages/admin/AdminResearchSurveysPage";
+import ResearchSurveyPage from "./pages/ResearchSurveyPage";
 import AdminEpisodesPage from "./pages/admin/AdminEpisodesPage";
 import AdminPartnerOrgsPage from "./pages/admin/AdminPartnerOrgsPage";
 import UpgradePage from "./pages/UpgradePage";
@@ -142,6 +144,8 @@ const App = () => (
                 <Route path="/app/admin/alerts" element={<AdminRoute allowProgramAdmin><AdminAlertsPage /></AdminRoute>} />
                 <Route path="/app/admin/platform" element={<AdminRoute><AdminPlatformPage /></AdminRoute>} />
                 <Route path="/app/admin/crm" element={<AdminRoute allowProgramAdmin><AdminCRMPage /></AdminRoute>} />
+                <Route path="/app/admin/research-surveys" element={<AdminRoute><AdminResearchSurveysPage /></AdminRoute>} />
+                <Route path="/app/survey/:id" element={<ResearchSurveyPage />} />
                 <Route path="/app/admin/surveys" element={<AdminRoute allowProgramAdmin><AdminSurveysPage /></AdminRoute>} />
                 <Route path="/app/admin/partner-orgs" element={<AdminRoute><AdminPartnerOrgsPage /></AdminRoute>} />
                 <Route path="/app/admin/codes" element={<AdminRoute><AdminCodesPage /></AdminRoute>} />

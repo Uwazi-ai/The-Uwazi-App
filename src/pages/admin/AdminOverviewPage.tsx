@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { AdminAvatar } from "@/components/admin/AdminAvatar";
 import { JourneyResearchPanels } from "@/components/admin/JourneyResearchPanels";
+import { ResearchSurveysPanel } from "@/components/admin/ResearchSurveysPanel";
 import { PersonaCopyAdmin } from "@/components/admin/PersonaCopyAdmin";
 import { CompassFactsAdmin } from "@/components/admin/CompassFactsAdmin";
 
@@ -65,6 +66,7 @@ export default function AdminOverviewPage() {
 
       {/* Top Stats */}
       <JourneyResearchPanels />
+      <ResearchSurveysPanel showLink />
       <PersonaCopyAdmin />
       <PlatformHealthCard />
       <UnverifiedActionsPanel />
