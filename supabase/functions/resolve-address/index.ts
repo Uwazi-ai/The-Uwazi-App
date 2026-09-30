@@ -192,13 +192,26 @@ Deno.serve(async (req) => {
 
 
     if (!zip) {
+      await admin.from("address_geocode_log").insert({
+        user_id: userId, geocoder: "none", quality: geocodingStatus, matched: false,
+      });
       return json({
         error: "ADDRESS_NOT_FOUND",
-        message: "Could not geocode address",
+        address_matched: false,
+        message: "We could not find that address. Check the spelling, or use your ZIP code instead.",
         fallback: true,
+        geocoder,
+        match_quality: matchQuality,
         geocoding_status: geocodingStatus,
       });
     }
+
+    await admin.from("address_geocode_log").insert({
+      user_id: userId,
+      geocoder: addressMatched ? geocoder : "none",
+      quality: matchQuality ?? geocodingStatus,
+      matched: addressMatched,
+    });
 
     // STEP B — Districts (best effort)
     let cityCouncil: string | null = null;
