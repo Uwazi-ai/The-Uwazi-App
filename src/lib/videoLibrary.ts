@@ -27,3 +27,13 @@ export function useVideoSource(value: string | undefined) {
   }, [value]);
   return url;
 }
+
+// Resolves a playable source for either a library video or an older episode.
+export function useMediaSource(item: LibraryVideo | null | undefined, enabled = true) {
+  const direct = useVideoSource(enabled && item && !item.episode_id ? item.url : undefined);
+  const { url: episodeUrl } = useEpisodeVideoUrl(
+    enabled && item?.episode_id ? { id: item.episode_id, video_url: item.url, is_free: item.is_free ?? true } : null,
+  );
+  if (!item) return undefined;
+  return item.episode_id ? episodeUrl ?? undefined : direct;
+}
