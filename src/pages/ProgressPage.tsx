@@ -178,7 +178,7 @@ export default function ProgressPage() {
               <span className="text-xs font-semibold text-foreground">{pp.name}</span>
             </span>
           )}
-          <BadgeRow badges={badges} />
+          <BadgeRow badges={journey.personalization && pp ? badges.filter((b) => b.art_key !== pp.slug) : badges} />
         </div>
         {locked.length > 0 && (
           <div className="space-y-2" data-testid="badges-locked">
