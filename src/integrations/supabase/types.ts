@@ -131,6 +131,27 @@ export type Database = {
         }
         Relationships: []
       }
+      ask_usage: {
+        Row: {
+          count: number
+          updated_at: string
+          user_id: string
+          window_start: string
+        }
+        Insert: {
+          count?: number
+          updated_at?: string
+          user_id: string
+          window_start?: string
+        }
+        Update: {
+          count?: number
+          updated_at?: string
+          user_id?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       ask_uwazi_model_log: {
         Row: {
           created_at: string
@@ -1872,6 +1893,8 @@ export type Database = {
       }
       compass_personas: {
         Row: {
+          archetype_examples: string | null
+          archetype_intro: string | null
           blind_spot: string
           color: string
           created_at: string
@@ -1887,6 +1910,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archetype_examples?: string | null
+          archetype_intro?: string | null
           blind_spot: string
           color: string
           created_at?: string
@@ -1902,6 +1927,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archetype_examples?: string | null
+          archetype_intro?: string | null
           blind_spot?: string
           color?: string
           created_at?: string
@@ -2421,6 +2448,7 @@ export type Database = {
           id: string
           is_free: boolean
           is_published: boolean
+          plus_only: boolean
           sort_order: number
           title: string
           topic: string
@@ -2435,6 +2463,7 @@ export type Database = {
           id?: string
           is_free?: boolean
           is_published?: boolean
+          plus_only?: boolean
           sort_order?: number
           title: string
           topic: string
@@ -2449,6 +2478,7 @@ export type Database = {
           id?: string
           is_free?: boolean
           is_published?: boolean
+          plus_only?: boolean
           sort_order?: number
           title?: string
           topic?: string
@@ -2674,6 +2704,7 @@ export type Database = {
           lesson_number: string | null
           min_stage: string | null
           order_index: number | null
+          plus_only: boolean
           prerequisites: Json | null
           quiz_questions: Json | null
           slug: string
@@ -2700,6 +2731,7 @@ export type Database = {
           lesson_number?: string | null
           min_stage?: string | null
           order_index?: number | null
+          plus_only?: boolean
           prerequisites?: Json | null
           quiz_questions?: Json | null
           slug: string
@@ -2726,6 +2758,7 @@ export type Database = {
           lesson_number?: string | null
           min_stage?: string | null
           order_index?: number | null
+          plus_only?: boolean
           prerequisites?: Json | null
           quiz_questions?: Json | null
           slug?: string
@@ -3174,6 +3207,7 @@ export type Database = {
           party_preference: string | null
           phone_number: string | null
           phone_verified: boolean | null
+          plan: string
           precinct_id: string | null
           push_opt_in: boolean | null
           push_token: string | null
@@ -3237,6 +3271,7 @@ export type Database = {
           party_preference?: string | null
           phone_number?: string | null
           phone_verified?: boolean | null
+          plan?: string
           precinct_id?: string | null
           push_opt_in?: boolean | null
           push_token?: string | null
@@ -3300,6 +3335,7 @@ export type Database = {
           party_preference?: string | null
           phone_number?: string | null
           phone_verified?: boolean | null
+          plan?: string
           precinct_id?: string | null
           push_opt_in?: boolean | null
           push_token?: string | null
@@ -3866,6 +3902,51 @@ export type Database = {
           longest_streak?: number | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      student_verification: {
+        Row: {
+          created_at: string
+          id: string
+          id_hash: string | null
+          method: string
+          school_email: string | null
+          school_name: string | null
+          status: string
+          token_expires_at: string | null
+          token_hash: string | null
+          updated_at: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          id_hash?: string | null
+          method: string
+          school_email?: string | null
+          school_name?: string | null
+          status?: string
+          token_expires_at?: string | null
+          token_hash?: string | null
+          updated_at?: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          id_hash?: string | null
+          method?: string
+          school_email?: string | null
+          school_name?: string | null
+          status?: string
+          token_expires_at?: string | null
+          token_hash?: string | null
+          updated_at?: string
+          user_id?: string
+          verified_at?: string | null
         }
         Relationships: []
       }
@@ -5313,6 +5394,15 @@ export type Database = {
         }
         Returns: Json
       }
+      consume_ask_question: {
+        Args: {
+          _count: boolean
+          _hours?: number
+          _limit?: number
+          _user_id: string
+        }
+        Returns: Json
+      }
       delete_my_compass_data: { Args: never; Returns: Json }
       dimension_lesson: {
         Args: { _ascending: boolean; _exclude?: string[]; _uid: string }
@@ -5341,6 +5431,7 @@ export type Database = {
         Returns: Json
       }
       export_my_data: { Args: never; Returns: Json }
+      free_episode_ids: { Args: never; Returns: string[] }
       get_episode_like_count: { Args: { _episode_id: string }; Returns: number }
       get_invite_by_token: {
         Args: { _token: string }
@@ -5441,7 +5532,9 @@ export type Database = {
         Returns: boolean
       }
       is_org_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_plus: { Args: { _user_id: string }; Returns: boolean }
       is_program_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_verified_student: { Args: { _user_id: string }; Returns: boolean }
       journey_research_stats: { Args: never; Returns: Json }
       lesson_brief: { Args: { _id: string }; Returns: Json }
       list_office_reviewers: {
