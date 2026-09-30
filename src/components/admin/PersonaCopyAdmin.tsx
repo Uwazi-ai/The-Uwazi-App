@@ -11,11 +11,11 @@ const db = supabase as any;
 const BANNED = /[—–;()]/;
 
 function Row({ p, onSaved }: { p: Persona; onSaved: () => void }) {
-  const [f, setF] = useState({ name: p.name, one_line: p.one_line, strength: p.strength, blind_spot: p.blind_spot });
+  const [f, setF] = useState({ name: p.name, one_line: p.one_line, strength: p.strength, blind_spot: p.blind_spot, archetype_intro: p.archetype_intro ?? "", archetype_examples: p.archetype_examples ?? "" });
   const startPrompts = [0, 1, 2].map((i) => p.suggested_prompts?.[i] ?? "");
   const [prompts, setPrompts] = useState<string[]>(startPrompts);
   const [busy, setBusy] = useState(false);
-  const dirty = f.name !== p.name || f.one_line !== p.one_line || f.strength !== p.strength || f.blind_spot !== p.blind_spot || prompts.join("|") !== startPrompts.join("|");
+  const dirty = f.name !== p.name || f.one_line !== p.one_line || f.strength !== p.strength || f.blind_spot !== p.blind_spot || f.archetype_intro !== (p.archetype_intro ?? "") || f.archetype_examples !== (p.archetype_examples ?? "") || prompts.join("|") !== startPrompts.join("|");
 
   const save = async () => {
     if ([...Object.values(f), ...prompts].some((v) => BANNED.test(v))) return toast.error("Please leave out dashes, semicolons, and parentheses.");
@@ -43,6 +43,12 @@ function Row({ p, onSaved }: { p: Persona; onSaved: () => void }) {
       <label className="block text-xs text-muted-foreground">Kind blind spot, one sentence
         <Input value={f.blind_spot} onChange={(e) => setF({ ...f, blind_spot: e.target.value })} />
       </label>
+      <label className="block text-xs text-muted-foreground">Archetype line. A tradition or role, never a named person or a party
+        <Input value={f.archetype_intro} onChange={(e) => setF({ ...f, archetype_intro: e.target.value })} aria-label="Archetype line" />
+      </label>
+      <label className="block text-xs text-muted-foreground">Archetype examples, a short list of roles
+        <Input value={f.archetype_examples} onChange={(e) => setF({ ...f, archetype_examples: e.target.value })} aria-label="Archetype examples" />
+      </label>
       <div className="space-y-1.5">
         <p className="text-xs text-muted-foreground">Ask UWAZI questions, three</p>
         {prompts.map((q, i) => (
@@ -65,7 +71,7 @@ export function PersonaCopyAdmin() {
         <h2 className="text-xl font-axis uppercase text-foreground">Civic persona words</h2>
         <p className="text-sm text-muted-foreground">A persona says how someone shows up for their city, never what they believe. Keep it plain and fair to every persona.</p>
       </div>
-      {list.map((p) => <Row key={p.slug + p.name + p.one_line + p.strength + p.blind_spot + (p.suggested_prompts ?? []).join("|")} p={p} onSaved={reload} />)}
+      {list.map((p) => <Row key={p.slug + p.name + p.one_line + p.strength + p.blind_spot + (p.archetype_intro ?? "") + (p.archetype_examples ?? "") + (p.suggested_prompts ?? []).join("|")} p={p} onSaved={reload} />)}
     </Card>
   );
 }
