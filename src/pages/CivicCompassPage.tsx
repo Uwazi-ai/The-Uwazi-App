@@ -9,7 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
 import { CompassOfficesReport } from "@/components/compass/CompassOfficesReport";
-import { PlusMark, openPaywall } from "@/components/plus/Paywall";
+import { openPaywall } from "@/components/plus/Paywall";
+import { PlusLogo } from "@/components/plus/PlusLogo";
 import { CompassRose } from "@/components/compass/CompassRose";
 import { SwipeCard } from "@/components/compass/SwipeCard";
 import { BudgetSliders, defaultBudget, type Budget } from "@/components/compass/BudgetSliders";
@@ -408,7 +409,7 @@ export default function CivicCompassPage() {
                 {[80, 60, 70].map((w, i) => <div key={i} className="h-2.5 rounded-full bg-muted" style={{ width: `${w}%` }} />)}
               </div>
               <div className="relative space-y-3 pb-8">
-                <PlusMark />
+                <PlusLogo on_dark={false} />
                 <h3 className="font-heading text-2xl leading-tight text-foreground">Your full Compass report</h3>
                 <p className="text-sm leading-relaxed text-foreground">See the real offices that match your values, why they matter, and what to watch. Unlock your full report with UWAZI Plus.</p>
                 <div className="flex flex-wrap items-center gap-3 pt-1">

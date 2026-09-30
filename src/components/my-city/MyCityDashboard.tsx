@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ExternalLink, Flag, Lock, MessageCircle, TrendingDown, TrendingUp } from "lucide-react";
-import { PlusMark, openPaywall } from "@/components/plus/Paywall";
+import { openPaywall } from "@/components/plus/Paywall";
+import { PlusLogo } from "@/components/plus/PlusLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -191,7 +192,7 @@ export function MyCityDashboard({ preview = false }: { preview?: boolean }) {
             {["Other spending areas", "Where the money comes from", "Year over year", "Budget calendar", "Who votes on the budget", "Your $100 vs the city's"].map((t, i) => <div key={t} className={`${tone(i)} city-tone-tint h-28 rounded-xl p-3`}><p className="font-heading text-sm">{t}</p></div>)}
           </div>
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/60 p-6 text-center backdrop-blur-sm">
-            <PlusMark className="h-6" />
+            <PlusLogo on_dark={false} className="h-6" />
             <p className="max-w-sm text-sm text-foreground">See every spending area, where the money comes from, how it changed, the budget calendar, and who votes.</p>
             <Button size="lg" onClick={() => openPaywall("my_city")}><Lock className="h-4 w-4" />Unlock full budget with Plus</Button>
           </div>

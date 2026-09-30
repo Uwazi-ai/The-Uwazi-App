@@ -1,5 +1,6 @@
 import { usePlan } from "@/hooks/usePlan";
 import { openPaywall } from "@/components/plus/Paywall";
+import { PlusLogo } from "@/components/plus/PlusLogo";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useMyPath } from "@/hooks/useJourney";
@@ -221,7 +222,7 @@ export default function LearnPage() {
                                 {lesson.title}
                               </p>
                               {plusLocked(lesson) && (
-                                <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary" data-testid="lesson-plus-tag"><Lock className="h-3 w-3" />Plus</span>
+                                <span className="mt-1 inline-flex" data-testid="lesson-plus-tag"><PlusLogo on_dark={false} className="h-3.5" /></span>
                               )}
                               <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{lesson.description}</p>
                               <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">

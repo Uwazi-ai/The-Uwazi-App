@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Check, GraduationCap } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import plusLogo from "@/assets/uwazi-plus-logo.png";
+import { PlusLogo } from "@/components/plus/PlusLogo";
 
 export type PaywallReason = "ask" | "watch" | "lesson" | "my_city" | "report" | "officials" | "report_fact" | "general";
 
@@ -23,15 +23,6 @@ const COPY: Record<PaywallReason, { title: string; body: string; perks: string[]
   general: { title: "Go further with UWAZI Plus", body: "Plus adds depth and tools. The free app always tells you the truth.", perks: ["Unlimited Ask UWAZI questions", "Your full Compass report", "The full city budget", "Every Watch episode and lesson"] },
 };
 
-/** The Plus mark always sits on a dark chip, even in light mode, until a light logo exists. */
-export function PlusMark({ className = "h-7" }: { className?: string }) {
-  return (
-    <span className="inline-flex items-center rounded-lg bg-plus-chip px-3 py-1.5">
-      <img src={plusLogo} alt="UWAZI Plus" className={`${className} w-auto`} />
-    </span>
-  );
-}
-
 export function PaywallHost() {
   const [reason, setReason] = useState<PaywallReason | null>(null);
   const navigate = useNavigate();
@@ -46,7 +37,7 @@ export function PaywallHost() {
     <Sheet open={!!reason} onOpenChange={(o) => !o && setReason(null)}>
       <SheetContent side="bottom" className="mx-auto max-w-lg rounded-t-3xl border-border pb-8" data-testid="paywall">
         <SheetHeader className="text-left">
-          <PlusMark />
+          <PlusLogo on_dark className="h-7" />
           <SheetTitle className="pt-3 font-heading text-2xl leading-tight">{c.title}</SheetTitle>
           <SheetDescription>{c.body}</SheetDescription>
         </SheetHeader>

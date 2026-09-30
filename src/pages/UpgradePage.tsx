@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Compass, Wallet, Landmark, Flag, ShieldCheck, MessageCircle, ArrowRight, Sparkles } from "lucide-react";
 import { StudentPath } from "@/components/plus/StudentPath";
-import { PlusMark } from "@/components/plus/Paywall";
+import { PlusLogo } from "@/components/plus/PlusLogo";
 import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,7 @@ export default function UpgradePage() {
   return <div className="city-bento min-h-screen bg-background"><PaymentTestModeBanner /><div className="mx-auto max-w-2xl space-y-6 px-4 py-6 pb-24 md:px-8">
     <Button variant="ghost" onClick={() => checkout ? setCheckout(false) : navigate(-1)} className="-ml-3 text-muted-foreground"><ArrowLeft />{checkout ? "Back to Plus" : "Back"}</Button>
     {!checkout ? <>
-      <header><PlusMark /><h1 className="mt-4 font-heading text-3xl leading-tight text-foreground sm:text-4xl">Go from knowing to doing</h1><p className="mt-3 text-sm leading-relaxed text-muted-foreground">You already have your persona and your representatives. Plus shows you the full picture and how to act on it.</p></header>
+      <header><PlusLogo on_dark={false} className="h-8" /><h1 className="mt-4 font-heading text-3xl leading-tight text-foreground sm:text-4xl">Go from knowing to doing</h1><p className="mt-3 text-sm leading-relaxed text-muted-foreground">You already have your persona and your representatives. Plus shows you the full picture and how to act on it.</p></header>
       <div className="space-y-1 border-y border-border py-3">{perks.map((perk) => <div key={perk.title} className="flex items-start gap-4 py-3"><div className={`${perk.tone} city-tone-tint city-tone-text flex h-11 w-11 shrink-0 items-center justify-center rounded-lg`}><perk.icon className="h-5 w-5" /></div><div><h2 className="font-heading text-base text-foreground">{perk.title}</h2><p className="mt-1 text-sm leading-relaxed text-muted-foreground">{perk.body}</p></div></div>)}</div>
       <section className="city-tile rounded-[20px] border border-primary bg-card p-5 sm:p-6"><div className="flex items-end justify-between gap-3"><div><p className="eyebrow">UWAZI PLUS</p><h2 className="mt-2 font-heading text-2xl">Plus</h2></div><p className="text-right"><span className="font-heading text-3xl text-primary">{selected.price}</span><span className="block text-xs text-muted-foreground">{selected.suffix}</span></p></div>
         <div role="group" aria-label="Choose Plus plan" className="mt-5 grid grid-cols-2 gap-2">{(PICKABLE as readonly Tier[]).map((key) => <Button key={key} variant={tier === key ? "default" : "outline"} aria-pressed={tier === key} onClick={() => setTier(key)} className="h-auto min-h-11 whitespace-normal px-2 text-xs">{PRICES[key].label}</Button>)}</div>

@@ -5496,6 +5496,13 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_plus_brand_logos: {
+        Args: never
+        Returns: {
+          dark_url: string
+          light_url: string
+        }[]
+      }
       get_state_from_zip: { Args: { zip: string }; Returns: string }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }

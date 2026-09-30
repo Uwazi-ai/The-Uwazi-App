@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Film, Pencil, Trash2 } from "lucide-react";
+import { Film, ImageUp, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { type LibraryVideo, VIDEO_BUCKET, useVideoSource } from "@/lib/videoLibrary";
@@ -10,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PlusLogo } from "@/components/plus/PlusLogo";
 
 const db = supabase as any;
 type Draft = Omit<LibraryVideo, "id" | "created_at">;
@@ -20,6 +22,9 @@ const filePath = (url: string) => {
   return index < 0 ? null : decodeURIComponent(url.slice(index + marker.length).split("?")[0]);
 };
 
+type LogoSlot = "dark" | "light";
+type BrandLogos = Record<LogoSlot, string>;
+
 function Preview({ video }: { video: LibraryVideo }) {
   const poster = useVideoSource(video.poster_url);
   const source = useVideoSource(video.url);
@@ -27,6 +32,7 @@ function Preview({ video }: { video: LibraryVideo }) {
 }
 
 export default function AdminVideoLibraryPage() {
+  const queryClient = useQueryClient();
   const [videos, setVideos] = useState<LibraryVideo[]>([]);
   const [dimensions, setDimensions] = useState<{ slug: string; name: string }[]>([]);
   const [draft, setDraft] = useState<Draft>(empty);
@@ -34,6 +40,18 @@ export default function AdminVideoLibraryPage() {
   const [saving, setSaving] = useState(false);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [posterFile, setPosterFile] = useState<File | null>(null);
+  const [brandLogos, setBrandLogos] = useState<BrandLogos>({ dark: "", light: "" });
+  const [logoFiles, setLogoFiles] = useState<Partial<Record<LogoSlot, File>>>({});
+  const [logoSaving, setLogoSaving] = useState<LogoSlot | null>(null);
+  const loadBrandLogos = async () => {
+    const { data } = await supabase.from("platform_settings").select("key,value").in("key", ["plus_logo_dark_url", "plus_logo_light_url"]);
+    const next: BrandLogos = { dark: "", light: "" };
+    (data ?? []).forEach((setting) => {
+      const slot = setting.key === "plus_logo_dark_url" ? "dark" : setting.key === "plus_logo_light_url" ? "light" : null;
+      if (slot) next[slot] = typeof setting.value === "string" ? setting.value : "";
+    });
+    setBrandLogos(next);
+  };
   const load = async () => {
     const [{ data, error }, dims] = await Promise.all([
       db.from("videos").select("*").order("sort_order").order("created_at", { ascending: false }),
@@ -43,7 +61,35 @@ export default function AdminVideoLibraryPage() {
     setVideos(data ?? []);
     setDimensions(dims.data ?? []);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); loadBrandLogos(); }, []);
+  const saveBrandLogo = async (slot: LogoSlot) => {
+    const file = logoFiles[slot];
+    if (!file) return toast.error("Choose a PNG, WebP or JPG image.");
+    if (!file.type.startsWith("image/")) return toast.error("Choose an image file.");
+    if (file.size > 10 * 1024 * 1024) return toast.error("Logo images must be 10 MB or less.");
+    setLogoSaving(slot);
+    const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+    const path = `branding/uwazi-plus-${slot}-${crypto.randomUUID()}.${extension}`;
+    try {
+      const { error: uploadError } = await supabase.storage.from(VIDEO_BUCKET).upload(path, file, { contentType: file.type });
+      if (uploadError) throw uploadError;
+      const url = supabase.storage.from(VIDEO_BUCKET).getPublicUrl(path).data.publicUrl;
+      const key = slot === "dark" ? "plus_logo_dark_url" : "plus_logo_light_url";
+      const { error } = await supabase.from("platform_settings").upsert({ key, value: url as any, updated_at: new Date().toISOString() }, { onConflict: "key" });
+      if (error) throw error;
+      const previousPath = filePath(brandLogos[slot]);
+      if (previousPath) await supabase.storage.from(VIDEO_BUCKET).remove([previousPath]);
+      setLogoFiles(current => ({ ...current, [slot]: undefined }));
+      await loadBrandLogos();
+      await queryClient.invalidateQueries({ queryKey: ["plus-brand-logos"] });
+      toast.success("Plus logo saved.");
+    } catch (error) {
+      await supabase.storage.from(VIDEO_BUCKET).remove([path]);
+      toast.error(error instanceof Error ? error.message : "Could not save the logo.");
+    } finally {
+      setLogoSaving(null);
+    }
+  };
   const reset = () => { setDraft(empty); setEditing(null); setVideoFile(null); setPosterFile(null); };
   const upload = async (file: File, kind: "video" | "poster", id: string) => {
     if (kind === "video" && file.size > 200 * 1024 * 1024) throw new Error("Video files must be 200 MB or less.");
@@ -96,6 +142,18 @@ export default function AdminVideoLibraryPage() {
   };
   return <div className="mx-auto max-w-5xl space-y-7 px-4 py-7 pb-28 md:px-8">
     <header><p className="eyebrow">CONTENT</p><h1 className="font-heading text-3xl text-foreground">Video library</h1><Link to="/app/admin/episodes" className="text-sm text-primary">Episode content</Link></header>
+    <section className="space-y-4 border-t border-border pt-5" aria-label="Plus brand logos">
+      <div><h2 className="font-heading text-xl">Plus brand logos</h2><p className="mt-1 text-sm text-muted-foreground">Choose the wordmark for each surface.</p></div>
+      <div className="grid gap-4 md:grid-cols-2">
+        {(["dark", "light"] as const).map(slot => <div key={slot} className={`rounded-md border border-border p-4 ${slot === "dark" ? "bg-plus-chip" : "bg-card"}`}>
+          <Label htmlFor={`plus-logo-${slot}`} className={slot === "dark" ? "text-primary-foreground" : "text-foreground"}>UWAZI Plus logo, {slot} surfaces</Label>
+          <div className="my-4 flex min-h-14 items-center"><PlusLogo on_dark={slot === "dark"} className="h-7" /></div>
+          {!brandLogos[slot] && slot === "light" && <p className="mb-3 text-xs text-muted-foreground">Upload the black wordmark version here</p>}
+          <Input id={`plus-logo-${slot}`} type="file" accept="image/png,image/webp,image/jpeg" onChange={event => setLogoFiles(current => ({ ...current, [slot]: event.target.files?.[0] }))} className={slot === "dark" ? "border-primary-foreground/30 bg-plus-chip text-primary-foreground" : ""} />
+          <Button size="sm" variant={slot === "dark" ? "secondary" : "outline"} className="mt-3" disabled={!logoFiles[slot] || logoSaving === slot} onClick={() => saveBrandLogo(slot)}><ImageUp className="h-4 w-4" />{logoSaving === slot ? "Saving" : "Upload logo"}</Button>
+        </div>)}
+      </div>
+    </section>
     <section className="space-y-4 border-t border-border pt-5" aria-label="Video editor">
       <h2 className="font-heading text-xl">{editing ? "Edit video" : "Add video"}</h2>
       <div className="grid gap-4 sm:grid-cols-2">
