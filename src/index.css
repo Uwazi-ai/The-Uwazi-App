@@ -632,14 +632,14 @@ body {
 /* Civic persona colors. Bright on dark surfaces, deeper on light. */
 :root {
   --persona-primary: var(--primary);
-  --persona-blue: 214 90% 66%;
-  --persona-orange: 28 95% 62%;
-  --persona-coral: 8 88% 70%;
-  --persona-purple: 268 75% 74%;
-  --persona-teal: 172 62% 52%;
-  --persona-sky: 195 90% 66%;
-  --persona-gold: 45 95% 58%;
-  --persona-silver: 220 12% 76%;
+  --persona-blue: 211 100% 68%;
+  --persona-orange: 29 100% 63%;
+  --persona-coral: 6 100% 71%;
+  --persona-purple: 263 100% 77%;
+  --persona-teal: 174 59% 56%;
+  --persona-sky: 207 100% 74%;
+  --persona-gold: 42 86% 63%;
+  --persona-silver: 240 7% 80%;
 }
 .light, [data-theme="light"] {
   --persona-blue: 214 80% 38%;
