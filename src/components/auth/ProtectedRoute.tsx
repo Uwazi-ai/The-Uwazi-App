@@ -23,13 +23,12 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
       return;
     }
     (supabase.from("profiles") as any)
-      .select("onboarding_complete, zip_code")
+      .select("onboarding_complete")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }: { data: any }) => {
-        const complete = data?.onboarding_complete === true;
-        const zip = (data?.zip_code ?? "").toString().trim();
-        setNeedsOnboarding(!complete || zip === "");
+        // Setup never blocks the app. Skipping the address is allowed.
+        setNeedsOnboarding(data?.onboarding_complete !== true);
         setChecking(false);
       });
   }, [user, location.pathname]);

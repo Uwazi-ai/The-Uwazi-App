@@ -648,6 +648,11 @@ export default function SettingsPage() {
         </motion.div>
       )}
 
+      {/* Redo setup */}
+      <Button variant="outline" onClick={() => navigate("/onboarding")} className="w-full border-border gap-1.5">
+        <RefreshCw className="h-4 w-4" /> Redo setup
+      </Button>
+
       {/* Sign Out */}
       <Button variant="outline" onClick={handleSignOut} className="w-full border-border gap-1.5">
         <LogOut className="h-4 w-4" /> Sign Out
