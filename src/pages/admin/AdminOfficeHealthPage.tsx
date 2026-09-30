@@ -219,6 +219,31 @@ export default function AdminOfficeHealthPage() {
     if (error) toast.error(error.message); else { toast.success(approve ? "Saved. Voters will see it now." : "Change closed."); refresh(); }
   };
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const reviewMany = async (approve: boolean) => {
+    const ids = [...selected];
+    if (!ids.length) return;
+    if (approve && !confirm(`Approve ${ids.length} changes? Voters will see them right away.`)) return;
+    setBulkRunning(true);
+    let done = 0, failed = 0;
+    for (const id of ids) {
+      const { error } = await db.rpc("review_office_change", { _change_id: id, _approve: approve });
+      error ? failed++ : done++;
+    }
+    setBulkRunning(false);
+    setSelected(new Set());
+    if (failed) toast.error(`${done} done. ${failed} failed. Try those one at a time.`);
+    else toast.success(approve ? `${done} approved. Voters will see them now.` : `${done} changes closed.`);
+    refresh();
+  };
+
   const list = sources.data ?? [];
   const sorted = [...list].sort((a, b) => Number(needsAttention(b)) - Number(needsAttention(a)));
   const pending = changes.data ?? [];
