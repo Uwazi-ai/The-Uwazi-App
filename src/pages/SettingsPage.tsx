@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   User, MapPin, Bell, Camera, Save, LogOut, Lock, Trash2,
   Check, X, Loader2, Eye, EyeOff, AlertTriangle, ChevronLeft, Download, Monitor,
-  Sun, Moon, Laptop, Pencil, Database, ShieldCheck, ChevronRight,
+  Sun, Moon, Laptop, Pencil, Database, ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/contexts/ProfileContext";
