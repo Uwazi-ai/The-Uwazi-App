@@ -1,4 +1,5 @@
 ## Home and Plus
+- [x] Add Content-managed UWAZI Plus logos for dark and light surfaces with safe fallback across every Plus gate.
 - [x] Build one private video library, super admin Content manager, Watch catalog, and Home playback.
 - [ ] Verify playback and personalization on a separate non admin account. Admin upload, signed in player, dismissal, and removal were checked. Browser video decoding was not confirmed.
 - [x] Rebuild Home with journey, local tiles, video playback, and admin video controls.
