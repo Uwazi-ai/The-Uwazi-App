@@ -17,6 +17,7 @@ export default {
         axis: ["'Axis'", "sans-serif"],
       },
       colors: {
+        "plus-chip": "hsl(var(--plus-chip))",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
