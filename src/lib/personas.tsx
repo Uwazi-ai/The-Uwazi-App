@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Landmark, Briefcase, ShieldCheck, Home, GraduationCap, HeartPulse, Bus, Vote, Compass, type LucideIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { motion, useReducedMotion } from "framer-motion";
+import { PersonaBadge } from "@/components/compass/PersonaBadge";
 
 export interface Persona {
   slug: string; name: string; top_dimension_slug: string | null; one_line: string; strength: string;
@@ -48,11 +50,18 @@ export interface PersonaState { persona: string | null; streak: string | null; e
 /** Name, streak, one line, evidence. Used on the Compass results. */
 export function PersonaHeadline({ state, size = "lg" }: { state: PersonaState; size?: "lg" | "md" }) {
   const { bySlug } = usePersonas();
+  const reduce = useReducedMotion();
   const p = bySlug(state.persona);
   const s = bySlug(state.streak);
   if (!p) return null;
   return (
     <div className="space-y-1.5 text-center" data-testid="persona-headline">
+      {size === "lg" && (
+        <motion.div className="flex justify-center pb-1" initial={reduce ? false : { scale: 0.6 }} animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 260, damping: 14 }}>
+          <PersonaBadge slug={p.slug} size="medallion" label={`${p.name} badge`} />
+        </motion.div>
+      )}
       <h2 className={`font-heading ${size === "lg" ? "text-4xl" : "text-3xl"} leading-tight`} style={{ color: personaColor(p.color) }} data-testid="persona-name">{p.name}</h2>
       {s && <p className="text-sm font-semibold" style={{ color: personaColor(s.color) }} data-testid="persona-streak">with a {shortName(s)} streak</p>}
       <p className="text-foreground">{p.one_line}</p>

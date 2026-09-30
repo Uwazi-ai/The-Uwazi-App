@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { PersonaBadge } from "@/components/compass/PersonaBadge";
 
 const db = supabase as any;
 const STEP_NAMES: Record<string, string> = {
@@ -46,7 +47,11 @@ export function JourneyResearchPanels() {
       <div className="grid md:grid-cols-2 gap-4">
         <Card className="p-5 space-y-3">
           <h3 className="font-semibold text-foreground">Civic personas</h3>
-          {personas.length ? personas.map((i: any) => <Bar key={i.slug} label={i.label} value={i.count} max={idMax} />)
+          {personas.length ? personas.map((i: any) => (
+            <div key={i.slug} className="flex items-center gap-2">
+              {i.slug !== "none" && <PersonaBadge slug={i.slug} size="chip" className="h-7 w-7 shrink-0" label="" />}
+              <div className="flex-1"><Bar label={i.label} value={i.count} max={idMax} /></div>
+            </div>))
             : <p className="text-sm text-muted-foreground">No one yet.</p>}
           <p className="text-xs text-muted-foreground" data-testid="persona-changed">{data.persona_changed_30d ?? 0} people got a different persona on a new quiz in the last 30 days.</p>
         </Card>

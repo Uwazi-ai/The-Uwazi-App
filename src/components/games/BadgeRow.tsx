@@ -1,5 +1,6 @@
 import { Award, Flag, Trophy } from "lucide-react";
 import type { EarnedBadge } from "@/hooks/useChallenge";
+import { PersonaBadge, PERSONA_PATHS } from "@/components/compass/PersonaBadge";
 
 const ART: Record<string, typeof Award> = { trophy: Trophy, flag: Flag };
 
@@ -15,7 +16,7 @@ export function BadgeRow({ badges, compact }: { badges: EarnedBadge[]; compact?:
             title={b.description ?? b.name}
             className={`inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 font-semibold text-foreground ${compact ? "px-2.5 py-1 text-[11px]" : "px-3 py-1.5 text-xs"}`}
           >
-            <Icon className="h-3.5 w-3.5 text-primary" />
+            {PERSONA_PATHS[b.art_key ?? ""] ? <PersonaBadge slug={b.art_key!} size="chip" className="h-4 w-4" label="" /> : <Icon className="h-3.5 w-3.5 text-primary" />}
             {b.name}
           </span>
         );

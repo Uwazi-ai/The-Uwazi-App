@@ -10,6 +10,7 @@ import { dimMeta, stageColor, topSlugs } from "@/lib/compassDims";
 import { useMyBadges } from "@/hooks/useChallenge";
 import { BadgeRow } from "@/components/games/BadgeRow";
 import { usePersonas, shortName } from "@/lib/personas";
+import { PersonaBadge } from "./PersonaBadge";
 
 const db = supabase as any;
 const BUCKET = "identity-photos";
@@ -119,6 +120,7 @@ export function IdentityCard({ label, persona, streak, scores, stage, fallbackTi
           </div>
           <div className="flex items-center gap-4">
             {photo && <img src={photo} alt="You" className="h-16 w-16 rounded-full object-cover border-2" style={{ borderColor: frame }} />}
+            {pp && <PersonaBadge slug={pp.slug} size="chip" label={`${pp.name} badge`} className="shrink-0" />}
             <div className="min-w-0">
               <h3 className="font-heading text-2xl leading-tight" data-testid="card-headline" style={{ color: pp ? resolve(`hsl(var(--persona-${pp.color}))`) : undefined }}>{pp?.name ?? label ?? fallbackTitle ?? "Civic Compass"}</h3>
               {ps && <p className="text-sm font-semibold" data-testid="card-streak" style={{ color: resolve(`hsl(var(--persona-${ps.color}))`) }}>with a {shortName(ps)} streak</p>}
