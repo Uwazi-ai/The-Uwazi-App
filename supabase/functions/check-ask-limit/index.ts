@@ -7,138 +7,47 @@ const corsHeaders = {
 };
 
 const json = (status: number, body: unknown) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
+  new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
+// Free people get 5 typed questions per rolling 12 hours. Plus is never capped.
 const FREE_LIMIT = 5;
-const WINDOW_HOURS = 8;
-const WINDOW_MS = WINDOW_HOURS * 60 * 60 * 1000;
+const WINDOW_HOURS = 12;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
     const authHeader = req.headers.get("Authorization") || "";
     const token = authHeader.replace("Bearer ", "");
     if (!token) return json(401, { error: "Missing auth token" });
-
-    // Verify JWT and get user
-    const authClient = createClient(supabaseUrl, anonKey, {
+    const authClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: userData, error: userErr } = await authClient.auth.getUser(token);
-    if (userErr || !userData?.user) return json(401, { error: "Invalid token" });
+    const { data: userData } = await authClient.auth.getUser(token);
+    if (!userData?.user) return json(401, { error: "Invalid token" });
     const userId = userData.user.id;
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    // Service-role client for trusted reads/writes
-    const admin = createClient(supabaseUrl, serviceKey);
+    const body = await req.json().catch(() => ({}));
+    // Only a server call with count=true counts. Browser peeks never count.
+    const isServer = req.headers.get("x-uwazi-internal") === Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const count = isServer && body?.count === true;
 
-    const { data: profile, error: pErr } = await admin
-      .from("profiles")
-      .select("user_id, is_admin, ask_uwazi_question_count, ask_uwazi_window_start")
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    if (pErr) return json(500, { error: "Database error" });
-    if (!profile) return json(401, { error: "Profile not found" });
-
-    // Plus status: admin OR active subscription (sandbox or live)
-    let isPlus = !!profile.is_admin;
-    if (!isPlus) {
-      const [{ data: liveOk }, { data: sbOk }] = await Promise.all([
-        admin.rpc("has_active_subscription", { user_uuid: userId, check_env: "live" }),
-        admin.rpc("has_active_subscription", { user_uuid: userId, check_env: "sandbox" }),
-      ]);
-      isPlus = !!liveOk || !!sbOk;
+    const { data, error } = await admin.rpc("consume_ask_question", {
+      _user_id: userId, _count: count, _limit: FREE_LIMIT, _hours: WINDOW_HOURS,
+    });
+    if (error) { console.error(error); return json(500, { error: "Database error" }); }
+    const r = data as { allowed: boolean; is_plus: boolean; used: number | null; remaining: number | null; reset_at: string | null };
+    const blocked = !r.is_plus && (r.allowed === false || (!count && (r.remaining ?? 1) <= 0));
+    if (blocked && count) {
+      await admin.from("uwazi_question_log").insert({ user_id: userId, question_text: "[rate_limited]", was_rate_limited: true });
     }
-
-    if (isPlus) {
-      return json(200, {
-        allowed: true,
-        is_plus: true,
-        questions_used: null,
-        questions_remaining: null,
-        reset_at: null,
-      });
-    }
-
-    const reqBody = await req.json().catch(() => ({}));
-    const peek = reqBody?.peek === true;
-
-    const now = new Date();
-    const windowStart = profile.ask_uwazi_window_start
-      ? new Date(profile.ask_uwazi_window_start)
-      : null;
-    const windowActive = windowStart && now.getTime() - windowStart.getTime() < WINDOW_MS;
-    const count = profile.ask_uwazi_question_count ?? 0;
-
-    if (peek) {
-      const used = windowActive ? count : 0;
-      return json(used >= FREE_LIMIT ? 429 : 200, {
-        allowed: used < FREE_LIMIT,
-        is_plus: false,
-        questions_used: used,
-        questions_remaining: Math.max(0, FREE_LIMIT - used),
-        reset_at: windowActive ? new Date(windowStart!.getTime() + WINDOW_MS).toISOString() : null,
-      });
-    }
-
-    // CASE A — expired/never started → reset
-    if (!windowActive) {
-      const newStart = now.toISOString();
-      const { error: uErr } = await admin
-        .from("profiles")
-        .update({ ask_uwazi_question_count: 1, ask_uwazi_window_start: newStart })
-        .eq("user_id", userId);
-      if (uErr) return json(500, { error: "Database error" });
-      return json(200, {
-        allowed: true,
-        is_plus: false,
-        questions_used: 1,
-        questions_remaining: FREE_LIMIT - 1,
-        reset_at: new Date(now.getTime() + WINDOW_MS).toISOString(),
-      });
-    }
-
-    const resetAt = new Date(windowStart!.getTime() + WINDOW_MS).toISOString();
-
-    // CASE C — limit reached
-    if (count >= FREE_LIMIT) {
-      // Log the rate-limit hit so Intelligence dashboard can surface upgrade intent
-      await admin.from("uwazi_question_log").insert({
-        user_id: userId,
-        question_text: "[rate_limited]",
-        was_rate_limited: true,
-      });
-      return json(429, {
-        allowed: false,
-        is_plus: false,
-        questions_used: FREE_LIMIT,
-        questions_remaining: 0,
-        reset_at: resetAt,
-      });
-    }
-
-    // CASE B — increment
-    const newCount = count + 1;
-    const { error: uErr } = await admin
-      .from("profiles")
-      .update({ ask_uwazi_question_count: newCount })
-      .eq("user_id", userId);
-    if (uErr) return json(500, { error: "Database error" });
-
-    return json(200, {
-      allowed: true,
-      is_plus: false,
-      questions_used: newCount,
-      questions_remaining: FREE_LIMIT - newCount,
-      reset_at: resetAt,
+    return json(blocked ? 429 : 200, {
+      allowed: !blocked,
+      is_plus: r.is_plus,
+      questions_used: r.used,
+      questions_remaining: r.remaining,
+      reset_at: r.reset_at,
+      limit: FREE_LIMIT,
     });
   } catch (e) {
     console.error("[check-ask-limit] error:", e);
