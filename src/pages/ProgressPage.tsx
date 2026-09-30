@@ -377,7 +377,7 @@ export default function ProgressPage() {
         </div>
 
         {/* 9. Persona history */}
-        {journey.personalization && (journey.persona_history?.length ?? 0) > 1 && (
+        {journey.personalization && new Set((journey.persona_history ?? []).map((h) => h.persona)).size > 1 && (
           <div className={`${tile} col-span-2 lg:col-span-4`} style={o()} data-testid="persona-history">
             <p className="text-xs text-muted-foreground mb-2">Your persona over time</p>
             <div className="flex gap-4 overflow-x-auto pb-1">
