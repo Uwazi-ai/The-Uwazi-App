@@ -1,5 +1,8 @@
 # November 3 Readiness
 
+## My City visual redesign
+- [ ] Build and verify phone and desktop bento layout, motion, selection, and empty states without changing budget flows.
+
 ## Progress and loading UI
 - [x] Restore phone scrolling on Progress and use the UWAZI pinwheel while it loads.
 
