@@ -808,7 +808,7 @@ export default function AskUwaziPage() {
                 transition={{ delay: 0.3, duration: 0.5 }} className="mt-5 w-full max-w-lg px-4">
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   {(askPersona?.suggested_prompts?.length ? [
-                    ...askPersona.suggested_prompts.slice(0, 3).map((q, i) => ({ icon: [Landmark, FileText, CalendarDays][i], title: q, sub: `For ${shortName(askPersona.name)}s like you`, prompt: q })),
+                    ...askPersona.suggested_prompts.slice(0, 3).map((q, i) => ({ icon: [Landmark, FileText, CalendarDays][i], title: q, sub: `For ${shortName(askPersona)}s like you`, prompt: q })),
                     { icon: Vote, title: "What's on my ballot?", sub: "See your local races", prompt: suggestedPrompts[0] || "What's on my ballot?" },
                   ] : [
                     { icon: Vote, title: "What's on my ballot?", sub: "See your local races", prompt: suggestedPrompts[0] || "What's on my ballot?" },
