@@ -12,14 +12,16 @@ const BANNED = /[—–;()]/;
 
 function Row({ p, onSaved }: { p: Persona; onSaved: () => void }) {
   const [f, setF] = useState({ name: p.name, one_line: p.one_line, strength: p.strength, blind_spot: p.blind_spot });
+  const startPrompts = [0, 1, 2].map((i) => p.suggested_prompts?.[i] ?? "");
+  const [prompts, setPrompts] = useState<string[]>(startPrompts);
   const [busy, setBusy] = useState(false);
-  const dirty = f.name !== p.name || f.one_line !== p.one_line || f.strength !== p.strength || f.blind_spot !== p.blind_spot;
+  const dirty = f.name !== p.name || f.one_line !== p.one_line || f.strength !== p.strength || f.blind_spot !== p.blind_spot || prompts.join("|") !== startPrompts.join("|");
 
   const save = async () => {
-    if (Object.values(f).some((v) => BANNED.test(v))) return toast.error("Please leave out dashes, semicolons, and parentheses.");
-    if (Object.values(f).some((v) => !v.trim())) return toast.error("Every field needs words.");
+    if ([...Object.values(f), ...prompts].some((v) => BANNED.test(v))) return toast.error("Please leave out dashes, semicolons, and parentheses.");
+    if ([...Object.values(f), ...prompts].some((v) => !v.trim())) return toast.error("Every field needs words.");
     setBusy(true);
-    const { error } = await db.from("compass_personas").update(f).eq("slug", p.slug);
+    const { error } = await db.from("compass_personas").update({ ...f, suggested_prompts: prompts.map((x) => x.trim()) }).eq("slug", p.slug);
     setBusy(false);
     if (error) return toast.error("We could not save that. Try again.");
     toast.success(`${f.name} saved.`);
@@ -41,6 +43,13 @@ function Row({ p, onSaved }: { p: Persona; onSaved: () => void }) {
       <label className="block text-xs text-muted-foreground">Kind blind spot, one sentence
         <Input value={f.blind_spot} onChange={(e) => setF({ ...f, blind_spot: e.target.value })} />
       </label>
+      <div className="space-y-1.5">
+        <p className="text-xs text-muted-foreground">Ask UWAZI questions, three</p>
+        {prompts.map((q, i) => (
+          <Input key={i} value={q} aria-label={`Ask UWAZI question ${i + 1}`}
+            onChange={(e) => setPrompts(prompts.map((x, k) => (k === i ? e.target.value : x)))} />
+        ))}
+      </div>
       <Button size="sm" disabled={!dirty || busy} onClick={save}>Save</Button>
     </div>
   );
@@ -56,7 +65,7 @@ export function PersonaCopyAdmin() {
         <h2 className="text-xl font-axis uppercase text-foreground">Civic persona words</h2>
         <p className="text-sm text-muted-foreground">A persona says how someone shows up for their city, never what they believe. Keep it plain and fair to every persona.</p>
       </div>
-      {list.map((p) => <Row key={p.slug + p.name + p.one_line + p.strength + p.blind_spot} p={p} onSaved={reload} />)}
+      {list.map((p) => <Row key={p.slug + p.name + p.one_line + p.strength + p.blind_spot + (p.suggested_prompts ?? []).join("|")} p={p} onSaved={reload} />)}
     </Card>
   );
 }

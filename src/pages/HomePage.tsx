@@ -1,3 +1,4 @@
+import { NotificationCard } from "@/components/notifications/NotificationCard";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
@@ -259,6 +260,7 @@ export default function HomePage() {
 
       <YourPath path={homePath} compact />
 
+      <NotificationCard />
       <ResearchSurveyCard />
 
       {challenge && <ChallengeCard c={challenge} />}

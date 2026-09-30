@@ -807,12 +807,15 @@ export default function AskUwaziPage() {
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.5 }} className="mt-5 w-full max-w-lg px-4">
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                  {[
+                  {(askPersona?.suggested_prompts?.length ? [
+                    ...askPersona.suggested_prompts.slice(0, 3).map((q, i) => ({ icon: [Landmark, FileText, CalendarDays][i], title: q, sub: `For ${shortName(askPersona)}s like you`, prompt: q })),
+                    { icon: Vote, title: "What's on my ballot?", sub: "See your local races", prompt: suggestedPrompts[0] || "What's on my ballot?" },
+                  ] : [
                     { icon: Vote, title: "What's on my ballot?", sub: "See your local races", prompt: suggestedPrompts[0] || "What's on my ballot?" },
                     { icon: FileText, title: "Explain a bill", sub: "Plain language breakdown", prompt: suggestedPrompts[2] || "Explain a bill in plain language" },
                     { icon: Landmark, title: "Who represents me?", sub: "Find your officials", prompt: suggestedPrompts[1] || "Who represents me?" },
                     { icon: CalendarDays, title: "Next election", sub: "Dates and deadlines", prompt: suggestedPrompts[3] || "When is the next election?" },
-                  ].map((card, i) => (
+                  ]).map((card, i) => (
                     <motion.button key={i}
                       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4 + i * 0.08 }}

@@ -215,6 +215,7 @@ export type Database = {
       badges: {
         Row: {
           art_key: string | null
+          art_tone: string | null
           description: string | null
           emoji: string | null
           icon_url: string | null
@@ -230,6 +231,7 @@ export type Database = {
         }
         Insert: {
           art_key?: string | null
+          art_tone?: string | null
           description?: string | null
           emoji?: string | null
           icon_url?: string | null
@@ -245,6 +247,7 @@ export type Database = {
         }
         Update: {
           art_key?: string | null
+          art_tone?: string | null
           description?: string | null
           emoji?: string | null
           icon_url?: string | null
@@ -1852,6 +1855,7 @@ export type Database = {
           slug: string
           sort_order: number
           strength: string
+          suggested_prompts: Json
           top_dimension_slug: string | null
           updated_at: string
         }
@@ -1866,6 +1870,7 @@ export type Database = {
           slug: string
           sort_order?: number
           strength: string
+          suggested_prompts?: Json
           top_dimension_slug?: string | null
           updated_at?: string
         }
@@ -1880,6 +1885,7 @@ export type Database = {
           slug?: string
           sort_order?: number
           strength?: string
+          suggested_prompts?: Json
           top_dimension_slug?: string | null
           updated_at?: string
         }
@@ -2719,6 +2725,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification_prefs: {
+        Row: {
+          budget_milestones: boolean
+          challenges: boolean
+          elections: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budget_milestones?: boolean
+          challenges?: boolean
+          elections?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          budget_milestones?: boolean
+          challenges?: boolean
+          elections?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       official_domains: {
         Row: {
@@ -4328,6 +4358,45 @@ export type Database = {
           },
         ]
       }
+      user_notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          dedupe_key: string
+          id: string
+          kind: string
+          link: string | null
+          notify_day: string
+          read_at: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          dedupe_key: string
+          id?: string
+          kind: string
+          link?: string | null
+          notify_day: string
+          read_at?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          dedupe_key?: string
+          id?: string
+          kind?: string
+          link?: string | null
+          notify_day?: string
+          read_at?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_points_ledger: {
         Row: {
           created_at: string
@@ -5236,6 +5305,17 @@ export type Database = {
         Returns: string
       }
       norm_office_title: { Args: { t: string }; Returns: string }
+      notification_candidates: {
+        Args: { _day: string; _uid: string }
+        Returns: {
+          body: string
+          dedupe_key: string
+          kind: string
+          link: string
+          rank: number
+          title: string
+        }[]
+      }
       office_recent_decisions: {
         Args: never
         Returns: {
@@ -5266,6 +5346,7 @@ export type Database = {
         }
         Returns: string
       }
+      queue_daily_notifications: { Args: { _day?: string }; Returns: number }
       recompute_next_step: { Args: { _uid: string }; Returns: undefined }
       redeem_code: { Args: { p_code: string }; Returns: Json }
       refresh_challenge_progress: {

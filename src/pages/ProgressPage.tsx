@@ -114,7 +114,7 @@ export default function ProgressPage() {
   const ps = bySlug(journey?.streak);
   const { challenge } = useMyChallenge();
   const badges = useMyBadges();
-  const [allBadges, setAllBadges] = useState<{ id: string; name: string; description: string | null; art_key: string | null }[]>([]);
+  const [allBadges, setAllBadges] = useState<{ id: string; name: string; description: string | null; art_key: string | null; art_tone?: string | null }[]>([]);
   const [profile, setProfile] = useState<{ city: string | null; since: string | null; zip: string | null }>({ city: null, since: null, zip: null });
   const [photo, setPhoto] = useState<string | null>(null);
   const [flipped, setFlipped] = useState(false);
@@ -122,7 +122,7 @@ export default function ProgressPage() {
   const navigate = useNavigate();
   const [note, setNote] = useState("");
 
-  useEffect(() => { db.from("badges").select("id, name, description, art_key").order("name").then(({ data }: any) => setAllBadges(data ?? [])); }, []);
+  useEffect(() => { db.from("badges").select("id, name, description, art_key, art_tone").order("name").then(({ data }: any) => setAllBadges(data ?? [])); }, []);
   useEffect(() => {
     if (!user) return;
     (async () => {
@@ -159,7 +159,7 @@ export default function ProgressPage() {
   const firstConf = confAll.length ? Math.round(Number(confAll[0].score) * 100) : 0;
   const confDelta = latestConf - firstConf;
   const history = allHistory ? journey.history : journey.history.slice(0, 10);
-  const earnedOther = personal ? badges.filter((b) => b.art_key !== pp!.slug) : badges;
+  const earnedOther = personal ? badges.filter((b) => b.art_key !== pp!.slug || !!(b as any).art_tone) : badges;
   const earnedCount = badges.length;
   const liveChallenge = challenge && challenge.active && !challenge.ended_at ? challenge : null;
   const zip = liveChallenge?.my_zip ?? profile.zip;
@@ -179,10 +179,10 @@ export default function ProgressPage() {
   const chips: { key: string; node: JSX.Element }[] = [];
   if (personal) chips.push({ key: "p", node: <PersonaBadge slug={pp!.slug} size="chip" label={`${pp!.name} badge`} /> });
   earnedOther.forEach((b) => chips.push({ key: b.id, node: PERSONA_PATHS[b.art_key ?? ""]
-    ? <PersonaBadge slug={b.art_key!} size="chip" label={`${b.name} badge`} />
+    ? <PersonaBadge slug={b.art_key!} tone={(b as any).art_tone} size="chip" label={`${b.name} badge`} />
     : <span title={b.name} className="h-10 w-10 rounded-full border-2 city-tone-4 city-tone-border city-tone-tint flex items-center justify-center"><Award className="h-4 w-4 city-tone-text" /></span> }));
   locked.forEach((b) => chips.push({ key: b.id, node: PERSONA_PATHS[b.art_key ?? ""]
-    ? <PersonaBadge slug={b.art_key!} size="chip" locked label={`${b.name} badge, not earned yet`} />
+    ? <PersonaBadge slug={b.art_key!} tone={(b as any).art_tone} size="chip" locked label={`${b.name} badge, not earned yet`} />
     : <span title={`${b.name}, not earned yet`} className="h-10 w-10 rounded-full border-2 border-dashed border-muted-foreground/60 flex items-center justify-center"><Award className="h-4 w-4 text-muted-foreground" /></span> }));
 
   return (
