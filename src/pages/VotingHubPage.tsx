@@ -1,953 +1,444 @@
-import PollingPlaceCard from "@/components/voting/PollingPlaceCard";
 import { useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import {
-  MapPin, Calendar, CheckCircle2, ChevronRight, ExternalLink,
-  Phone, Globe, ShieldCheck, HelpCircle, MessageSquare, X,
-} from "lucide-react";
+import { Link } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Bell, BellRing, Check, ExternalLink, MapPin, MessageCircle, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProfile } from "@/contexts/ProfileContext";
 import { useInAppBrowser } from "@/contexts/InAppBrowserContext";
-import { cn } from "@/lib/utils";
-import { MyBallotCard } from "@/components/ballot/MyBallotCard";
-import { CandidateRacesSection } from "@/components/voting/CandidateRacesSection";
-import { useMyBallotSelections, useSaveSelection } from "@/hooks/useMyBallot";
-import { useNextElection, formatElectionDate } from "@/hooks/useNextElection";
-import { useMyDistricts } from "@/hooks/useMyOffices";
-import { contestMatchesDistricts } from "@/lib/districts";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import MyOfficialsCard from "@/components/voting/MyOfficialsCard";
+import ContestSheet from "@/components/voting/ContestSheet";
+import { useNextElection, formatElectionDate } from "@/hooks/useNextElection";
+import { useMyOffices, useMyDistricts, groupOffices } from "@/hooks/useMyOffices";
+import {
+  BallotContest,
+  PartyKey,
+  filterContestsForParty,
+  lookupPrecinct,
+  useBallotContestsForState,
+  useElectionAuthority,
+  useVoterProfile,
+} from "@/hooks/useMyBallot";
+import { PlanSteps, planDoneCount, useVotingPlan } from "@/hooks/useVotingPlan";
 
-/* ══════════════════════════════════════════════════════
-   CONSTANTS
-   ══════════════════════════════════════════════════════ */
-
-const ELECTION_DATE = "2026-11-03";
-const ELECTION_LABEL = "November 3, 2026";
-const GENERAL_DATE = "2026-11-03";
+const db = supabase as any;
 const SUPPORTED_STATES = ["MO", "KS"];
+const askLink = (q: string) => `/app/ask?q=${encodeURIComponent(q)}`;
+const tile = "city-tile min-w-0 rounded-[20px] border border-border bg-card p-4 sm:p-6";
+const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-
-type HubState = "LOADING" | "NO_ADDRESS" | "OUT_OF_AREA" | "READY" | "BALLOT_PENDING";
-
-/* ══════════════════════════════════════════════════════
-   DATE / NEXT-ACTION LOGIC (pure, testable)
-   ══════════════════════════════════════════════════════ */
-
-function daysBetween(from: Date, to: Date) {
-  const ms = to.setHours(0, 0, 0, 0) - from.setHours(0, 0, 0, 0);
-  return Math.round(ms / (1000 * 60 * 60 * 24));
+function daysUntil(iso: string) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(`${iso}T00:00:00`);
+  target.setHours(0, 0, 0, 0);
+  return Math.round((target.getTime() - today.getTime()) / 86400000);
 }
 
-function computeCountdownLabel(today: Date, electionDate: Date): { headline: string; isElectionDay: boolean } {
-  const days = daysBetween(new Date(today), new Date(electionDate));
-  if (days === 0) return { headline: "Today is Election Day", isElectionDay: true };
-  if (days === 1) return { headline: "Tomorrow", isElectionDay: false };
-  if (days > 0) return { headline: `${days} days away`, isElectionDay: false };
-  return { headline: "Election has passed", isElectionDay: false };
-}
-
-interface NextAction {
-  headline: string;
-  detail?: string;
-  ctaLabel?: string;
-  ctaUrl?: string;
-}
-
-function computeNextAction(state: string | null, today: Date): NextAction {
-  const target = new Date(`${ELECTION_DATE}T00:00:00`);
-  const days = daysBetween(new Date(today), new Date(target));
-
-  if (days < 0) {
-    return {
-      headline: "The November 3 general election has passed",
-      detail: "Thanks for voting. Results are certified by your county election authority.",
-    };
-  }
-
-  if (days === 0) {
-    return {
-      headline: "Polls are open today",
-      detail: state === "MO" ? "Missouri polls: 6:00 AM – 7:00 PM." : "Kansas polls: 7:00 AM – 7:00 PM (check your county).",
-    };
-  }
-
-  if (state === "MO") {
-    if (today <= new Date("2026-10-07T23:59:59")) {
-      return {
-        headline: "Register to vote by October 7",
-        detail: "Missouri has no same-day registration. Register or update your address by Wednesday, October 7.",
-        ctaLabel: "Register at sos.mo.gov",
-        ctaUrl: "https://s1.sos.mo.gov/elections/goVoteMissouri/register",
-      };
-    }
-    if (today < new Date("2026-10-20T00:00:00")) {
-      return {
-        headline: "No-excuse early voting starts October 20",
-        detail: "Missouri in-person absentee voting runs October 20 – November 2. Mail ballot requests are due October 21.",
-      };
-    }
-    return {
-      headline: "Vote early in person — no excuse needed, through November 2",
-      detail: "Missouri no-excuse in-person absentee voting runs through Monday, November 2.",
-    };
-  }
-
-  if (state === "KS") {
-    if (today <= new Date("2026-10-13T23:59:59")) {
-      return {
-        headline: "Register to vote by October 13",
-        detail: "Kansas has no same-day registration. Register or update your address by Tuesday, October 13.",
-        ctaLabel: "Register at ksvotes.org",
-        ctaUrl: "https://ksvotes.org",
-      };
-    }
-    if (today <= new Date("2026-10-27T23:59:59")) {
-      return {
-        headline: "Apply for a mail ballot by October 27",
-        detail: "Mail ballots must be received by your county by Election Day — apply early.",
-        ctaLabel: "Apply at ksvotes.org",
-        ctaUrl: "https://ksvotes.org",
-      };
-    }
-    return {
-      headline: "Vote early in person — ends noon on November 2",
-      detail: "Kansas advance in-person voting ends at 12:00 PM on Monday, November 2.",
-    };
-  }
-
-  return {
-    headline: `Election day is ${ELECTION_LABEL}`,
-    detail: "Check your local election office for details.",
-  };
-}
-
-/* ══════════════════════════════════════════════════════
-   HOOKS
-   ══════════════════════════════════════════════════════ */
-
-function useVoterProfile() {
-  const { user } = useAuth();
-  return useQuery({
-    queryKey: ["voter-profile-hub", user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      const { data } = await supabase
-        .from("profiles")
-        .select(
-          "user_id, full_address, address_line1, city, state_code, zip_code, county_name, election_authority_key, party_preference, registration_verified_at, us_congressional_district"
-        )
-        .eq("user_id", user.id)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!user,
-  });
-}
-
-function usePublishedElection(state: string | null | undefined) {
-  return useQuery({
-    queryKey: ["published-election", state, ELECTION_DATE],
-    queryFn: async () => {
-      if (!state) return null;
-      const { data } = await supabase
-        .from("elections_published")
-        .select("*")
-        .eq("state", state)
-        .eq("election_date", ELECTION_DATE)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!state,
-  });
-}
-
-function useBallotContests(state: string | null | undefined) {
-  const { data: districts } = useMyDistricts();
-  const resolved = districts?.resolved ?? null;
-  return useQuery({
-    queryKey: ["ballot-contests", state, ELECTION_DATE, resolved],
-    queryFn: async () => {
-      if (!state) return [];
-      const { data } = await supabase
-        .from("ballot_contests")
-        .select("*")
-        .eq("state", state)
-        .eq("election_date", ELECTION_DATE)
-        .eq("contest_type", "ballot_measure")
-        .order("sort_order", { ascending: true });
-      return (data || []).filter((c: any) => contestMatchesDistricts(c, resolved));
-    },
-    enabled: !!state,
-  });
-}
-
-function useElectionAuthority(profile: any) {
-  return useQuery({
-    queryKey: ["election-authority", profile?.election_authority_key, profile?.state_code, profile?.city],
-    queryFn: async () => {
-      const state = profile?.state_code;
-      if (!state) return null;
-
-      // Prefer explicit key
-      if (profile?.election_authority_key) {
-        const { data } = await supabase
-          .from("election_authorities")
-          .select("*")
-          .eq("key", profile.election_authority_key)
-          .maybeSingle();
-        if (data) return data;
-      }
-
-      // Match by city (KCMO within Jackson County)
-      const city = (profile?.city || "").toLowerCase();
-      if (state === "MO" && city.includes("kansas city")) {
-        const { data } = await supabase
-          .from("election_authorities")
-          .select("*")
-          .eq("key", "mo-kcmo-eb")
-          .maybeSingle();
-        if (data) return data;
-      }
-      if (state === "MO") {
-        const { data } = await supabase
-          .from("election_authorities")
-          .select("*")
-          .eq("key", "mo-jackson-eb")
-          .maybeSingle();
-        if (data) return data;
-      }
-      if (state === "KS") {
-        const { data } = await supabase
-          .from("election_authorities")
-          .select("*")
-          .eq("key", "ks-johnson-eo")
-          .maybeSingle();
-        if (data) return data;
-      }
-
-      // Fallback SOS
-      const key = state === "MO" ? "mo-sos-fallback" : state === "KS" ? "ks-sos-fallback" : null;
-      if (!key) return null;
-      const { data } = await supabase
-        .from("election_authorities")
-        .select("*")
-        .eq("key", key)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!profile?.state_code,
-  });
-}
-
-/* ══════════════════════════════════════════════════════
-   PAGE
-   ══════════════════════════════════════════════════════ */
-
-export default function VotingHubPage() {
-  const { data: profile, isLoading } = useVoterProfile();
-  const { data: publishedElection } = usePublishedElection(profile?.state_code);
-
-  const hubState: HubState = useMemo(() => {
-    if (isLoading) return "LOADING";
-    if (!profile) return "NO_ADDRESS";
-    const addressComplete = !!(profile.address_line1 && profile.city && profile.state_code && profile.zip_code);
-    if (!addressComplete) return "NO_ADDRESS";
-    if (!SUPPORTED_STATES.includes(profile.state_code!)) return "OUT_OF_AREA";
-    if (publishedElection?.is_published) return "READY";
-    return "BALLOT_PENDING";
-  }, [profile, publishedElection, isLoading]);
-
-  return (
-    <div className="max-w-3xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-10 space-y-5">
-      <HeaderCountdown state={profile?.state_code || null} />
-
-      {hubState === "NO_ADDRESS" && <NoAddressCard />}
-      {hubState === "OUT_OF_AREA" && <OutOfAreaCard state={profile?.state_code || null} />}
-
-      {(hubState === "READY" || hubState === "BALLOT_PENDING") && profile?.state_code && (
-        <>
-          <PollingPlaceCard />
-          <MyOfficialsCard />
-          <MyBallotCard state={profile.state_code} partyPreference={profile.party_preference} />
-          <RegistrationCheckCard profile={profile} />
-          <CandidateRacesSection
-            state={profile.state_code}
-            partyPreference={profile.party_preference}
-          />
-          <BallotMeasuresSection
-            state={profile.state_code}
-            partyPreference={profile.party_preference}
-            fallbackSampleUrl={publishedElection?.sample_ballot_url || null}
-          />
-          {profile.state_code === "KS" && <KansasPartyPathCard profile={profile} />}
-          <WhereToVoteCard profile={profile} />
-        </>
-      )}
-
-      <AskUwaziEntry state={profile?.state_code || null} />
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════════════
-   HEADER + COUNTDOWN + NEXT ACTION
-   ══════════════════════════════════════════════════════ */
-
-function HeaderCountdown({ state }: { state: string | null }) {
-  const [now, setNow] = useState(new Date());
+function useCountUp(value: number) {
+  const [shown, setShown] = useState(value);
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(id);
-  }, []);
+    if (reduced()) { setShown(value); return; }
+    let frame = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / 1100);
+      setShown(Math.round(value * (1 - Math.pow(1 - t, 3))));
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    setShown(0);
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [value]);
+  return shown;
+}
 
-  const { data: election } = useNextElection(state);
-  const electionDate = election?.election_date ?? ELECTION_DATE;
-  const electionLabel = formatElectionDate(electionDate, { month: "long", day: "numeric", year: "numeric" }) ?? ELECTION_LABEL;
-
-  const target = new Date(`${electionDate}T00:00:00`);
-  const { headline, isElectionDay } = computeCountdownLabel(new Date(now), new Date(target));
-  const nextAction = computeNextAction(state, new Date(now));
-
-  const keyDates: { label: string; value: string }[] = [];
-  const regDeadline = formatElectionDate(election?.registration_deadline, { month: "long", day: "numeric" });
-  const earlyStart = formatElectionDate(election?.early_voting_start, { month: "long", day: "numeric" });
-  const earlyEnd = formatElectionDate(election?.early_voting_end, { month: "long", day: "numeric" });
-  const absenteeDeadline = formatElectionDate(election?.absentee_deadline, { month: "long", day: "numeric" });
-  if (regDeadline) keyDates.push({ label: "Registration deadline", value: regDeadline });
-  if (earlyStart && earlyEnd) keyDates.push({ label: "Early voting", value: `${earlyStart} – ${earlyEnd}` });
-  if (absenteeDeadline) keyDates.push({ label: "Mail ballot request by", value: absenteeDeadline });
-
+function AskButton({ q, label, variant = "default", pulse = false }: { q: string; label: string; variant?: "default" | "outline"; pulse?: boolean }) {
   return (
-    <motion.section
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="rounded-3xl p-6 md:p-8"
-      style={{
-        background: "linear-gradient(135deg, rgba(155,211,75,0.10), rgba(155,211,75,0.02) 60%, transparent)",
-        border: "1px solid rgba(155,211,75,0.22)",
-      }}
-    >
-      <p className="text-xs tracking-widest uppercase text-muted-foreground">Next Election</p>
-      <h1
-        className="font-heading text-3xl md:text-5xl leading-none mt-1"
-        style={{ letterSpacing: "-0.02em", color: "hsl(var(--foreground))" }}
-      >
-        {electionLabel}
-      </h1>
-      <p
-        className={cn("mt-2 text-lg md:text-xl font-semibold", isElectionDay && "text-primary")}
-        aria-live="polite"
-      >
-        {headline}
-      </p>
-
-      {keyDates.length > 0 && (
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
-          {keyDates.map((d) => (
-            <div
-              key={d.label}
-              className="rounded-xl px-3 py-2.5"
-              style={{ background: "rgba(155,211,75,0.06)", border: "1px solid rgba(155,211,75,0.18)" }}
-            >
-              <p className="text-[10px] tracking-widest uppercase text-muted-foreground">{d.label}</p>
-              <p className="text-sm font-semibold text-foreground mt-0.5">{d.value}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div
-        className="mt-5 rounded-2xl p-4 md:p-5"
-        style={{
-          background: "rgba(155,211,75,0.08)",
-          border: "1px solid rgba(155,211,75,0.28)",
-        }}
-      >
-        <p className="text-xs tracking-widest uppercase text-primary/90 mb-1">Your next step</p>
-        <p className="text-base md:text-lg font-semibold text-foreground">{nextAction.headline}</p>
-        {nextAction.detail && (
-          <p className="text-sm text-muted-foreground mt-1">{nextAction.detail}</p>
-        )}
-        {nextAction.ctaUrl && nextAction.ctaLabel && (
-          <a
-            href={nextAction.ctaUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 mt-3 text-sm font-semibold text-primary hover:underline"
-          >
-            {nextAction.ctaLabel} <ExternalLink className="h-3.5 w-3.5" />
-          </a>
-        )}
-      </div>
-    </motion.section>
+    <Button asChild size="sm" variant={variant} className={`h-auto min-h-11 whitespace-normal text-left ${pulse ? "city-pulse" : ""}`}>
+      <Link to={askLink(q)}><MessageCircle className="mr-1 h-4 w-4 shrink-0" />{label}</Link>
+    </Button>
   );
 }
 
-/* ══════════════════════════════════════════════════════
-   STATE BRANCHES
-   ══════════════════════════════════════════════════════ */
-
-function NoAddressCard() {
-  return (
-    <div
-      className="rounded-2xl p-6"
-      style={{ background: "var(--card-bg, rgba(255,255,255,0.03))", border: "1px solid rgba(255,255,255,0.08)" }}
-    >
-      <h2 className="font-heading text-xl md:text-2xl text-foreground">See what's on your ballot</h2>
-      <p className="text-sm text-muted-foreground mt-2">
-        Add your address and we'll show you your exact ballot for November 3. ZIP codes split across voting districts,
-        so we need your full address to get it right. Your address is private and never shared.
-      </p>
-      <Link to="/app/settings">
-        <Button className="mt-4 bg-primary text-primary-foreground">Add my address</Button>
-      </Link>
-      <p className="text-xs text-muted-foreground mt-4 flex items-center gap-1.5">
-        <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-        UWAZI never sells or shares your address.
-      </p>
-    </div>
-  );
+/* ── level colors, same palette as the My City bento ── */
+type Level = { key: string; label: string; tone: string };
+function levelOf(c: BallotContest): Level {
+  const t = `${c.measure_title} ${(c as any).office_name ?? ""}`;
+  if (/U\.S\.|United States|President/i.test(t)) return { key: "federal", label: "Federal", tone: "city-tone-1" };
+  if (/County|Circuit|Sheriff|Prosecut/i.test(t)) return { key: "county", label: "County", tone: "city-tone-2" };
+  if (/State|Missouri|Kansas|Supreme Court|Court of Appeals|Governor/i.test(t)) return { key: "state", label: "State", tone: "city-tone-3" };
+  if (c.contest_type !== "candidate_race") return { key: "question", label: "Ballot question", tone: "city-tone-4" };
+  return { key: "city", label: "City", tone: "city-tone-0" };
 }
 
-function OutOfAreaCard({ state }: { state: string | null }) {
-  return (
-    <div
-      className="rounded-2xl p-6"
-      style={{ background: "var(--card-bg, rgba(255,255,255,0.03))", border: "1px solid rgba(255,255,255,0.08)" }}
-    >
-      <h2 className="font-heading text-xl text-foreground">Ballot data isn't available for your state yet</h2>
-      <p className="text-sm text-muted-foreground mt-2">
-        {state
-          ? `We're starting with Missouri and Kansas. ${state} is coming soon.`
-          : "We're starting with Missouri and Kansas."} In the meantime, vote.gov has everything you need to
-        check registration and find your polling place.
-      </p>
-      <a href="https://vote.gov" target="_blank" rel="noopener noreferrer">
-        <Button className="mt-4 bg-primary text-primary-foreground gap-1.5">
-          Go to vote.gov <ExternalLink className="h-4 w-4" />
-        </Button>
-      </a>
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════════════
-   REGISTRATION CHECK
-   ══════════════════════════════════════════════════════ */
-
-function RegistrationCheckCard({ profile }: { profile: any }) {
+/* ── the page ── */
+export default function VotingHubPage() {
   const { user } = useAuth();
+  const qc = useQueryClient();
   const { openInAppBrowser } = useInAppBrowser();
+  const { data: profile, isLoading } = useVoterProfile();
+  const state = profile?.state_code ?? null;
+  const { data: election } = useNextElection(state);
   const { data: authority } = useElectionAuthority(profile);
-  const [followUpVisible, setFollowUpVisible] = useState(false);
-  const [showPhone, setShowPhone] = useState(false);
-  const [confirmed, setConfirmed] = useState(!!profile?.registration_verified_at);
+  const { data: districts } = useMyDistricts();
+  const { data: offices = [] } = useMyOffices();
+  const party = ((profile as any)?.party_preference as PartyKey) || null;
+  const { data: allContests = [] } = useBallotContestsForState(state);
+  const contests = useMemo(() => filterContestsForParty(allContests, party), [allContests, party]);
+  const { steps, save } = useVotingPlan(election?.id ?? null);
 
-  if (confirmed) {
-    return (
-      <div
-        className="rounded-2xl p-4 flex items-center gap-3"
-        style={{ background: "rgba(155,211,75,0.06)", border: "1px solid rgba(155,211,75,0.25)" }}
-      >
-        <CheckCircle2 className="h-5 w-5 text-primary" />
-        <p className="text-sm font-medium text-foreground">Registration confirmed</p>
-      </div>
-    );
-  }
+  const [openContest, setOpenContest] = useState<BallotContest | null>(null);
+  const [officialsOpen, setOfficialsOpen] = useState(false);
 
-  const handleCheck = () => {
-    const url =
-      authority?.lookup_url ||
-      (profile?.state_code === "KS"
-        ? "https://myvoteinfo.voteks.org/voterview/"
-        : "https://s1.sos.mo.gov/elections/voterlookup/");
-    openInAppBrowser(url);
-    setTimeout(() => setFollowUpVisible(true), 1200);
+  const precinct = (profile as any)?.precinct_id ?? null;
+  const pollingInfo = lookupPrecinct(precinct) ?? lookupPrecinct(districts?.resolved?.voting_district ?? null);
+  const registered = !!(profile as any)?.registration_verified_at;
+
+  const { data: reminderOn } = useQuery({
+    queryKey: ["election-reminder", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await db.from("notification_prefs").select("elections").eq("user_id", user!.id).maybeSingle();
+      return !!data?.elections;
+    },
+  });
+
+  const opened: string[] = Array.isArray(steps.opened) ? steps.opened : [];
+  const allOpened = contests.length > 0 && contests.every((c) => opened.includes(c.id));
+
+  const update = (patch: PlanSteps) => {
+    const next: PlanSteps = { ...steps, ...patch };
+    save.mutate(next, {
+      onSuccess: (res) => { if (res.points > 0) toast.success("Your plan is done. You earned 30 points."); },
+      onError: () => toast.error("We could not save that. Try again."),
+    });
   };
 
-  const handleYes = async () => {
+  // The app checks these two for you when it can confirm them.
+  useEffect(() => {
+    if (!election?.id || save.isPending) return;
+    const patch: PlanSteps = {};
+    if (registered && steps.registered !== true) patch.registered = true;
+    if (pollingInfo && steps.polling !== true) patch.polling = true;
+    if (allOpened && steps.ballot !== true) patch.ballot = true;
+    if (Object.keys(patch).length) update(patch);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [election?.id, registered, !!pollingInfo, allOpened, steps.registered, steps.polling, steps.ballot]);
+
+  const openTile = (c: BallotContest) => {
+    setOpenContest(c);
+    if (!opened.includes(c.id)) update({ opened: [...opened, c.id] });
+  };
+
+  const toggleReminder = async () => {
     if (!user) return;
-    const { error } = await supabase
-      .from("profiles")
-      .update({ registration_verified_at: new Date().toISOString() })
-      .eq("user_id", user.id);
-    if (error) {
-      toast.error("Couldn't save that. Try again.");
-      return;
-    }
-    setConfirmed(true);
-    toast.success("Registration confirmed");
+    const next = !reminderOn;
+    const { error } = await db.from("notification_prefs").upsert({ user_id: user.id, elections: next });
+    if (error) return toast.error("We could not save that. Try again.");
+    qc.setQueryData(["election-reminder", user.id], next);
+    toast.success(next ? "Reminders are on. We will tell you before each date." : "Reminders are off.");
   };
 
-  return (
-    <div
-      className="rounded-2xl p-6"
-      style={{ background: "var(--card-bg, rgba(255,255,255,0.03))", border: "1px solid rgba(255,255,255,0.08)" }}
-    >
-      <h2 className="font-heading text-lg md:text-xl text-foreground flex items-center gap-2">
-        <ShieldCheck className="h-5 w-5 text-primary" />
-        Check your registration
-      </h2>
-      <p className="text-sm text-muted-foreground mt-2">
-        Confirm you're registered at your current address and find
-        where you vote. We'll hand you off to your state's official voter lookup.
-      </p>
-      <Button onClick={handleCheck} className="mt-4 bg-primary text-primary-foreground gap-1.5">
-        Check my registration <ExternalLink className="h-4 w-4" />
-      </Button>
+  if (isLoading) return <LoadingScreen fullScreen={false} />;
 
-      {followUpVisible && !showPhone && (
-        <div className="mt-4 rounded-xl p-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
-          <p className="text-sm text-foreground">Were you able to confirm you're registered?</p>
-          <div className="flex gap-2 mt-3">
-            <Button onClick={handleYes} size="sm" className="bg-primary text-primary-foreground">Yes</Button>
-            <Button onClick={() => setShowPhone(true)} size="sm" variant="outline">Not sure</Button>
-          </div>
-        </div>
-      )}
-      {showPhone && authority?.phone && (
-        <div className="mt-4 rounded-xl p-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
-          <p className="text-sm text-foreground">Call {authority.display_name} for help:</p>
-          <a href={`tel:${authority.phone.replace(/[^\d+]/g, "")}`} className="mt-2 inline-flex items-center gap-2 text-primary font-semibold">
-            <Phone className="h-4 w-4" /> {authority.phone}
-          </a>
-        </div>
-      )}
-    </div>
-  );
-}
+  const addressComplete = !!(profile?.address_line1 && profile?.city && state && (profile as any)?.zip_code);
+  const cityLabel = profile?.city ? `${profile.city}, ${state}` : "Your area";
+  const done = planDoneCount(steps);
 
-/* ══════════════════════════════════════════════════════
-   BALLOT MEASURES
-   ══════════════════════════════════════════════════════ */
+  const pollHours = authority?.poll_hours || (state === "KS" ? "Polls open 7 am to 7 pm." : "Polls open 6 am to 7 pm.");
+  const electionDate = election?.election_date ?? null;
+  const days = electionDate ? daysUntil(electionDate) : null;
+  const dateLine = formatElectionDate(electionDate, { weekday: "long", month: "long", day: "numeric" });
 
-function BallotMeasuresSection({
-  state,
-  partyPreference,
-  fallbackSampleUrl,
-}: {
-  state: string;
-  partyPreference: string | null;
-  fallbackSampleUrl: string | null;
-}) {
-  const { data: contests = [], isLoading } = useBallotContests(state);
-  const [openId, setOpenId] = useState<string | null>(null);
-  const openContest = contests.find((c) => c.id === openId) || null;
-
-  const intro =
-    state === "MO"
-      ? "Missouri has four constitutional amendments on this ballot. They appear on every ballot, no matter which party's primary you vote in."
-      : "Kansas has one constitutional amendment on this ballot. It appears on every ballot, including for unaffiliated voters.";
-
-  return (
-    <section>
-      <h2 className="font-heading text-xl md:text-2xl text-foreground mb-2">What you're voting on</h2>
-      <p className="text-sm text-muted-foreground mb-4">{intro}</p>
-
-      {isLoading ? (
-        <div className="rounded-2xl h-24 animate-pulse" style={{ background: "rgba(255,255,255,0.04)" }} />
-      ) : contests.length === 0 ? (
-        <div
-          className="rounded-2xl p-5"
-          style={{ background: "var(--card-bg, rgba(255,255,255,0.03))", border: "1px solid rgba(255,255,255,0.08)" }}
-        >
-          <p className="text-sm text-foreground">We're still confirming the official ballot language for your area.</p>
-          <p className="text-sm text-muted-foreground mt-1">Your county election board has the full sample ballot.</p>
-          {fallbackSampleUrl && (
-            <a href={fallbackSampleUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-3 text-sm font-semibold text-primary hover:underline">
-              View sample ballot <ExternalLink className="h-3.5 w-3.5" />
-            </a>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {contests.map((c) => (
-            <MeasureCard key={c.id} contest={c} onOpen={() => setOpenId(c.id)} />
-          ))}
-        </div>
-      )}
-
-      <MeasureDetailSheet contest={openContest} onClose={() => setOpenId(null)} />
-    </section>
-  );
-}
-
-function MeasureCard({ contest, onOpen }: { contest: any; onOpen: () => void }) {
-  return (
-    <button
-      onClick={onOpen}
-      className="w-full text-left rounded-2xl p-5 relative transition hover:bg-white/[0.04] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-      style={{ background: "var(--card-bg, rgba(255,255,255,0.03))", border: "1px solid rgba(255,255,255,0.08)" }}
-    >
-      <div
-        className="absolute left-0 top-4 bottom-4 w-1 rounded-r-full"
-        style={{ background: "#9BD34B" }}
-        aria-hidden
-      />
-      <div className="pl-3 pr-8">
-        <h3 className="font-heading text-lg text-foreground">{contest.measure_title}</h3>
-        <div className="relative mt-1">
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            {contest.plain_summary || contest.measure_summary || "Details coming soon."}
-          </p>
-        </div>
-      </div>
-      <ChevronRight className="h-5 w-5 text-muted-foreground absolute right-4 top-1/2 -translate-y-1/2" />
-    </button>
-  );
-}
-
-function MeasureDetailSheet({ contest, onClose }: { contest: any | null; onClose: () => void }) {
-  return (
-    <Sheet open={!!contest} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent side="bottom" className="h-[95dvh] overflow-y-auto p-0 bg-[#080808] border-t border-white/10">
-        {contest && (
-          <div className="max-w-3xl mx-auto px-5 py-6 space-y-6 pb-16">
-            <SheetHeader className="text-left">
-              <SheetTitle asChild>
-                <h2 className="font-heading text-2xl md:text-3xl text-foreground">{contest.measure_title}</h2>
-              </SheetTitle>
-            </SheetHeader>
-
-            <MeasureVoteChooser contestId={contest.id} />
-
-            {/* 2. Plain-language summary — UWAZI voice */}
-            <section
-              className="rounded-2xl p-5"
-              style={{ background: "rgba(155,211,75,0.06)", border: "1px solid rgba(155,211,75,0.22)" }}
-            >
-              <p className="text-xs tracking-widest uppercase text-primary mb-2">
-                UWAZI plain-language summary
-              </p>
-              <p className="text-base text-foreground leading-relaxed">
-                {contest.plain_summary || "Coming soon — our nonpartisan summary is being finalized."}
-              </p>
-            </section>
-
-            {/* 3. What your vote means */}
-            {(contest.yes_means || contest.no_means) && (
-              <section>
-                <h3 className="font-heading text-lg text-foreground mb-3">What your vote means</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <VoteMeaningCard label="Vote YES" text={contest.yes_means} />
-                  <VoteMeaningCard label="Vote NO" text={contest.no_means} />
-                </div>
-              </section>
-            )}
-
-            {/* 4. Supporters / Opponents — both or neither */}
-            <SupportersOpponents supporters={contest.supporters_say} opponents={contest.opponents_say} />
-
-            {/* 5. Official ballot language */}
-            {contest.measure_summary && (
-              <section>
-                <p className="text-xs tracking-widest uppercase text-muted-foreground mb-2">
-                  Official ballot language
-                </p>
-                <div
-                  className="rounded-xl p-5"
-                  style={{
-                    background: "#111",
-                    border: "1px dashed rgba(255,255,255,0.18)",
-                    fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-                  }}
-                >
-                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                    {contest.measure_summary}
-                  </p>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  This is the exact wording that will appear on your ballot.
-                </p>
-              </section>
-            )}
-
-            {/* 6. Footer sources */}
-            <footer className="flex flex-wrap gap-4 pt-2 border-t border-white/10 text-sm">
-              {contest.source_url && (
-                <a href={contest.source_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1.5">
-                  {contest.source_name || "Source"} <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              )}
-              {contest.measure_full_text_url && (
-                <a href={contest.measure_full_text_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1.5">
-                  Read the full text <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              )}
-            </footer>
-          </div>
-        )}
-      </SheetContent>
-    </Sheet>
-  );
-}
-
-function MeasureVoteChooser({ contestId }: { contestId: string }) {
-  const { data: selections = [] } = useMyBallotSelections();
-  const save = useSaveSelection();
-  const current = selections.find((s) => s.contest_id === contestId)?.measure_vote || null;
-  const choose = (v: "yes" | "no" | "undecided") => {
-    save.mutate({ contest_id: contestId, candidate_id: null, measure_vote: v });
-  };
-  const opts: Array<{ v: "yes" | "no" | "undecided"; label: string }> = [
-    { v: "yes", label: "YES" },
-    { v: "no", label: "NO" },
-    { v: "undecided", label: "Still deciding" },
+  const planRows: Array<{ key: keyof PlanSteps; label: string; note: string; auto: boolean }> = [
+    { key: "registered", label: "You are registered", note: registered ? "We have this on file for you." : "Check it on your state's official page.", auto: true },
+    { key: "polling", label: "Know where to vote", note: pollingInfo ? `${pollingInfo.placeName}.` : "Add your ward and precinct to find it.", auto: true },
+    { key: "ballot", label: "Look at your ballot", note: contests.length ? `Open all ${contests.length} items below.` : "Your ballot items show up here.", auto: true },
+    { key: "when", label: "Pick your day and time", note: "Early voting or election day. Put it on your calendar.", auto: false },
   ];
+  const nextRow = planRows.find((r) => steps[r.key] !== true);
+
+  const races = contests.filter((c) => c.contest_type === "candidate_race");
+  const biggestRaceId = races[0]?.id ?? null;
+
+  let order = 0;
+  const rise = () => ({ "--tile-order": order++ } as React.CSSProperties);
+
   return (
-    <section
-      className="rounded-2xl p-4"
-      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.10)" }}
-    >
-      <p className="text-xs tracking-widest uppercase text-muted-foreground mb-3">Your choice (saved to your ballot)</p>
-      <div className="grid grid-cols-3 gap-2">
-        {opts.map((o) => {
-          const selected = current === o.v;
-          return (
-            <button
-              key={o.v}
-              onClick={() => choose(o.v)}
-              className={cn(
-                "rounded-xl py-3 text-sm font-semibold border transition-colors",
-                selected
-                  ? "border-primary text-primary bg-primary/10"
-                  : "border-white/10 text-foreground hover:border-white/25 bg-white/[0.02]",
+    <div className="city-bento mx-auto max-w-6xl space-y-5 px-4 py-8 pb-28 md:px-8 md:pb-10">
+      <header>
+        <p className="eyebrow mb-2">{cityLabel}</p>
+        <h1 className="font-heading text-[30px] leading-tight text-foreground">Your plan to vote</h1>
+      </header>
+
+      <div className="grid grid-cols-2 gap-[10px] lg:grid-cols-4">
+        {/* 1. Countdown */}
+        <section style={rise()} className={`${tile} col-span-2 border-primary bg-primary/10`}>
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-sm text-muted-foreground">{election?.type === "general" ? "General election" : "Next election"}</p>
+              {days !== null && days >= 0 ? (
+                <>
+                  <p className="mt-1 flex flex-wrap items-baseline gap-2 font-heading text-primary tabular-nums">
+                    <span className="text-[72px] leading-none">{useCountUpSafe(days)}</span>
+                    <span className="text-2xl">{days === 1 ? "day" : "days"}</span>
+                  </p>
+                  <p className="mt-3 text-sm text-foreground">{dateLine}. {pollHours}</p>
+                </>
+              ) : (
+                <>
+                  <p className="mt-2 font-heading text-2xl text-foreground">Results are not here yet.</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {dateLine ? `The next election is ${dateLine}.` : "We will post the next election date soon."}
+                  </p>
+                </>
               )}
+            </div>
+            <Button
+              type="button"
+              onClick={toggleReminder}
+              aria-pressed={!!reminderOn}
+              aria-label={reminderOn ? "Turn off election reminders" : "Remind me about this election"}
+              className="size-14 shrink-0 rounded-full p-0"
+              variant={reminderOn ? "default" : "outline"}
             >
-              {o.label}
-            </button>
-          );
-        })}
-      </div>
-      {current && (
-        <p className="text-[11px] text-muted-foreground mt-2">
-          Synced with your printable ballot at /my-ballot.
-        </p>
-      )}
-    </section>
-  );
-}
+              {reminderOn ? <BellRing className="h-5 w-5" /> : <Bell className="h-5 w-5" />}
+            </Button>
+          </div>
+        </section>
 
-function VoteMeaningCard({ label, text }: { label: string; text: string | null }) {
-  return (
-    <div
-      className="rounded-xl p-4"
-      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.10)" }}
-    >
-      <p className="text-xs tracking-widest uppercase text-muted-foreground mb-1">{label}</p>
-      <p className="text-sm text-foreground leading-relaxed">{text || "—"}</p>
-    </div>
-  );
-}
+        {/* 2. Your plan */}
+        <section style={rise()} className={`${tile} col-span-2`}>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="font-heading text-lg">Your plan</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {done} of 4 done. {done === 4 ? "You are set." : "Finish it for +30 points."}
+              </p>
+            </div>
+            <PlanRing done={done} />
+          </div>
+          <ul className="mt-4 space-y-2">
+            {planRows.map((r) => {
+              const isDone = steps[r.key] === true;
+              return (
+                <li key={String(r.key)}>
+                  <button
+                    type="button"
+                    aria-pressed={isDone}
+                    onClick={() => {
+                      if (r.key === "registered" && !isDone) {
+                        openInAppBrowser(authority?.lookup_url || (state === "KS" ? "https://myvoteinfo.voteks.org/voterview/" : "https://s1.sos.mo.gov/elections/voterlookup/"));
+                        return;
+                      }
+                      update({ [r.key]: !isDone } as PlanSteps);
+                    }}
+                    className="flex w-full items-start gap-3 rounded-xl border border-border p-3 text-left transition-colors hover:border-primary/40"
+                  >
+                    <span className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border transition-colors ${isDone ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>
+                      {isDone && <Check className="h-3.5 w-3.5" />}
+                    </span>
+                    <span className="min-w-0">
+                      <span className={`block text-sm font-medium text-foreground ${isDone ? "line-through" : ""}`}>{r.label}</span>
+                      <span className="block text-xs text-muted-foreground">{r.note}</span>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
 
-/** Both or neither — a contract, not a convention. */
-function SupportersOpponents({ supporters, opponents }: { supporters: string | null; opponents: string | null }) {
-  if (!supporters || !opponents) return null;
-  return (
-    <section>
-      <h3 className="font-heading text-lg text-foreground mb-1">What each side says</h3>
-      <p className="text-xs text-muted-foreground mb-3">
-        These are the arguments each campaign makes. UWAZI does not take a position.
-      </p>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.10)" }}>
-          <p className="text-xs tracking-widest uppercase text-muted-foreground mb-1">Supporters say</p>
-          <p className="text-sm text-foreground leading-relaxed">{supporters}</p>
-        </div>
-        <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.10)" }}>
-          <p className="text-xs tracking-widest uppercase text-muted-foreground mb-1">Opponents say</p>
-          <p className="text-sm text-foreground leading-relaxed">{opponents}</p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ══════════════════════════════════════════════════════
-   KANSAS UNAFFILIATED PATH
-   ══════════════════════════════════════════════════════ */
-
-function KansasPartyPathCard({ profile }: { profile: any }) {
-  const { user } = useAuth();
-  const [selection, setSelection] = useState<string | null>(profile?.party_preference || null);
-
-  const setParty = async (v: string) => {
-    setSelection(v);
-    if (user) {
-      await supabase.from("profiles").update({ party_preference: v }).eq("user_id", user.id);
-    }
-  };
-
-  return (
-    <div className="space-y-3">
-      <div
-        className="rounded-2xl p-5"
-        style={{ background: "var(--card-bg, rgba(255,255,255,0.03))", border: "1px solid rgba(255,255,255,0.08)" }}
-      >
-        <p className="text-sm text-foreground font-medium">Are you registered with a political party?</p>
-        <p className="text-xs text-muted-foreground mt-1">Kansas voters affiliate with a party at registration.</p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
-          {[
-            { v: "republican", label: "Republican" },
-            { v: "democratic", label: "Democratic" },
-            { v: "unaffiliated", label: "Unaffiliated" },
-            { v: "not_sure", label: "Not sure" },
-          ].map((o) => (
-            <button
-              key={o.v}
-              onClick={() => setParty(o.v)}
-              className={cn(
-                "rounded-lg py-2.5 px-3 text-sm font-medium transition",
-                selection === o.v
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-white/[0.04] text-foreground hover:bg-white/[0.08] border border-white/10"
-              )}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {selection === "unaffiliated" && (
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl p-5"
-          style={{
-            background: "linear-gradient(135deg, rgba(155,211,75,0.14), rgba(155,211,75,0.05))",
-            border: "1px solid rgba(155,211,75,0.35)",
-          }}
-        >
-          <h3 className="font-heading text-xl text-foreground">You can vote on November 3</h3>
-          <p className="text-sm text-foreground/90 mt-2">
-            Unaffiliated voters in Kansas receive a ballot with the statewide constitutional amendment. You don't
-            need to join a party to vote on it.
-          </p>
-          <Button
-            className="mt-4 bg-primary text-primary-foreground"
-            onClick={() => document.getElementById("what-youre-voting-on")?.scrollIntoView({ behavior: "smooth" })}
-          >
-            See the amendment
-          </Button>
-        </motion.div>
-      )}
-      {selection === "not_sure" && (
-        <p className="text-sm text-muted-foreground px-1">
-          <Link to="#" onClick={(e) => { e.preventDefault(); document.querySelector("[data-registration-check]")?.scrollIntoView({ behavior: "smooth" }); }} className="text-primary hover:underline">
-            Use the registration lookup above
-          </Link>{" "}
-          to see your party affiliation on file.
-        </p>
-      )}
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════════════
-   WHERE TO VOTE
-   ══════════════════════════════════════════════════════ */
-
-function WhereToVoteCard({ profile }: { profile: any }) {
-  const { data: authority } = useElectionAuthority(profile);
-  const state = profile?.state_code;
-
-  const optionsCopy =
-    state === "MO"
-      ? "No-excuse in-person early voting runs October 20 – November 2. On November 3, polls are open 6:00 AM to 7:00 PM. Bring a photo ID."
-      : "In-person advance voting runs through noon on November 2. Mail ballots must be received by your county election office by Election Day — if you're within a week, hand-deliver it.";
-
-  return (
-    <section>
-      <h2 className="font-heading text-xl md:text-2xl text-foreground mb-3">Where to vote</h2>
-
-      <div
-        className="rounded-2xl p-5 mb-3"
-        style={{ background: "var(--card-bg, rgba(255,255,255,0.03))", border: "1px solid rgba(255,255,255,0.08)" }}
-      >
-        <p className="text-sm text-foreground leading-relaxed">{optionsCopy}</p>
-        {state === "KS" && !authority?.poll_hours && (
-          <p className="text-xs text-muted-foreground mt-2">
-            Check with your county election office for poll hours.
-          </p>
-        )}
-      </div>
-
-      {authority && (
-        <div
-          className="rounded-2xl p-5"
-          style={{ background: "var(--card-bg, rgba(255,255,255,0.03))", border: "1px solid rgba(255,255,255,0.08)" }}
-        >
-          <p className="text-xs tracking-widest uppercase text-primary mb-1">Your election office</p>
-          <h3 className="font-heading text-lg text-foreground">{authority.display_name}</h3>
-          {authority.covers_note && (
-            <p className="text-sm text-muted-foreground mt-1">{authority.covers_note}</p>
-          )}
-          <div className="flex flex-wrap gap-4 mt-3">
-            {authority.phone && (
-              <a href={`tel:${authority.phone.replace(/[^\d+]/g, "")}`} className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline">
-                <Phone className="h-4 w-4" /> {authority.phone}
-              </a>
-            )}
-            {authority.website && (
-              <a href={authority.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline">
-                <Globe className="h-4 w-4" /> Website
-              </a>
+        {/* 3. Where you vote */}
+        <section style={rise()} className={`${tile} city-tone-1 col-span-2`}>
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="font-heading text-lg">Where you vote</h2>
+            {pollingInfo && (
+              <p className="text-xs text-muted-foreground">Ward {pollingInfo.ward}, Precinct {pollingInfo.precinct}</p>
             )}
           </div>
-        </div>
-      )}
-    </section>
+          {pollingInfo ? (
+            <>
+              <p className="city-tone-text mt-3 font-heading text-[22px] leading-tight">{pollingInfo.placeName}</p>
+              <p className="mt-2 text-sm text-muted-foreground">{pollingInfo.address}{pollingInfo.room ? `. ${pollingInfo.room}` : ""}</p>
+              <p className="text-sm text-muted-foreground">{pollHours}</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button asChild size="sm" className="city-tone-bg text-background">
+                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${pollingInfo.address}, ${profile?.city ?? "Kansas City"}, ${state}`)}`} target="_blank" rel="noreferrer">
+                    <MapPin className="mr-1 h-4 w-4" />Directions
+                  </a>
+                </Button>
+                <Button asChild size="sm" variant="outline">
+                  <a href={authority?.website || "https://www.sos.mo.gov/elections"} target="_blank" rel="noreferrer">
+                    Vote early instead <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                  </a>
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="mt-3 text-sm text-foreground">Add your ward and precinct to find your polling place.</p>
+              <p className="mt-1 text-xs text-muted-foreground">It is printed on your voter card.</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button asChild size="sm"><Link to="/app/settings">Add it in settings</Link></Button>
+                <AskButton q="How do I find my ward and precinct?" label="Ask UWAZI" variant="outline" />
+              </div>
+            </>
+          )}
+          <p className="mt-4 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+            {authority?.website && (
+              <a href={authority.website} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary">
+                {authority.display_name || "Election board"} <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+            <span>Your election board has the last word.</span>
+          </p>
+        </section>
+
+        {/* 4. On your ballot */}
+        {addressComplete && SUPPORTED_STATES.includes(state!) && (
+          <>
+            <div className="col-span-2 mt-2 lg:col-span-4">
+              <h2 className="font-heading text-xl text-foreground">On your ballot</h2>
+              <p className="text-sm text-muted-foreground">
+                {contests.length ? `${contests.length} items. Tap one.` : "We are still confirming your ballot. Check back soon."}
+              </p>
+            </div>
+            {contests.map((c) => {
+              const lvl = levelOf(c);
+              const wide = c.id === biggestRaceId || c.contest_type !== "candidate_race";
+              const isOpen = opened.includes(c.id);
+              return (
+                <section key={c.id} style={rise()} className={`${tile} ${lvl.tone} relative ${wide ? "col-span-2" : "col-span-1"}`}>
+                  <div className="city-tone-tint pointer-events-none absolute inset-0 rounded-[20px]" />
+                  {isOpen && <Check className="absolute right-3 top-3 z-10 h-4 w-4 text-primary" aria-label="You opened this" />}
+                  <button
+                    type="button"
+                    onClick={() => openTile(c)}
+                    className="relative z-10 w-full text-left"
+                  >
+                    <span className="city-tone-text block text-[10px] font-bold uppercase tracking-widest">{lvl.label}</span>
+                    <span className="mt-2 block font-heading text-[17px] leading-snug text-foreground">{c.measure_title}</span>
+                    <span className="mt-2 block text-xs text-muted-foreground">
+                      {c.contest_type === "candidate_race" ? "Tap to see candidates" : "Plain words on what a yes or no means"}
+                    </span>
+                  </button>
+                </section>
+              );
+            })}
+          </>
+        )}
+
+        {!addressComplete && (
+          <section style={rise()} className={`${tile} col-span-2 lg:col-span-4`}>
+            <h2 className="font-heading text-lg">Add your address to see your ballot</h2>
+            <p className="mt-2 text-sm text-muted-foreground">ZIP codes split across voting districts, so we need your street address. It stays private.</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button asChild size="sm"><Link to="/app/settings">Add my address</Link></Button>
+              <AskButton q="Why do you need my address to show my ballot?" label="Ask UWAZI" variant="outline" />
+            </div>
+          </section>
+        )}
+
+        {/* 5. Key dates */}
+        {election && (
+          <section style={rise()} className={`${tile} col-span-2`}>
+            <h2 className="font-heading text-lg">Key dates</h2>
+            <KeyDates election={election} />
+            <p className="mt-3 text-xs text-muted-foreground">
+              From your state's election calendar. {authority?.display_name ? `${authority.display_name} has the last word.` : ""}
+            </p>
+          </section>
+        )}
+
+        {/* 6. Your officials */}
+        <section style={rise()} className={`${tile} col-span-2`}>
+          <h2 className="font-heading text-lg">Your officials</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {offices.length
+              ? `You have ${offices.length} offices that serve you, across ${groupOffices(offices).length} levels.`
+              : "We are still matching offices to where you live."}
+          </p>
+          <Button size="sm" variant="outline" className="mt-4" onClick={() => setOfficialsOpen(true)}>See all</Button>
+        </section>
+
+        {/* 7. Next step */}
+        <section style={rise()} className={`${tile} col-span-2 border-primary lg:col-span-4`}>
+          <p className="eyebrow">Your next step</p>
+          <p className="my-3 text-sm text-foreground">
+            {nextRow ? `${nextRow.label}. ${nextRow.note}` : "Your plan is done. Now help a neighbor make theirs."}
+          </p>
+          <AskButton q="What is on my ballot?" label="Ask UWAZI what is on my ballot" pulse />
+        </section>
+      </div>
+
+      <ContestSheet contest={openContest} party={party} onClose={() => setOpenContest(null)} />
+
+      <Sheet open={officialsOpen} onOpenChange={setOfficialsOpen}>
+        <SheetContent side="bottom" className="h-[92dvh] overflow-y-auto bg-background">
+          <SheetHeader className="text-left">
+            <SheetTitle asChild><h2 className="font-heading text-2xl">Your officials</h2></SheetTitle>
+          </SheetHeader>
+          <div className="mt-4"><MyOfficialsCard /></div>
+        </SheetContent>
+      </Sheet>
+    </div>
   );
 }
 
-/* ══════════════════════════════════════════════════════
-   ASK UWAZI ENTRY
-   ══════════════════════════════════════════════════════ */
+/** Count up that stays stable when the election has passed. */
+function useCountUpSafe(days: number) {
+  return useCountUp(Math.max(0, days));
+}
 
-function AskUwaziEntry({ state }: { state: string | null }) {
-  const navigate = useNavigate();
-  const suggestions = useMemo(() => {
-    const base = ["What's on my ballot?", "Where do I vote?"];
-    if (state === "MO") base.push("What does Amendment 4 do?");
-    else if (state === "KS") base.push("What does the amendment do?");
-    base.push("I missed the registration deadline — what now?");
-    return base;
-  }, [state]);
-
-  const ask = (q: string) => navigate(`/app/ask?q=${encodeURIComponent(q)}`);
-
+function PlanRing({ done }: { done: number }) {
+  const [shown, setShown] = useState(reduced() ? done : 0);
+  useEffect(() => {
+    if (reduced()) { setShown(done); return; }
+    const id = requestAnimationFrame(() => setShown(done));
+    return () => cancelAnimationFrame(id);
+  }, [done]);
+  const r = 24;
+  const c = 2 * Math.PI * r;
   return (
-    <section>
-      <div
-        className="rounded-2xl p-5"
-        style={{ background: "var(--card-bg, rgba(255,255,255,0.03))", border: "1px solid rgba(255,255,255,0.08)" }}
-      >
-        <h2 className="font-heading text-lg text-foreground flex items-center gap-2">
-          <MessageSquare className="h-5 w-5 text-primary" />
-          Questions about voting?
-        </h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Ask Uwazi can help with deadlines, your ballot, and where to vote.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
-          {suggestions.map((q) => (
-            <button
-              key={q}
-              onClick={() => ask(q)}
-              className="text-left rounded-lg px-4 py-3 text-sm text-foreground bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 transition"
-            >
-              {q}
-            </button>
-          ))}
-        </div>
-      </div>
-    </section>
+    <svg width="60" height="60" viewBox="0 0 60 60" className="shrink-0" role="img" aria-label={`${done} of 4 done`}>
+      <circle cx="30" cy="30" r={r} fill="none" stroke="hsl(var(--muted))" strokeWidth="6" />
+      <circle
+        cx="30" cy="30" r={r} fill="none" stroke="hsl(var(--primary))" strokeWidth="6" strokeLinecap="round"
+        strokeDasharray={c} strokeDashoffset={c - (c * shown) / 4}
+        style={{ transition: reduced() ? "none" : "stroke-dashoffset 900ms ease-out", transform: "rotate(-90deg)", transformOrigin: "50% 50%" }}
+      />
+      <text x="30" y="35" textAnchor="middle" className="fill-foreground font-heading" fontSize="16">{done}</text>
+    </svg>
+  );
+}
+
+function KeyDates({ election }: { election: { registration_deadline: string | null; early_voting_start: string | null; election_date: string } }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const items = [
+    { d: election.registration_deadline, label: "Last day to register" },
+    { d: election.early_voting_start, label: "Early voting starts" },
+    { d: election.election_date, label: "Election day" },
+  ].filter((i) => !!i.d) as Array<{ d: string; label: string }>;
+  const next = items.find((i) => i.d >= today);
+  return (
+    <ul className="mt-4 grid grid-cols-3 gap-2">
+      {items.map((i) => {
+        const dt = new Date(`${i.d}T12:00:00`);
+        const isNext = next?.d === i.d;
+        const past = i.d < today;
+        return (
+          <li key={i.label} className={`min-w-0 rounded-lg border p-2 ${isNext ? "border-primary bg-primary/10" : "border-border"} ${past ? "text-muted-foreground" : ""}`}>
+            <span className="block text-[10px] font-bold uppercase">{dt.toLocaleDateString("en-US", { month: "short" })}</span>
+            <span className="font-heading text-[22px] leading-none">{dt.getDate()}</span>
+            <p className="mt-1 break-words text-xs">{i.label}</p>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
