@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Link, useNavigate } from "react-router-dom";
+import { RefreshCw } from "lucide-react";
 import uwaziPlusLogo from "@/assets/uwazi-plus-logo.png";
 import { Crown, Sparkles, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
@@ -647,6 +648,11 @@ export default function SettingsPage() {
           )}
         </motion.div>
       )}
+
+      {/* Redo setup */}
+      <Button variant="outline" onClick={() => navigate("/onboarding")} className="w-full border-border gap-1.5">
+        <RefreshCw className="h-4 w-4" /> Redo setup
+      </Button>
 
       {/* Sign Out */}
       <Button variant="outline" onClick={handleSignOut} className="w-full border-border gap-1.5">

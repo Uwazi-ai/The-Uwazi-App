@@ -678,6 +678,12 @@ body {
 .tilt-flat { transform: none !important; }
 .tilt-flat .tilt-foil { background-position: 50% 50% !important; }
 
+/* First run welcome orbit. */
+.onb-orbit { animation: onb-spin 24s linear infinite; }
+.onb-dot { position: absolute; top: 50%; left: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 999px; }
+@keyframes onb-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .onb-orbit { animation: none !important; } }
+
 /* Card pack opening. */
 .pack-glow { background: radial-gradient(circle at 50% 45%, hsl(var(--primary) / .18), transparent 60%), hsl(var(--background)); }
 .pack-float { animation: pack-float 3.2s ease-in-out infinite; }
