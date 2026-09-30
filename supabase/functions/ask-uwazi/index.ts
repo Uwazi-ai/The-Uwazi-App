@@ -392,6 +392,7 @@ async function runLocalTool(
     }
     return JSON.stringify({
       address_complete: true, ...data, state: data.state_code ?? data.location,
+      district_codes: (udp as any)?.resolved ?? null,
       polling_place_and_ballot,
       ...(polling_place_and_ballot ? {} : data.state_code === "MO"
         ? { note: "No ward/precinct saved. Kansas City voters can add it in Settings or My Ballot for their exact polling place and ballot." }
