@@ -2350,6 +2350,33 @@ export type Database = {
         }
         Relationships: []
       }
+      identity_feedback: {
+        Row: {
+          chosen_dimension: string
+          created_at: string
+          id: string
+          original_label: string | null
+          session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          chosen_dimension: string
+          created_at?: string
+          id?: string
+          original_label?: string | null
+          session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          chosen_dimension?: string
+          created_at?: string
+          id?: string
+          original_label?: string | null
+          session_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       journey_step_history: {
         Row: {
           completed_at: string | null
@@ -4019,25 +4046,31 @@ export type Database = {
           created_at: string
           event_type: string
           id: string
+          note: string | null
           points: number
           source_id: string | null
           user_id: string
+          verified: boolean
         }
         Insert: {
           created_at?: string
           event_type: string
           id?: string
+          note?: string | null
           points: number
           source_id?: string | null
           user_id: string
+          verified?: boolean
         }
         Update: {
           created_at?: string
           event_type?: string
           id?: string
+          note?: string | null
           points?: number
           source_id?: string | null
           user_id?: string
+          verified?: boolean
         }
         Relationships: []
       }
@@ -4615,6 +4648,18 @@ export type Database = {
             }
             Returns: string
           }
+      admin_unverified_actions: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          id: string
+          note: string
+          office: string
+          points: number
+          user_id: string
+        }[]
+      }
       ask_categories_summary: {
         Args: { period_days: number }
         Returns: {
@@ -4667,6 +4712,10 @@ export type Database = {
           total_count: number
           zip_code: string
         }[]
+      }
+      choose_identity_dimension: {
+        Args: { _session_id?: string; _slug: string }
+        Returns: Json
       }
       city_search_again: { Args: { _id: string }; Returns: string }
       city_top_identity: {
@@ -4737,6 +4786,7 @@ export type Database = {
         }
         Returns: Json
       }
+      delete_my_compass_data: { Args: never; Returns: Json }
       dimension_lesson: {
         Args: { _ascending: boolean; _exclude?: string[]; _uid: string }
         Returns: string
@@ -4758,6 +4808,7 @@ export type Database = {
         Args: { _challenge: string; _zip: string }
         Returns: Json
       }
+      export_my_data: { Args: never; Returns: Json }
       get_episode_like_count: { Args: { _episode_id: string }; Returns: number }
       get_invite_by_token: {
         Args: { _token: string }
@@ -4866,7 +4917,10 @@ export type Database = {
           user_id: string
         }[]
       }
-      log_civic_action: { Args: { _office_id?: string }; Returns: Json }
+      log_civic_action: {
+        Args: { _note?: string; _office_id?: string }
+        Returns: Json
+      }
       log_episode_video_access: {
         Args: {
           _context?: Json
@@ -4957,6 +5011,10 @@ export type Database = {
           new_status: string
           old_status: string
         }[]
+      }
+      set_my_consent: {
+        Args: { _personalization?: boolean; _research?: boolean }
+        Returns: Json
       }
       set_office_reviewer: {
         Args: { _email: string; _grant: boolean }

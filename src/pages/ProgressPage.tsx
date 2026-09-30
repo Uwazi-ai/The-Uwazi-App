@@ -11,6 +11,9 @@ import { ChallengeStanding } from "@/components/games/ChallengeCard";
 import { BadgeRow } from "@/components/games/BadgeRow";
 import { Trophy, Award } from "lucide-react";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { WhyAmISeeing } from "@/components/journey/WhyAmISeeing";
 
 const db = supabase as any;
 
@@ -29,6 +32,13 @@ function stepInfo(step: MyJourney["next_step"]): { title: string; sub: string; t
       return { title: "Explore My City", sub: "See what is happening near you.", to: "/app/my-city" };
   }
 }
+
+const STEP_RULE: Record<string, string> = {
+  compass: "You have not taken the Compass in the last 90 days. So it comes first.",
+  survey: "You turned on research. There is a survey you have not answered yet.",
+  lesson: "This lesson is on the Compass issue you scored lowest on. You have not done it yet.",
+  office_action: "You finished the lessons in front of you. Now it is time to reach out to a local leader you have not contacted yet.",
+};
 
 function ConfidenceTrend({ points }: { points: { score: number; at: string }[] }) {
   if (!points.length) {
@@ -54,6 +64,7 @@ export default function ProgressPage() {
   const { challenge } = useMyChallenge();
   const badges = useMyBadges();
   const navigate = useNavigate();
+  const [note, setNote] = useState("");
 
   if (loading) {
     return <LoadingScreen fullScreen={false} />;
@@ -72,10 +83,11 @@ export default function ProgressPage() {
   const pct = journey.next_stage_points ? Math.min(100, (journey.total_points / journey.next_stage_points) * 100) : 100;
 
   const logAction = async () => {
-    const { data, error } = await db.rpc("log_civic_action", { _office_id: journey.next_step?.ref ?? null });
+    const { data, error } = await db.rpc("log_civic_action", { _office_id: journey.next_step?.ref ?? null, _note: note.trim() || null });
     if (error) return toast.error("We could not save that. Try again.");
     if (!data?.ok) return toast.message("You already logged an action this week. Come back next week.");
     toast.success("+30 points. Thank you for showing up.");
+    setNote("");
     reload();
   };
 
@@ -169,6 +181,11 @@ export default function ProgressPage() {
         <p className="text-[11px] font-bold tracking-[0.2em] text-primary">YOUR NEXT STEP</p>
         <p className="font-semibold text-foreground">{step.title}</p>
         <p className="text-sm text-muted-foreground">{step.sub}</p>
+        {journey.personalization && <WhyAmISeeing rule={STEP_RULE[journey.next_step?.type ?? ""] ?? "This is the next step for everyone at your stage."} onChanged={reload} />}
+        {step.action === "civic" && (
+          <Input value={note} onChange={(e) => setNote(e.target.value.slice(0, 200))} maxLength={200}
+            placeholder="Optional. What did you do? One line." aria-label="What did you do" data-testid="action-note" />
+        )}
         <div className="flex flex-col sm:flex-row gap-2">
           {step.action === "civic" ? (
             <Button onClick={logAction}><Flag className="h-4 w-4 mr-1" /> I took action</Button>

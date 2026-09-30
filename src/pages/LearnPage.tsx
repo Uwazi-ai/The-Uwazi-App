@@ -69,7 +69,7 @@ export default function LearnPage() {
       className="w-full max-w-5xl mx-auto px-3 sm:px-4 md:px-8 py-5 md:py-8 pb-24 md:pb-8 space-y-6 sm:space-y-8 min-h-screen overflow-x-hidden"
       style={{ paddingTop: "max(1.25rem, env(safe-area-inset-top))" }}
     >
-      <YourPath path={path} onOpen={openLesson} />
+      <YourPath path={path} onOpen={openLesson} onChanged={reloadPath} />
 
       {/* Hero */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>

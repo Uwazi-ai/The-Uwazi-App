@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   User, MapPin, Bell, Camera, Save, LogOut, Lock, Trash2,
   Check, X, Loader2, Eye, EyeOff, AlertTriangle, ChevronLeft, Download, Monitor,
-  Sun, Moon, Laptop, Pencil,
+  Sun, Moon, Laptop, Pencil, Database, ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -380,6 +380,20 @@ export default function SettingsPage() {
           <button onClick={handleAvatarClick} className="text-xs text-primary hover:underline mt-0.5">Change Photo</button>
         </div>
       </motion.div>
+
+      {/* YOUR DATA + FAIRNESS */}
+      <div className="rounded-xl divide-y divide-border" style={{ background: "var(--card-bg)", border: "1px solid var(--border-subtle)" }}>
+        <Link to="/app/settings/data" className="flex items-center gap-3 p-4 hover:bg-muted/40 transition-colors" data-testid="settings-your-data">
+          <Database className="h-5 w-5 text-primary" />
+          <div className="flex-1"><p className="text-sm font-semibold text-foreground">Your data</p><p className="text-xs text-muted-foreground">See, download, or delete what we keep</p></div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        </Link>
+        <Link to="/fair" className="flex items-center gap-3 p-4 hover:bg-muted/40 transition-colors">
+          <ShieldCheck className="h-5 w-5 text-primary" />
+          <div className="flex-1"><p className="text-sm font-semibold text-foreground">How UWAZI stays fair</p><p className="text-xs text-muted-foreground">Our rules for facts, sources, and your privacy</p></div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        </Link>
+      </div>
 
       {/* APPEARANCE */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}

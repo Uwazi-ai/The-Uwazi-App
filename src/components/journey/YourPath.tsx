@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { BookOpen, ChevronRight, Clock } from "lucide-react";
 import { pathLessons, type MyPath, type LessonBrief } from "@/hooks/useJourney";
+import { WhyAmISeeing } from "@/components/journey/WhyAmISeeing";
 
 const SLOT_TITLE: Record<string, (l: LessonBrief) => string> = {
   weakest: (l) => `Build up: ${l.dimension ?? "a new issue"}`,
@@ -8,7 +9,13 @@ const SLOT_TITLE: Record<string, (l: LessonBrief) => string> = {
   stage: () => "Next in your stage",
 };
 
-export function YourPath({ path, onOpen, compact }: { path: MyPath | null; onOpen?: (id: string) => void; compact?: boolean }) {
+const SLOT_RULE: Record<string, (l: LessonBrief) => string> = {
+  weakest: (l) => `This lesson is about ${l.dimension ?? "an issue"}. It is the issue you scored lowest on, so it helps you grow.`,
+  top: (l) => `This lesson is about ${l.dimension ?? "an issue"}. It is one of your top issues, so it helps you go deeper.`,
+  stage: () => "This is the next lesson for your stage. Everyone at your stage sees it.",
+};
+
+export function YourPath({ path, onOpen, compact, onChanged }: { path: MyPath | null; onOpen?: (id: string) => void; compact?: boolean; onChanged?: () => void }) {
   const items = pathLessons(path);
   if (!items.length) return null;
   const shown = compact ? items.slice(0, 1) : items;
@@ -35,10 +42,15 @@ export function YourPath({ path, onOpen, compact }: { path: MyPath | null; onOpe
               </div>
             </div>
           );
-          return onOpen ? (
-            <button key={lesson.id} className="w-full" onClick={() => onOpen(lesson.id)} data-slot={slot}>{inner}</button>
-          ) : (
-            <Link key={lesson.id} to={`/app/learn?lesson=${lesson.id}`} className="block" data-slot={slot}>{inner}</Link>
+          return (
+            <div key={lesson.id} className="flex flex-col gap-1">
+              {onOpen ? (
+                <button className="w-full flex-1" onClick={() => onOpen(lesson.id)} data-slot={slot}>{inner}</button>
+              ) : (
+                <Link to={`/app/learn?lesson=${lesson.id}`} className="block flex-1" data-slot={slot}>{inner}</Link>
+              )}
+              {path?.personalization && <WhyAmISeeing rule={SLOT_RULE[slot](lesson)} onChanged={onChanged} className="px-1" />}
+            </div>
           );
         })}
       </div>

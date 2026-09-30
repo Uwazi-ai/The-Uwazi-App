@@ -26,6 +26,8 @@ import CandidatesPage from "./pages/CandidatesPage";
 import CandidateDetailPage from "./pages/CandidateDetailPage";
 import ProgressPage from "./pages/ProgressPage";
 import SettingsPage from "./pages/SettingsPage";
+import YourDataPage from "./pages/YourDataPage";
+import FairPage from "./pages/FairPage";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
@@ -92,6 +94,7 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/onboarding" element={<OnboardingPage />} />
               <Route path="/privacy" element={<PrivacyPolicyPage />} />
+              <Route path="/fair" element={<FairPage />} />
               <Route path="/terms" element={<TermsOfServicePage />} />
               <Route path="/join" element={<JoinPage />} />
               <Route path="/unsubscribe" element={<UnsubscribePage />} />
@@ -123,6 +126,7 @@ const App = () => (
                 <Route path="/app/compass" element={<CivicCompassPage />} />
                 <Route path="/app/profile" element={<Navigate to="/app/settings" replace />} />
                 <Route path="/app/settings" element={<SettingsPage />} />
+                <Route path="/app/settings/data" element={<YourDataPage />} />
                 <Route path="/app/settings/subscription" element={<ManageSubscriptionPage />} />
                 <Route path="/app/upgrade" element={<UpgradePage />} />
                 <Route path="/app/redeem" element={<RedeemPage />} />

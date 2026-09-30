@@ -15,6 +15,7 @@ import { BudgetSliders, defaultBudget, type Budget } from "@/components/compass/
 import { IdentityCard } from "@/components/compass/IdentityCard";
 import { PeopleInCity } from "@/components/compass/PeopleInCity";
 import { dimMeta } from "@/lib/compassDims";
+import { IdentityFit } from "@/components/compass/IdentityFit";
 import { motion, animate } from "framer-motion";
 
 const db = supabase as any;
@@ -265,6 +266,7 @@ export default function CivicCompassPage() {
           ) : (
             <Button size="lg" disabled={!questions.length} onClick={() => setStage("quiz")}>{questions.length ? "Start the quiz" : "Loading the quiz…"}</Button>
           )}
+          <p><Link to="/fair" className="text-xs text-muted-foreground underline">How UWAZI stays fair</Link></p>
         </div>
       )}
 
@@ -375,7 +377,8 @@ export default function CivicCompassPage() {
           <div className="bg-card rounded-2xl p-6 shadow-card text-center space-y-3">
             <Compass className="h-10 w-10 text-primary mx-auto" />
             <p className="text-xs uppercase tracking-wider text-muted-foreground">Your Civic Compass</p>
-            {label && <p className="text-sm font-bold text-primary">{label}</p>}
+            {label && <p className="text-sm font-bold text-primary" data-testid="identity-label">{label}</p>}
+            {label && <IdentityFit sessionId={sessionId} onLabel={setLabel} />}
             <h2 className="text-2xl font-extrabold text-foreground">
               {top.length
                 ? `You lead with ${joinNames(top.map((t) => t.name))}`

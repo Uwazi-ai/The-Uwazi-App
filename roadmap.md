@@ -20,3 +20,6 @@
 - [ ] My Ballot still asks for a party (primary-style) — rework once Nov ballot loads
 - [ ] Nov 3 ballot data not loaded — waiting on official ballot data
 - [ ] Fill in county/districts for existing accounts — waiting on owner OK
+
+## Hardening pass 2
+- [x] Why am I seeing this, Your data page, identity fit, unverified actions, /fair page
