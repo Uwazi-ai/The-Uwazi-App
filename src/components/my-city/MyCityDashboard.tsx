@@ -86,14 +86,15 @@ export function MyCityDashboard() {
   const { data: all, isLoading } = useQuery({
     queryKey: ["my-city-budget", user?.id], enabled: !!user?.id,
     queryFn: async () => {
-      let { data: ud } = await db.from("user_districts").select("resolved").eq("user_id", user!.id).maybeSingle();
+      if (!user) throw new Error("Sign in to see your budget.");
+      let { data: ud } = await db.from("user_districts").select("resolved").eq("user_id", user.id).maybeSingle();
       if (!ud?.resolved?.place && !ud?.resolved?.county) {
-        const { data: prof } = await db.from("profiles").select("address, full_address, street_address").eq("user_id", user!.id).maybeSingle();
+        const { data: prof } = await db.from("profiles").select("address, full_address, street_address").eq("user_id", user.id).maybeSingle();
         const addr = prof?.address || prof?.full_address || prof?.street_address || null;
         if (addr) {
           try {
             await supabase.functions.invoke("resolve-address", { body: { address: addr } });
-            const again = await db.from("user_districts").select("resolved").eq("user_id", user!.id).maybeSingle();
+            const again = await db.from("user_districts").select("resolved").eq("user_id", user.id).maybeSingle();
             ud = again.data;
           } catch (e) { console.error("resolve-address failed:", e); }
         }
@@ -121,7 +122,8 @@ export function MyCityDashboard() {
   const { data: split } = useQuery({
     queryKey: ["my-city-compass-split", user?.id], enabled: !!user?.id,
     queryFn: async () => {
-      const { data: session } = await supabase.from("compass_sessions").select("id").eq("user_id", user!.id).not("completed_at", "is", null).order("completed_at", { ascending: false }).limit(1).maybeSingle();
+      if (!user) return null;
+      const { data: session } = await supabase.from("compass_sessions").select("id").eq("user_id", user.id).not("completed_at", "is", null).order("completed_at", { ascending: false }).limit(1).maybeSingle();
       if (!session) return null;
       const { data } = await supabase.from("compass_budget_priorities").select("allocation").eq("session_id", session.id).limit(1).maybeSingle();
       return data?.allocation && typeof data.allocation === "object" && !Array.isArray(data.allocation) ? data.allocation as Record<string, number> : null;
@@ -187,7 +189,7 @@ export function MyCityDashboard() {
           <div className="relative z-10 mt-3 space-y-1">{change(l)}<SourceLine url={l.source_url} verified={l.last_verified_at} />{reportLink(l)}</div>
         </section>)}
         <section style={{ "--tile-order": spend.length + 3 } as React.CSSProperties} className={`${tile} col-span-2`}>
-          {selected ? <div className={tone(selectedIndex)}><div className="flex items-center gap-2"><i className="city-tone-bg size-3 rounded-full" /><h2 className="font-heading text-lg">{plainName(selected)}</h2></div><p className="mt-2 text-sm text-muted-foreground">The city calls this {selected.department_or_fund}. It covers several services in this area. Ask UWAZI for the details in the city's budget.</p><p className="my-2 text-sm text-foreground">Of every $100 {unit} spends, ${Math.round(Number(selected.percent_of_total ?? 0))} goes here.</p><div className="flex flex-wrap gap-2"><AskButton q={`What does ${selected.department_or_fund} in the ${city} budget pay for? Use the official budget source.`} label="Ask UWAZI what this pays for" /><Button size="sm" variant="outline" onClick={() => document.getElementById("city-budget-officials")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" })}>Who decides</Button></div></div> : <p className="text-sm text-muted-foreground">Pick a spending area to see what it covers, in plain words, and who decides it.</p>}
+          {selected ? <div className={tone(selectedIndex)}><div className="flex items-center gap-2"><i className="city-tone-bg size-3 rounded-full" /><h2 className="font-heading text-lg">{plainName(selected)}</h2></div><p className="mt-2 text-sm text-muted-foreground">{isCounty ? "The county" : "The city"} calls this {selected.department_or_fund}. It covers several services in this area. Ask UWAZI for the details in the budget.</p><p className="my-2 text-sm text-foreground">Of every $100 {unit} spends, ${Math.round(Number(selected.percent_of_total ?? 0))} goes here.</p><div className="flex flex-wrap gap-2"><AskButton q={`What does ${selected.department_or_fund} in the ${city} budget pay for? Use the official budget source.`} label="Ask UWAZI what this pays for" /><Button size="sm" variant="outline" onClick={() => document.getElementById("city-budget-officials")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" })}>Who decides</Button></div></div> : <p className="text-sm text-muted-foreground">Pick a spending area to see what it covers, in plain words, and who decides it.</p>}
         </section>
         {spend.some((l) => l.category) && <p className="col-span-2 text-xs text-muted-foreground lg:col-span-4">{isCounty ? "The county" : "The city"} groups its spending by {spend[0].category?.toLowerCase() ?? "area"}. Each one covers several departments.</p>}
       </>}
