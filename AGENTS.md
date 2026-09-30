@@ -12,3 +12,4 @@
 <!-- LOVABLE:BEGIN -->
 - AppLayout keeps the content column as the vertical scroll container and avoids overflow-x-hidden on main. Why: main's overflow traps long pages on phones and hides actions.
 <!-- LOVABLE:END -->
+- Consent changes, identity fit picks, data export, and Compass data deletion go only through set_my_consent, choose_identity_dimension, export_my_data, and delete_my_compass_data RPCs; self reported civic actions are written with verified=false. Why: privacy controls act on the caller only and stay server side.
