@@ -36,8 +36,8 @@ function stepInfo(step: MyJourney["next_step"]): { title: string; sub: string; t
 const STEP_RULE: Record<string, string> = {
   compass: "You have not taken the Compass in the last 90 days. So it comes first.",
   survey: "You turned on research. There is a survey you have not answered yet.",
-  lesson: "This lesson fits your Compass issues and you have not done it yet.",
-  office_action: "You have done the learning steps. Now it is time to reach out to a local leader who works on your issues.",
+  lesson: "This lesson is on the Compass issue you scored lowest on. You have not done it yet.",
+  office_action: "You finished the lessons in front of you. Now it is time to reach out to a local leader you have not contacted yet.",
 };
 
 function ConfidenceTrend({ points }: { points: { score: number; at: string }[] }) {
