@@ -21,3 +21,5 @@
 - Home and Watch use videos, edited in Content, with private media; journey steps share a mapper. Why: one reviewed library and consistent next steps.
 - Clip autoplay is controlled by user_preferences.autoplay_on_cellular and the visible Wi-Fi preview only. Why: a single clip may use network and battery at a time.
 - Plus checkout sets a seven-day subscription trial for recurring plans. Why: the promised first week must be reflected in the actual purchase.
+- Plus access is read from is_plus (profiles.plan plus/plus_student, active subscription, or admin); profiles.plan is synced only by the subscriptions trigger and only server code counts Ask questions via consume_ask_question. Why: one server-side source of truth for tiers and limits.
+- Student pricing requires a verified student_verification row; student IDs are stored only as a salted one way hash. Why: no raw student numbers ever live in the app.
