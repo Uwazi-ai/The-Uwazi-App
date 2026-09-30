@@ -17,6 +17,7 @@ import { planDoneCount, useVotingPlan } from "@/hooks/useVotingPlan";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { WelcomeHero, WatchAndLearn, type HomeVideo, type WelcomeVideo } from "@/components/home/HomeVideos";
 import { PersonaBadge } from "@/components/compass/PersonaBadge";
+import { episodeToVideo, type EpisodeRow } from "@/lib/videoLibrary";
 
 const db = supabase as any;
 const tile = "city-tile min-w-0 rounded-[20px] border border-border bg-card p-4 sm:p-6 transition-colors hover:border-primary/50";
