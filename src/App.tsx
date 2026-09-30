@@ -21,7 +21,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import LearnPage from "./pages/LearnPage";
-import WatchPage from "./pages/WatchPage";
+
 import EpisodesFeedPage from "./pages/EpisodesFeedPage";
 import CandidatesPage from "./pages/CandidatesPage";
 import CandidateDetailPage from "./pages/CandidateDetailPage";
@@ -125,7 +125,7 @@ const App = () => (
                 <Route path="/app/news" element={<NewsPage />} />
                 <Route path="/app/saved" element={<SavedPage />} />
                 <Route path="/app/learn" element={<LearnPage />} />
-                <Route path="/app/watch" element={<WatchPage />} />
+                <Route path="/app/watch" element={<EpisodesFeedPage />} />
                 <Route path="/app/episodes" element={<EpisodesFeedPage />} />
                 <Route path="/app/progress" element={<ProgressPage />} />
                 <Route path="/app/compass" element={<CivicCompassPage />} />

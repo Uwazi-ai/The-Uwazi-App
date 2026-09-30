@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { type LibraryVideo, useVideoSource } from "@/lib/videoLibrary";
+import { type LibraryVideo, useMediaSource, useVideoSource } from "@/lib/videoLibrary";
 
 export type HomeVideo = LibraryVideo;
 export type WelcomeVideo = LibraryVideo;
 
 function FullVideo({ item, onClose }: { item: LibraryVideo; onClose: () => void }) {
-  const url = useVideoSource(item.url);
+  const url = useMediaSource(item);
   const poster = useVideoSource(item.poster_url);
   return <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}><DialogContent className="max-w-5xl border-border bg-background p-2 sm:p-4 [&>button]:text-foreground"><DialogTitle className="sr-only">{item.title}</DialogTitle><video src={url} poster={poster} autoPlay controls playsInline className="max-h-[80dvh] w-full bg-background object-contain" onEnded={onClose} /><p className="px-2 text-sm text-muted-foreground">{item.description}</p></DialogContent></Dialog>;
 }
@@ -20,7 +20,7 @@ export function WelcomeHero({ video, seen, onDismiss }: { video: WelcomeVideo | 
   const [open, setOpen] = useState(false);
   const [closed, setClosed] = useState(false);
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const source = useVideoSource(video?.url);
+  const source = useMediaSource(video);
   const poster = useVideoSource(video?.poster_url);
   if (!video || seen || closed) return null;
   const finish = () => { setOpen(false); setClosed(true); onDismiss(); };
@@ -39,15 +39,15 @@ export function WelcomeHero({ video, seen, onDismiss }: { video: WelcomeVideo | 
 
 function Clip({ clip, active, onOpen }: { clip: HomeVideo; active: boolean; onOpen: () => void }) {
   const ref = useRef<HTMLVideoElement>(null);
-  const source = useVideoSource(active ? clip.url : undefined);
+  const source = useMediaSource(clip);
   const poster = useVideoSource(clip.poster_url);
   useEffect(() => { if (active && source) ref.current?.play().catch(() => {}); else { ref.current?.pause(); if (ref.current) ref.current.currentTime = 0; } }, [active, source]);
-  const minutes = `${Math.floor(clip.length_seconds / 60)}:${String(clip.length_seconds % 60).padStart(2, "0")}`;
+  const minutes = clip.length_seconds > 0 ? `${Math.floor(clip.length_seconds / 60)}:${String(clip.length_seconds % 60).padStart(2, "0")}` : null;
   return <div data-clip-id={clip.id} className="relative h-[200px] w-[150px] shrink-0 snap-start overflow-hidden rounded-[8px] border border-border bg-secondary">
-     <video ref={ref} src={active ? source : undefined} poster={poster} muted loop playsInline preload="none" className="absolute inset-0 h-full w-full object-cover" />
+     <video ref={ref} src={source} poster={poster} muted loop playsInline preload="metadata" className="absolute inset-0 h-full w-full object-cover" />
     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/95 via-background/10 to-transparent" />
     <Button variant="ghost" onClick={onOpen} aria-label={`Play ${clip.title} with sound`} className="absolute inset-0 h-full w-full flex-col items-start justify-end gap-1.5 rounded-none p-3 text-left text-foreground hover:bg-background/10 hover:text-foreground">
-      <span className="mb-auto flex w-full items-start justify-between gap-1 text-[10px] font-bold"><span className="rounded bg-primary px-1.5 py-0.5 text-primary-foreground">{clip.tag}</span><span className="rounded bg-background/80 px-1.5 py-0.5 text-foreground">{minutes}</span></span>
+      <span className="mb-auto flex w-full items-start justify-between gap-1 text-[10px] font-bold"><span className="rounded bg-primary px-1.5 py-0.5 text-primary-foreground">{clip.tag}</span>{minutes && <span className="rounded bg-background/80 px-1.5 py-0.5 text-foreground">{minutes}</span>}</span>
       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground"><Play className="fill-current" /></span>
       <span className="line-clamp-2 w-full whitespace-normal text-xs font-semibold leading-snug">{clip.title}</span>
     </Button>

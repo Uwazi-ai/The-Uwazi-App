@@ -75,7 +75,7 @@ export default function WatchPage() {
   };
 
   const handleShare = (ep: Episode) => {
-    const url = `${window.location.origin}/app/episodes?v=${ep.id}`;
+    const url = `${window.location.origin}/app/watch?v=${ep.id}`;
     navigator.clipboard.writeText(url).then(() => toast.success("Link copied!"));
   };
 
