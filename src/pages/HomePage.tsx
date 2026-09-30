@@ -22,6 +22,7 @@ import FeatureTour from "@/components/home/FeatureTour";
 import { YourPath } from "@/components/journey/YourPath";
 import { useMyPath } from "@/hooks/useJourney";
 import { ChallengeCard } from "@/components/games/ChallengeCard";
+import { ResearchSurveyCard } from "@/components/survey/ResearchSurveyCard";
 import { useMyChallenge } from "@/hooks/useChallenge";
 import { useEpisodeVideoUrl } from "@/hooks/useEpisodeVideoUrl";
 
@@ -257,6 +258,8 @@ export default function HomePage() {
       )}
 
       <YourPath path={homePath} compact />
+
+      <ResearchSurveyCard />
 
       {challenge && <ChallengeCard c={challenge} />}
 

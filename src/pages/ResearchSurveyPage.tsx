@@ -61,7 +61,7 @@ export default function ResearchSurveyPage() {
       </div>
     );
   }
-  if (isLoading) return <LoadingScreen />;
+  if (isLoading) return <LoadingScreen fullScreen={false} />;
   const s = data?.find((x) => x.id === id);
   if (!s) return <Navigate to="/app" replace />;
 
