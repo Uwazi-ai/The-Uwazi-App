@@ -64,7 +64,21 @@ export function MyCityDashboard() {
     queryKey: ["my-city-budget", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data: ud } = await db.from("user_districts").select("resolved").eq("user_id", user!.id).maybeSingle();
+      let { data: ud } = await db.from("user_districts").select("resolved").eq("user_id", user!.id).maybeSingle();
+      if (!ud?.resolved?.place && !ud?.resolved?.county) {
+        // The address may already be saved in settings. Resolve it instead of asking again.
+        const { data: prof } = await db.from("profiles").select("address, full_address, street_address").eq("user_id", user!.id).maybeSingle();
+        const addr = prof?.address || prof?.full_address || prof?.street_address || null;
+        if (addr) {
+          try {
+            await supabase.functions.invoke("resolve-address", { body: { address: addr } });
+            const again = await db.from("user_districts").select("resolved").eq("user_id", user!.id).maybeSingle();
+            ud = again.data;
+          } catch (e) {
+            console.error("resolve-address failed:", e);
+          }
+        }
+      }
       const place: string | null = ud?.resolved?.place ?? null;
       const county: string | null = ud?.resolved?.county ?? null;
       const { data: status } = await db.rpc("get_my_city_status");
