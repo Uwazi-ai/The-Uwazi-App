@@ -21,7 +21,7 @@ export function BadgeEarned({ badge, onClose }: { badge: B; onClose: () => void 
   const persona = badge.art_key && PERSONA_PATHS[badge.art_key];
   return (
     <div role="dialog" aria-label={`Badge earned. ${badge.name}.`} data-testid="badge-earned"
-      className="fixed inset-0 z-[60] pack-glow/90 bg-background/85 backdrop-blur-sm flex flex-col items-center justify-center gap-5 px-6 text-center cursor-pointer"
+      className="fixed inset-0 z-[60] bg-background/85 backdrop-blur-sm flex flex-col items-center justify-center gap-5 px-6 text-center cursor-pointer"
       onClick={onClose}>
       <div className="relative h-24 w-24 flex items-center justify-center">
         {!dropped && <span className="badge-socket absolute inset-0 rounded-full border-2 border-dashed border-primary" />}
