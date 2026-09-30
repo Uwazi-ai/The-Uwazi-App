@@ -34,7 +34,7 @@ function clayLookup(input: Record<string, unknown>): string {
   const pq = input.precinct ? String(input.precinct).toLowerCase().trim() : "";
   if (!pq) {
     return JSON.stringify({
-      note: "No precinct given. Clay County's Nov 3 sample ballot is not yet published — no candidate lists available. Early voting sites and office info below.",
+      note: "No precinct given. Clay County's Nov 3 sample ballot is not yet published. No candidate lists are available yet. Early voting sites and office info below.",
       early_voting_sites: C.early_voting_sites,
       election_authority: "Clay County Board of Election Commissioners, voteclaycountymo.gov, (816) 415-8683",
     });
@@ -871,7 +871,7 @@ Deno.serve(async (req) => {
     if (!finalText) {
       finalText =
         "I wasn't able to get a verified answer to that. Your county " +
-        "election board can help — you can find them at vote.gov.";
+        "election board can help. You can find them at vote.gov.";
     }
 
     if (journeyTurn.greeting && !finalText.trimStart().startsWith("Welcome back")) {
