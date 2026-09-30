@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ExternalLink, Check, X, Play, Power, MessageCircle } from "lucide-react";
 import CitiesSection, { useCitiesWaiting } from "@/components/admin/CitiesSection";
 
@@ -68,6 +69,8 @@ export default function AdminOfficeHealthPage() {
   const [importing, setImporting] = useState(false);
   const [running, setRunning] = useState<string | null>(null);
   const [showText, setShowText] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkRunning, setBulkRunning] = useState(false);
 
   const sources = useQuery({
     queryKey: ["office-sources"],
