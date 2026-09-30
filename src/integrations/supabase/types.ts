@@ -3555,6 +3555,38 @@ export type Database = {
         }
         Relationships: []
       }
+      research_survey_responses: {
+        Row: {
+          answers: Json
+          id: string
+          submitted_at: string
+          survey_id: string
+          user_id: string
+        }
+        Insert: {
+          answers: Json
+          id?: string
+          submitted_at?: string
+          survey_id: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          id?: string
+          submitted_at?: string
+          survey_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_survey_responses_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "survey_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_articles: {
         Row: {
           article_image: string | null
@@ -3818,6 +3850,99 @@ export type Database = {
           reason?: string
         }
         Relationships: []
+      }
+      survey_definitions: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          delivery_channel: string
+          ends_at: string | null
+          id: string
+          intro: string | null
+          questions: Json
+          starts_at: string | null
+          target_dimension_filter: Json | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          delivery_channel?: string
+          ends_at?: string | null
+          id?: string
+          intro?: string | null
+          questions?: Json
+          starts_at?: string | null
+          target_dimension_filter?: Json | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          delivery_channel?: string
+          ends_at?: string | null
+          id?: string
+          intro?: string | null
+          questions?: Json
+          starts_at?: string | null
+          target_dimension_filter?: Json | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      survey_dispatch: {
+        Row: {
+          channel: string
+          delivered_at: string | null
+          id: string
+          responded_at: string | null
+          response_id: string | null
+          sent_at: string
+          survey_id: string
+          user_id: string
+        }
+        Insert: {
+          channel?: string
+          delivered_at?: string | null
+          id?: string
+          responded_at?: string | null
+          response_id?: string | null
+          sent_at?: string
+          survey_id: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          delivered_at?: string | null
+          id?: string
+          responded_at?: string | null
+          response_id?: string | null
+          sent_at?: string
+          survey_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_dispatch_response_fk"
+            columns: ["response_id"]
+            isOneToOne: false
+            referencedRelation: "research_survey_responses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_dispatch_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "survey_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       survey_responses: {
         Row: {
@@ -4954,6 +5079,11 @@ export type Database = {
         Args: { _ascending: boolean; _exclude?: string[]; _uid: string }
         Returns: string
       }
+      dispatch_due_surveys: { Args: never; Returns: number }
+      dispatch_survey_internal: {
+        Args: { _survey_id: string }
+        Returns: number
+      }
       district_batches: {
         Args: never
         Returns: {
@@ -5012,6 +5142,7 @@ export type Database = {
         }[]
       }
       get_my_path: { Args: never; Returns: Json }
+      get_my_research_surveys: { Args: never; Returns: Json }
       get_my_zip_investment: {
         Args: { _fiscal_year?: string; _zip: string }
         Returns: {
@@ -5126,6 +5257,7 @@ export type Database = {
       }
       persona_label: { Args: { _scores: Json }; Returns: Json }
       platform_health: { Args: never; Returns: Json }
+      preview_survey_targets: { Args: { _filter: Json }; Returns: number }
       propose_office_district: {
         Args: {
           _district_code: string
@@ -5164,10 +5296,13 @@ export type Database = {
         }
         Returns: string
       }
+      research_survey_results: { Args: { _survey_id: string }; Returns: Json }
+      research_survey_stats: { Args: never; Returns: Json }
       review_office_change: {
         Args: { _approve: boolean; _change_id: string }
         Returns: string
       }
+      send_research_survey: { Args: { _survey_id: string }; Returns: number }
       set_city_review: {
         Args: { _action: string; _id: string }
         Returns: string
@@ -5196,11 +5331,19 @@ export type Database = {
         }[]
       }
       stage_name_for: { Args: { _points: number }; Returns: string }
+      submit_research_survey: {
+        Args: { _answers: Json; _survey_id: string }
+        Returns: number
+      }
       super_admin_emails: {
         Args: never
         Returns: {
           email: string
         }[]
+      }
+      survey_matches: {
+        Args: { _filter: Json; _uid: string }
+        Returns: boolean
       }
     }
     Enums: {
