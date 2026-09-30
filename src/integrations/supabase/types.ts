@@ -4463,6 +4463,7 @@ export type Database = {
       user_preferences: {
         Row: {
           accessibility_settings: Json | null
+          autoplay_on_cellular: boolean
           content_depth: string | null
           created_at: string
           id: string
@@ -4475,6 +4476,7 @@ export type Database = {
         }
         Insert: {
           accessibility_settings?: Json | null
+          autoplay_on_cellular?: boolean
           content_depth?: string | null
           created_at?: string
           id?: string
@@ -4487,6 +4489,7 @@ export type Database = {
         }
         Update: {
           accessibility_settings?: Json | null
+          autoplay_on_cellular?: boolean
           content_depth?: string | null
           created_at?: string
           id?: string
