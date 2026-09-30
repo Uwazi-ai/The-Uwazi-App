@@ -136,7 +136,7 @@ export function MyCityDashboard() {
   useEffect(() => setSelectedId(null), [fy, scope]);
   if (isLoading) return <LoadingScreen fullScreen={false} />;
 
-  const city = isCounty ? "Jackson County, Missouri" : (data?.place ? CITY_NAMES[data.place] : null) ?? all?.cityName ?? "your city";
+  const city = isCounty ? (data?.place === "29095" ? "Jackson County, Missouri" : "your county") : (data?.place ? CITY_NAMES[data.place] : null) ?? all?.cityName ?? "your city";
   const lines = (data?.lines ?? []).filter((l) => l.fiscal_year === fy);
   const spend = lines.filter((l) => l.revenue_or_expense === "expense").sort((a, b) => b.amount - a.amount);
   const revenue = lines.filter((l) => l.revenue_or_expense === "revenue").sort((a, b) => b.amount - a.amount);
@@ -147,8 +147,7 @@ export function MyCityDashboard() {
   const hasBudget = years.length > 0;
   const selected = spend.find((l) => l.id === selectedId);
   const selectedIndex = selected ? spend.indexOf(selected) : 0;
-  const approvedYears = years.slice(0, 2);
-  const pendingYear = years.length === 1 && /^\d{4}/.test(years[0]) ? String(Number(years[0].slice(0, 4)) - 1) : null;
+  const displayYears = [...new Set([...years, ...calendar.map((m) => m.fiscal_year)])].sort().reverse().slice(0, 2);
   const send = async () => {
     if (!target) return;
     setSending(true);
@@ -162,9 +161,8 @@ export function MyCityDashboard() {
   return <div className="city-bento mx-auto max-w-6xl space-y-5 px-4 py-8 pb-28 md:px-8 md:pb-10">
     <header className="flex flex-wrap items-end justify-between gap-4">
       <div><p className="eyebrow mb-2">{city}</p><h1 className="font-heading text-[30px] leading-tight text-foreground">Where your tax dollars go</h1></div>
-      {hasBudget && <div className="flex flex-wrap items-center gap-2" aria-label="Budget year">
-        {approvedYears.map((year) => <Button key={year} size="sm" variant={fy === year ? "default" : "outline"} onClick={() => setFy(year)} aria-pressed={fy === year} className="rounded-full">{year}</Button>)}
-        {pendingYear && <span className="group relative"><Button size="sm" variant="outline" disabled className="rounded-full">{pendingYear}</Button><span className="block max-w-40 text-xs text-muted-foreground sm:absolute sm:right-0 sm:top-full sm:z-10 sm:hidden sm:w-60 sm:max-w-none sm:rounded-md sm:bg-popover sm:p-2 sm:shadow-md sm:group-hover:block">Last year's numbers are in review. They will show here once a person approves them.</span></span>}
+      {(hasBudget || displayYears.length > 0) && <div className="flex flex-wrap items-center gap-2" aria-label="Budget year">
+        {displayYears.map((year) => years.includes(year) ? <Button key={year} size="sm" variant={fy === year ? "default" : "outline"} onClick={() => setFy(year)} aria-pressed={fy === year} className="rounded-full">{year}</Button> : <span key={year} className="group relative"><Button size="sm" variant="outline" disabled className="rounded-full">{year}</Button><span className="block max-w-40 text-xs text-muted-foreground sm:absolute sm:right-0 sm:top-full sm:z-10 sm:hidden sm:w-60 sm:max-w-none sm:rounded-md sm:bg-popover sm:p-2 sm:shadow-md">Last year's numbers are in review. They will show here once a person approves them.</span></span>)}
       </div>}
     </header>
     {countyHasBudget && <div role="tablist" aria-label="Budget area" className="inline-flex gap-1 rounded-full border border-border bg-card p-1">{(["city", "county"] as const).map((k) => <Button key={k} role="tab" aria-selected={scope === k} size="sm" variant={scope === k ? "default" : "ghost"} onClick={() => setScope(k)} className="rounded-full">{k === "city" ? "Your city" : "Your county"}</Button>)}</div>}
