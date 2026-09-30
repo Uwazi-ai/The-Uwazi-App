@@ -651,3 +651,19 @@ body {
   --persona-gold: 40 90% 30%;
   --persona-silver: 220 10% 38%;
 }
+
+/* Progress bento motion. Shares the My City palette and tile motion. */
+.prog-rose { transform-origin: center; transform-box: fill-box; animation: prog-scale 1s ease-out backwards; }
+.prog-ring { transition: stroke-dashoffset 1s ease-out; }
+.prog-bar { transform: scaleY(0); transform-origin: bottom; animation: prog-grow-y 700ms ease-out forwards; animation-delay: calc(200ms + var(--bar-i, 0) * 80ms); }
+.prog-flip { perspective: 1200px; }
+.prog-flip-inner { transition: transform 600ms ease; transform-style: preserve-3d; display: grid; }
+.prog-flip-inner > * { grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.prog-flip-back { transform: rotateY(180deg); }
+.prog-flipped .prog-flip-inner { transform: rotateY(180deg); }
+@keyframes prog-scale { from { transform: scale(.2); } to { transform: scale(1); } }
+@keyframes prog-grow-y { to { transform: scaleY(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .prog-rose, .prog-bar { animation: none !important; transform: none !important; }
+  .prog-ring, .prog-flip-inner { transition: none !important; }
+}
