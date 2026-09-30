@@ -40,6 +40,12 @@ export function PlatformHealthCard() {
           </div>
         ))}
       </div>
+      <div className="rounded-xl border border-border p-3">
+        <p className="text-sm font-semibold text-foreground">Address lookups, last 30 days</p>
+        <p className="text-sm text-foreground">
+          {h.geocode_census ?? 0} found by the free census geocoder. {h.geocode_fallback ?? 0} found by the backup. {h.geocode_none ?? 0} found nothing.
+        </p>
+      </div>
     </Card>
   );
 }
