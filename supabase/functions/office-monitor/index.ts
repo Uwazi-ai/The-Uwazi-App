@@ -351,6 +351,8 @@ async function checkSource(db: any, src: any) {
         else {
           text = htmlToText(await page.text());
           if (text.length < 3000 && BLOCK_RE.test(text)) { needsFirecrawl = true; text = ''; }
+          // Pages built by scripts come back nearly empty. Use the backup reader for those too.
+          else if (text.trim().length < 400) { needsFirecrawl = true; text = ''; }
         }
       } catch (fe) {
         if (!needsFirecrawl) throw fe;
