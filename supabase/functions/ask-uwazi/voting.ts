@@ -79,11 +79,11 @@ export async function buildVotingContext(
   // Ballot coverage: the ballot pipeline has contests for their districts.
   let ballotCount = 0;
   if (state) {
-    let q = supabase.from("ballot_contests").select("id", { count: "exact", head: true })
-      .eq("state", state).gte("election_date", new Date().toISOString().slice(0, 10));
-    q = authKey ? q.or(`authority_key.is.null,authority_key.eq.${authKey}`) : q.is("authority_key", null);
-    const { count } = await q;
-    ballotCount = count ?? 0;
+    const { data: rows } = await supabase.from("ballot_contests").select("authority_key")
+      .eq("state", state).gte("election_date", new Date().toISOString().slice(0, 10)).limit(1000);
+    const alias: Record<string, string> = { "mo-kcmo-eb": "kceb", "mo-kansas-city": "kceb" };
+    const mine = authKey ? (alias[authKey] ?? authKey) : null;
+    ballotCount = (rows ?? []).filter((x: any) => !x.authority_key || x.authority_key === mine).length;
   }
   const ballotCovered = ballotCount > 0 || !!polling;
 
