@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { type LibraryVideo, useVideoSource } from "@/lib/videoLibrary";
+import { type LibraryVideo, useMediaSource, useVideoSource } from "@/lib/videoLibrary";
 
 export type HomeVideo = LibraryVideo;
 export type WelcomeVideo = LibraryVideo;
