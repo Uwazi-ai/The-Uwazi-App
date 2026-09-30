@@ -155,6 +155,8 @@ Deno.serve(async (req) => {
           const top = geoData.results[0];
           lat = top.geometry?.location?.lat ?? null;
           lng = top.geometry?.location?.lng ?? null;
+          geocoder = "backup";
+          matchQuality = top.geometry?.location_type ?? "match";
           const comps: Array<{ types: string[]; long_name: string; short_name: string }> =
             top.address_components || [];
           const findComp = (t: string) => comps.find((c) => c.types.includes(t));
@@ -162,13 +164,13 @@ Deno.serve(async (req) => {
           state = findComp("administrative_area_level_1")?.short_name ?? state;
           county = findComp("administrative_area_level_2")?.long_name ?? null;
         } else {
-          console.warn("Geocoding unavailable:", geocodingStatus, geoData.error_message ?? "No details");
+          console.warn("Backup geocoder found nothing:", geocodingStatus);
         }
       } catch (e) {
-        geocodingStatus = "GEOCODING_REQUEST_FAILED";
-        console.warn("Geocoding request failed:", e);
+        console.warn("Backup geocoder request failed:", e);
       }
     }
+    const addressMatched = geocoder === "census" || geocoder === "backup";
 
     // Free ZIP center fallback. Used when we have no map point yet, so ZIP only users still get their city and county.
     if (lat == null && lng == null && zip) {
