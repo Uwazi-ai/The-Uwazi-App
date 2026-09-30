@@ -4,7 +4,10 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 
 const db = supabase as any;
-type Health = { last_backup: string | null; last_heartbeat: string | null; last_heartbeat_status: string | null; last_office_check: string | null };
+type Health = {
+  last_backup: string | null; last_heartbeat: string | null; last_heartbeat_status: string | null; last_office_check: string | null;
+  geocode_census?: number; geocode_fallback?: number; geocode_none?: number;
+};
 
 const hoursSince = (iso: string | null) => (iso ? (Date.now() - new Date(iso).getTime()) / 3_600_000 : Infinity);
 const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString() : "Never");
