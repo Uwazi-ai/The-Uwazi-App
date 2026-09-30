@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LoadingScreen } from "@/components/LoadingScreen";
 
@@ -165,6 +166,7 @@ export function MyCityDashboard() {
       <div><p className="eyebrow mb-2">{city}</p><h1 className="font-heading text-[30px] leading-tight text-foreground">Where your tax dollars go</h1></div>
       {(hasBudget || displayYears.length > 0) && <div className="flex flex-wrap items-center gap-2" aria-label="Budget year">
         {displayYears.map((year) => years.includes(year) ? <Button key={year} size="sm" variant={fy === year ? "default" : "outline"} onClick={() => setFy(year)} aria-pressed={fy === year} className="rounded-full">{year}</Button> : <span key={year} className="group relative"><Button size="sm" variant="outline" disabled className="rounded-full">{year}</Button><span className="block max-w-40 text-xs text-muted-foreground sm:absolute sm:right-0 sm:top-full sm:z-10 sm:hidden sm:w-60 sm:max-w-none sm:rounded-md sm:bg-popover sm:p-2 sm:shadow-md">Last year's numbers are in review. They will show here once a person approves them.</span></span>)}
+        {years.length > 2 && <Select value={fy ?? undefined} onValueChange={setFy}><SelectTrigger aria-label="More budget years" className="h-9 w-32 rounded-full"><SelectValue placeholder="More years" /></SelectTrigger><SelectContent>{years.map((year) => <SelectItem key={year} value={year}>{year}</SelectItem>)}</SelectContent></Select>}
       </div>}
     </header>
     {countyHasBudget && <div role="tablist" aria-label="Budget area" className="inline-flex gap-1 rounded-full border border-border bg-card p-1">{(["city", "county"] as const).map((k) => <Button key={k} role="tab" aria-selected={scope === k} size="sm" variant={scope === k ? "default" : "ghost"} onClick={() => setScope(k)} className="rounded-full">{k === "city" ? "Your city" : "Your county"}</Button>)}</div>}

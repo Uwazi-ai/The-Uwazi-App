@@ -616,7 +616,7 @@ body {
 .city-tone-bg { background-color: hsl(var(--city-tone)); }
 .city-tone-tint { background-color: hsl(var(--city-tone) / 0.10); }
 .city-tone-border { border-color: hsl(var(--city-tone)); }
-.city-tile { animation: city-rise 480ms ease-out both; animation-delay: calc(var(--tile-order, 0) * 60ms); }
+.city-tile { animation: city-rise 480ms ease-out backwards; animation-delay: calc(var(--tile-order, 0) * 60ms); }
 .city-tile:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .city-bar-segment { transform: scaleX(0); transform-origin: left center; animation: city-grow 900ms ease-out forwards; animation-delay: 180ms; }
 .city-pulse { animation: city-soft-pulse 2.2s ease-in-out infinite; }
