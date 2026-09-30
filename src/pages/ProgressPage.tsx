@@ -197,7 +197,7 @@ export default function ProgressPage() {
           aria-pressed={personal ? flipped : undefined} aria-label={personal ? "Flip to see your top issues" : undefined}>
           <div className="prog-flip-inner h-full rounded-[18px]">
             <div className="rounded-[18px] p-4 sm:p-6 h-full flex flex-col gap-4"
-              style={{ background: personal ? `linear-gradient(145deg, ${personaColor(pp!.color, 0.14)}, hsl(var(--city-tone-1) / 0.10) 45%, hsl(var(--card)) 80%)` : "hsl(var(--card))" }}>
+              style={{ background: personal ? `linear-gradient(145deg, ${personaColor(pp!.color, 0.14)}, hsl(var(--city-tone-1) / 0.10) 45%, transparent 80%), hsl(var(--card))` : "hsl(var(--card))" }}>
               <div className="flex items-center justify-between gap-2">
                 <p className={`${eyebrow} text-primary`}>Your civic persona</p>
                 <span className="text-[11px] font-bold px-2 py-0.5 rounded-full text-background" style={{ background: frame }}>{journey.stage}</span>
@@ -334,7 +334,7 @@ export default function ProgressPage() {
         {/* 7. Badges */}
         <div className={`${tile} city-tone-4 city-tone-tint`} style={o()} data-testid="badges-tile">
           <p className="text-xs text-muted-foreground">Badges</p>
-          <div className="flex gap-1.5 my-3">{chips.slice(0, 4).map((c) => <span key={c.key}>{c.node}</span>)}</div>
+          <div className="flex flex-wrap gap-1 my-3 [&_svg]:h-8 [&_svg]:w-8 [&>span>span]:h-8 [&>span>span]:w-8">{chips.slice(0, 4).map((c) => <span key={c.key}>{c.node}</span>)}</div>
           <p className="text-xs text-foreground">{earnedCount} earned.{locked[0] ? ` Next: ${locked[0].name}.` : ""}</p>
         </div>
 
