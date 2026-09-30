@@ -770,7 +770,7 @@ export default function AskUwaziPage() {
                         ? <>Welcome back. You lead with {askJourney.lead_name}. Ask what changed on that in your city this week.</>
                         : <>Welcome back. Your Compass says {askJourney.label}. Ask what changed in your city this week.</>}
                     </p>
-                    <WhyAmISeeing rule="This greeting uses your identity from the Civic Compass. It names the issue you scored highest on." onChanged={reloadAskJourney} />
+                    <WhyAmISeeing rule={askJourney.lead_name ? "This greeting uses your identity from the Civic Compass. It names the issue you scored highest on." : "Your top two issues scored almost the same in the Civic Compass. So we call you Balanced across issues."} onChanged={reloadAskJourney} />
                   </div>
                 ) : askJourney ? (
                   <p className="text-sm text-foreground mt-2" data-testid="ask-greeting-generic">Welcome. Ask anything about your city.</p>
