@@ -9,6 +9,8 @@ interface AskUwaziContext {
   lessonsCompleted: number | null;
   hasVotingPlan: boolean;
   savedBills: string[];
+  /** True when the ballot pipeline has contests for this person's state. */
+  ballotCovered: boolean;
   loading: boolean;
 }
 
@@ -50,22 +52,30 @@ export function useAskUwaziContext() {
   const { user } = useAuth();
   const [ctx, setCtx] = useState<AskUwaziContext>({
     zipCode: null, state: null, lessonsCompleted: null,
-    hasVotingPlan: false, savedBills: [], loading: true,
+    hasVotingPlan: false, savedBills: [], ballotCovered: false, loading: true,
   });
 
   useEffect(() => {
     if (!user) { setCtx(prev => ({ ...prev, loading: false })); return; }
 
     Promise.all([
-      supabase.from("profiles").select("zip_code, location").eq("user_id", user.id).maybeSingle(),
+      supabase.from("profiles").select("zip_code, location, state_code").eq("user_id", user.id).maybeSingle(),
       supabase.from("civic_scores").select("lessons_completed").eq("user_id", user.id).maybeSingle(),
       supabase.from("voting_plans").select("id").eq("user_id", user.id).limit(1),
       supabase.from("saved_legislation").select("bill_title").eq("user_id", user.id).limit(10),
-    ]).then(([profileRes, scoreRes, planRes, billsRes]) => {
+    ]).then(async ([profileRes, scoreRes, planRes, billsRes]) => {
       const zip = profileRes.data?.zip_code ?? null;
+      const st = (profileRes.data as any)?.state_code || (zip ? getStateFromZip(zip) : null);
+      let ballotCovered = false;
+      if (st) {
+        const { count } = await supabase.from("ballot_contests").select("id", { count: "exact", head: true })
+          .eq("state", st).gte("election_date", new Date().toISOString().slice(0, 10));
+        ballotCovered = (count ?? 0) > 0;
+      }
       setCtx({
         zipCode: zip,
-        state: profileRes.data?.location || (zip ? getStateFromZip(zip) : null),
+        ballotCovered,
+        state: profileRes.data?.location || st,
         lessonsCompleted: scoreRes.data?.lessons_completed ?? null,
         hasVotingPlan: (planRes.data?.length ?? 0) > 0,
         savedBills: (billsRes.data || []).map((b: any) => b.bill_title).filter(Boolean),
@@ -79,6 +89,15 @@ export function useAskUwaziContext() {
 
 export function getSuggestedPrompts(ctx: AskUwaziContext): string[] {
   if (ctx.loading) return [];
+
+  if (ctx.zipCode && !ctx.ballotCovered) {
+    return [
+      "How do I vote in my state?",
+      "Who represents me?",
+      "Explain a bill in plain language",
+      "When is the next election?",
+    ];
+  }
 
   if (ctx.hasVotingPlan && ctx.zipCode) {
     return [
