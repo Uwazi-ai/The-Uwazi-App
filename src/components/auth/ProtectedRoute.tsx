@@ -44,9 +44,8 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <>
-      <AnimatePresence>{isLoading && <LoadingScreen />}</AnimatePresence>
-      {!isLoading && <>{children}</>}
-    </>
+    <AnimatePresence mode="wait">
+      {isLoading ? <LoadingScreen key="checking-access" /> : <div key="protected-content" className="contents">{children}</div>}
+    </AnimatePresence>
   );
 }
