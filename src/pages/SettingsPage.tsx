@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Link, useNavigate } from "react-router-dom";
+import { RefreshCw } from "lucide-react";
 import uwaziPlusLogo from "@/assets/uwazi-plus-logo.png";
 import { Crown, Sparkles, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
