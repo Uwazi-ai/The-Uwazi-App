@@ -13,6 +13,7 @@ import { usePersonas, personaColor, shortName } from "@/lib/personas";
 import { PersonaBadge, PERSONA_PATHS } from "@/components/compass/PersonaBadge";
 import { DIM_ORDER, dimMeta, stageColor, topSlugs } from "@/lib/compassDims";
 import { useAuth } from "@/contexts/AuthContext";
+import { TiltCard } from "@/components/compass/TiltCard";
 import { Award } from "lucide-react";
 
 const db = supabase as any;
@@ -195,6 +196,7 @@ export default function ProgressPage() {
           style={{ ...o(), padding: 2, background: frame }} data-testid="identity-tile"
           onClick={personal ? () => setFlipped((f) => !f) : undefined} role={personal ? "button" : undefined}
           aria-pressed={personal ? flipped : undefined} aria-label={personal ? "Flip to see your top issues" : undefined}>
+          <TiltCard enabled={personal} className="h-full rounded-[18px]">
           <div className="prog-flip-inner h-full rounded-[18px]">
             <div className="rounded-[18px] p-4 sm:p-6 h-full flex flex-col gap-4"
               style={{ background: personal ? `linear-gradient(145deg, ${personaColor(pp!.color, 0.14)}, hsl(var(--city-tone-1) / 0.10) 45%, transparent 80%), hsl(var(--card))` : "hsl(var(--card))" }}>
@@ -245,6 +247,7 @@ export default function ProgressPage() {
               </div>
             )}
           </div>
+          </TiltCard>
         </div>
 
         {/* 2. Points */}
