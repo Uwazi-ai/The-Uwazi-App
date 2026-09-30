@@ -1,3 +1,4 @@
+import { PlatformHealthCard } from "@/components/admin/PlatformHealthCard";
 import { UnverifiedActionsPanel } from "@/components/admin/UnverifiedActionsPanel";
 import { useAdminStats, useRecentSignups, useTopScores, useZipBreakdown, useSignupChart } from "@/hooks/useAdminData";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -63,6 +64,7 @@ export default function AdminOverviewPage() {
 
       {/* Top Stats */}
       <JourneyResearchPanels />
+      <PlatformHealthCard />
       <UnverifiedActionsPanel />
       <CompassFactsAdmin />
 

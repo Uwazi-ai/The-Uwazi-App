@@ -23,3 +23,4 @@
 
 ## Hardening pass 2
 - [x] Why am I seeing this, Your data page, identity fit, unverified actions, /fair page
+- [x] Hardening pass 3: nightly backups, RESTORE.md, health check with alerts, Platform health card
