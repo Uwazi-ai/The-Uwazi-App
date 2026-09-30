@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { usePersonas, shortName, PERSONA_TOPIC } from "@/lib/personas";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, BookmarkPlus, BookmarkCheck, Share2, RotateCcw, MapPin,
@@ -348,6 +349,8 @@ export default function AskUwaziPage() {
   } = useAskUwaziSession();
   const suggestedPrompts = getSuggestedPrompts(ctx);
   const { journey: askJourney, reload: reloadAskJourney } = useMyJourney();
+  const { bySlug: personaBySlug } = usePersonas();
+  const askPersona = askJourney?.personalization ? personaBySlug(askJourney.persona) : null;
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -763,14 +766,16 @@ export default function AskUwaziPage() {
                   ASK UWAZI
                 </h1>
                 <p className="text-sm text-muted-foreground mb-1">Your Political Co-Pilot</p>
-                {askJourney?.personalization && (askJourney.lead_name || askJourney.label) ? (
+                {askJourney?.personalization && (askPersona || askJourney.lead_name || askJourney.label) ? (
                   <div className="mt-2 space-y-1">
                     <p className="text-sm text-foreground" data-testid="ask-greeting">
-                      {askJourney.lead_name
+                      {askPersona
+                        ? <>Welcome back, {shortName(askPersona)}. Here is what changed on {PERSONA_TOPIC[askPersona.slug] ?? "your issues"} in your city this week. Ask me about it.</>
+                        : askJourney.lead_name
                         ? <>Welcome back. You lead with {askJourney.lead_name}. Ask what changed on that in your city this week.</>
                         : <>Welcome back. Your Compass says {askJourney.label}. Ask what changed in your city this week.</>}
                     </p>
-                    <WhyAmISeeing rule={askJourney.lead_name ? "This greeting uses your identity from the Civic Compass. It names the issue you scored highest on." : "Your top two issues scored almost the same in the Civic Compass. So we call you Balanced across issues."} onChanged={reloadAskJourney} />
+                    <WhyAmISeeing rule={askPersona ? `This greeting uses your civic persona from the Civic Compass. ${askPersona.name} comes from the issue you scored highest on, or from a close tie between your top two.` : askJourney.lead_name ? "This greeting uses your identity from the Civic Compass. It names the issue you scored highest on." : "Your top two issues scored almost the same in the Civic Compass. So we call you Balanced across issues."} onChanged={reloadAskJourney} />
                   </div>
                 ) : askJourney ? (
                   <p className="text-sm text-foreground mt-2" data-testid="ask-greeting-generic">Welcome. Ask anything about your city.</p>

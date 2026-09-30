@@ -21,6 +21,11 @@ const DIM_KEYWORDS: Record<string, RegExp> = {
   "civic-participation": /\b(vote|voting|register|ballot|election|poll|polling)\b/i,
 };
 
+const PERSONA_TOPIC: Record<string, string> = {
+  watchdog: "accountability", builder: "jobs", guardian: "safety", neighbor: "housing", mentor: "schools",
+  caretaker: "health", connector: "getting around", organizer: "voting and taking part", steward: "the issues you care about",
+};
+
 const URGENT = /\b(today|tonight|right now|urgent|emergency|deadline|polls close|where do i vote|polling place|last day|help me now)\b/i;
 
 export function serviceClient(): SupabaseClient {
@@ -125,18 +130,28 @@ export async function buildJourneyTurn(
       : step.type === "office_action" ? `reach out to ${step.title}` : "explore My City in the app";
     const lowNames = Object.entries(scores).filter(([, v]) => Number(v) < 0.5).map(([k]) => k).join(", ") || "none";
     const firstTurn = historyLength === 0;
-    const greeting = firstTurn && labels.lead_name ? `Welcome back. You lead with ${labels.lead_name}.` : null;
+    let personaRow: any = null;
+    if (labels.persona) {
+      const { data } = await svc.from("compass_personas").select("slug, name, one_line").eq("slug", labels.persona).maybeSingle();
+      personaRow = data;
+    }
+    const personaShort = personaRow ? String(personaRow.name).replace(/^The\s+/i, "") : null;
+    const topic = personaRow ? PERSONA_TOPIC[personaRow.slug] ?? "your issues" : null;
+    const greeting = !firstTurn ? null
+      : personaShort ? `Welcome back, ${personaShort}.`
+      : labels.lead_name ? `Welcome back. You lead with ${labels.lead_name}.` : null;
 
     const contextText = [
       "<turn_context>",
       "This person chose to personalize UWAZI. Use this quietly. Never show scores.",
       `Identity: ${labels.primary ?? "unknown"}. Top issue: ${labels.lead_name ?? "unknown"}.`,
+      personaRow ? `Civic persona: ${personaRow.name}. It says how they show up for their city, not what they believe. ${personaRow.one_line}` : "No civic persona yet.",
       `Stage: ${journey?.stage ?? "Getting Started"} with ${journey?.total_points ?? 0} points.`,
       `Next step: ${stepText}.`,
       `Issues they scored low on: ${lowNames}.`,
       challengeText,
       greeting
-        ? `This is the first message of a new chat. Start your reply with exactly: "${greeting}" Then, if it fits, add one short sentence on what changed on ${labels.lead_name} in their city this week, only if you can verify it. Then answer the question.`
+        ? `This is the first message of a new chat. Start your reply with exactly: "${greeting}" Then, if it fits, add one short sentence that starts "Here is what changed on ${topic ?? labels.lead_name} in your city this week." only if you can verify a real change. Then answer the question.`
         : "Do not greet them again.",
       "If it fits the question, end with one short line that suggests the next step. Skip it if it does not fit.",
       "Do not suggest a lesson yourself. The app adds lesson offers.",
