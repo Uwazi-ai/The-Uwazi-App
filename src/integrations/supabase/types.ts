@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      address_geocode_log: {
+        Row: {
+          created_at: string
+          geocoder: string
+          id: string
+          matched: boolean
+          quality: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          geocoder: string
+          id?: string
+          matched?: boolean
+          quality?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          geocoder?: string
+          id?: string
+          matched?: boolean
+          quality?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       address_update_log: {
         Row: {
           created_at: string | null

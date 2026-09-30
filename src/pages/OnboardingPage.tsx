@@ -135,6 +135,7 @@ function AddressScreen({ onDone, onSkip, saving }: { onDone: () => void; onSkip:
   const [stateCode, setStateCode] = useState("");
   const [zip, setZip] = useState("");
   const [busy, setBusy] = useState(false);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     if (/^\d{5}$/.test(zip)) setStateCode((s) => s || getStateFromZip(zip));
@@ -156,7 +157,12 @@ function AddressScreen({ onDone, onSkip, saving }: { onDone: () => void; onSkip:
         full_address: zipOnly ? null : full,
         street_address: zipOnly ? null : street.trim(),
       }).eq("user_id", user.id);
-      await supabase.functions.invoke("resolve-address", { body: { address: full } });
+      const { data } = await supabase.functions.invoke("resolve-address", { body: { address: full } });
+      if (!zipOnly && data && data.address_matched === false) {
+        setNotFound(true);
+        setBusy(false);
+        return;
+      }
       onDone();
     } catch {
       toast.error("We could not check that address. You can add it later in settings.");
@@ -219,6 +225,18 @@ function AddressScreen({ onDone, onSkip, saving }: { onDone: () => void; onSkip:
           We turn your address into district codes and keep only the codes. We do not keep the address itself for this.
         </p>
       </div>
+
+      {notFound && !zipOnly && (
+        <div className="rounded-[20px] border border-destructive/40 bg-destructive/10 p-4 space-y-3">
+          <p className="text-sm text-foreground">
+            We could not find that address. Check the spelling, or use your ZIP code instead.
+          </p>
+          <Button variant="outline" className="h-10 w-full"
+            onClick={() => { setZipOnly(true); setNotFound(false); }}>
+            Use my ZIP code
+          </Button>
+        </div>
+      )}
 
       <button type="button" onClick={() => setZipOnly((v) => !v)} className="text-xs text-primary hover:underline">
         {zipOnly ? "Have a street address? Use that instead." : "Only have a ZIP code? Use that instead."}

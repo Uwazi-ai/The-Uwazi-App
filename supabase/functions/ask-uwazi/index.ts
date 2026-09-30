@@ -365,7 +365,11 @@ async function runLocalTool(
       .maybeSingle();
 
     if (error) return JSON.stringify({ error: error.message });
-    if (!data || !data.full_address) {
+    // We keep district codes, not the address itself, so codes count as complete.
+    const { data: udp } = await supabase
+      .from("user_districts").select("resolved, precision").eq("user_id", userId).maybeSingle();
+    const codesReady = (udp as any)?.precision === "address" && !!(udp as any)?.resolved;
+    if (!data || (!data.full_address && !codesReady)) {
       const pm0 = String(data?.precinct_id ?? "").match(/(\d+)\D+(\d+)/);
       let ppb: unknown = null;
       if (pm0) { try { ppb = JSON.parse(kcebLookup({ ward: Number(pm0[1]), precinct: Number(pm0[2]) })); } catch { /* ignore */ } }
@@ -388,6 +392,7 @@ async function runLocalTool(
     }
     return JSON.stringify({
       address_complete: true, ...data, state: data.state_code ?? data.location,
+      district_codes: (udp as any)?.resolved ?? null,
       polling_place_and_ballot,
       ...(polling_place_and_ballot ? {} : data.state_code === "MO"
         ? { note: "No ward/precinct saved. Kansas City voters can add it in Settings or My Ballot for their exact polling place and ballot." }

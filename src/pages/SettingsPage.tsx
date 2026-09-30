@@ -268,7 +268,13 @@ export default function SettingsPage() {
         },
         body: JSON.stringify({ address: fullAddr }),
       })
-        .then(() => queryClient.invalidateQueries({ queryKey: ["my-ballot-profile"] }))
+        .then(async (res) => {
+          const out = await res.json().catch(() => null);
+          if (out && out.address_matched === false) {
+            toast.error("We could not find that address. Check the spelling, or use your ZIP code instead.");
+          }
+          queryClient.invalidateQueries({ queryKey: ["my-ballot-profile"] });
+        })
         .catch((err) => console.error("resolve-address failed:", err));
     } catch (err) {
       console.error("resolve-address invoke failed:", err);

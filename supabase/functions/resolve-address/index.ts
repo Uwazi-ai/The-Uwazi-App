@@ -80,9 +80,69 @@ Deno.serve(async (req) => {
     let zip: string | null = fallbackZip;
     let state: string | null = existingProfile?.state_code ?? null;
     let county: string | null = null;
-    let geocodingStatus: string | null = mapsKey ? null : "MAPS_API_KEY_MISSING";
+    let geocodingStatus: string | null = null;
+    let geocoder = "none";
+    let matchQuality: string | null = null;
+    let place: string | null = null;
+    const resolved: Record<string, string> = {};
+    let censusMatched = false;
 
-    if (mapsKey) {
+    // Primary geocoder. The US Census geocoder is free and needs no key. One call
+    // gives the map point and the geography codes we need.
+    try {
+      const cUrl = `https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=${encodeURIComponent(
+        address,
+      )}&benchmark=Public_AR_Current&vintage=Current_Current&layers=all&format=json`;
+      const cRes = await fetch(cUrl, { signal: AbortSignal.timeout(12000) });
+      if (cRes.ok) {
+        const cData = await cRes.json();
+        const matches = cData?.result?.addressMatches ?? [];
+        const m = matches[0];
+        if (m) {
+          censusMatched = true;
+          geocoder = "census";
+          matchQuality = matches.length === 1 ? "one exact match" : `best of ${matches.length} matches`;
+          geocodingStatus = "CENSUS_MATCH";
+          lat = m.coordinates?.y ?? null;
+          lng = m.coordinates?.x ?? null;
+          const g: Record<string, any[]> = m.geographies || {};
+          const pick = (re: RegExp) => {
+            const k = Object.keys(g).find((key) => re.test(key));
+            return k ? g[k]?.[0] ?? null : null;
+          };
+          const countyRow = pick(/^Counties$/);
+          const placeRow = pick(/^Incorporated Places$/);
+          county = countyRow?.BASENAME ?? null;
+          place = placeRow?.BASENAME ?? null;
+          const cd = pick(/Congressional Districts/)?.BASENAME;
+          const up = pick(/State Legislative Districts - Upper/)?.BASENAME;
+          const lo = pick(/State Legislative Districts - Lower/)?.BASENAME;
+          const sdu = pick(/Unified School Districts/);
+          const vtd = pick(/Voting Districts/);
+          state = m.addressComponents?.state ?? state;
+          zip = m.addressComponents?.zip ?? zip;
+          if (placeRow?.GEOID) resolved.place = String(placeRow.GEOID);
+          if (countyRow?.GEOID) resolved.county = String(countyRow.GEOID);
+          if (cd) resolved.congressional = String(cd);
+          if (up) resolved.state_senate = String(up);
+          if (lo) resolved.state_house = String(lo);
+          if (sdu?.GEOID) resolved.school_district = String(sdu.GEOID);
+          if (vtd?.BASENAME || vtd?.NAME) resolved.voting_district = String(vtd.NAME ?? vtd.BASENAME);
+          if (vtd?.GEOID) resolved.voting_district_geoid = String(vtd.GEOID);
+        } else {
+          geocodingStatus = "CENSUS_NO_MATCH";
+        }
+      } else {
+        geocodingStatus = `CENSUS_HTTP_${cRes.status}`;
+      }
+    } catch (e) {
+      geocodingStatus = "CENSUS_REQUEST_FAILED";
+      console.warn("Census geocoder failed:", e);
+    }
+
+    // Backup geocoder. Only runs when the Census geocoder found nothing and a key is set.
+    // With no key we skip it quietly and never tell the user about a key.
+    if (!censusMatched && mapsKey) {
       try {
         const geoUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
           address,
@@ -95,6 +155,8 @@ Deno.serve(async (req) => {
           const top = geoData.results[0];
           lat = top.geometry?.location?.lat ?? null;
           lng = top.geometry?.location?.lng ?? null;
+          geocoder = "backup";
+          matchQuality = top.geometry?.location_type ?? "match";
           const comps: Array<{ types: string[]; long_name: string; short_name: string }> =
             top.address_components || [];
           const findComp = (t: string) => comps.find((c) => c.types.includes(t));
@@ -102,13 +164,13 @@ Deno.serve(async (req) => {
           state = findComp("administrative_area_level_1")?.short_name ?? state;
           county = findComp("administrative_area_level_2")?.long_name ?? null;
         } else {
-          console.warn("Geocoding unavailable:", geocodingStatus, geoData.error_message ?? "No details");
+          console.warn("Backup geocoder found nothing:", geocodingStatus);
         }
       } catch (e) {
-        geocodingStatus = "GEOCODING_REQUEST_FAILED";
-        console.warn("Geocoding request failed:", e);
+        console.warn("Backup geocoder request failed:", e);
       }
     }
+    const addressMatched = geocoder === "census" || geocoder === "backup";
 
     // Free ZIP center fallback. Used when we have no map point yet, so ZIP only users still get their city and county.
     if (lat == null && lng == null && zip) {
@@ -130,13 +192,26 @@ Deno.serve(async (req) => {
 
 
     if (!zip) {
+      await admin.from("address_geocode_log").insert({
+        user_id: userId, geocoder: "none", quality: geocodingStatus, matched: false,
+      });
       return json({
         error: "ADDRESS_NOT_FOUND",
-        message: "Could not geocode address",
+        address_matched: false,
+        message: "We could not find that address. Check the spelling, or use your ZIP code instead.",
         fallback: true,
+        geocoder,
+        match_quality: matchQuality,
         geocoding_status: geocodingStatus,
       });
     }
+
+    await admin.from("address_geocode_log").insert({
+      user_id: userId,
+      geocoder: addressMatched ? geocoder : "none",
+      quality: matchQuality ?? geocodingStatus,
+      matched: addressMatched,
+    });
 
     // STEP B — Districts (best effort)
     let cityCouncil: string | null = null;
@@ -184,59 +259,14 @@ Deno.serve(async (req) => {
       console.error("Civic API failed:", e);
     }
 
-    // STEP B2 — US Census geocoder (free, no key): coordinates, county, districts
-    let place: string | null = null;
-    const resolved: Record<string, string> = {};
-    let censusMatched = false;
-    try {
-      const cUrl = `https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=${encodeURIComponent(
-        address,
-      )}&benchmark=Public_AR_Current&vintage=Current_Current&layers=all&format=json`;
-      const cRes = await fetch(cUrl);
-      if (cRes.ok) {
-        const cData = await cRes.json();
-        const m = cData?.result?.addressMatches?.[0];
-        if (m) {
-          censusMatched = true;
-          // The census point is the exact address, so it wins over any ZIP center we guessed earlier.
-          lat = m.coordinates?.y ?? lat ?? null;
-          lng = m.coordinates?.x ?? lng ?? null;
-          const g: Record<string, any[]> = m.geographies || {};
-          const pick = (re: RegExp) => {
-            const k = Object.keys(g).find((key) => re.test(key));
-            return k ? g[k]?.[0] ?? null : null;
-          };
-          const countyRow = pick(/^Counties$/);
-          const placeRow = pick(/^Incorporated Places$/);
-          county = county ?? countyRow?.BASENAME ?? null;
-          place = placeRow?.BASENAME ?? null;
-          const cd = pick(/Congressional Districts/)?.BASENAME;
-          const up = pick(/State Legislative Districts - Upper/)?.BASENAME;
-          const lo = pick(/State Legislative Districts - Lower/)?.BASENAME;
-          const sdu = pick(/Unified School Districts/);
-          const vtd = pick(/Voting Districts/);
-          const st = state ?? m.addressComponents?.state ?? null;
-          state = st;
-          if (placeRow?.GEOID) resolved.place = String(placeRow.GEOID);
-          if (countyRow?.GEOID) resolved.county = String(countyRow.GEOID);
-          if (cd) resolved.congressional = String(cd);
-          if (up) resolved.state_senate = String(up);
-          if (lo) resolved.state_house = String(lo);
-          if (sdu?.GEOID) resolved.school_district = String(sdu.GEOID);
-          if (vtd?.BASENAME || vtd?.NAME) resolved.voting_district = String(vtd.NAME ?? vtd.BASENAME);
-          if (vtd?.GEOID) resolved.voting_district_geoid = String(vtd.GEOID);
-          if (!usCongress && cd) usCongress = `${st ?? ""} Congressional District ${cd}`.trim();
-          if (!moSenate && up) moSenate = `State Senate District ${up}`;
-          if (!moHouse && lo) moHouse = `State House District ${lo}`;
-        }
-      }
-    } catch (e) {
-      console.warn("Census geocoder failed:", e);
-    }
+    // Plain labels from the codes we already resolved.
+    if (!usCongress && resolved.congressional) usCongress = `${state ?? ""} Congressional District ${resolved.congressional}`.trim();
+    if (!moSenate && resolved.state_senate) moSenate = `State Senate District ${resolved.state_senate}`;
+    if (!moHouse && resolved.state_house) moHouse = `State House District ${resolved.state_house}`;
     if (county) county = county.replace(/\s+County$/i, "");
 
     // STEP B3 — district boundaries. Street address only. We store codes, never the address or the map point.
-    const precision: "address" | "zip" = censusMatched ? "address" : "zip";
+    const precision: "address" | "zip" = addressMatched ? "address" : "zip";
     if (precision === "zip" && lat != null && lng != null) {
       // ZIP only. Take the city and county codes, then stop. No district level match.
       try {
@@ -342,6 +372,9 @@ Deno.serve(async (req) => {
       county_name: county,
       election_authority_key: authorityKey,
       geocoding_status: geocodingStatus,
+      geocoder,
+      match_quality: matchQuality,
+      address_matched: addressMatched,
       city_council_district: cityCouncil,
       mo_house_district: moHouse,
       mo_senate_district: moSenate,
