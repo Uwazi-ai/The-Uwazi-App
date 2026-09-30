@@ -33,6 +33,7 @@ export default function UpgradePage() {
   const [tier, setTier] = useState<Tier>(initial && initial in PRICES && initial !== "student" ? initial : "monthly");
   const [checkout, setCheckout] = useState(false);
   useEffect(() => { if (!loading && isPremium) navigate("/app/settings/subscription", { replace: true }); }, [isPremium, loading, navigate]);
+  useEffect(() => { if (window.location.hash === "#student") setTimeout(() => document.getElementById("student")?.scrollIntoView(), 300); }, []);
   const selected = PRICES[tier];
   const returnUrl = `${window.location.origin}/app/checkout/return?session_id={CHECKOUT_SESSION_ID}`;
   return <div className="city-bento min-h-screen bg-background"><PaymentTestModeBanner /><div className="mx-auto max-w-2xl space-y-6 px-4 py-6 pb-24 md:px-8">
