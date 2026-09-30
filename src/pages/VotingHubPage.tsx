@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bell, BellRing, Check, ExternalLink, MapPin, MessageCircle, ShieldCheck } from "lucide-react";
+import { Bell, BellRing, Check, ExternalLink, MapPin, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -91,6 +91,9 @@ export default function VotingHubPage() {
   const contests = useMemo(() => filterContestsForParty(allContests, party), [allContests, party]);
   const { steps, save } = useVotingPlan(election?.id ?? null);
 
+  const daysLeft = election?.election_date ? daysUntil(election.election_date) : null;
+  const shownDays = useCountUp(Math.max(0, daysLeft ?? 0));
+
   const [openContest, setOpenContest] = useState<BallotContest | null>(null);
   const [officialsOpen, setOfficialsOpen] = useState(false);
 
@@ -151,7 +154,7 @@ export default function VotingHubPage() {
 
   const pollHours = authority?.poll_hours || (state === "KS" ? "Polls open 7 am to 7 pm." : "Polls open 6 am to 7 pm.");
   const electionDate = election?.election_date ?? null;
-  const days = electionDate ? daysUntil(electionDate) : null;
+  const days = daysLeft;
   const dateLine = formatElectionDate(electionDate, { weekday: "long", month: "long", day: "numeric" });
 
   const planRows: Array<{ key: keyof PlanSteps; label: string; note: string; auto: boolean }> = [
@@ -184,7 +187,7 @@ export default function VotingHubPage() {
               {days !== null && days >= 0 ? (
                 <>
                   <p className="mt-1 flex flex-wrap items-baseline gap-2 font-heading text-primary tabular-nums">
-                    <span className="text-[72px] leading-none">{useCountUpSafe(days)}</span>
+                    <span className="text-[72px] leading-none">{shownDays}</span>
                     <span className="text-2xl">{days === 1 ? "day" : "days"}</span>
                   </p>
                   <p className="mt-3 text-sm text-foreground">{dateLine}. {pollHours}</p>
@@ -388,11 +391,6 @@ export default function VotingHubPage() {
       </Sheet>
     </div>
   );
-}
-
-/** Count up that stays stable when the election has passed. */
-function useCountUpSafe(days: number) {
-  return useCountUp(Math.max(0, days));
 }
 
 function PlanRing({ done }: { done: number }) {
