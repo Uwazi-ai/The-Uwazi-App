@@ -12,9 +12,10 @@ import { BadgeRow } from "@/components/games/BadgeRow";
 import { Trophy, Award } from "lucide-react";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { WhyAmISeeing } from "@/components/journey/WhyAmISeeing";
 import { usePersonas, personaColor, shortName } from "@/lib/personas";
+import { PersonaBadge, PERSONA_PATHS } from "@/components/compass/PersonaBadge";
 
 const db = supabase as any;
 
@@ -67,6 +68,9 @@ export default function ProgressPage() {
   const ps = bySlug(journey?.streak);
   const { challenge } = useMyChallenge();
   const badges = useMyBadges();
+  const [allBadges, setAllBadges] = useState<{ id: string; name: string; description: string | null; art_key: string | null }[]>([]);
+  useEffect(() => { db.from("badges").select("id, name, description, art_key").order("name").then(({ data }: any) => setAllBadges(data ?? [])); }, []);
+  const locked = allBadges.filter((b) => !badges.some((e) => e.id === b.id));
   const navigate = useNavigate();
   const [note, setNote] = useState("");
 
@@ -126,9 +130,12 @@ export default function ProgressPage() {
             {journey.persona_history!.map((h, i) => {
               const hp = bySlug(h.persona);
               return (
-                <div key={i} className="shrink-0 rounded-xl border border-border px-3 py-2 min-w-[120px]">
+                <div key={i} className="shrink-0 rounded-xl border border-border px-3 py-2 min-w-[140px] flex items-center gap-2">
+                  <PersonaBadge slug={h.persona} size="chip" label="" className="shrink-0" />
+                  <div>
                   <p className="font-heading text-base leading-tight" style={{ color: personaColor(hp?.color) }}>{hp?.name ?? h.persona}</p>
                   <p className="text-xs text-muted-foreground">{new Date(h.at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}{h.source === "self_chosen" ? ". You picked it." : ""}</p>
+                  </div>
                 </div>
               );
             })}
@@ -162,12 +169,33 @@ export default function ProgressPage() {
         </div>
       )}
 
-      {badges.length > 0 && (
-        <div className="rounded-2xl p-5 bg-card border border-border space-y-3">
-          <div className="flex items-center gap-2"><Award className="h-4 w-4 text-primary" /><h2 className="font-semibold text-foreground">Your badges</h2></div>
+      <div className="rounded-2xl p-5 bg-card border border-border space-y-3" data-testid="badges-tile">
+        <div className="flex items-center gap-2"><Award className="h-4 w-4 text-primary" /><h2 className="font-semibold text-foreground">Your badges</h2></div>
+        <div className="flex flex-wrap items-center gap-2">
+          {journey.personalization && pp && (
+            <span className="inline-flex items-center gap-2 rounded-full border border-border pr-3" data-testid="badge-current-persona">
+              <PersonaBadge slug={pp.slug} size="chip" label={`${pp.name} badge`} />
+              <span className="text-xs font-semibold text-foreground">{pp.name}</span>
+            </span>
+          )}
           <BadgeRow badges={badges} />
         </div>
-      )}
+        {locked.length > 0 && (
+          <div className="space-y-2" data-testid="badges-locked">
+            <p className="text-xs text-muted-foreground">Still to earn</p>
+            <div className="flex flex-wrap gap-2">
+              {locked.map((b) => PERSONA_PATHS[b.art_key ?? ""] ? (
+                <span key={b.id} title={b.description ?? b.name} className="inline-flex items-center gap-2 rounded-full border border-dashed border-muted-foreground/50 pr-3">
+                  <PersonaBadge slug={b.art_key!} size="chip" locked label={`${b.name} badge, not earned yet`} />
+                  <span className="text-xs text-muted-foreground">{b.name}</span>
+                </span>
+              ) : (
+                <span key={b.id} title={b.description ?? b.name} className="rounded-full border border-dashed border-muted-foreground/50 px-3 py-1.5 text-xs text-muted-foreground">{b.name}</span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       {journey.personalization && (
         <div className="rounded-2xl p-5 bg-card border border-border space-y-2">
