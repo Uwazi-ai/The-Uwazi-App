@@ -28,6 +28,7 @@ export function IdentityCard({ label, persona, streak, scores, stage, fallbackTi
   const { bySlug } = usePersonas();
   const pp = bySlug(persona);
   const ps = bySlug(streak);
+  const [back, setBack] = useState(false);
   const { user } = useAuth();
   const cardRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -113,6 +114,16 @@ export function IdentityCard({ label, persona, streak, scores, stage, fallbackTi
   return (
     <div className="space-y-3">
       <TiltCard ref={cardRef} data-testid="identity-card" className="rounded-3xl p-1" style={{ background: frame }}>
+        {back && pp ? (
+        <div className="rounded-[20px] p-5 space-y-4 min-h-[420px] flex flex-col justify-center text-center" style={{ background: bg }} data-testid="identity-card-back">
+          <p className="text-[11px] font-bold tracking-[0.2em] text-muted-foreground">YOUR TRADITION</p>
+          <PersonaBadge slug={pp.slug} size="chip" label={`${pp.name} badge`} className="mx-auto" />
+          <h3 className="font-heading text-2xl leading-tight" style={{ color: resolve(`hsl(var(--persona-${pp.color}))`) }}>{pp.name}</h3>
+          {pp.archetype_intro && <p className="text-base text-foreground" data-testid="card-archetype">{pp.archetype_intro}</p>}
+          <p className="text-sm text-muted-foreground">{pp.strength}</p>
+          <p className="text-sm text-muted-foreground">Watch for this. {pp.blind_spot}</p>
+        </div>
+        ) : (
         <div className="rounded-[20px] p-5 space-y-4" style={{ background: bg }}>
           <div className="flex items-center justify-between gap-3">
             <p className="text-[11px] font-bold tracking-[0.2em] text-muted-foreground">YOUR CIVIC PERSONA</p>
@@ -140,6 +151,7 @@ export function IdentityCard({ label, persona, streak, scores, stage, fallbackTi
           )}
           {since && <p className="text-xs text-center text-muted-foreground">Member since {since}</p>}
         </div>
+        )}
       </TiltCard>
       <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ""; }} />
       <div className="flex flex-wrap gap-2 justify-center">
@@ -147,6 +159,7 @@ export function IdentityCard({ label, persona, streak, scores, stage, fallbackTi
           <Camera className="h-4 w-4 mr-1" /> {photo ? "Change photo" : "Add a photo"}
         </Button>
         {photo && <Button size="sm" variant="ghost" disabled={busy} onClick={remove}><Trash2 className="h-4 w-4 mr-1" /> Remove photo</Button>}
+        {pp && <Button size="sm" variant="outline" onClick={() => setBack((b) => !b)} data-testid="flip-card"><RotateCw className="h-4 w-4 mr-1" /> {back ? "Show the front" : "Turn the card"}</Button>}
         <Button size="sm" disabled={busy} onClick={share}><Share2 className="h-4 w-4 mr-1" /> Share my card</Button>
       </div>
       <p className="text-xs text-center text-muted-foreground">Your photo is private. It only leaves the app if you share your card.</p>
