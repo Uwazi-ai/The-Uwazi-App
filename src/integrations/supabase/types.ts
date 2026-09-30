@@ -3123,6 +3123,7 @@ export type Database = {
           election_authority_key: string | null
           email_opt_in: boolean | null
           full_address: string | null
+          home_welcome_seen: boolean
           id: string
           is_admin: boolean | null
           is_suspended: boolean | null
@@ -3185,6 +3186,7 @@ export type Database = {
           election_authority_key?: string | null
           email_opt_in?: boolean | null
           full_address?: string | null
+          home_welcome_seen?: boolean
           id?: string
           is_admin?: boolean | null
           is_suspended?: boolean | null
@@ -3247,6 +3249,7 @@ export type Database = {
           election_authority_key?: string | null
           email_opt_in?: boolean | null
           full_address?: string | null
+          home_welcome_seen?: boolean
           id?: string
           is_admin?: boolean | null
           is_suspended?: boolean | null
@@ -4599,6 +4602,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      video_assets: {
+        Row: {
+          created_at: string
+          key: string
+          poster_url: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          poster_url: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          poster_url?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      videos: {
+        Row: {
+          active: boolean
+          created_at: string
+          dimension_slug: string | null
+          id: string
+          length_seconds: number
+          poster_url: string
+          sort_order: number
+          tag: string
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          dimension_slug?: string | null
+          id?: string
+          length_seconds: number
+          poster_url: string
+          sort_order?: number
+          tag: string
+          title: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          dimension_slug?: string | null
+          id?: string
+          length_seconds?: number
+          poster_url?: string
+          sort_order?: number
+          tag?: string
+          title?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
       }
       voting_plan: {
         Row: {

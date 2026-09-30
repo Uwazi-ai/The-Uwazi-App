@@ -1,0 +1,17 @@
+ALTER TABLE public.profiles ADD COLUMN home_welcome_seen boolean NOT NULL DEFAULT false;
+CREATE TABLE public.video_assets (key text PRIMARY KEY, url text NOT NULL, poster_url text NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(), CONSTRAINT video_assets_https CHECK (url ~* '^https://' AND poster_url ~* '^https://'));
+GRANT SELECT ON public.video_assets TO authenticated;
+GRANT ALL ON public.video_assets TO service_role;
+GRANT INSERT, UPDATE, DELETE ON public.video_assets TO authenticated;
+ALTER TABLE public.video_assets ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Members read welcome video" ON public.video_assets FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Super admins manage welcome video" ON public.video_assets FOR ALL TO authenticated USING (public.is_admin(auth.uid())) WITH CHECK (public.is_admin(auth.uid()));
+CREATE TRIGGER video_assets_updated_at BEFORE UPDATE ON public.video_assets FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TABLE public.videos (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), title text NOT NULL, tag text NOT NULL, length_seconds integer NOT NULL CHECK (length_seconds > 0), url text NOT NULL, poster_url text NOT NULL, dimension_slug text, sort_order integer NOT NULL DEFAULT 0, active boolean NOT NULL DEFAULT false, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(), CONSTRAINT videos_https CHECK (url ~* '^https://' AND poster_url ~* '^https://'));
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.videos TO authenticated;
+GRANT ALL ON public.videos TO service_role;
+ALTER TABLE public.videos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Members read active clips" ON public.videos FOR SELECT TO authenticated USING (active OR public.is_admin(auth.uid()));
+CREATE POLICY "Super admins manage clips" ON public.videos FOR ALL TO authenticated USING (public.is_admin(auth.uid())) WITH CHECK (public.is_admin(auth.uid()));
+CREATE INDEX videos_active_sort_idx ON public.videos (sort_order, created_at) WHERE active;
+CREATE TRIGGER videos_updated_at BEFORE UPDATE ON public.videos FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
