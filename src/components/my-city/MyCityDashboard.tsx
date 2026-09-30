@@ -34,6 +34,7 @@ const PLAIN_NAMES: Record<string, Record<string, string>> = {
     "Finance and Governance": "Running City Hall",
   },
 };
+const CITY_NAMES: Record<string, string> = { "2938000": "Kansas City, Missouri" };
 const plainName = (l: Line) => PLAIN_NAMES[l.geoid]?.[l.department_or_fund] ?? l.department_or_fund;
 const tone = (index: number) => `city-tone-${index % 5}`;
 const tile = "city-tile min-w-0 rounded-[20px] border border-border bg-card p-4 sm:p-6";
@@ -135,7 +136,7 @@ export function MyCityDashboard() {
   useEffect(() => setSelectedId(null), [fy, scope]);
   if (isLoading) return <LoadingScreen fullScreen={false} />;
 
-  const city = isCounty ? "your county" : all?.cityName ?? "your city";
+  const city = isCounty ? "Jackson County, Missouri" : (data?.place ? CITY_NAMES[data.place] : null) ?? all?.cityName ?? "your city";
   const lines = (data?.lines ?? []).filter((l) => l.fiscal_year === fy);
   const spend = lines.filter((l) => l.revenue_or_expense === "expense").sort((a, b) => b.amount - a.amount);
   const revenue = lines.filter((l) => l.revenue_or_expense === "revenue").sort((a, b) => b.amount - a.amount);
