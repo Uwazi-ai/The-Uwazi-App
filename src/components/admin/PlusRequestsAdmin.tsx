@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
-type Request = { id: string; user_id: string; reason: "student" | "low_income"; note: string | null; status: string; created_at: string };
+type Request = { id: string; user_id: string; reason: string; note: string | null; status: string; created_at: string };
 export function PlusRequestsAdmin() {
   const [requests, setRequests] = useState<Request[]>([]);
   const load = async () => {
