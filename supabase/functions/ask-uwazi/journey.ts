@@ -141,11 +141,44 @@ export async function buildJourneyTurn(
       : personaShort ? `Welcome back, ${personaShort}.`
       : labels.lead_name ? `Welcome back. You lead with ${labels.lead_name}.` : null;
 
+    let streakName: string | null = null;
+    if (labels.streak) {
+      const { data } = await svc.from("compass_personas").select("name").eq("slug", labels.streak).maybeSingle();
+      streakName = data?.name ?? null;
+    }
+    const scoreText = Object.entries(scores).sort((x, y) => Number(y[1]) - Number(x[1]))
+      .map(([k, v]) => `${k} ${Math.round(Number(v) * 100)}`).join(", ") || "none";
+
+    // Short city snapshot so answers stay local. Full lists still come with office or budget questions.
+    let cityText = "City facts: none on file yet.";
+    try {
+      const [{ data: offs }, { data: ud }] = await Promise.all([
+        userClient.rpc("get_my_offices", { _user_id: userId }),
+        svc.from("user_districts").select("resolved").eq("user_id", userId).maybeSingle(),
+      ]);
+      const offLines = (Array.isArray(offs) ? offs : []).filter((o: any) => o.match_level !== "county").slice(0, 4)
+        .map((o: any) => `${o.office_title}: ${o.current_holder ?? "no one listed"}`).join(", ");
+      const place = (ud as any)?.resolved?.place;
+      let budgetLine = "";
+      if (place) {
+        const { data: bl } = await svc.from("civic_budget_percent_of_total")
+          .select("fiscal_year, department_or_fund, percent_of_total, source_url, last_verified_at")
+          .eq("geoid", place).eq("revenue_or_expense", "expense").order("fiscal_year", { ascending: false }).order("amount", { ascending: false }).limit(3);
+        if (bl?.length) {
+          budgetLine = ` Biggest budget areas for ${bl[0].fiscal_year}: ${bl.map((b: any) => `${b.department_or_fund} ${Math.round(Number(b.percent_of_total ?? 0))}%`).join(", ")}. Source ${bl[0].source_url ?? "unknown"}, checked ${String(bl[0].last_verified_at ?? "").slice(0, 10)}.`;
+        }
+      }
+      if (offLines || budgetLine) cityText = `City facts, approved by our review team: ${offLines || "no offices matched yet"}.${budgetLine}`;
+    } catch (_) { /* snapshot is optional */ }
+
     const contextText = [
       "<turn_context>",
       "This person chose to personalize UWAZI. Use this quietly. Never show scores.",
       `Identity: ${labels.primary ?? "unknown"}. Top issue: ${labels.lead_name ?? "unknown"}.`,
       personaRow ? `Civic persona: ${personaRow.name}. It says how they show up for their city, not what they believe. ${personaRow.one_line}` : "No civic persona yet.",
+      streakName ? `Streak: ${streakName}.` : "No streak.",
+      `Dimension scores out of 100, for your use only: ${scoreText}.`,
+      cityText,
       `Stage: ${journey?.stage ?? "Getting Started"} with ${journey?.total_points ?? 0} points.`,
       `Next step: ${stepText}.`,
       `Issues they scored low on: ${lowNames}.`,
