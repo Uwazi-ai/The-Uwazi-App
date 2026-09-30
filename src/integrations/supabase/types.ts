@@ -182,6 +182,36 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_runs: {
+        Row: {
+          error: string | null
+          finished_at: string | null
+          folder: string | null
+          id: string
+          started_at: string
+          status: string
+          table_counts: Json
+        }
+        Insert: {
+          error?: string | null
+          finished_at?: string | null
+          folder?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          table_counts?: Json
+        }
+        Update: {
+          error?: string | null
+          finished_at?: string | null
+          folder?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          table_counts?: Json
+        }
+        Relationships: []
+      }
       badges: {
         Row: {
           art_key: string | null
@@ -2350,6 +2380,24 @@ export type Database = {
         }
         Relationships: []
       }
+      health_alerts_sent: {
+        Row: {
+          alert_date: string
+          check_name: string
+          sent_at: string
+        }
+        Insert: {
+          alert_date: string
+          check_name: string
+          sent_at?: string
+        }
+        Update: {
+          alert_date?: string
+          check_name?: string
+          sent_at?: string
+        }
+        Relationships: []
+      }
       identity_feedback: {
         Row: {
           chosen_dimension: string
@@ -3803,6 +3851,42 @@ export type Database = {
         }
         Relationships: []
       }
+      system_health: {
+        Row: {
+          checked_at: string
+          details: Json
+          id: string
+          status: string
+        }
+        Insert: {
+          checked_at?: string
+          details?: Json
+          id?: string
+          status: string
+        }
+        Update: {
+          checked_at?: string
+          details?: Json
+          id?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      system_job_token: {
+        Row: {
+          id: boolean
+          token: string
+        }
+        Insert: {
+          id?: boolean
+          token?: string
+        }
+        Update: {
+          id?: boolean
+          token?: string
+        }
+        Relationships: []
+      }
       user_badges: {
         Row: {
           badge_id: string | null
@@ -4958,6 +5042,7 @@ export type Database = {
       office_reviewer_count: { Args: never; Returns: number }
       owns_compass_session: { Args: { _session_id: string }; Returns: boolean }
       persona_label: { Args: { _scores: Json }; Returns: Json }
+      platform_health: { Args: never; Returns: Json }
       propose_office_district: {
         Args: {
           _district_code: string
