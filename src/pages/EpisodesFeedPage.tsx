@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
+import { openPaywall } from "@/components/plus/Paywall";
 import { useEpisodeVideoUrl } from "@/hooks/useEpisodeVideoUrl";
 
 interface Episode {
@@ -29,6 +30,7 @@ export default function WatchPage() {
   const [infoOpen, setInfoOpen] = useState<string | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
+  const [freeIds, setFreeIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const feedRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -60,7 +62,11 @@ export default function WatchPage() {
       if (activeTab !== "All") {
         query = query.eq("topic", activeTab);
       }
-      const { data } = await query.order("sort_order", { ascending: true });
+      const [{ data }, { data: freeRows }] = await Promise.all([
+        query.order("sort_order", { ascending: true }),
+        (supabase as any).rpc("free_episode_ids"),
+      ]);
+      setFreeIds(new Set(((freeRows as any[]) ?? []).map((r: any) => (typeof r === "string" ? r : r.free_episode_ids))));
       setEpisodes((data as Episode[]) || []);
       setLoading(false);
     };
@@ -136,7 +142,7 @@ export default function WatchPage() {
           ))
         ) : (
           episodes.map((ep, idx) => {
-            const locked = !isSubscriber && !ep.is_free;
+            const locked = !isSubscriber && !freeIds.has(ep.id);
             return (
               <VideoCard
                 key={ep.id}
@@ -149,8 +155,8 @@ export default function WatchPage() {
                 infoOpen={infoOpen === ep.id}
                 toggleInfo={() => setInfoOpen(infoOpen === ep.id ? null : ep.id)}
                 locked={locked}
-                onPaywall={() => setShowPaywall(true)}
-                onUpgrade={() => navigate("/app/upgrade?plan=beta_monthly")}
+                onPaywall={() => openPaywall("watch")}
+                onUpgrade={() => openPaywall("watch")}
               />
             );
           })
@@ -162,7 +168,7 @@ export default function WatchPage() {
           onClose={() => {
             setShowPaywall(false);
             // Scroll back to the last free episode the user could watch
-            const lastFreeIdx = episodes.map((e) => e.is_free).lastIndexOf(true);
+            const lastFreeIdx = episodes.map((e) => freeIds.has(e.id)).lastIndexOf(true);
             if (lastFreeIdx >= 0 && feedRef.current) {
               feedRef.current.scrollTo({ top: lastFreeIdx * feedRef.current.clientHeight, behavior: "smooth" });
             }
@@ -355,11 +361,8 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
     if (!locked) return;
     const el = cardRef.current;
     if (!el) return;
-    const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) onPaywall();
-    }, { threshold: 0.5 });
-    obs.observe(el);
-    return () => obs.disconnect();
+    // Locked episodes open the paywall only on tap.
+    return;
   }, [locked, onPaywall]);
 
   return (
@@ -497,35 +500,12 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
       )}
 
       {locked && (
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
-          <div className="bg-black/70 backdrop-blur-sm rounded-2xl p-7 mx-6 text-center max-w-sm">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 mb-3">
-              <span className="text-[10px] font-bold text-amber-400 tracking-wider">🚀 BETA PRICE</span>
-            </div>
-            <div className="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center mx-auto mb-3">
-              <Lock size={24} className="text-yellow-400" />
-            </div>
-            <h3 className="text-white font-bold text-xl mb-1">Unlock All Episodes</h3>
-            <p className="text-white/60 text-[13px] mb-4">
-              Early adopter pricing — locked through the beta.
-            </p>
-            <div className="flex items-baseline justify-center gap-2 mb-1">
-              <span className="text-white font-black text-3xl">$4.99</span>
-              <span className="text-white/40 text-sm line-through">$19.99</span>
-              <span className="text-white/60 text-sm">/mo</span>
-            </div>
-            <p className="text-amber-400/90 text-[11px] mb-1">or $39/yr · save 35%</p>
-            <p className="text-white/50 text-[11px] mb-4">⏰ Beta pricing ends July 16, 2026</p>
-            <button
-              onClick={onUpgrade}
-              className="w-full py-3 rounded-xl font-bold text-black text-sm"
-              style={{ background: "linear-gradient(135deg, #facc15, #eab308)" }}
-            >
-              Claim Beta Price
-            </button>
-            <p className="text-white/30 text-[10px] mt-3">Price returns to $19.99/mo after beta · No contracts · Cancel anytime</p>
-          </div>
-        </div>
+        <button type="button" onClick={onPaywall} data-testid="locked-episode" aria-label={`${episode.title}. Plus only. Tap to unlock.`}
+          className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/50">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black/70"><Lock size={24} className="text-primary" /></span>
+          <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">Plus</span>
+          <span className="max-w-xs px-6 text-center text-sm text-white/80">Free covers the 5 newest episodes. Tap to watch this one with Plus.</span>
+        </button>
       )}
 
       {debugOpen && (
