@@ -26,6 +26,10 @@ export interface MyJourney {
   research: boolean;
   label: string | null;
   lead_name: string | null;
+  persona?: string | null;
+  streak?: string | null;
+  evidence?: string | null;
+  persona_history?: { persona: string; streak: string | null; source: string; at: string }[] | null;
   dimension_scores: Record<string, number> | null;
   total_points: number;
   stage: string;

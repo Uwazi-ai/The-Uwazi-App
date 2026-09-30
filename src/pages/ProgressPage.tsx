@@ -14,6 +14,7 @@ import { LoadingScreen } from "@/components/LoadingScreen";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { WhyAmISeeing } from "@/components/journey/WhyAmISeeing";
+import { usePersonas, personaColor, shortName } from "@/lib/personas";
 
 const db = supabase as any;
 
@@ -61,6 +62,9 @@ function ConfidenceTrend({ points }: { points: { score: number; at: string }[] }
 
 export default function ProgressPage() {
   const { journey, loading, reload } = useMyJourney();
+  const { bySlug } = usePersonas();
+  const pp = bySlug(journey?.persona);
+  const ps = bySlug(journey?.streak);
   const { challenge } = useMyChallenge();
   const badges = useMyBadges();
   const navigate = useNavigate();
@@ -95,7 +99,13 @@ export default function ProgressPage() {
     <div className="max-w-3xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 space-y-5 overflow-x-hidden">
       <div className="rounded-2xl p-6 border border-primary/20 bg-primary/5">
         <p className="text-[11px] font-bold tracking-[0.2em] text-primary mb-2">YOUR CIVIC JOURNEY</p>
-        {journey.personalization && journey.label ? (
+        {journey.personalization && pp ? (
+          <>
+            <h1 className="font-heading text-3xl md:text-4xl leading-tight" style={{ color: personaColor(pp.color) }} data-testid="progress-persona">{pp.name}</h1>
+            {ps && <p className="text-sm font-semibold mt-1" style={{ color: personaColor(ps.color) }}>with a {shortName(ps)} streak</p>}
+            <p className="text-sm text-muted-foreground mt-1">{pp.one_line}</p>
+          </>
+        ) : journey.personalization && journey.label ? (
           <>
             <h1 className="font-heading text-3xl md:text-4xl text-foreground leading-tight">{journey.label}</h1>
             {journey.lead_name && <p className="text-sm text-muted-foreground mt-1">You lead with {journey.lead_name}.</p>}
@@ -106,7 +116,25 @@ export default function ProgressPage() {
       </div>
 
       {journey.personalization && journey.label && journey.dimension_scores && (
-        <IdentityCard label={journey.label} scores={journey.dimension_scores} stage={journey.stage} />
+        <IdentityCard label={journey.label} persona={journey.persona} streak={journey.streak} scores={journey.dimension_scores} stage={journey.stage} />
+      )}
+
+      {journey.personalization && (journey.persona_history?.length ?? 0) > 0 && (
+        <div className="rounded-2xl p-5 bg-card border border-border space-y-3" data-testid="persona-history">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">Your persona over time</p>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {journey.persona_history!.map((h, i) => {
+              const hp = bySlug(h.persona);
+              return (
+                <div key={i} className="shrink-0 rounded-xl border border-border px-3 py-2 min-w-[120px]">
+                  <p className="font-heading text-base leading-tight" style={{ color: personaColor(hp?.color) }}>{hp?.name ?? h.persona}</p>
+                  <p className="text-xs text-muted-foreground">{new Date(h.at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}{h.source === "self_chosen" ? ". You picked it." : ""}</p>
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted-foreground">Oldest is first. Take the quiz again to see if you moved.</p>
+        </div>
       )}
 
       <div className="rounded-2xl p-5 bg-card border border-border space-y-3">

@@ -16,6 +16,7 @@ import { IdentityCard } from "@/components/compass/IdentityCard";
 import { PeopleInCity } from "@/components/compass/PeopleInCity";
 import { dimMeta } from "@/lib/compassDims";
 import { IdentityFit } from "@/components/compass/IdentityFit";
+import { PersonaHeadline, type PersonaState } from "@/lib/personas";
 import { motion, animate } from "framer-motion";
 
 const db = supabase as any;
@@ -86,6 +87,7 @@ export default function CivicCompassPage() {
   const [research, setResearch] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [label, setLabel] = useState<string | null>(null);
+  const [persona, setPersona] = useState<PersonaState>({ persona: null, streak: null, evidence: null });
   const [firstLesson, setFirstLesson] = useState<{ id: string; dim: string | null } | null>(null);
 
   const loadQuestions = async () => {
@@ -138,7 +140,10 @@ export default function CivicCompassPage() {
       const { data: p } = await db.from("user_civic_persona").select("persona_labels, consent_scope").eq("user_id", user.id).maybeSingle();
       setSessionId(s.id);
       setTop((r?.top_dimensions as Top[]) ?? []);
-      if (p?.consent_scope?.personalization) setLabel(p.persona_labels?.primary ?? null);
+      if (p?.consent_scope?.personalization) {
+        setLabel(p.persona_labels?.primary ?? null);
+        setPersona({ persona: p.persona_labels?.persona ?? null, streak: p.persona_labels?.streak ?? null, evidence: p.persona_labels?.evidence ?? null });
+      }
       setStage("done");
     })();
   }, [params, user]);
@@ -213,6 +218,7 @@ export default function CivicCompassPage() {
       if (cErr) throw cErr;
       setSessionId(session.id);
       setLabel(done?.label ?? null);
+      setPersona({ persona: done?.persona ?? null, streak: done?.streak ?? null, evidence: done?.evidence ?? null });
       setTop(topDims);
       setFinalScores(scores);
       const j = await loadStage();
@@ -238,7 +244,7 @@ export default function CivicCompassPage() {
 
   const liveScores = scoreAnswers(questions, dims, answers);
 
-  const restart = () => { setAnswers({}); setIdx(0); setTop([]); setLabel(null); setFirstLesson(null); setNeedle(null); setBudget(defaultBudget()); setStage("quiz"); };
+  const restart = () => { setAnswers({}); setIdx(0); setTop([]); setLabel(null); setPersona({ persona: null, streak: null, evidence: null }); setFirstLesson(null); setNeedle(null); setBudget(defaultBudget()); setStage("quiz"); };
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8 overflow-x-hidden">
@@ -332,7 +338,9 @@ export default function CivicCompassPage() {
           {revealed && (
             <motion.div initial={{ opacity: 0.2, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="space-y-3">
               <div className="flex justify-center"><CompassRose scores={finalScores} size={240} /></div>
-              <h2 className="font-heading text-3xl text-foreground">{label ?? (top.length ? `You lead with ${joinNames(top.map((t) => t.name))}` : "You see many sides")}</h2>
+              {persona.persona ? <PersonaHeadline state={persona} /> : (
+                <h2 className="font-heading text-3xl text-foreground">{label ?? (top.length ? `You lead with ${joinNames(top.map((t) => t.name))}` : "You see many sides")}</h2>
+              )}
               <Button size="lg" onClick={() => setStage("done")}>See my card</Button>
             </motion.div>
           )}
@@ -377,8 +385,8 @@ export default function CivicCompassPage() {
           <div className="bg-card rounded-2xl p-6 shadow-card text-center space-y-3">
             <Compass className="h-10 w-10 text-primary mx-auto" />
             <p className="text-xs uppercase tracking-wider text-muted-foreground">Your Civic Compass</p>
-            {label && <p className="text-sm font-bold text-primary" data-testid="identity-label">{label}</p>}
-            {label && <IdentityFit sessionId={sessionId} onLabel={setLabel} />}
+            {persona.persona ? <PersonaHeadline state={persona} size="md" /> : label && <p className="text-sm font-bold text-primary" data-testid="identity-label">{label}</p>}
+            {label && <IdentityFit sessionId={sessionId} onChange={(d) => { setLabel(d.label); setPersona({ persona: d.persona, streak: d.streak, evidence: d.evidence }); }} />}
             <h2 className="text-2xl font-extrabold text-foreground">
               {top.length
                 ? `You lead with ${joinNames(top.map((t) => t.name))}`
@@ -397,7 +405,7 @@ export default function CivicCompassPage() {
             </div>
           </div>
 
-          <IdentityCard label={label} scores={finalScores} stage={journeyStage}
+          <IdentityCard label={label} persona={persona.persona} streak={persona.streak} scores={finalScores} stage={journeyStage}
             fallbackTitle={top.length ? `You lead with ${top[0].name}` : "You see many sides"} />
 
           <PeopleInCity />
