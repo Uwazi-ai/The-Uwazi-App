@@ -5,6 +5,7 @@
 
 ## Progress and loading UI
 - [x] Restore phone scrolling on Progress and use the UWAZI pinwheel while it loads.
+- [x] Show the UWAZI loading state on slow pages instead of blank or mismatched loading screens.
 
 - [x] Chatbot time limit + friendly fallback
 - [ ] Chatbot working — BLOCKED: Anthropic rejects the saved workspace ID

@@ -19,6 +19,7 @@ import { IdentityFit } from "@/components/compass/IdentityFit";
 import { PersonaHeadline, type PersonaState } from "@/lib/personas";
 import { motion, animate } from "framer-motion";
 import { PackOpening } from "@/components/compass/PackOpening";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 const db = supabase as any;
 const THRESHOLD = 0.6;
@@ -84,6 +85,7 @@ export default function CivicCompassPage() {
   const [top, setTop] = useState<Top[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
+  const [loadingQuestions, setLoadingQuestions] = useState(true);
   const [personalize, setPersonalize] = useState(false);
   const [research, setResearch] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -93,16 +95,19 @@ export default function CivicCompassPage() {
 
   const loadQuestions = async () => {
     setLoadFailed(false);
+    setLoadingQuestions(true);
     const [q, d] = await Promise.all([
       db.from("compass_questions").select("id, dimension_id, prompt_text, weight, reverse_scored").eq("active", true).order("order_index").limit(20),
       db.from("compass_dimensions").select("id, name, slug"),
     ]);
     if (q.error || d.error || !q.data?.length) {
       setLoadFailed(true);
+      setLoadingQuestions(false);
       return;
     }
     setQuestions(q.data);
     setDims(d.data ?? []);
+    setLoadingQuestions(false);
   };
 
   useEffect(() => { loadQuestions(); }, []);
@@ -247,6 +252,10 @@ export default function CivicCompassPage() {
   const liveScores = scoreAnswers(questions, dims, answers);
 
   const restart = () => { setAnswers({}); setIdx(0); setTop([]); setLabel(null); setPersona({ persona: null, streak: null, evidence: null }); setFirstLesson(null); setNeedle(null); setBudget(defaultBudget()); setStage("quiz"); };
+
+  if (stage === "intro" && loadingQuestions && !loadFailed) {
+    return <LoadingScreen fullScreen={false} label="Loading Civic Compass" />;
+  }
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8 overflow-x-hidden">

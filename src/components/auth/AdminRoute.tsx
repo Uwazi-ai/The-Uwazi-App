@@ -1,5 +1,6 @@
 import { useProfile } from "@/contexts/ProfileContext";
 import { Navigate } from "react-router-dom";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 interface AdminRouteProps {
   children: React.ReactNode;
@@ -13,11 +14,7 @@ export function AdminRoute({ children, allowProgramAdmin = false, allowReviewer 
   const { isAdmin, isProgramAdmin, isReviewer, profileLoaded } = useProfile();
 
   if (!profileLoaded) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-primary font-semibold text-lg">Loading...</div>
-      </div>
-    );
+    return <LoadingScreen fullScreen={false} label="Loading your workspace" />;
   }
 
   const allowed = (allowProgramAdmin && isProgramAdmin) || (allowReviewer && isReviewer) || isAdmin;

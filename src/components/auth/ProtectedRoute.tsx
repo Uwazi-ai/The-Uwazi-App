@@ -1,7 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingScreen } from "@/components/LoadingScreen";
 
@@ -43,10 +42,5 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/onboarding" replace />;
   }
 
-  return (
-    <>
-      <AnimatePresence>{isLoading && <LoadingScreen />}</AnimatePresence>
-      {!isLoading && <>{children}</>}
-    </>
-  );
+  return isLoading ? <LoadingScreen /> : <>{children}</>;
 }
