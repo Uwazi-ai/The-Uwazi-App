@@ -6,3 +6,4 @@
 <!-- LOVABLE:BEGIN -->
 - AppLayout keeps the content column as the vertical scroll container and avoids overflow-x-hidden on main. Why: main's overflow traps long pages on phones and hides actions.
 <!-- LOVABLE:END -->
+- Use the TypeSafe skill (typesafe@typesafe-ai, enabled in .claude/settings.json) when a feature needs AI judgments such as routing, ranking, extraction, or verification. Why: typed answers beat prompt-and-parse.
