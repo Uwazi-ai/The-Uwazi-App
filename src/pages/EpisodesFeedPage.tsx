@@ -376,8 +376,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
           muted={muted}
           loop
           playsInline
-          autoPlay
-          preload="auto"
+          preload="metadata"
           onWaiting={() => setIsBuffering(true)}
           onStalled={() => setIsBuffering(true)}
           onLoadStart={() => setIsBuffering(true)}
@@ -400,7 +399,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
             const msg = err ? `${codeMap[err.code] || "Unknown"} (${err.code})${err.message ? ": " + err.message : ""}` : "Unknown error";
             console.error("[WatchPage] video error:", episode.title, err);
             setLastError(msg);
-            if (episode.video_url) probeNetwork(episode.video_url);
+            if (playableUrl) probeNetwork(playableUrl);
           }}
         />
       ) : (
