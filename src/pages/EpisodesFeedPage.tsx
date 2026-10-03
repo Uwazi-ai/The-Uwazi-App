@@ -376,8 +376,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
           muted={muted}
           loop
           playsInline
-          autoPlay
-          preload="auto"
+          preload="metadata"
           onWaiting={() => setIsBuffering(true)}
           onStalled={() => setIsBuffering(true)}
           onLoadStart={() => setIsBuffering(true)}
@@ -400,7 +399,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
             const msg = err ? `${codeMap[err.code] || "Unknown"} (${err.code})${err.message ? ": " + err.message : ""}` : "Unknown error";
             console.error("[WatchPage] video error:", episode.title, err);
             setLastError(msg);
-            if (episode.video_url) probeNetwork(episode.video_url);
+            if (playableUrl) probeNetwork(playableUrl);
           }}
         />
       ) : (
@@ -469,7 +468,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
             </button>
             <button
               onClick={() => {
-                if (!debugOpen && episode.video_url) probeNetwork(episode.video_url);
+                if (!debugOpen && episode.video_url) probeNetwork(playableUrl ?? episode.video_url);
                 setDebugOpen((v) => !v);
               }}
               className="p-2 rounded-full bg-black/40 text-white"
@@ -562,7 +561,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
           </div>
           <div className="mt-3 flex gap-2">
             <button
-              onClick={() => episode.video_url && probeNetwork(episode.video_url)}
+              onClick={() => episode.video_url && probeNetwork(playableUrl ?? episode.video_url)}
               className="flex-1 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-white text-[11px] font-semibold"
             >
               Re-probe
