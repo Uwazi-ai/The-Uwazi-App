@@ -199,7 +199,8 @@ function PrecinctStep({ profile, onDone }: { profile: any; onDone: () => void })
 
   const save = async () => {
     try {
-      await savePrecinct.mutateAsync(raw || null);
+      // Only save a ward and precinct we can match. Others still continue to the shared races.
+      await savePrecinct.mutateAsync(info ? raw : null);
       onDone();
     } catch {
       toast.error("Couldn't save that. Try again.");
@@ -211,10 +212,11 @@ function PrecinctStep({ profile, onDone }: { profile: any; onDone: () => void })
       <div>
         <h2 className="font-heading text-xl md:text-2xl text-foreground">What's your ward and precinct?</h2>
         <p className="text-sm text-muted-foreground mt-2">
-          November 3 is a general election — everyone gets one ballot, no party choice. Your ward and precinct decide
-          your State Representative and County Legislator races and where you vote. They're printed on your voter ID
-          card, or look them up at{" "}
+          November 3 is a general election — everyone gets one ballot, no party choice. Kansas City voters in Jackson
+          County: your ward and precinct decide your State Representative and County Legislator races and where you
+          vote. They're printed on your voter ID card, or look them up at{" "}
           <a href="https://www.kceb.org" target="_blank" rel="noreferrer" className="text-primary underline">kceb.org</a>.
+          Outside that area, you can skip this step.
         </p>
       </div>
       <div className="grid grid-cols-2 gap-3">
@@ -238,17 +240,18 @@ function PrecinctStep({ profile, onDone }: { profile: any; onDone: () => void })
       {raw && !info && (
         <p className="text-sm text-muted-foreground">
           We couldn't find Ward {ward}, Precinct {pct} in the Kansas City Election Board list. It may be outside Kansas
-          City's Jackson County area. Double-check your voter card, or continue to see the races everyone votes on.
+          City's Jackson County area. You can still continue to see the races for your area.
         </p>
       )}
       <div className="flex flex-wrap gap-3">
-        <Button onClick={save} disabled={savePrecinct.isPending || (!!raw && !info)}>
-          {savePrecinct.isPending ? "Saving…" : "Start my ballot"} <ArrowRight className="h-4 w-4 ml-1" />
+        <Button onClick={save} disabled={savePrecinct.isPending}>
+          {savePrecinct.isPending ? "Saving…" : raw && !info ? "Continue without it" : "Start my ballot"} <ArrowRight className="h-4 w-4 ml-1" />
         </Button>
         {!raw && (
           <Button variant="ghost" onClick={onDone}>I don't know it yet</Button>
         )}
       </div>
+
     </div>
   );
 }
