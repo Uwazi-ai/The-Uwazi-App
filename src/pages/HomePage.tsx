@@ -58,7 +58,13 @@ export default function HomePage() {
       ]);
       if (cancelled) return;
       setSeen(profile.data?.home_welcome_seen ?? true);
-      const episodes = ((shows.data ?? []) as EpisodeRow[]).map(episodeToVideo);
+      // Only show episodes this person can actually play, so free members never see blank tiles.
+      const [{ data: plus }, { data: freeIds }] = await Promise.all([db.rpc("is_plus", { _user_id: user.id }), db.rpc("free_episode_ids")]);
+      if (cancelled) return;
+      const freeSet = new Set<string>(((freeIds ?? []) as any[]).map((r) => (typeof r === "string" ? r : r?.id ?? r?.free_episode_ids)));
+      const episodes = ((shows.data ?? []) as EpisodeRow[])
+        .filter((e) => plus === true || e.is_free || freeSet.has(e.id))
+        .map(episodeToVideo);
       const hero = asset.data ?? episodes[0] ?? null;
       const libraryClips = (clips.data ?? []) as HomeVideo[];
       const rest = episodes.filter((item) => item.id !== hero?.id);

@@ -29,7 +29,8 @@ export default function PollingPlaceCard({ compact = false }: { compact?: boolea
 
   const state = profile?.state_code;
   const inKc = state === "MO" && (profile?.election_authority_key === "mo-kcmo-eb" || !!saved);
-  if (!profile || state !== "MO") return null;
+  // We only have polling places for the Kansas City Election Board area, so hide this card for other Missouri voters.
+  if (!profile || state !== "MO" || (!inKc && !info)) return null;
 
   const preview = ward && pct ? lookupPrecinct(`${ward}-${pct}`) : null;
   const showForm = editing || !info;
