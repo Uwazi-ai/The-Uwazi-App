@@ -16,3 +16,4 @@
 - Plus checkout sets a seven-day subscription trial for recurring plans. Why: the promised first week must be reflected in the actual purchase.
 - Plus access is read from is_plus (profiles.plan plus/plus_student, active subscription, or admin); profiles.plan is synced only by the subscriptions trigger and only server code counts Ask questions via consume_ask_question. Why: one server-side source of truth for tiers and limits.
 - Student pricing requires a verified student_verification row; student IDs are stored only as a salted one way hash. Why: no raw student numbers ever live in the app.
+- My Ballot shows only ballot_contests with verification_status verified, matched to user_districts codes via matchContest in src/lib/districts.ts; researched contests are inserted unverified. Why: voters never see unchecked ballot data.
