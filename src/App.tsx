@@ -69,6 +69,7 @@ import UnsubscribePage from "./pages/UnsubscribePage";
 import MyCity from "./pages/MyCity";
 import MyBallotEntryPage from "./pages/MyBallotEntryPage";
 import MyBallotPage from "./pages/MyBallotPage";
+import VoterGuidePage from "./pages/VoterGuidePage";
 import MyBallotWalkthroughPage from "./pages/MyBallotWalkthroughPage";
 import MyBallotReviewPage from "./pages/MyBallotReviewPage";
 import MyBallotExportPage from "./pages/MyBallotExportPage";
@@ -119,6 +120,7 @@ const App = () => (
                 <Route path="/app/vote" element={<VotingHubPage />} />
                 <Route path="/app/my-city" element={<MyCity />} />
                 <Route path="/app/my-ballot" element={<MyBallotPage />} />
+                <Route path="/app/vote/guide" element={<VoterGuidePage />} />
                 <Route path="/app/my-ballot/setup" element={<MyBallotEntryPage />} />
                 <Route path="/app/my-ballot/walkthrough" element={<MyBallotWalkthroughPage />} />
                 <Route path="/app/my-ballot/review" element={<MyBallotReviewPage />} />

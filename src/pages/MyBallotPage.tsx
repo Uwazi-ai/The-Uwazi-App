@@ -207,11 +207,9 @@ function ContestCard({ contest, candidates, selection }: { contest: BallotContes
         {isMeasure && contest.measure_summary && (
           <button onClick={() => setOpen((o) => !o)} className="text-primary hover:underline">{open ? "Hide" : "Read"} the official wording</button>
         )}
-        {contest.source_url && (
-          <a href={contest.source_url} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
-            Source{contest.source_name ? `: ${contest.source_name}` : ""} <ExternalLink className="h-3 w-3" />
-          </a>
-        )}
+        <Link to={`/app/vote/guide?contest=${contest.id}`} className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+          Official source and how to vote <ArrowRight className="h-3 w-3" />
+        </Link>
       </div>
       {open && contest.measure_summary && (
         <div className="mt-2 rounded-lg p-3 text-sm text-muted-foreground border border-border whitespace-pre-wrap">{contest.measure_summary}</div>
