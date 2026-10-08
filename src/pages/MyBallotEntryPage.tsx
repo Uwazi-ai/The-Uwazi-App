@@ -112,7 +112,7 @@ export default function MyBallotEntryPage() {
         </div>
       )}
 
-      {addressOk && state === "MO" && <PrecinctStep profile={profile} onDone={() => navigate("/app/my-ballot/walkthrough")} />}
+      {addressOk && state === "MO" && <PrecinctStep profile={profile} onDone={() => navigate("/app/my-ballot")} />}
 
       {addressOk && state === "KS" && (
         <div className="rounded-2xl p-6 border border-border bg-card">
