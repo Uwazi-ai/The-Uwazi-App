@@ -191,11 +191,58 @@ export function useBallotContestsForState(state: string | null | undefined) {
         .select("id, state, contest_type, sort_order, measure_title, measure_summary, plain_summary, yes_means, no_means, measure_full_text_url, source_name, source_url, district_type, district_id, fiscal_note, office_name, party")
         .eq("state", state)
         .eq("election_date", ELECTION_DATE)
+        .eq("verification_status", "verified")
         .order("sort_order", { ascending: true });
       return filterByDistrict((data || []) as BallotContest[], precinct);
     },
     enabled: !!state,
   });
+}
+
+/** The person's district codes, with the KC precinct list filling any gaps. Never includes an address. */
+export function useMyDistricts() {
+  const { user } = useAuth();
+  const { data: profile } = useVoterProfile();
+  const precinct = (profile as any)?.precinct_id ?? null;
+  return useQuery({
+    queryKey: ["my-ballot-districts", user?.id, precinct],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("user_districts")
+        .select("resolved, precision")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      const resolved: Record<string, string> = { ...((data?.resolved as any) || {}) };
+      const info = lookupPrecinct(precinct);
+      if (info) {
+        if (!resolved.state_house) resolved.state_house = String(info.rep);
+        if (!resolved.commission) resolved.commission = String(info.leg);
+        if (!resolved.county) resolved.county = "29095";
+      }
+      return { resolved, precision: (data?.precision as string) || null };
+    },
+    enabled: !!user && profile !== undefined,
+  });
+}
+
+/** Every verified November contest for the state, sorted into what is on this ballot and what we cannot place yet. */
+export function useMyFullBallot(state: string | null | undefined) {
+  const { data: districts, isLoading: dLoading } = useMyDistricts();
+  const q = useQuery({
+    queryKey: ["my-full-ballot", state, ELECTION_DATE],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("ballot_contests")
+        .select("id, state, contest_type, sort_order, measure_title, measure_summary, plain_summary, yes_means, no_means, measure_full_text_url, source_name, source_url, district_type, district_id, fiscal_note, office_name, party, vote_for")
+        .eq("state", state!)
+        .eq("election_date", ELECTION_DATE)
+        .eq("verification_status", "verified")
+        .order("sort_order", { ascending: true });
+      return (data || []) as (BallotContest & { office_name?: string | null; vote_for?: number })[];
+    },
+    enabled: !!state,
+  });
+  return { ...q, districts, isLoading: q.isLoading || dLoading };
 }
 
 export function useBallotCandidates(contestIds: string[]) {
