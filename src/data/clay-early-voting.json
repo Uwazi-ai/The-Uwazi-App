@@ -1,0 +1,35 @@
+{
+ "county": "29047",
+ "sites": [
+  {
+   "name": "Clay County Election Board Office - Absentee or Early Voting (with Excuse or No Excuse)",
+   "address": "100 W Mississippi St, Liberty 64068",
+   "hours": "Mo-Fr (8:00-17:00); Su(Closed)"
+  },
+  {
+   "name": "Gladstone Community Center - Early Voting ONLY (No Excuse)",
+   "address": "6901 N Holmes St, Gladstone, 64118",
+   "hours": "Mo-Sa (8:00-17:00); Su(Closed)"
+  },
+  {
+   "name": "Kearney Annunciation Center - Early Voting ONLY (No Excuse)",
+   "address": "705 N Jefferson St, Kearney, 64060",
+   "hours": "Mo-Sa (8:00-17:00); Su(Closed)"
+  },
+  {
+   "name": "Clay County Election Board - Early Voting ONLY (No Excuse)",
+   "address": "100 W. Mississippi St. Liberty, MO 64068-1623",
+   "hours": "Mo-Sa (8:00-17:00); Su(Closed)"
+  },
+  {
+   "name": "A Turning Point - Early Voting ONLY (No Excuse)",
+   "address": "1900 NE Englewood Rd, Gladstone, 64118",
+   "hours": "Mo-Sa (8:00-17:00); Su(Closed)"
+  },
+  {
+   "name": "Nashua Baptist Church - Early Voting ONLY (No Excuse)",
+   "address": "11408 N. Main Street, Kansas City, MO 64155",
+   "hours": "Mo-Sa (8:00-17:00); Su(Closed)"
+  }
+ ]
+}
