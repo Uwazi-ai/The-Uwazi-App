@@ -103,4 +103,12 @@ describe("AppLayout scroll regression", () => {
     // Must NOT contain h-full on the motion.div line
     expect(source).not.toMatch(/motion\.div[\s\S]{0,120}className="h-full"/);
   });
+
+  it("routed content is visible without waiting for an exit animation", async () => {
+    const fs = await import("fs");
+    const source = fs.readFileSync("src/components/layout/AppLayout.tsx", "utf-8");
+    expect(source).not.toContain("AnimatePresence");
+    expect(source).not.toContain("opacity: 0");
+    expect(source).toMatch(/<div className="min-h-0">\s*<Outlet \/>/);
+  });
 });
