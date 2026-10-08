@@ -62,8 +62,8 @@ export default function MyBallotPage() {
     );
   }
 
-  const authorityLink = authority?.website || authority?.sample_ballot_url || null;
-  const authorityName = authority?.name || "your local election office";
+  const authorityLink = authority?.lookup_url || authority?.website || null;
+  const authorityName = authority?.display_name || "your local election office";
   const picked = mine.filter((c) => selections.some((s) => s.contest_id === c.id && (s.candidate_id || s.measure_vote))).length;
   const kcNoPrecinct = state === "MO" && (profile?.city || "").toLowerCase().includes("kansas city") && !lookupPrecinct(profile?.precinct_id) && !districts?.resolved?.state_house;
 
