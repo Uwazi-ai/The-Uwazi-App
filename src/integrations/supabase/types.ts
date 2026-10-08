@@ -4797,6 +4797,123 @@ export type Database = {
           },
         ]
       }
+      voter_guide_dates: {
+        Row: {
+          county_fips: string | null
+          created_at: string
+          election_date: string
+          ends_on: string | null
+          id: string
+          kind: string
+          label: string
+          note: string | null
+          source_name: string | null
+          source_url: string | null
+          starts_on: string
+          state: string
+          updated_at: string
+          verification_status: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          county_fips?: string | null
+          created_at?: string
+          election_date: string
+          ends_on?: string | null
+          id?: string
+          kind: string
+          label: string
+          note?: string | null
+          source_name?: string | null
+          source_url?: string | null
+          starts_on: string
+          state: string
+          updated_at?: string
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          county_fips?: string | null
+          created_at?: string
+          election_date?: string
+          ends_on?: string | null
+          id?: string
+          kind?: string
+          label?: string
+          note?: string | null
+          source_name?: string | null
+          source_url?: string | null
+          starts_on?: string
+          state?: string
+          updated_at?: string
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: []
+      }
+      voter_guide_sites: {
+        Row: {
+          address: string
+          county_fips: string
+          created_at: string
+          election_date: string
+          hours: string | null
+          id: string
+          name: string
+          precinct_key: string | null
+          room: string | null
+          site_type: string
+          source_name: string | null
+          source_url: string | null
+          state: string
+          updated_at: string
+          verification_status: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          address: string
+          county_fips: string
+          created_at?: string
+          election_date: string
+          hours?: string | null
+          id?: string
+          name: string
+          precinct_key?: string | null
+          room?: string | null
+          site_type: string
+          source_name?: string | null
+          source_url?: string | null
+          state: string
+          updated_at?: string
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          address?: string
+          county_fips?: string
+          created_at?: string
+          election_date?: string
+          hours?: string | null
+          id?: string
+          name?: string
+          precinct_key?: string | null
+          room?: string | null
+          site_type?: string
+          source_name?: string | null
+          source_url?: string | null
+          state?: string
+          updated_at?: string
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: []
+      }
       voting_plan: {
         Row: {
           created_at: string

@@ -4,26 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, CalendarDays, ExternalLink, MapPin, Phone, Vote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { useVoterProfile, useElectionAuthority, useMyDistricts, lookupPrecinct, ELECTION_LABEL } from "@/hooks/useMyBallot";
-import clay from "@/data/clay-early-voting.json";
-
-type Step = { date: string; label: string; note?: string };
-
-const DATES: Record<string, Step[]> = {
-  MO: [
-    { date: "Sept 22", label: "Absentee voting opens", note: "By mail or in person at your election office." },
-    { date: "Oct 7", label: "Last day to register" },
-    { date: "Oct 20", label: "No excuse early voting starts", note: "In person only, through Nov 2." },
-    { date: "Oct 21", label: "Last day to ask for a mail ballot", note: "Mail ballots must arrive by 7 PM on Election Day." },
-    { date: "Nov 3", label: "Election Day", note: "Polls open 6 AM to 7 PM." },
-  ],
-  KS: [
-    { date: "Oct 13", label: "Last day to register" },
-    { date: "Oct 14", label: "Early voting can start", note: "Start dates and sites vary by county." },
-    { date: "Oct 27", label: "Last day to ask for a mail ballot" },
-    { date: "Nov 3", label: "Election Day", note: "Polls open 7 AM to 7 PM. Mail ballots must arrive by 7 PM." },
-  ],
-};
+import { useVoterProfile, useElectionAuthority, useMyDistricts, lookupPrecinct, ELECTION_LABEL, ELECTION_DATE } from "@/hooks/useMyBallot";
 
 const HOW: Record<string, string[]> = {
   MO: [
@@ -47,8 +28,35 @@ export default function VoterGuidePage() {
   const { data: authority } = useElectionAuthority(profile);
   const { data: districts } = useMyDistricts();
   const state = (profile?.state_code as string) || "MO";
-  const place = lookupPrecinct(profile?.precinct_id);
-  const early = districts?.resolved?.county === clay.county ? clay.sites : [];
+  const county = districts?.resolved?.county || null;
+  const pinfo = lookupPrecinct(profile?.precinct_id);
+  const precinctKey = pinfo ? `${pinfo.ward}-${pinfo.precinct}` : null;
+
+  const { data: guide, isLoading: gLoading } = useQuery({
+    queryKey: ["voter-guide", state, county, precinctKey],
+    queryFn: async () => {
+      const db = supabase as any;
+      const [dates, sites] = await Promise.all([
+        db.from("voter_guide_dates").select("*").eq("state", state).eq("election_date", ELECTION_DATE).eq("verification_status", "verified").order("starts_on"),
+        county
+          ? db.from("voter_guide_sites").select("*").eq("county_fips", county).eq("election_date", ELECTION_DATE).eq("verification_status", "verified")
+          : Promise.resolve({ data: [] }),
+      ]);
+      const all = (dates.data || []).filter((d: any) => !d.county_fips || d.county_fips === county);
+      // A county row replaces the statewide row of the same kind.
+      const byKind = new Map<string, any>();
+      for (const d of all) if (!byKind.has(d.kind) || d.county_fips) byKind.set(d.kind, d);
+      const list = (sites.data || []) as any[];
+      return {
+        dates: [...byKind.values()].sort((x, y) => x.starts_on.localeCompare(y.starts_on)),
+        polling: list.find((x) => x.site_type === "polling" && x.precinct_key === precinctKey) || null,
+        early: list.filter((x) => x.site_type === "early" || x.site_type === "dropbox"),
+      };
+    },
+    enabled: !!profile,
+  });
+  const place = guide?.polling;
+  const early = guide?.early || [];
 
   const { data: contest } = useQuery({
     queryKey: ["guide-contest", contestId],
@@ -72,7 +80,7 @@ export default function VoterGuidePage() {
       <header>
         <p className="text-xs tracking-widest uppercase text-muted-foreground">Voter guide</p>
         <h1 className="font-heading text-3xl md:text-4xl mt-1 text-foreground">How to vote on November 3</h1>
-        <p className="text-sm text-muted-foreground mt-2">{ELECTION_LABEL}. Dates are from state law. Your election office has the final word.</p>
+        <p className="text-sm text-muted-foreground mt-2">{ELECTION_LABEL}. Every date and place here comes from an official source. Your election office has the final word.</p>
       </header>
 
       {contest && (
@@ -89,34 +97,41 @@ export default function VoterGuidePage() {
 
       <section className={card}>
         <h2 className="font-heading text-lg text-foreground flex items-center gap-2"><CalendarDays className="h-5 w-5 text-primary" /> Key dates</h2>
-        <ol className="mt-4 space-y-3">
-          {(DATES[state] || DATES.MO).map((d) => (
-            <li key={d.label} className="flex gap-4">
-              <span className="font-heading text-primary w-16 shrink-0">{d.date}</span>
-              <span>
-                <span className="block text-sm font-medium text-foreground">{d.label}</span>
-                {d.note && <span className="block text-xs text-muted-foreground">{d.note}</span>}
-              </span>
-            </li>
-          ))}
-        </ol>
+        {gLoading ? (
+          <div className="mt-4 h-24 animate-pulse rounded-xl bg-muted" />
+        ) : guide?.dates.length ? (
+          <ol className="mt-4 space-y-3">
+            {guide.dates.map((d: any) => (
+              <li key={d.id} className="flex gap-4">
+                <span className="font-heading text-primary w-20 shrink-0">{fmt(d.starts_on)}{d.ends_on ? ` to ${fmt(d.ends_on)}` : ""}</span>
+                <span>
+                  <span className="block text-sm font-medium text-foreground">{d.label}</span>
+                  {d.note && <span className="block text-xs text-muted-foreground">{d.note}</span>}
+                  {d.source_url && <a href={d.source_url} target="_blank" rel="noreferrer" className="text-xs text-muted-foreground underline">{d.source_name || "Source"}</a>}
+                </span>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p className="mt-3 text-sm text-muted-foreground">We have not confirmed the dates for your area yet. Your election office has the official calendar.</p>
+        )}
       </section>
 
       <section className={card}>
         <h2 className="font-heading text-lg text-foreground flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> Where to vote</h2>
         {place ? (
-          <p className="text-sm text-foreground mt-3"><strong>{place.placeName}</strong><br />{place.address}{place.room ? `. ${place.room}` : ""}</p>
+          <p className="text-sm text-foreground mt-3"><strong>{place.name}</strong><br />{place.address}{place.room ? `. ${place.room}` : ""}{place.hours ? <span className="block text-xs text-muted-foreground mt-1">{place.hours} on Election Day</span> : null}</p>
         ) : (
           <p className="text-sm text-muted-foreground mt-3">Your polling place is listed in your voter record.</p>
         )}
         {early.length > 0 && (
           <div className="mt-4">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground">Early voting in Clay County</p>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">Early voting sites</p>
             <ul className="mt-2 space-y-2">
-              {early.map((s) => (
-                <li key={s.name + s.address} className="text-sm">
-                  <span className="text-foreground">{s.name.split(" - ")[0]}</span>
-                  <span className="block text-xs text-muted-foreground">{s.address}</span>
+              {early.map((s: any) => (
+                <li key={s.id} className="text-sm">
+                  <span className="text-foreground">{s.name}</span>
+                  <span className="block text-xs text-muted-foreground">{s.address}{s.hours ? `. ${s.hours}` : ""}</span>
                 </li>
               ))}
             </ul>
@@ -145,4 +160,8 @@ export default function VoterGuidePage() {
       <Link to="/app/my-ballot" className="block"><Button className="w-full">Back to my ballot</Button></Link>
     </div>
   );
+}
+
+function fmt(iso: string) {
+  return new Date(iso + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }

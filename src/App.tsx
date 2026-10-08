@@ -63,6 +63,7 @@ import { PWAUpdateBanner } from "@/components/PWAUpdateBanner";
 import AdminSecurityPage from "./pages/admin/AdminSecurityPage";
 import AdminSEOPage from "./pages/admin/AdminSEOPage";
 import AdminBallotReviewPage from "./pages/admin/AdminBallotReviewPage";
+import AdminVoterGuidePage from "./pages/admin/AdminVoterGuidePage";
 import AdminOfficeHealthPage from "./pages/admin/AdminOfficeHealthPage";
 import AdminChallengesPage from "./pages/admin/AdminChallengesPage";
 import UnsubscribePage from "./pages/UnsubscribePage";
@@ -162,6 +163,7 @@ const App = () => (
                 <Route path="/app/admin/security" element={<AdminRoute><AdminSecurityPage /></AdminRoute>} />
                 <Route path="/app/admin/seo" element={<AdminRoute><AdminSEOPage /></AdminRoute>} />
                 <Route path="/app/admin/ballot-review" element={<AdminRoute><AdminBallotReviewPage /></AdminRoute>} />
+                <Route path="/app/admin/voter-guide" element={<AdminRoute><AdminVoterGuidePage /></AdminRoute>} />
                 <Route path="/app/admin/office-health" element={<AdminRoute allowReviewer><AdminOfficeHealthPage /></AdminRoute>} />
                 <Route path="/app/admin/challenges" element={<AdminRoute><AdminChallengesPage /></AdminRoute>} />
               </Route>
