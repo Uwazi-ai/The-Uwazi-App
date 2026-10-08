@@ -256,6 +256,14 @@ export default function VotingHubPage() {
           </ul>
         </section>
 
+        <Link to="/app/vote/guide" style={rise()} className={`${tile} col-span-2 flex items-center justify-between gap-4 hover:border-primary/40`}>
+          <div>
+            <h2 className="font-heading text-lg">Voter guide</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Key dates, where to vote, and what to bring.</p>
+          </div>
+          <span className="text-sm font-semibold text-primary whitespace-nowrap">Open guide</span>
+        </Link>
+
         {/* 3. Where you vote */}
         <section style={rise()} className={`${tile} city-tone-1 col-span-2`}>
           <div className="flex items-start justify-between gap-3">
