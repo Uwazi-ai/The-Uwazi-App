@@ -1,5 +1,4 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import { MobileNav } from "./MobileNav";
 import { DesktopSidebar } from "./DesktopSidebar";
 import { TopBar } from "./TopBar";
@@ -14,20 +13,6 @@ import { useNativePush } from "@/hooks/useNativePush";
 import { MyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
 import { BadgeWatcher } from "@/components/games/BadgeEarned";
 import { PaywallHost } from "@/components/plus/Paywall";
-
-const pageVariants = {
-  initial: { opacity: 0, y: 8 },
-  animate: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] },
-  },
-  exit: {
-    opacity: 0,
-    y: -4,
-    transition: { duration: 0.15 },
-  },
-};
 
 export function AppLayout() {
   const location = useLocation();
@@ -44,18 +29,9 @@ export function AppLayout() {
         <div className="flex-1 flex flex-col h-screen min-w-0 overflow-x-hidden overflow-y-auto">
           {!isAskPage && <TopBar />}
           <main className={`flex-1 min-w-0 ${isAskPage ? "pb-16 md:pb-0" : "pb-20 md:pb-0"}`}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={location.pathname}
-                variants={pageVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                className="min-h-0"
-              >
-                <Outlet />
-              </motion.div>
-            </AnimatePresence>
+            <div className="min-h-0">
+              <Outlet />
+            </div>
           </main>
           {!isAskPage && (
             <footer className="py-4 px-4 text-center text-xs text-muted-foreground border-t border-border mb-16 md:mb-0">
