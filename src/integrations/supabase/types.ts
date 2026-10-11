@@ -2129,6 +2129,33 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_blocks: {
+        Row: {
+          active: boolean
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          start_time: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          start_time: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          start_time?: string
+        }
+        Relationships: []
+      }
       election_authorities: {
         Row: {
           county_name: string | null
@@ -3712,6 +3739,193 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ride_events: {
+        Row: {
+          actor: string | null
+          created_at: string
+          event_type: string
+          from_status: string | null
+          id: string
+          note: string | null
+          request_id: string
+          to_status: string | null
+        }
+        Insert: {
+          actor?: string | null
+          created_at?: string
+          event_type: string
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          request_id: string
+          to_status?: string | null
+        }
+        Update: {
+          actor?: string | null
+          created_at?: string
+          event_type?: string
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          request_id?: string
+          to_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_events_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "ride_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ride_rate_limits: {
+        Row: {
+          created_at: string
+          id: string
+          ip_hash: string | null
+          phone_hash: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          phone_hash?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          phone_hash?: string | null
+        }
+        Relationships: []
+      }
+      ride_requests: {
+        Row: {
+          autocab_booking_id: string | null
+          booked_at: string | null
+          completed_at: string | null
+          created_at: string
+          destination_site_id: string | null
+          first_name_last_initial: string
+          id: string
+          needs: string[]
+          needs_destination: boolean
+          phone: string
+          picked_up_at: string | null
+          pickup_address: string
+          pickup_time: string
+          quiz_finished_at: string | null
+          quiz_score: number | null
+          ride_code: string
+          ride_day: string
+          round_trip: boolean
+          source: string
+          status: string
+          texts_ok: boolean
+          trip_stage: number
+          zip: string
+          ztrip_confirmation: string | null
+        }
+        Insert: {
+          autocab_booking_id?: string | null
+          booked_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          destination_site_id?: string | null
+          first_name_last_initial: string
+          id?: string
+          needs?: string[]
+          needs_destination?: boolean
+          phone: string
+          picked_up_at?: string | null
+          pickup_address: string
+          pickup_time: string
+          quiz_finished_at?: string | null
+          quiz_score?: number | null
+          ride_code?: string
+          ride_day: string
+          round_trip?: boolean
+          source?: string
+          status?: string
+          texts_ok?: boolean
+          trip_stage?: number
+          zip: string
+          ztrip_confirmation?: string | null
+        }
+        Update: {
+          autocab_booking_id?: string | null
+          booked_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          destination_site_id?: string | null
+          first_name_last_initial?: string
+          id?: string
+          needs?: string[]
+          needs_destination?: boolean
+          phone?: string
+          picked_up_at?: string | null
+          pickup_address?: string
+          pickup_time?: string
+          quiz_finished_at?: string | null
+          quiz_score?: number | null
+          ride_code?: string
+          ride_day?: string
+          round_trip?: boolean
+          source?: string
+          status?: string
+          texts_ok?: boolean
+          trip_stage?: number
+          zip?: string
+          ztrip_confirmation?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_requests_destination_site_id_fkey"
+            columns: ["destination_site_id"]
+            isOneToOne: false
+            referencedRelation: "voter_guide_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ride_settings: {
+        Row: {
+          driver_rate: number
+          early_end: string
+          early_start: string
+          election_day: string
+          funded_cap: number
+          id: boolean
+          ride_line_phone: string | null
+          seats_per_slot: number
+          updated_at: string
+        }
+        Insert: {
+          driver_rate?: number
+          early_end?: string
+          early_start?: string
+          election_day?: string
+          funded_cap?: number
+          id?: boolean
+          ride_line_phone?: string | null
+          seats_per_slot?: number
+          updated_at?: string
+        }
+        Update: {
+          driver_rate?: number
+          early_end?: string
+          early_start?: string
+          election_day?: string
+          funded_cap?: number
+          id?: boolean
+          ride_line_phone?: string | null
+          seats_per_slot?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       saved_articles: {
         Row: {
@@ -5658,6 +5872,7 @@ export type Database = {
       is_org_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_plus: { Args: { _user_id: string }; Returns: boolean }
       is_program_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_ride_coordinator: { Args: { _user_id: string }; Returns: boolean }
       is_verified_student: { Args: { _user_id: string }; Returns: boolean }
       journey_research_stats: { Args: never; Returns: Json }
       lesson_brief: { Args: { _id: string }; Returns: Json }
@@ -5823,7 +6038,12 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "super_admin" | "program_admin" | "user" | "reviewer"
+      app_role:
+        | "super_admin"
+        | "program_admin"
+        | "user"
+        | "reviewer"
+        | "ride_coordinator"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -5951,7 +6171,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["super_admin", "program_admin", "user", "reviewer"],
+      app_role: [
+        "super_admin",
+        "program_admin",
+        "user",
+        "reviewer",
+        "ride_coordinator",
+      ],
     },
   },
 } as const
