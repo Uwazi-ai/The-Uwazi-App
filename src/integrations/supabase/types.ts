@@ -3927,6 +3927,76 @@ export type Database = {
         }
         Relationships: []
       }
+      ride_site_geo: {
+        Row: {
+          created_at: string
+          geocoder: string
+          lat: number
+          lon: number
+          match_quality: string
+          site_id: string
+        }
+        Insert: {
+          created_at?: string
+          geocoder?: string
+          lat: number
+          lon: number
+          match_quality?: string
+          site_id: string
+        }
+        Update: {
+          created_at?: string
+          geocoder?: string
+          lat?: number
+          lon?: number
+          match_quality?: string
+          site_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_site_geo_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: true
+            referencedRelation: "voter_guide_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ride_site_hours: {
+        Row: {
+          close_time: string
+          created_at: string
+          id: string
+          open_date: string
+          open_time: string
+          site_id: string
+        }
+        Insert: {
+          close_time: string
+          created_at?: string
+          id?: string
+          open_date: string
+          open_time: string
+          site_id: string
+        }
+        Update: {
+          close_time?: string
+          created_at?: string
+          id?: string
+          open_date?: string
+          open_time?: string
+          site_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_site_hours_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "voter_guide_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_articles: {
         Row: {
           article_image: string | null
