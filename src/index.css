@@ -8,6 +8,11 @@
   --sab: env(safe-area-inset-bottom, 0px);
   --sal: env(safe-area-inset-left, 0px);
   --sar: env(safe-area-inset-right, 0px);
+  /* Rides to the Polls */
+  --rides-bg: 0 0% 4%;
+  --rides-green: 83 61% 56%;
+  --rides-blue: 202 81% 37%;
+  --rides-ink: 0 0% 98%;
 }
 
 html {
