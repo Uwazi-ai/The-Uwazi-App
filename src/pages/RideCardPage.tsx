@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import uwaziLogo from "@/assets/uwazi-app-wordmark.png";
 import { RidesShell, InfoPanel, fmtDay, fmtHour, fmtPhone, telHref } from "@/components/rides/RidesUI";
@@ -53,13 +53,15 @@ function downloadIcs(c: Card) {
 
 export default function RideCardPage() {
   const { code = "" } = useParams();
+  const [sp] = useSearchParams();
+  const token = sp.get("t") ?? "";
   const [card, setCard] = useState<Card | null>(null);
   const [err, setErr] = useState(false);
 
   useEffect(() => {
     let alive = true;
     const load = async () => {
-      const { data, error } = await supabase.functions.invoke("get-ride-card", { body: { ride_code: code } });
+      const { data, error } = await supabase.functions.invoke("get-ride-card", { body: { ride_code: code, t: token } });
       if (!alive) return;
       if (error) setErr(true);
       else { setCard(data as Card); setErr(false); }
@@ -67,13 +69,13 @@ export default function RideCardPage() {
     load();
     const t = setInterval(load, 30000);
     return () => { alive = false; clearInterval(t); };
-  }, [code]);
+  }, [code, token]);
 
   if (err && !card) {
     return (
       <RidesShell logo={uwaziLogo}>
-        <h1 className="font-heading text-3xl">We could not find that ride.</h1>
-        <p className="mt-3">Check your ride code and try again.</p>
+        <h1 className="font-heading text-3xl">Ride not found</h1>
+        <p className="mt-3">Open the full link from your ride text, or call the ride line.</p>
         <Link to="/rides" className="mt-6 block rounded-xl bg-[hsl(var(--rides-green))] py-3.5 text-center font-semibold text-[hsl(var(--rides-bg))]">Request a ride</Link>
       </RidesShell>
     );
@@ -130,6 +132,12 @@ export default function RideCardPage() {
         <div className="mt-4"><InfoPanel>
           RideKC can take you to vote. <a className="font-semibold underline" href="https://ridekc.org" target="_blank" rel="noreferrer">Visit ridekc.org</a>. Questions? <LineLink />
         </InfoPanel></div>
+      )}
+
+      {["booked", "riding", "completed"].includes(card.status) && (
+        <Link to={`/rides/track/${card.ride_code}?t=${encodeURIComponent(token)}`} className="mt-4 block rounded-xl bg-[hsl(var(--rides-green))] py-3.5 text-center font-semibold text-[hsl(var(--rides-bg))]">
+          Track my ride and learn your rights
+        </Link>
       )}
 
       <ul className="mt-6 space-y-3">

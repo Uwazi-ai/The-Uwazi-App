@@ -114,6 +114,7 @@ const App = () => (
               <Route path="/backpack-rules" element={<BackpackRulesPage />} />
               <Route path="/rides" element={<RidesPage />} />
               <Route path="/rides/card/:code" element={<RideCardPage />} />
+              <Route path="/rides/track/:code" element={<RideTrackPage />} />
               <Route path="/rides/desk" element={<RideDeskPage />} />
               <Route path="/.lovable/oauth/consent" element={<OAuthConsentPage />} />
 
