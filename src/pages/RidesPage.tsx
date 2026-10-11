@@ -153,7 +153,7 @@ export default function RidesPage() {
       setFormError(msg);
       return;
     }
-    nav(`/rides/card/${data.ride_code}`);
+    nav(`/rides/card/${data.ride_code}?t=${encodeURIComponent(data.card_token)}`);
   };
 
   const steps = ["Where", "When", "Contact", "Review"];

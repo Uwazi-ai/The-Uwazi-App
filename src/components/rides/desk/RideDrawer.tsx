@@ -103,7 +103,7 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
   const markBooked = () =>
     run(async () => {
       const z = ztrip.trim() || null;
-      const r = await update({ status: "booked", ztrip_confirmation: z, trip_stage: 2 });
+      const r = await update({ status: "booked", ztrip_confirmation: z, trip_stage: 0 });
       if (!r.error && z) await log("ztrip_number", `zTrip ${z}`);
       return r;
     });
@@ -115,8 +115,14 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
       return r;
     });
 
+  const [copied, setCopied] = useState(false);
+  const riderLink = `${window.location.origin}/rides/card/${ride.ride_code}?t=${encodeURIComponent(ride.card_token)}`;
+  const copyLink = async () => {
+    try { await navigator.clipboard.writeText(riderLink); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { setErr("Copy did not work. Select the link below."); }
+  };
+
   const atCap = fundedBooked >= settings.funded_cap;
-  const statusText: Record<string, string> = { requested: "New request", booked: "Booked with zTrip", riding: stageLabel(ride) ?? "On the way", completed: "Completed", referred: "Referred to RideKC", cancelled: "Cancelled" };
+  const statusText: Record<string, string> = { requested: "New request", booked: stageLabel(ride) ?? "Booked with zTrip", riding: stageLabel(ride) ?? "On the way", completed: "Completed", referred: "Referred to RideKC", cancelled: "Cancelled" };
 
   return (
     <div className="space-y-5 pb-8 text-[hsl(var(--rides-ink))]">
@@ -173,13 +179,18 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
             </>
           )
         )}
-        {ride.status === "booked" && <button className={green} disabled={busy} onClick={() => stage(3, "Picked up", "riding")}>Mark picked up</button>}
+        {ride.status === "booked" && ride.trip_stage === 0 && <button className={green} disabled={busy} onClick={() => stage(1, "Driver on the way")}>Driver on the way</button>}
+        {ride.status === "booked" && ride.trip_stage === 1 && <button className={green} disabled={busy} onClick={() => stage(2, "Driver is here")}>Driver is here</button>}
+        {ride.status === "booked" && <button className={ride.trip_stage === 2 ? green : ghost} disabled={busy} onClick={() => stage(3, "Picked up", "riding")}>Mark picked up</button>}
         {ride.status === "riding" && ride.trip_stage < 4 && <button className={green} disabled={busy} onClick={() => stage(4, "Dropped at voting place")}>Dropped at voting place</button>}
-        {ride.status === "riding" && ride.trip_stage >= 4 && ride.trip_stage < 6 && ride.round_trip && (
+        {ride.status === "riding" && ride.trip_stage === 4 && ride.round_trip && (
+          <button className={green} disabled={busy} onClick={() => stage(5, "Ride home sent")}>Send ride home</button>
+        )}
+        {ride.status === "riding" && ride.trip_stage === 5 && (
           <button className={green} disabled={busy} onClick={() => stage(6, "Picked up for ride home")}>Picked up for ride home</button>
         )}
-        {ride.status === "riding" && ((ride.trip_stage >= 6) || (ride.trip_stage >= 4 && !ride.round_trip)) && (
-          <button className={green} disabled={busy} onClick={() => stage(7, "Trip complete", "completed")}>Mark trip complete</button>
+        {ride.status === "riding" && (ride.trip_stage >= 6 || (ride.trip_stage >= 4 && !ride.round_trip)) && (
+          <button className={green} disabled={busy} onClick={() => stage(ride.round_trip ? 7 : 4, "Trip complete", "completed")}>Mark trip complete</button>
         )}
         {ride.status === "requested" && (
           confirmCancel ? (
@@ -193,6 +204,12 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
           ) : <button className={ghost} onClick={() => setConfirmCancel(true)}>Cancel request</button>
         )}
         {err && <p className="text-sm text-[hsl(var(--rides-amber))]">{err}</p>}
+      </section>
+
+      <section className="space-y-2">
+        <button className={ghost} onClick={copyLink}>{copied ? "Rider link copied" : "Copy rider link"}</button>
+        <p className="break-all text-xs text-[hsl(var(--rides-ink)/0.55)]">{riderLink}</p>
+        {ride.quiz_finished_at && <p className="text-sm">Rights quiz {Number(ride.quiz_score)}/8</p>}
       </section>
 
       <section>
