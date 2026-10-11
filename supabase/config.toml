@@ -19,3 +19,5 @@ project_id = "zigemhmhbzegwbgvvmpc"
     verify_jwt = true
   [functions.handle-email-events]
     verify_jwt = false
+  [functions.bird-inbound]
+    verify_jwt = false

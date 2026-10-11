@@ -6122,6 +6122,7 @@ export type Database = {
         Args: { _approve: boolean; _change_id: string }
         Returns: string
       }
+      ride_paused_ids: { Args: never; Returns: string[] }
       save_voting_plan: {
         Args: { _election_id: string; _steps: Json }
         Returns: {
