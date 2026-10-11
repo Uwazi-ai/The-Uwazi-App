@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import { PollRideTeaser } from "./PollRideTeaser";
 import {
   ELECTION_DATE, POLL_RIDES_LIVE, STATE_NAMES, askUwaziFromCard,
   useEarlyVotingCountdown, useElectionRules, useRightsCards, useVoteReadyChecklist, useVoterState,
@@ -268,7 +269,7 @@ export function KnowYourVotingRights() {
       </div>
       <CountdownCard state={state} />
       <RightsGrid state={state} />
-      {/* Pass 3: poll ride teaser goes here. */}
+      <PollRideTeaser state={state} />
       <Checklist state={state} />
     </section>
   );
