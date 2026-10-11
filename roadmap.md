@@ -51,4 +51,5 @@
 
 ## Rides to the Polls
 - [ ] User to add BIRD_API_KEY + BIRD_SENDER in Project Settings → Secrets, then send one real test text to their number
-- [ ] User to finish Bird inbound webhook setup (BIRD_WEBHOOK_SECRET + Bird callback URL)
+- [x] Bird webhook secret saved (as STRIPE_WEBHOOK_SECRET); bird-inbound now reads it
+- [ ] User to point Bird inbound messages to the bird-inbound webhook URL in the Bird dashboard

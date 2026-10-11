@@ -34,7 +34,8 @@ function pick(j: any) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return ok(405);
-  const key = Deno.env.get("BIRD_WEBHOOK_SECRET");
+  // The Bird webhook signing key is stored under STRIPE_WEBHOOK_SECRET (user's chosen name).
+  const key = Deno.env.get("STRIPE_WEBHOOK_SECRET");
   if (!key) return ok(503);
   const raw = await req.text();
   if (raw.length > 20000 || !(await verify(req, raw, key))) return ok(401);
