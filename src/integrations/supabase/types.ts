@@ -3820,6 +3820,7 @@ export type Database = {
           pickup_time: string
           quiz_finished_at: string | null
           quiz_score: number | null
+          reminder_sent_at: string | null
           ride_code: string
           ride_day: string
           round_trip: boolean
@@ -3847,6 +3848,7 @@ export type Database = {
           pickup_time: string
           quiz_finished_at?: string | null
           quiz_score?: number | null
+          reminder_sent_at?: string | null
           ride_code?: string
           ride_day: string
           round_trip?: boolean
@@ -3874,6 +3876,7 @@ export type Database = {
           pickup_time?: string
           quiz_finished_at?: string | null
           quiz_score?: number | null
+          reminder_sent_at?: string | null
           ride_code?: string
           ride_day?: string
           round_trip?: boolean
@@ -3999,6 +4002,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ride_sms_optouts: {
+        Row: {
+          created_at: string
+          phone_hash: string
+        }
+        Insert: {
+          created_at?: string
+          phone_hash: string
+        }
+        Update: {
+          created_at?: string
+          phone_hash?: string
+        }
+        Relationships: []
       }
       rights_questions: {
         Row: {
