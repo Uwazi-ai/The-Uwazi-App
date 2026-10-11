@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import uwaziLogo from "@/assets/uwazi-app-wordmark.png";
-import { RidesShell, InfoPanel, fmtDay, fmtHour } from "@/components/rides/RidesUI";
+import { RidesShell, InfoPanel, fmtDay, fmtHour, fmtPhone, telHref } from "@/components/rides/RidesUI";
 
 type Card = {
   ride_code: string;
@@ -83,7 +83,7 @@ export default function RideCardPage() {
   }
 
   const line = card.ride_line_phone;
-  const LineLink = () => (line ? <a className="underline" href={`tel:${line}`}>Call the ride line.</a> : <>Call the ride line.</>);
+  const LineLink = () => (line ? <a className="underline" href={telHref(line)}>Call the ride line at {fmtPhone(line)}.</a> : <>Call the ride line.</>);
 
   return (
     <RidesShell logo={uwaziLogo}>

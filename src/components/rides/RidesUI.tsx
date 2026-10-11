@@ -67,3 +67,17 @@ export function fmtHour(h: string) {
   const n = Number(h.slice(0, 2));
   return `${n % 12 || 12} ${n < 12 ? "AM" : "PM"}`;
 }
+
+export function phoneDigits(p?: string | null) {
+  return (p ?? "").replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
+}
+
+export function fmtPhone(p?: string | null) {
+  const d = phoneDigits(p);
+  return d.length === 10 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : (p ?? "");
+}
+
+export function telHref(p?: string | null) {
+  const d = phoneDigits(p);
+  return d.length === 10 ? `tel:+1${d}` : `tel:${p ?? ""}`;
+}

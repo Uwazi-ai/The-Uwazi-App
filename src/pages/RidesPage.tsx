@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import uwaziLogo from "@/assets/uwazi-app-wordmark.png";
-import { RidesShell, GreenButton, InfoPanel, Chip, Toggle, fmtDay, fmtHour } from "@/components/rides/RidesUI";
+import { RidesShell, GreenButton, InfoPanel, Chip, Toggle, fmtDay, fmtHour, fmtPhone, telHref } from "@/components/rides/RidesUI";
 
 type Day = { day: string; dow: number; kind: "early" | "election_day"; open: boolean };
 type Hour = { hour: string; seats_left: number; too_soon: boolean; bookable: boolean };
@@ -187,8 +187,8 @@ export default function RidesPage() {
           </ul>
           <GreenButton onClick={() => setStep(1)}>Request a ride</GreenButton>
           {phoneLine && (
-            <a href={`tel:${phoneLine}`} className="block w-full rounded-xl border border-[hsl(var(--rides-ink)/0.25)] py-3.5 text-center font-semibold">
-              Call a ride coordinator
+            <a href={telHref(phoneLine)} className="block w-full rounded-xl border border-[hsl(var(--rides-ink)/0.25)] py-3.5 text-center font-semibold">
+              Call a ride coordinator: {fmtPhone(phoneLine)}
             </a>
           )}
         </section>
@@ -275,7 +275,7 @@ export default function RidesPage() {
             {avail?.earliest_bookable
               ? <>Earliest pickup you can book: {fmtDay(avail.earliest_bookable.day)}, {fmtHour(avail.earliest_bookable.hour)}. </>
               : <>No pickups are open right now. </>}
-            Need a ride sooner? {phoneLine ? <a className="underline" href={`tel:${phoneLine}`}>Call the ride line.</a> : "Call the ride line."}
+            Need a ride sooner? {phoneLine ? <a className="underline" href={telHref(phoneLine)}>Call the ride line at {fmtPhone(phoneLine)}.</a> : "Call the ride line."}
           </InfoPanel>
 
           {kind === "election_day" && (
