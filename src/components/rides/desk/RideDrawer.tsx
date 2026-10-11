@@ -122,7 +122,7 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
   };
 
   const atCap = fundedBooked >= settings.funded_cap;
-  const statusText: Record<string, string> = { requested: "New request", booked: "Booked with zTrip", riding: stageLabel(ride) ?? "On the way", completed: "Completed", referred: "Referred to RideKC", cancelled: "Cancelled" };
+  const statusText: Record<string, string> = { requested: "New request", booked: stageLabel(ride) ?? "Booked with zTrip", riding: stageLabel(ride) ?? "On the way", completed: "Completed", referred: "Referred to RideKC", cancelled: "Cancelled" };
 
   return (
     <div className="space-y-5 pb-8 text-[hsl(var(--rides-ink))]">
