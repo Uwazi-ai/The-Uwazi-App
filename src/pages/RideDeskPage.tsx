@@ -126,6 +126,7 @@ function Desk() {
           <span className={plain}>{r.round_trip ? "Round trip" : "One way"}</span>
           {r.needs.map((n) => <span key={n} className={blue}>{NEED_LABELS[n] ?? n}</span>)}
           {waiting && <span className={amber}>Waiting 30m</span>}
+          {r.quiz_finished_at && <span className={blue}>Rights quiz {Number(r.quiz_score)}/8</span>}
         </div>
       </button>
     );

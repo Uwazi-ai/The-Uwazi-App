@@ -37,9 +37,11 @@ export function avgWait(rides: Ride[]) {
 export function stageLabel(r: Ride) {
   if (r.status === "riding") {
     if (r.trip_stage >= 6) return "Riding home";
-    if (r.trip_stage >= 4) return "At voting place";
+    if (r.trip_stage === 5) return "Ride home sent";
+    if (r.trip_stage === 4) return "At voting place";
     return "Riding to vote";
   }
+  if (r.status === "booked") return ["Driver booked", "Driver on the way", "Driver is here"][r.trip_stage] ?? null;
   return null;
 }
 
