@@ -80,7 +80,7 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
   const log = (event_type: string, note: string) =>
     supabase.from("ride_events").insert({ request_id: ride.id, event_type, note, actor: user!.id });
 
-  const run = async (fn: () => Promise<{ error: unknown } | void>) => {
+  const run = async (fn: () => PromiseLike<{ error: unknown } | void>) => {
     setBusy(true);
     setErr(null);
     const r = await fn();
