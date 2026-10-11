@@ -115,14 +115,14 @@ function checklistCopy(state: VoterState, regPast: boolean): Record<ChecklistKey
   return {
     reg: mo || regPast
       ? { label: "Confirm you are registered", sub: mo ? "Registration closed Oct 7. Check your status with the Secretary of State." : "Registration closed Oct 13. Check Kansas VoterView." }
-      : { label: "Register or confirm by Oct 13", sub: "Check Kansas VoterView." },
-    place: { label: "Find your voting place", sub: "Look it up before you go." },
-    idc: { label: "Pack your photo ID", sub: mo ? "No ID? You can still cast a provisional ballot." : "No ID? Get a free non-driver ID at the DMV." },
-    plan: { label: "Pick your day and time", sub: mo ? "Early voting starts Oct 20. Polls open 6 AM to 7 PM on Nov 3." : "Advance voting is open now in many counties. Polls open 7 AM to 7 PM on Nov 3." },
-    ballot: { label: "Look over your ballot", sub: "Know your races before you go." },
-    ride: { label: "Plan your ride", sub: "Know how you will get there and back." },
-    work: { label: "Tell your boss", sub: mo ? "You can get up to 3 paid hours to vote." : "You can get up to 2 paid hours to vote." },
-    hot: { label: "Save the help line", sub: "866-OUR-VOTE if anything goes wrong." },
+      : { label: "Register or confirm by Oct 13", sub: "Check Kansas VoterView. Registration closes Oct 13." },
+    place: { label: "Find your polling place", sub: "It may have moved. Early voting sites can differ." },
+    idc: { label: "Pack your photo ID", sub: mo ? "Driver or non-driver license, passport, or military or veteran ID." : "Driver license, passport, military ID, or free state ID." },
+    plan: { label: "Pick when you will vote", sub: mo ? "Early in person Oct 20 to Nov 2, or Election Day." : "Advance in person (Johnson County opens Oct 17) until noon Nov 2, by mail, or Election Day." },
+    ballot: { label: "Preview your ballot", sub: "See every race and measure in the Voting Hub." },
+    ride: { label: "Plan your ride", sub: "Book a free poll ride in UWAZI if you need one." },
+    work: { label: "Ask for time off if needed", sub: mo ? "Up to 3 paid hours. Ask before Election Day." : "Up to 2 paid hours. Ask your employer." },
+    hot: { label: "Save 866-OUR-VOTE", sub: "One tap if anything goes wrong at the polls." },
   };
 }
 

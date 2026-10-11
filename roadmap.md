@@ -43,3 +43,12 @@
 - [ ] Low income and community free tier (later, Elimu school partnership build, no UI now)
 - [ ] Bird STOP webhook: needs BIRD_WEBHOOK_SECRET from user + URL set in Bird
 - [x] Know Your Voting Rights pass 1: tables, seeds, hooks (no UI)
+
+## Know Your Voting Rights (Home)
+- [x] Pass 1: tables, seed data, hooks in src/hooks/useVotingRights.ts
+- [x] Pass 2: Home section UI (countdown, rights cards, checklist) + checklist copy fix
+- [ ] Pass 3: poll ride teaser slot
+
+## Rides to the Polls
+- [ ] User to add BIRD_API_KEY + BIRD_SENDER in Project Settings → Secrets, then send one real test text to their number
+- [ ] User to finish Bird inbound webhook setup (BIRD_WEBHOOK_SECRET + Bird callback URL)
