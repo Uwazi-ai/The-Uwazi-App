@@ -89,13 +89,14 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
   };
 
   const update = (patch: Partial<Ride>) => supabase.from("ride_requests").update(patch).eq("id", ride.id);
+  const text = (kind: string) => supabase.functions.invoke("send-ride-text", { body: { ride_id: ride.id, kind } });
 
   const assign = () =>
     run(async () => {
       const opt = options?.find((o) => o.id === pick);
       if (!opt) return;
       const r = await update({ destination_site_id: opt.id, needs_destination: false });
-      if (!r.error) await log("destination_assigned", opt.name);
+      if (!r.error) { await log("destination_assigned", opt.name); await text("destination_assigned"); }
       setPick(null);
       return r;
     });
@@ -105,6 +106,7 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
       const z = ztrip.trim() || null;
       const r = await update({ status: "booked", ztrip_confirmation: z, trip_stage: 0 });
       if (!r.error && z) await log("ztrip_number", `zTrip ${z}`);
+      if (!r.error) await text("booked");
       return r;
     });
 
@@ -112,6 +114,7 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
     run(async () => {
       const r = await update(status ? { status, trip_stage } : { trip_stage });
       if (!r.error) await log("trip_stage", note);
+      if (!r.error && trip_stage === 5) await text("ride_home_sent");
       return r;
     });
 
@@ -170,7 +173,7 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
       <section className="space-y-3">
         {ride.status === "requested" && (
           atCap ? (
-            <button className={green} disabled={busy} onClick={() => run(() => update({ status: "referred" }))}>Funded rides are full. Send RideKC info</button>
+            <button className={green} disabled={busy} onClick={() => run(async () => { const r = await update({ status: "referred" }); if (!r.error) await text("referred"); return r; })}>Funded rides are full. Send RideKC info</button>
           ) : (
             <>
               <input className="rides-input" placeholder="zTrip number, optional" value={ztrip} onChange={(e) => setZtrip(e.target.value)} maxLength={40} />
@@ -198,7 +201,7 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
               <p className="text-sm">Cancel this ride? The rider keeps their code but no driver comes.</p>
               <div className="flex gap-2">
                 <button className={ghost} onClick={() => setConfirmCancel(false)}>Keep it</button>
-                <button className={`${btn} bg-[hsl(var(--rides-amber))] text-[hsl(var(--rides-bg))]`} disabled={busy} onClick={() => run(() => update({ status: "cancelled" }))}>Yes, cancel</button>
+                <button className={`${btn} bg-[hsl(var(--rides-amber))] text-[hsl(var(--rides-bg))]`} disabled={busy} onClick={() => run(async () => { const r = await update({ status: "cancelled" }); if (!r.error) await text("cancelled"); return r; })}>Yes, cancel</button>
               </div>
             </div>
           ) : <button className={ghost} onClick={() => setConfirmCancel(true)}>Cancel request</button>
@@ -207,6 +210,7 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
       </section>
 
       <section className="space-y-2">
+        {ride.texts_ok && <button className={ghost} disabled={busy} onClick={() => run(() => text("request_received"))}>Text rider link</button>}
         <button className={ghost} onClick={copyLink}>{copied ? "Rider link copied" : "Copy rider link"}</button>
         <p className="break-all text-xs text-[hsl(var(--rides-ink)/0.55)]">{riderLink}</p>
         {ride.quiz_finished_at && <p className="text-sm">Rights quiz {Number(ride.quiz_score)}/8</p>}
@@ -218,7 +222,10 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
           {events.map((e) => (
             <li key={e.id}>
               <span className="text-[hsl(var(--rides-ink)/0.55)]">{new Date(e.created_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}. </span>
-              {e.event_type === "status_change" ? `Status ${e.from_status} to ${e.to_status}` : e.note ?? e.event_type}
+              {e.event_type === "texted" ? <>Text sent: {TEXT_NAMES[e.note ?? ""] ?? e.note} <span className="text-[hsl(var(--rides-green))]">✓</span></>
+                : e.event_type === "texted_failed" ? <>{TEXT_NAMES[(e.note ?? "").split(".")[0]] ?? "Text"}. <span className="rounded bg-destructive px-1.5 py-0.5 text-xs font-semibold text-destructive-foreground">Text failed</span> <span className="text-[hsl(var(--rides-ink)/0.55)]">{(e.note ?? "").split(". ").slice(1).join(". ")}</span></>
+                : e.event_type === "text_skipped" ? "Text not sent. Rider opted out"
+                : e.event_type === "status_change" ? `Status ${e.from_status} to ${e.to_status}` : e.note ?? e.event_type}
             </li>
           ))}
           {events.length === 0 && <li>No events yet.</li>}
@@ -228,6 +235,11 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
     </div>
   );
 }
+
+const TEXT_NAMES: Record<string, string> = {
+  request_received: "Request received", referred: "RideKC info", booked: "Ride booked", reminder: "Reminder",
+  destination_assigned: "Voting place", ride_home_sent: "Ride home", cancelled: "Cancelled",
+};
 
 function Row({ k, children }: { k: string; children: React.ReactNode }) {
   return (
