@@ -7,8 +7,10 @@ import { RidesShell, GreenButton, InfoPanel, Chip, Toggle, fmtDay, fmtHour } fro
 
 type Day = { day: string; dow: number; kind: "early" | "election_day"; open: boolean };
 type Hour = { hour: string; seats_left: number; too_soon: boolean; bookable: boolean };
+type Site = { id: string; name: string; address: string; open: string; close: string; distance_mi: number | null };
 type Avail = {
   days: Day[];
+  sites?: Site[];
   hours?: Hour[];
   earliest_bookable: { day: string; hour: string } | null;
   funded_left: number;
@@ -37,8 +39,9 @@ const FIELD_LABELS: Record<string, string> = {
   pickup_time: "Please pick a pickup hour.",
 };
 
-async function availability(zip?: string, ride_day?: string): Promise<Avail> {
-  const { data, error } = await supabase.functions.invoke("get-ride-availability", { body: { zip, ride_day } });
+async function availability(zip?: string, ride_day?: string, address?: string, site_id?: string): Promise<Avail> {
+  const a = address && address.trim().length >= 5 ? address.trim() : undefined;
+  const { data, error } = await supabase.functions.invoke("get-ride-availability", { body: { zip, ride_day, address: a, site_id } });
   if (error) throw error;
   return data as Avail;
 }
@@ -53,6 +56,8 @@ export default function RidesPage() {
   const [day, setDay] = useState<string | null>(null);
   const [hours, setHours] = useState<Hour[] | null>(null);
   const [hour, setHour] = useState<string | null>(null);
+  const [sites, setSites] = useState<Site[] | null>(null);
+  const [siteId, setSiteId] = useState<string | null>(null);
   const [ward, setWard] = useState("");
   const [precinct, setPrecinct] = useState("");
   const [noPrecinct, setNoPrecinct] = useState(false);
@@ -70,14 +75,36 @@ export default function RidesPage() {
   }, []);
 
   useEffect(() => {
-    if (step === 2 && /^\d{5}$/.test(zip)) availability(zip).then(setAvail).catch(() => {});
+    if (step === 2 && /^\d{5}$/.test(zip)) availability(zip, undefined, address).then(setAvail).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, zip]);
+
+  useEffect(() => {
+    setSiteId(null);
+    setSites(null);
+  }, [day]);
 
   useEffect(() => {
     if (!day) return setHours(null);
     setHours(null);
-    availability(zip, day).then((a) => setHours(a.hours ?? [])).catch(() => setHours([]));
-  }, [day, zip]);
+    let live = true;
+    availability(zip, day, address, siteId ?? undefined)
+      .then((a) => {
+        if (!live) return;
+        const list = a.sites ?? [];
+        setSites(list);
+        if (list.length && (!siteId || !list.some((x) => x.id === siteId))) {
+          setSiteId(list[0].id);
+          return;
+        }
+        setHours(a.hours ?? []);
+      })
+      .catch(() => live && setHours([]));
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [day, zip, siteId]);
+
+  const site = sites?.find((x) => x.id === siteId) ?? null;
 
   const earlyOpen = avail?.days.some((d) => d.kind === "early" && d.open);
   const edOpen = avail?.days.some((d) => d.kind === "election_day" && d.open);
@@ -105,6 +132,7 @@ export default function RidesPage() {
       texts_ok: textsOk,
       source: "web",
     };
+    if (kind === "early" && siteId) body.destination_site_id = siteId;
     if (kind === "election_day" && !noPrecinct && ward && precinct) {
       body.ward = ward;
       body.precinct = precinct;
@@ -196,6 +224,33 @@ export default function RidesPage() {
 
           {kind === "early" && avail && <Calendar days={avail.days.filter((d) => d.kind === "early")} value={day} onPick={(d) => { setDay(d); setHour(null); }} />}
 
+          {kind === "early" && day && sites && sites.length > 0 && (
+            <div className="space-y-2" role="radiogroup" aria-label="Early voting place">
+              <p className="font-semibold">Where do you want to vote early?</p>
+              {sites.map((x) => (
+                <button
+                  key={x.id}
+                  role="radio"
+                  aria-checked={siteId === x.id}
+                  onClick={() => { setSiteId(x.id); setHour(null); }}
+                  className={`flex w-full items-start gap-3 rounded-2xl border p-4 text-left ${
+                    siteId === x.id ? "border-[hsl(var(--rides-green))] bg-[hsl(var(--rides-green)/0.1)]" : "border-[hsl(var(--rides-ink)/0.15)]"
+                  }`}
+                >
+                  <span className={`mt-1 h-4 w-4 shrink-0 rounded-full border-2 ${siteId === x.id ? "border-[hsl(var(--rides-green))] bg-[hsl(var(--rides-green))]" : "border-[hsl(var(--rides-ink)/0.4)]"}`} />
+                  <span className="min-w-0">
+                    <b className="block">{x.name}</b>
+                    <span className="block text-sm text-[hsl(var(--rides-ink)/0.75)]">{x.address}</span>
+                    <span className="block text-xs text-[hsl(var(--rides-ink)/0.6)]">
+                      {x.distance_mi != null ? `${x.distance_mi} miles away. ` : ""}Open {fmtHour(x.open)} to {fmtHour(x.close)}
+                    </span>
+                  </span>
+                </button>
+              ))}
+              <p className="text-xs text-[hsl(var(--rides-ink)/0.6)]">Early voting is open to registered voters in Kansas City, Jackson County.</p>
+            </div>
+          )}
+
           {day && (
             <div className="space-y-2">
               <p className="font-semibold">Pickup time on {fmtDay(day)}</p>
@@ -273,7 +328,7 @@ export default function RidesPage() {
           <Review label="Pickup" value={`${address}, ${zip}`} error={errors.pickup_address || errors.zip} onEdit={() => setStep(1)} />
           <Review
             label="When"
-            value={`${day ? fmtDay(day) : ""}, ${hour ? fmtHour(hour) : ""}${roundTrip ? ". Round trip" : ". One way"}${kind === "election_day" && ward && precinct && !noPrecinct ? `. Ward ${ward}, precinct ${precinct}` : ""}`}
+            value={`${day ? fmtDay(day) : ""}, ${hour ? fmtHour(hour) : ""}${roundTrip ? ". Round trip" : ". One way"}${kind === "election_day" && ward && precinct && !noPrecinct ? `. Ward ${ward}, precinct ${precinct}` : ""}${kind === "early" && site ? `. Vote at ${site.name}` : ""}`}
             error={errors.ride_day || errors.pickup_time}
             onEdit={() => setStep(2)}
           />

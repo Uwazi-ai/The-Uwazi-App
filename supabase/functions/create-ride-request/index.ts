@@ -4,6 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.23.8";
 import { pickupHours } from "../_shared/rides.ts";
+import { geocode, JACKSON_FIPS, miles, openSites, siteFits } from "../_shared/ride-sites.ts";
 
 const NEEDS = ["wheelchair", "walker", "service_animal", "child_seat", "extra_time", "language_help", "other"] as const;
 
@@ -35,21 +36,6 @@ async function sha(v: string) {
 function centralNow(): Date {
   const s = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" });
   return new Date(s);
-}
-
-async function countyFips(address: string, zip: string): Promise<{ state: string; county: string } | null> {
-  try {
-    const url = `https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=${encodeURIComponent(
-      `${address} ${zip}`,
-    )}&benchmark=Public_AR_Current&vintage=Current_Current&layers=Counties&format=json`;
-    const r = await fetch(url, { signal: AbortSignal.timeout(10000) });
-    const j = await r.json();
-    const c = j?.result?.addressMatches?.[0]?.geographies?.Counties?.[0];
-    if (!c) return null;
-    return { state: c.STATE === "29" ? "MO" : c.STATE === "20" ? "KS" : c.STATE, county: `${c.STATE}${c.COUNTY}` };
-  } catch {
-    return null;
-  }
 }
 
 Deno.serve(async (req) => {
@@ -108,21 +94,36 @@ Deno.serve(async (req) => {
   // Destination: only verified sites, never invented.
   let site: { id: string; name: string; address: string } | null = null;
   const siteCols = "id,name,address";
-  if (b.destination_site_id) {
-    const { data } = await db.from("voter_guide_sites").select(siteCols).eq("id", b.destination_site_id)
-      .eq("verification_status", "verified").eq("site_type", isElectionDay ? "polling" : "early").maybeSingle();
-    site = data;
-  } else if (isElectionDay && b.ward && b.precinct) {
-    const { data } = await db.from("voter_guide_sites").select(siteCols).eq("site_type", "polling")
-      .eq("verification_status", "verified").eq("precinct_key", `${Number(b.ward)}-${Number(b.precinct)}`).limit(1).maybeSingle();
-    site = data;
-  } else if (isEarly) {
-    const geo = await countyFips(b.pickup_address, b.zip);
-    if (geo) {
+  if (isEarly) {
+    const geo = await geocode(b.pickup_address, b.zip);
+    if (!geo || geo.county === JACKSON_FIPS) {
+      // Jackson County: site must be open that day, at pickup and 1 hour after.
+      const open = (await openSites(db, b.ride_day)).filter((x) => siteFits(x, hour));
+      if (b.destination_site_id) {
+        const pick = open.find((x) => x.id === b.destination_site_id);
+        if (!pick) return json({ error: "That voting place is not open at that time. Pick another place or hour." }, 400);
+        site = pick;
+      } else if (open.length) {
+        if (!geo) return json({ error: "Please pick a voting place." }, 400);
+        site = open
+          .map((x) => ({ x, d: x.lat != null && x.lon != null ? miles(geo.lat, geo.lon, x.lat, x.lon) : 1e9 }))
+          .sort((a, c) => a.d - c.d)[0].x;
+      } else {
+        return json({ error: "No early voting place is open at that time. Pick another day or hour." }, 400);
+      }
+    } else {
       const { data } = await db.from("voter_guide_sites").select(siteCols).eq("site_type", "early")
         .eq("verification_status", "verified").eq("county_fips", geo.county).order("name").limit(1).maybeSingle();
       site = data;
     }
+  } else if (b.destination_site_id) {
+    const { data } = await db.from("voter_guide_sites").select(siteCols).eq("id", b.destination_site_id)
+      .eq("verification_status", "verified").eq("site_type", "polling").maybeSingle();
+    site = data;
+  } else if (b.ward && b.precinct) {
+    const { data } = await db.from("voter_guide_sites").select(siteCols).eq("site_type", "polling")
+      .eq("verification_status", "verified").eq("precinct_key", `${Number(b.ward)}-${Number(b.precinct)}`).limit(1).maybeSingle();
+    site = data;
   }
 
   const { data: row, error } = await db.from("ride_requests").insert({
