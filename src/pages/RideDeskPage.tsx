@@ -65,12 +65,15 @@ function Desk() {
   const [seen, setSeen] = useState<Set<string>>(() => new Set(JSON.parse(localStorage.getItem(SEEN_KEY) ?? "[]")));
   const [now, setNow] = useState(Date.now());
 
+  const [paused, setPaused] = useState<Set<string>>(new Set());
   const load = useCallback(async () => {
     const { data } = await supabase
       .from("ride_requests")
       .select("*, site:voter_guide_sites(id,name,address,hours,precinct_key)")
       .order("ride_day").order("pickup_time").order("created_at");
     setRides((data ?? []) as unknown as Ride[]);
+    const { data: p } = await supabase.rpc("ride_paused_ids");
+    setPaused(new Set(((p ?? []) as unknown as string[]).map(String)));
   }, []);
 
   useEffect(() => {
@@ -126,6 +129,7 @@ function Desk() {
           <span className={plain}>{r.round_trip ? "Round trip" : "One way"}</span>
           {r.needs.map((n) => <span key={n} className={blue}>{NEED_LABELS[n] ?? n}</span>)}
           {waiting && <span className={amber}>Waiting 30m</span>}
+          {paused.has(r.id) && <span className={amber}>Texts paused</span>}
           {r.quiz_finished_at && <span className={blue}>Rights quiz {Number(r.quiz_score)}/8</span>}
         </div>
       </button>
@@ -205,6 +209,11 @@ function Desk() {
       <Sheet open={!!current} onOpenChange={(o) => !o && setOpenId(null)}>
         <SheetContent side={sheetSide} className={sheetCls}>
           <SheetTitle className="sr-only">Ride details</SheetTitle>
+          {current && paused.has(current.id) && (
+            <p className="mb-3 mt-6 rounded-xl bg-[hsl(var(--rides-amber)/0.15)] p-3 text-sm text-[hsl(var(--rides-amber))]">
+              Texts paused. This rider replied STOP. Call them instead. They can reply START to get texts again.
+            </p>
+          )}
           {current && <RideDrawer key={current.id + current.status + current.trip_stage + String(current.destination_site_id)} ride={current} settings={settings} fundedBooked={fundedBooked} onClose={() => setOpenId(null)} />}
         </SheetContent>
       </Sheet>
