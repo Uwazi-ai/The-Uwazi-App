@@ -35,7 +35,6 @@ function MapCard({ stage }: { stage: number }) {
   const moving = [1, 3, 5, 6].includes(stage);
   const home = stage >= 5;
   const path = "M50 120 C 120 30, 220 150, 290 50";
-  const atEnd = stage === 4 || (stage === 7);
   return (
     <div className="overflow-hidden rounded-2xl border border-[hsl(var(--rides-ink)/0.15)] bg-[hsl(var(--rides-ink)/0.04)]">
       <svg viewBox="0 0 340 170" className="h-auto w-full" role="img" aria-label="Map from your address to the voting place">
@@ -49,15 +48,11 @@ function MapCard({ stage }: { stage: number }) {
           <rect x="-10" y="-10" width="20" height="20" rx="3" fill="hsl(var(--rides-green))" />
           <text y="28" textAnchor="middle" fontSize="12" fill="hsl(var(--rides-ink))" fontWeight="700">Vote</text>
         </g>
-        {(moving || stage === 2 || atEnd) && (
-          <g>
+        {moving && (
+          <g transform={reduce ? `translate(${home ? "290 50" : "50 120"})` : undefined}>
             <circle r="9" fill="hsl(var(--rides-ink))" />
             <circle r="5" fill="hsl(var(--rides-green))" />
-            {moving && !reduce ? (
-              <animateMotion dur="6s" repeatCount="indefinite" path={path} keyPoints={home ? "1;0" : "0;1"} keyTimes="0;1" calcMode="linear" />
-            ) : (
-              <animateMotion dur="0.01s" fill="freeze" path={path} keyPoints={home || stage <= 2 ? (stage === 6 || stage === 7 ? "0;0" : home ? "1;1" : "0;0") : "1;1"} keyTimes="0;1" calcMode="linear" />
-            )}
+            {!reduce && <animateMotion dur="6s" repeatCount="indefinite" path={path} keyPoints={home ? "1;0" : "0;1"} keyTimes="0;1" calcMode="linear" />}
           </g>
         )}
       </svg>
