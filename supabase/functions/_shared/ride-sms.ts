@@ -89,8 +89,12 @@ export async function sendRideSms(
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify(birdBody(kind, r, to, from)),
     });
+    if (!res.ok) {
+      const why = (await res.text().catch(() => "")).replace(/\+?\d{7,}/g, "#").slice(0, 300);
+      console.error("bird error", res.status, why);
+      await log("texted_failed", `${kind}. Bird status ${res.status}`); return "failed";
+    }
     await res.body?.cancel().catch(() => {});
-    if (!res.ok) { await log("texted_failed", `${kind}. Bird status ${res.status}`); return "failed"; }
     await log("texted", kind);
     return "sent";
   } catch (_e) {
