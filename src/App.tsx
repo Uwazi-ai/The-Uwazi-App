@@ -77,6 +77,7 @@ import MyBallotExportPage from "./pages/MyBallotExportPage";
 import { InAppBrowserProvider } from "@/contexts/InAppBrowserContext";
 import OAuthConsentPage from "./pages/OAuthConsentPage";
 import CivicCompassPage from "./pages/CivicCompassPage";
+import RidesPage from "./pages/RidesPage";
 
 const queryClient = new QueryClient();
 
@@ -109,6 +110,7 @@ const App = () => (
               <Route path="/impact" element={<ImpactPage />} />
               <Route path="/redeem" element={<PromoRedeemPage />} />
               <Route path="/backpack-rules" element={<BackpackRulesPage />} />
+              <Route path="/rides" element={<RidesPage />} />
               <Route path="/.lovable/oauth/consent" element={<OAuthConsentPage />} />
 
               <Route path="/vote" element={<Navigate to="/app/vote" replace />} />
