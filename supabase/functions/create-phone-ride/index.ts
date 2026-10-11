@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
     texts_ok: b.texts_ok,
     source: "phone",
     status: referred ? "referred" : "requested",
-  }).select("id,ride_code").single();
+  }).select("id,ride_code,card_token").single();
   if (error || !row) {
     console.error("ride insert failed", error);
     return json({ error: "We could not save your ride. Please call the ride line." }, 500);
@@ -150,6 +150,7 @@ Deno.serve(async (req) => {
 
   return json({
     ride_code: row.ride_code,
+    card_token: row.card_token,
     destination: site ? { name: site.name, address: site.address } : null,
     needs_destination: !site,
     referred,
