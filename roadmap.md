@@ -41,3 +41,5 @@
 - [ ] Plus tiers: free user and student browser checks on a real free test account (blocked: needs a free test login)
 - [ ] Student ID fallback privacy approach (blocked: Derek to confirm)
 - [ ] Low income and community free tier (later, Elimu school partnership build, no UI now)
+- [ ] Bird STOP webhook: needs BIRD_WEBHOOK_SECRET from user + URL set in Bird
+- [x] Know Your Voting Rights pass 1: tables, seeds, hooks (no UI)

@@ -2243,6 +2243,48 @@ export type Database = {
         }
         Relationships: []
       }
+      election_rules: {
+        Row: {
+          display_label: string
+          election_date: string
+          ends_at: string | null
+          id: string
+          jurisdiction: string | null
+          rule_key: string
+          source: string
+          starts_at: string | null
+          state_code: string
+          updated_at: string | null
+          verified: boolean
+        }
+        Insert: {
+          display_label: string
+          election_date: string
+          ends_at?: string | null
+          id?: string
+          jurisdiction?: string | null
+          rule_key: string
+          source: string
+          starts_at?: string | null
+          state_code: string
+          updated_at?: string | null
+          verified?: boolean
+        }
+        Update: {
+          display_label?: string
+          election_date?: string
+          ends_at?: string | null
+          id?: string
+          jurisdiction?: string | null
+          rule_key?: string
+          source?: string
+          starts_at?: string | null
+          state_code?: string
+          updated_at?: string | null
+          verified?: boolean
+        }
+        Relationships: []
+      }
       elections: {
         Row: {
           absentee_deadline: string | null
@@ -3191,6 +3233,30 @@ export type Database = {
         }
         Relationships: []
       }
+      poll_ride_waitlist: {
+        Row: {
+          created_at: string | null
+          id: string
+          phone: string | null
+          state_code: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          phone?: string | null
+          state_code?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          phone?: string | null
+          state_code?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
@@ -4015,6 +4081,54 @@ export type Database = {
         Update: {
           created_at?: string
           phone_hash?: string
+        }
+        Relationships: []
+      }
+      rights_cards: {
+        Row: {
+          active: boolean
+          ask_uwazi_prompt: string | null
+          blurb: string
+          card_key: string
+          color_token: string
+          detail: string
+          id: string
+          sort_order: number
+          source: string
+          span: number
+          state_code: string | null
+          tag: string
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          ask_uwazi_prompt?: string | null
+          blurb: string
+          card_key: string
+          color_token: string
+          detail: string
+          id?: string
+          sort_order?: number
+          source: string
+          span?: number
+          state_code?: string | null
+          tag: string
+          title: string
+        }
+        Update: {
+          active?: boolean
+          ask_uwazi_prompt?: string | null
+          blurb?: string
+          card_key?: string
+          color_token?: string
+          detail?: string
+          id?: string
+          sort_order?: number
+          source?: string
+          span?: number
+          state_code?: string | null
+          tag?: string
+          title?: string
         }
         Relationships: []
       }
@@ -5146,6 +5260,27 @@ export type Database = {
             referencedColumns: ["slug"]
           },
         ]
+      }
+      voter_checklist_progress: {
+        Row: {
+          completed_at: string | null
+          election_date: string
+          item_key: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          election_date: string
+          item_key: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          election_date?: string
+          item_key?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       voter_guide_dates: {
         Row: {
