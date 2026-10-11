@@ -3806,6 +3806,7 @@ export type Database = {
         Row: {
           autocab_booking_id: string | null
           booked_at: string | null
+          card_token: string
           completed_at: string | null
           created_at: string
           destination_site_id: string | null
@@ -3832,6 +3833,7 @@ export type Database = {
         Insert: {
           autocab_booking_id?: string | null
           booked_at?: string | null
+          card_token?: string
           completed_at?: string | null
           created_at?: string
           destination_site_id?: string | null
@@ -3858,6 +3860,7 @@ export type Database = {
         Update: {
           autocab_booking_id?: string | null
           booked_at?: string | null
+          card_token?: string
           completed_at?: string | null
           created_at?: string
           destination_site_id?: string | null
@@ -3996,6 +3999,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      rights_questions: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          correct_index: number
+          created_at: string
+          explanation: string
+          id: string
+          options: string[]
+          question: string
+          sort: number
+          state: string
+          takeaway: string
+          title: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          correct_index: number
+          created_at?: string
+          explanation: string
+          id?: string
+          options: string[]
+          question: string
+          sort: number
+          state: string
+          takeaway: string
+          title: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          correct_index?: number
+          created_at?: string
+          explanation?: string
+          id?: string
+          options?: string[]
+          question?: string
+          sort?: number
+          state?: string
+          takeaway?: string
+          title?: string
+        }
+        Relationships: []
       }
       saved_articles: {
         Row: {
