@@ -4,6 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.23.8";
 import { pickupHours } from "../_shared/rides.ts";
+import { sendRideSms } from "../_shared/ride-sms.ts";
 import { geocode, JACKSON_FIPS, miles, openSites, siteFits } from "../_shared/ride-sites.ts";
 
 const NEEDS = ["wheelchair", "walker", "service_animal", "child_seat", "extra_time", "language_help", "other"] as const;
@@ -151,6 +152,11 @@ Deno.serve(async (req) => {
     to_status: referred ? "referred" : "requested",
     note: site ? null : "needs destination",
   });
+
+  await sendRideSms(db, referred ? "referred" : "request_received", {
+    id: row.id, ride_code: row.ride_code, card_token: row.card_token, phone: digits, texts_ok: b.texts_ok,
+    ride_day: b.ride_day, pickup_time: b.pickup_time, needs_destination: !site, site,
+  }, null);
 
   return json({
     ride_code: row.ride_code,
