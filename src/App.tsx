@@ -79,6 +79,7 @@ import OAuthConsentPage from "./pages/OAuthConsentPage";
 import CivicCompassPage from "./pages/CivicCompassPage";
 import RidesPage from "./pages/RidesPage";
 import RideCardPage from "./pages/RideCardPage";
+import RideTrackPage from "./pages/RideTrackPage";
 import RideDeskPage from "./pages/RideDeskPage";
 
 const queryClient = new QueryClient();
