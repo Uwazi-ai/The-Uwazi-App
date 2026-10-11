@@ -15,6 +15,9 @@ Deno.serve(async (req) => {
   if (!a.ok) return json({ error: "Not allowed" }, 403);
 
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Chicago" });
+  // Two UTC runs cover daylight time changes; only the 6 PM Central one works.
+  const hour = Number(new Date().toLocaleString("en-US", { timeZone: "America/Chicago", hour: "numeric", hourCycle: "h23" }));
+  if (!a.manual && (hour !== 18 || today < "2026-10-19" || today > "2026-11-02")) return json({ skipped: "not 6 PM Central in the ride window" });
   const t = new Date(`${today}T12:00:00Z`);
   t.setUTCDate(t.getUTCDate() + 1);
   const tomorrow = t.toISOString().slice(0, 10);
