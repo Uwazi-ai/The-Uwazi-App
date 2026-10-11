@@ -718,3 +718,9 @@ body {
   .tilt-card, .tilt-foil { transition: none !important; }
 }
 .tilt-flat .badge-shock, .tilt-flat .pack-shine { display: none !important; }
+
+@layer components {
+  .rides-input {
+    @apply w-full rounded-xl border border-[hsl(var(--rides-ink)/0.2)] bg-[hsl(var(--rides-ink)/0.06)] px-4 py-3.5 text-base text-[hsl(var(--rides-ink))] outline-none placeholder:text-[hsl(var(--rides-ink)/0.4)] focus:border-[hsl(var(--rides-green))];
+  }
+}

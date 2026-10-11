@@ -3,6 +3,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.23.8";
+import { pickupHours } from "../_shared/rides.ts";
 
 const NEEDS = ["wheelchair", "walker", "service_animal", "child_seat", "extra_time", "language_help", "other"] as const;
 
@@ -86,7 +87,7 @@ Deno.serve(async (req) => {
   const dow = new Date(`${b.ride_day}T12:00:00Z`).getUTCDay();
   const hour = Number(b.pickup_time.slice(0, 2));
   // Pickup windows leave room for the ride home.
-  const okHour = dow >= 1 && dow <= 5 ? hour >= 11 && hour <= 16 : dow === 6 ? hour >= 8 && hour <= 10 : false;
+  const okHour = pickupHours(b.ride_day, settings, b.zip).includes(hour);
   const { data: blocks } = await db.from("driver_blocks").select("start_time,end_time").eq("day_of_week", dow).eq("active", true);
   const inBlock = (blocks ?? []).some((x) => b.pickup_time + ":00" >= x.start_time && b.pickup_time + ":00" < x.end_time);
   if (!okHour || !inBlock) return json({ error: "That pickup time is not available. Pick another hour." }, 400);
