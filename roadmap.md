@@ -46,7 +46,7 @@
 
 ## Know Your Voting Rights (Home)
 - [x] Pass 1: tables, seed data, hooks in src/hooks/useVotingRights.ts
-- [ ] Pass 2: Home section UI (countdown, rights cards, checklist) + checklist copy fix
+- [x] Pass 2: Home section UI (countdown, rights cards, checklist) + checklist copy fix
 - [ ] Pass 3: poll ride teaser slot
 
 ## Rides to the Polls
