@@ -74,7 +74,7 @@ export default function OnboardingPage() {
         </div>
 
         {step === 0 && <Welcome reduce={!!reduce} onNext={() => setStep(1)} />}
-        {step === 1 && <AddressScreen onDone={() => setStep(2)} onSkip={() => finish()} saving={saving} />}
+        {step === 1 && <AddressScreen onDone={() => setStep(2)} />}
         {step === 2 && <FoundYou onNext={() => setStep(3)} />}
         {step === 3 && (
           <CompassScreen
@@ -127,45 +127,62 @@ function Welcome({ reduce, onNext }: { reduce: boolean; onNext: () => void }) {
 }
 
 /* ── Screen 2 ── */
-function AddressScreen({ onDone, onSkip, saving }: { onDone: () => void; onSkip: () => void; saving: boolean }) {
+function AddressScreen({ onDone }: { onDone: () => void; onSkip?: () => void; saving?: boolean }) {
   const { user } = useAuth();
-  const [zipOnly, setZipOnly] = useState(false);
+  const [email, setEmail] = useState(user?.email ?? "");
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
   const [stateCode, setStateCode] = useState("");
   const [zip, setZip] = useState("");
+  const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (/^\d{5}$/.test(zip)) setStateCode((s) => s || getStateFromZip(zip));
   }, [zip]);
 
+  const hasAuthEmail = !!user?.email;
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim()) && email.trim().length <= 255;
   const zipOk = /^\d{5}$/.test(zip);
-  const ready = zipOnly ? zipOk : street.trim().length >= 5 && city.trim().length >= 2 && !!stateCode && zipOk;
+  const ready = emailOk && street.trim().length >= 5 && city.trim().length >= 2 && !!stateCode && zipOk;
+  const missing = [
+    !emailOk && "your email",
+    street.trim().length < 5 && "your street address",
+    city.trim().length < 2 && "your city",
+    !stateCode && "your state",
+    !zipOk && "a 5 digit ZIP code",
+  ].filter(Boolean) as string[];
 
-  const submit = async () => {
-    if (!user || !ready) return;
+  const save = async (skipCheck: boolean) => {
+    if (!user) return;
+    if (!ready) { setError(`Add ${missing.join(", ")} to keep going.`); return; }
+    setError("");
     setBusy(true);
     try {
-      const full = zipOnly ? `${zip}` : `${street.trim()}, ${city.trim()}, ${stateCode} ${zip}`;
+      if (!hasAuthEmail) {
+        const { error: e } = await supabase.auth.updateUser({ email: email.trim() });
+        if (e) { setError("We could not save that email. Check it and try again."); return; }
+      }
+      const full = `${street.trim()}, ${city.trim()}, ${stateCode} ${zip}`;
       await db.from("profiles").update({
-        address_line1: zipOnly ? null : street.trim(),
-        city: zipOnly ? null : city.trim(),
-        state_code: stateCode || null,
-        zip_code: zip,
-        full_address: zipOnly ? null : full,
-        street_address: zipOnly ? null : street.trim(),
+        address_line1: street.trim(), city: city.trim(), state_code: stateCode, zip_code: zip,
+        full_address: full, street_address: street.trim(),
       }).eq("user_id", user.id);
-      const { data } = await supabase.functions.invoke("resolve-address", { body: { address: full } });
-      if (!zipOnly && data && data.address_matched === false) {
-        setNotFound(true);
-        setBusy(false);
-        return;
+      const c = code.trim().toUpperCase();
+      if (c) {
+        const { data, error: e } = await db.rpc("redeem_code", { p_code: c });
+        if (e || !data?.ok) { setError(data?.message || "That code did not work. Check it, or clear it to keep going."); return; }
+        toast.success(data.message || "Your code is on your account.");
+      }
+      if (!skipCheck) {
+        const { data } = await supabase.functions.invoke("resolve-address", { body: { address: full } });
+        if (data && data.address_matched === false) { setNotFound(true); return; }
       }
       onDone();
     } catch {
-      toast.error("We could not check that address. You can add it later in settings.");
+      toast.error("We could not check that address. You can fix it later in settings.");
       onDone();
     } finally {
       setBusy(false);
@@ -178,76 +195,72 @@ function AddressScreen({ onDone, onSkip, saving }: { onDone: () => void; onSkip:
         <p className="eyebrow">Step 1 of 3</p>
         <h1 className="font-heading text-[30px] leading-tight text-foreground">Where do you live?</h1>
         <p className="text-sm text-muted-foreground">
-          Your street address finds your exact council seat, your polling place, and your city's budget.
+          We need these to find your council seat, your polling place, and your city's budget. All fields are required.
         </p>
       </div>
 
-      {zipOnly ? (
+      <div className="space-y-3">
         <div className="space-y-1.5">
-          <Label htmlFor="zip-only">ZIP code</Label>
-          <Input id="zip-only" inputMode="numeric" maxLength={5} value={zip}
-            onChange={(e) => setZip(e.target.value.replace(/\D/g, "").slice(0, 5))} placeholder="64108" className="h-12" />
+          <Label htmlFor="email">Email</Label>
+          <Input id="email" type="email" value={email} maxLength={255} autoComplete="email" readOnly={hasAuthEmail}
+            onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="h-12" />
         </div>
-      ) : (
-        <div className="space-y-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="street">Street address</Label>
+          <Input id="street" value={street} maxLength={100} autoComplete="street-address"
+            onChange={(e) => setStreet(e.target.value)} placeholder="2050 West Pennway St" className="h-12" />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label htmlFor="street">Street address</Label>
-            <Input id="street" value={street} maxLength={100} autoComplete="street-address"
-              onChange={(e) => setStreet(e.target.value)} placeholder="2050 West Pennway St" className="h-12" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="city">City</Label>
-              <Input id="city" value={city} maxLength={60} autoComplete="address-level2"
-                onChange={(e) => setCity(e.target.value)} placeholder="Kansas City" />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="zip">ZIP code</Label>
-              <Input id="zip" inputMode="numeric" maxLength={5} value={zip} autoComplete="postal-code"
-                onChange={(e) => setZip(e.target.value.replace(/\D/g, "").slice(0, 5))} placeholder="64108" />
-            </div>
+            <Label htmlFor="city">City</Label>
+            <Input id="city" value={city} maxLength={60} autoComplete="address-level2"
+              onChange={(e) => setCity(e.target.value)} placeholder="Kansas City" />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="state">State</Label>
-            <Select value={stateCode} onValueChange={setStateCode}>
-              <SelectTrigger id="state"><SelectValue placeholder="Pick your state" /></SelectTrigger>
-              <SelectContent className="max-h-60">
-                {US_STATES.map((s) => <SelectItem key={s.code} value={s.code}>{s.code}, {s.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="zip">ZIP code</Label>
+            <Input id="zip" inputMode="numeric" maxLength={5} value={zip} autoComplete="postal-code"
+              onChange={(e) => setZip(e.target.value.replace(/\D/g, "").slice(0, 5))} placeholder="64108" />
           </div>
         </div>
-      )}
+        <div className="space-y-1.5">
+          <Label htmlFor="state">State</Label>
+          <Select value={stateCode} onValueChange={setStateCode}>
+            <SelectTrigger id="state"><SelectValue placeholder="Pick your state" /></SelectTrigger>
+            <SelectContent className="max-h-60">
+              {US_STATES.map((s) => <SelectItem key={s.code} value={s.code}>{s.code}, {s.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="code">Redeem code, if you have one</Label>
+          <Input id="code" value={code} maxLength={40} autoCapitalize="characters" spellCheck={false}
+            onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="Optional" className="tracking-widest" />
+        </div>
+      </div>
 
       <div className="rounded-[20px] border border-primary/30 bg-primary/10 p-4">
         <p className="font-heading text-sm text-foreground">What we keep</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          We turn your address into district codes and keep only the codes. We do not keep the address itself for this.
+          We turn your address into district codes. Your address stays private and is never shown to anyone.
         </p>
       </div>
 
-      {notFound && !zipOnly && (
+      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+
+      {notFound && (
         <div className="rounded-[20px] border border-destructive/40 bg-destructive/10 p-4 space-y-3">
           <p className="text-sm text-foreground">
-            We could not find that address. Check the spelling, or use your ZIP code instead.
+            We could not find that address. Check the spelling and try again, or keep going with what you typed.
           </p>
-          <Button variant="outline" className="h-10 w-full"
-            onClick={() => { setZipOnly(true); setNotFound(false); }}>
-            Use my ZIP code
+          <Button variant="outline" className="h-10 w-full" disabled={busy} onClick={() => save(true)}>
+            Keep going anyway
           </Button>
         </div>
       )}
 
-      <button type="button" onClick={() => setZipOnly((v) => !v)} className="text-xs text-primary hover:underline">
-        {zipOnly ? "Have a street address? Use that instead." : "Only have a ZIP code? Use that instead."}
-      </button>
-
-      <div className="space-y-3">
-        <Button onClick={submit} disabled={!ready || busy} className="h-12 w-full">
-          {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Find my districts
-        </Button>
-        <Button variant="outline" onClick={onSkip} disabled={saving || busy} className="h-12 w-full">Skip for now</Button>
-      </div>
+      <Button onClick={() => save(false)} disabled={busy} className="h-12 w-full">
+        {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Find my districts
+      </Button>
     </section>
   );
 }
