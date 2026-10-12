@@ -10,11 +10,11 @@ const TEAL = "#34d3b4";
 const DONE_MSG = "You are on the list. We will text you when rides open.";
 const btn = "flex w-full min-h-[48px] items-center justify-center rounded-[10px] text-[15px] font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-80";
 
-export function PollRideTeaser({ state }: { state: VoterState }) {
+export function PollRideTeaser({ state, startWithPhone = false }: { state: VoterState; startWithPhone?: boolean }) {
   const { user } = useAuth();
   const { join, status } = useJoinRideWaitlist();
   const [onList, setOnList] = useState(false);
-  const [showPhone, setShowPhone] = useState(false);
+  const [showPhone, setShowPhone] = useState(startWithPhone);
   const [phone, setPhone] = useState("");
   const [err, setErr] = useState<string | null>(null);
 
