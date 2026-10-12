@@ -53,3 +53,4 @@
 - [ ] User to add BIRD_API_KEY + BIRD_SENDER in Project Settings → Secrets, then send one real test text to their number
 - [x] Bird webhook secret saved (as STRIPE_WEBHOOK_SECRET); bird-inbound now reads it
 - [ ] User to point Bird inbound messages to the bird-inbound webhook URL in the Bird dashboard
+- [x] Waitlist tab on desk, driver field, Text the waitlist button
