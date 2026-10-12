@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import uwaziLogo from "@/assets/uwazi-app-wordmark.png";
-import { fmtDay, fmtHour } from "@/components/rides/RidesUI";
+import { fmtDay, fmtHour, fmtPhone, telHref } from "@/components/rides/RidesUI";
 import { RideDrawer } from "@/components/rides/desk/RideDrawer";
 import { PhoneRequestForm } from "@/components/rides/desk/PhoneRequestForm";
 import {
@@ -129,6 +129,7 @@ function Desk() {
           <span className={plain}>{r.round_trip ? "Round trip" : "One way"}</span>
           {r.needs.map((n) => <span key={n} className={blue}>{NEED_LABELS[n] ?? n}</span>)}
           {waiting && <span className={amber}>Waiting 30m</span>}
+          {r.driver_name && <span className={plain}>Driver {r.driver_name}</span>}
           {paused.has(r.id) && <span className={amber}>Texts paused</span>}
           {r.quiz_finished_at && <span className={blue}>Rights quiz {Number(r.quiz_score)}/8</span>}
         </div>
@@ -184,6 +185,9 @@ function Desk() {
         </button>
         {showClosed && <div className="mt-3 grid gap-3 md:grid-cols-4">{closed.map((r) => <div key={r.id}><span className={plain}>{r.status === "referred" ? "Referred" : "Cancelled"}</span><div className="mt-1"><Card r={r} /></div></div>)}</div>}
       </section>
+
+      <Waitlist freed={closed.filter((r) => r.status === "cancelled").length} />
+
 
       <section className="mt-8">
         <h2 className="font-heading text-2xl">Trips to send zTrip</h2>
@@ -273,5 +277,44 @@ function Report({ rides, settings, blocks, siteDays }: { rides: Ride[]; settings
       <p className="text-xs text-[hsl(var(--rides-ink)/0.55)]">Weekdays count 7 driver hours. Saturdays count 4. The CSV has no names, phones or addresses.</p>
       <button onClick={download} className="w-full rounded-xl bg-[hsl(var(--rides-green))] py-3 font-semibold text-[hsl(var(--rides-bg))]">Export CSV</button>
     </div>
+  );
+}
+
+type WaitRow = { id: string; state_code: string | null; created_at: string; texted_at: string | null; texted_count: number; has_phone: boolean; has_account: boolean };
+
+function Waitlist({ freed }: { freed: number }) {
+  const [rows, setRows] = useState<WaitRow[]>([]);
+  const [shown, setShown] = useState<Record<string, string | null>>({});
+  useEffect(() => {
+    const load = () => supabase.rpc("ride_waitlist_list").then(({ data }) => setRows((data ?? []) as WaitRow[]));
+    load();
+    const t = setInterval(load, 30000);
+    return () => clearInterval(t);
+  }, []);
+  const reveal = async (id: string) => {
+    const { data } = await supabase.rpc("ride_waitlist_phone", { _id: id });
+    setShown((s) => ({ ...s, [id]: data ? String(data) : null }));
+  };
+  return (
+    <section className="mt-8">
+      <h2 className="font-heading text-2xl">Waitlist</h2>
+      <p className="mb-3 text-sm text-[hsl(var(--rides-ink)/0.7)]">
+        {rows.length} people waiting. {freed > 0 ? `${freed} cancelled rides may have freed a seat. A super admin can text the waitlist from the admin Ride Desk.` : "Phones stay hidden until you open one."}
+      </p>
+      {rows.length === 0 ? <p className="text-sm">No one is waiting.</p> : (
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+          {rows.map((w) => (
+            <div key={w.id} className="flex items-center justify-between gap-2 rounded-2xl border border-[hsl(var(--rides-ink)/0.15)] p-3 text-sm">
+              <div>
+                <p className="font-semibold">{w.state_code === "KS" ? "Kansas" : "Missouri"} <span className="font-normal text-[hsl(var(--rides-ink)/0.6)]">since {new Date(w.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span></p>
+                <p className="text-xs text-[hsl(var(--rides-ink)/0.6)]">{w.texted_at ? `Texted ${new Date(w.texted_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}` : "Not texted yet"}{!w.has_phone && ". No phone"}</p>
+              </div>
+              {w.id in shown ? (shown[w.id] ? <a className="font-semibold underline" href={telHref(shown[w.id])}>{fmtPhone(shown[w.id])}</a> : <span>No phone saved</span>)
+                : w.has_phone && <button onClick={() => reveal(w.id)} className="min-h-[44px] rounded-xl border border-[hsl(var(--rides-ink)/0.25)] px-3 font-semibold">Show phone</button>}
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -57,7 +58,7 @@ export default function AdminRidesPage() {
           <h1 className="font-heading text-2xl tracking-tight">Ride desk</h1>
           <p className="text-sm text-muted-foreground">Every ride with its status, pickup time and voting place. Open the full desk to take action.</p>
         </div>
-        <Button asChild><Link to="/rides/desk">Open full ride desk</Link></Button>
+        <div className="flex gap-2"><TextWaitlist /><Button asChild><Link to="/rides/desk">Open full ride desk</Link></Button></div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -113,6 +114,26 @@ export default function AdminRidesPage() {
           </table>
         </div>
       )}
+    </div>
+  );
+}
+
+function TextWaitlist() {
+  const [confirm, setConfirm] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const send = async () => {
+    setBusy(true);
+    const { data, error } = await supabase.functions.invoke("text-waitlist", { body: {} });
+    setBusy(false); setConfirm(false);
+    if (error || !data) return toast.error("The texts did not send. Try again.");
+    toast.success(`Sent ${data.sent}. Failed ${data.failed}. Opted out ${data.skipped}. No phone ${data.no_phone}.`);
+  };
+  if (!confirm) return <Button variant="outline" onClick={() => setConfirm(true)}>Text the waitlist</Button>;
+  return (
+    <div className="flex items-center gap-2 rounded-lg border border-border p-2 text-sm">
+      <span>Text up to 50 people that a seat opened?</span>
+      <Button size="sm" disabled={busy} onClick={send}>{busy ? "Sending" : "Yes, send"}</Button>
+      <Button size="sm" variant="ghost" onClick={() => setConfirm(false)}>No</Button>
     </div>
   );
 }

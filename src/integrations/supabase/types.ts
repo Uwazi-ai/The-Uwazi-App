@@ -3239,6 +3239,8 @@ export type Database = {
           id: string
           phone: string | null
           state_code: string | null
+          texted_at: string | null
+          texted_count: number
           user_id: string | null
         }
         Insert: {
@@ -3246,6 +3248,8 @@ export type Database = {
           id?: string
           phone?: string | null
           state_code?: string | null
+          texted_at?: string | null
+          texted_count?: number
           user_id?: string | null
         }
         Update: {
@@ -3253,6 +3257,8 @@ export type Database = {
           id?: string
           phone?: string | null
           state_code?: string | null
+          texted_at?: string | null
+          texted_count?: number
           user_id?: string | null
         }
         Relationships: []
@@ -3876,6 +3882,7 @@ export type Database = {
           completed_at: string | null
           created_at: string
           destination_site_id: string | null
+          driver_name: string | null
           first_name_last_initial: string
           id: string
           needs: string[]
@@ -3904,6 +3911,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           destination_site_id?: string | null
+          driver_name?: string | null
           first_name_last_initial: string
           id?: string
           needs?: string[]
@@ -3932,6 +3940,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           destination_site_id?: string | null
+          driver_name?: string | null
           first_name_last_initial?: string
           id?: string
           needs?: string[]
@@ -6258,6 +6267,19 @@ export type Database = {
         Returns: string
       }
       ride_paused_ids: { Args: never; Returns: string[] }
+      ride_waitlist_list: {
+        Args: never
+        Returns: {
+          created_at: string
+          has_account: boolean
+          has_phone: boolean
+          id: string
+          state_code: string
+          texted_at: string
+          texted_count: number
+        }[]
+      }
+      ride_waitlist_phone: { Args: { _id: string }; Returns: string }
       save_voting_plan: {
         Args: { _election_id: string; _steps: Json }
         Returns: {

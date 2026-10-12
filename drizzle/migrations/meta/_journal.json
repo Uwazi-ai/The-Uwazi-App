@@ -57,6 +57,13 @@
       "when": 1791739381033,
       "tag": "0007_kyvr_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791824510979,
+      "tag": "0008_ride_waitlist_desk_and_drivers",
+      "breakpoints": true
     }
   ]
 }
