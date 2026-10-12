@@ -44,7 +44,7 @@ export function OverviewAnalytics({ statsQuery, chartQuery }: {
           <Card key={metric.label} className="rounded-lg border-border bg-card overflow-hidden">
             <Link to={metric.to} className="group block p-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
               <div className="mb-3 flex items-center justify-between"><metric.icon className="h-4 w-4 text-primary" /><ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-primary" /></div>
-              {isLoading ? <Skeleton className="h-9 w-16" /> : <p className="font-axis text-3xl text-foreground break-all">{isError ? "Unavailable" : metric.value?.toLocaleString() ?? "—"}</p>}
+              {isLoading ? <Skeleton className="h-9 w-16" /> : <p className={`font-axis text-foreground break-words ${isError ? "text-sm" : "text-3xl"}`}>{isError ? "Unavailable" : metric.value?.toLocaleString() ?? "Not loaded"}</p>}
               <p className="mt-1 text-xs text-muted-foreground">{metric.label}</p>
             </Link>
           </Card>
@@ -55,7 +55,7 @@ export function OverviewAnalytics({ statsQuery, chartQuery }: {
           {extra.map((metric) => <Card key={metric.label} className="rounded-lg border-border bg-card">
             <Link to={metric.to} className="block p-3 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg">
               <metric.icon className="mb-2 h-4 w-4 text-primary" />
-              {isLoading ? <Skeleton className="h-7 w-14" /> : <p className="font-axis text-xl text-foreground break-all">{isError ? "Unavailable" : metric.value?.toLocaleString() ?? "—"}</p>}
+              {isLoading ? <Skeleton className="h-7 w-14" /> : <p className={`font-axis text-foreground break-words ${isError ? "text-sm" : "text-xl"}`}>{isError ? "Unavailable" : metric.value?.toLocaleString() ?? "Not loaded"}</p>}
               <p className="mt-1 text-xs text-muted-foreground">{metric.label}</p>
             </Link>
           </Card>)}

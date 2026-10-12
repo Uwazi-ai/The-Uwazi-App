@@ -14,15 +14,19 @@ export function CompassFactsAdmin({ onDirtyChange }: { onDirtyChange?: (dirty: b
   const [geoid, setGeoid] = useState("");
   const [text, setText] = useState("");
   const [url, setUrl] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   useEffect(() => { onDirtyChange?.(Boolean(dim || geoid || text || url)); }, [dim, geoid, text, url, onDirtyChange]);
 
   const load = async () => {
+    setLoading(true);
     const [d, f] = await Promise.all([
       db.from("compass_dimensions").select("id, name").order("name"),
       db.from("compass_facts").select("id, dimension_id, geoid, text, source_url, active").order("created_at", { ascending: false }),
     ]);
-    setDims(d.data ?? []);
-    setFacts(f.data ?? []);
+    setError(Boolean(d.error || f.error));
+    if (!d.error && !f.error) { setDims(d.data ?? []); setFacts(f.data ?? []); }
+    setLoading(false);
   };
   useEffect(() => { load(); }, []);
 
@@ -43,11 +47,13 @@ export function CompassFactsAdmin({ onDirtyChange }: { onDirtyChange?: (dirty: b
   const name = (id: string) => dims.find((d) => d.id === id)?.name ?? "";
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
+    <div className="rounded-lg border border-border bg-card p-5 space-y-4">
       <div>
         <h2 className="font-semibold text-foreground">Compass quiz facts</h2>
         <p className="text-sm text-muted-foreground">People see one fact every 4 questions. Each fact needs an official source. Leave the place code empty for a fact that fits everywhere.</p>
       </div>
+      {loading && <p role="status" className="text-sm text-muted-foreground">Loading Compass facts.</p>}
+      {error && <p role="alert" className="text-sm text-destructive">We could not load Compass facts. <Button variant="link" size="sm" onClick={load}>Try again</Button></p>}
       <div className="grid gap-2 sm:grid-cols-2">
         <select className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground" value={dim} onChange={(e) => setDim(e.target.value)} aria-label="Issue">
           <option value="">Pick an issue</option>
@@ -57,7 +63,8 @@ export function CompassFactsAdmin({ onDirtyChange }: { onDirtyChange?: (dirty: b
       </div>
       <Textarea placeholder="Write the fact in short, plain words." value={text} onChange={(e) => setText(e.target.value)} />
       <Input placeholder="Official source web address, required" value={url} onChange={(e) => setUrl(e.target.value)} />
-      <Button onClick={save}>Save the fact</Button>
+      <Button onClick={save} disabled={loading || error}>Save the fact</Button>
+      {!loading && !error && !facts.length && <p className="text-sm text-muted-foreground">No Compass facts yet.</p>}
       <ul className="divide-y divide-border text-sm">
         {facts.map((f) => (
           <li key={f.id} className="py-2 flex items-start justify-between gap-3">

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { loadPersonas, personaColor, type Persona } from "@/lib/personas";
+import { personaColor, type Persona } from "@/lib/personas";
 
 const db = supabase as any;
 const BANNED = /[—–;()]/;
@@ -65,17 +65,28 @@ function Row({ p, onSaved, onDirty }: { p: Persona; onSaved: () => void; onDirty
 
 export function PersonaCopyAdmin({ onDirtyChange }: { onDirtyChange?: (dirty: boolean) => void } = {}) {
   const [list, setList] = useState<Persona[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [dirtyRows, setDirtyRows] = useState<Record<string, boolean>>({});
   const onDirty = useCallback((slug: string, dirty: boolean) => setDirtyRows((rows) => rows[slug] === dirty ? rows : { ...rows, [slug]: dirty }), []);
   useEffect(() => { onDirtyChange?.(Object.values(dirtyRows).some(Boolean)); }, [dirtyRows, onDirtyChange]);
-  const reload = () => loadPersonas(true).then(setList);
+  const reload = async () => {
+    setLoading(true);
+    const { data, error } = await db.from("compass_personas").select("*").order("sort_order");
+    setError(Boolean(error));
+    if (!error) setList(data ?? []);
+    setLoading(false);
+  };
   useEffect(() => { reload(); }, []);
   return (
-    <Card className="p-5 space-y-4">
+    <Card className="rounded-lg p-5 space-y-4">
       <div>
         <h2 className="text-xl font-axis uppercase text-foreground">Civic persona words</h2>
         <p className="text-sm text-muted-foreground">A persona says how someone shows up for their city, never what they believe. Keep it plain and fair to every persona.</p>
       </div>
+      {loading && <p role="status" className="text-sm text-muted-foreground">Loading persona copy.</p>}
+      {error && <p role="alert" className="text-sm text-destructive">We could not load persona copy. <Button variant="link" size="sm" onClick={reload}>Try again</Button></p>}
+      {!loading && !error && !list.length && <p className="text-sm text-muted-foreground">No personas yet.</p>}
       {list.map((p) => <Row key={p.slug + p.name + p.one_line + p.strength + p.blind_spot + (p.archetype_intro ?? "") + (p.archetype_examples ?? "") + (p.suggested_prompts ?? []).join("|")} p={p} onSaved={reload} onDirty={onDirty} />)}
     </Card>
   );

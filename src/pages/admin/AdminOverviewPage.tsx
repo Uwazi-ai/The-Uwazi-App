@@ -76,9 +76,6 @@ export default function AdminOverviewPage() {
   };
   const updatedAt = statsQuery.isSuccess && chartQuery.isSuccess ? Math.min(statsQuery.dataUpdatedAt, chartQuery.dataUpdatedAt) : 0;
   const currentGroup = groups.find((item) => item.id === selection.tab) ?? groups[0];
-  const guardLink = (event: React.MouseEvent) => {
-    if (dirty && !window.confirm("You have unsaved changes. Leave without saving?")) event.preventDefault();
-  };
 
   return (
     <div className="mx-auto w-full max-w-[1400px] space-y-6 overflow-x-hidden p-4 md:p-6" onClickCapture={(event) => {
