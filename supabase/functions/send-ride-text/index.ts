@@ -7,7 +7,7 @@ import { sendRideSms } from "../_shared/ride-sms.ts";
 
 const Body = z.object({
   ride_id: z.string().uuid(),
-  kind: z.enum(["request_received", "referred", "booked", "destination_assigned", "ride_home_sent", "cancelled"]),
+  kind: z.enum(["request_received", "referred", "booked", "destination_assigned", "pickup_confirmed", "ride_home_sent", "cancelled"]),
 }).strict();
 
 const json = (b: unknown, s = 200) =>
