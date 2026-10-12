@@ -56,6 +56,6 @@
 - [x] Waitlist tab on desk, driver field, Text the waitlist button
 
 ## Admin overview
-- [ ] Put compact analytics first with an actual refresh timestamp and optional extra metrics.
-- [ ] Add URL-persistent People, Research, Content, and Platform tabs with tools opened on demand and unsaved-edit protection.
-- [ ] Verify the overview and all tool selections with an authorized admin session and focused tests.
+- [x] Put compact analytics first with an actual refresh timestamp and optional extra metrics.
+- [x] Add URL-persistent People, Research, Content, and Platform tabs with tools opened on demand and unsaved-edit protection.
+- [x] Verify the overview and all nine tool selections with an authorized admin session, keyboard navigation, reload and Back, narrow layout, and 11 passing focused tests.
