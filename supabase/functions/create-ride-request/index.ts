@@ -97,6 +97,7 @@ Deno.serve(async (req) => {
   const siteCols = "id,name,address";
   if (isEarly) {
     const geo = await geocode(b.pickup_address, b.zip);
+    if (geo && geo.state !== "MO") return json({ error: "Free rides are only in Missouri right now." }, 400);
     if (!geo || geo.county === JACKSON_FIPS) {
       // Jackson County: site must be open that day, at pickup and 1 hour after.
       const open = (await openSites(db, b.ride_day)).filter((x) => siteFits(x, hour));
