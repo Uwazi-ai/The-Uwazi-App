@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { personaColor, type Persona } from "@/lib/personas";
+import { loadPersonas, personaColor, type Persona } from "@/lib/personas";
 
 const db = supabase as any;
 const BANNED = /[—–;()]/;
@@ -27,6 +27,7 @@ function Row({ p, onSaved, onDirty }: { p: Persona; onSaved: () => void; onDirty
     setBusy(false);
     if (error) return toast.error("We could not save that. Try again.");
     toast.success(`${f.name} saved.`);
+    void loadPersonas(true);
     onSaved();
   };
 
