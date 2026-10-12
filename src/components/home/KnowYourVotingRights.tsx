@@ -269,7 +269,7 @@ export function KnowYourVotingRights() {
       </div>
       <CountdownCard state={state} />
       <RightsGrid state={state} />
-      <PollRideTeaser state={state} />
+      {state === "MO" && <PollRideTeaser state={state} />}
       <Checklist state={state} />
     </section>
   );
