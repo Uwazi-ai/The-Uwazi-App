@@ -3812,6 +3812,33 @@ export type Database = {
           },
         ]
       }
+      ride_admin_log: {
+        Row: {
+          action: string
+          actor: string
+          created_at: string
+          id: string
+          note: string | null
+          target_id: string | null
+        }
+        Insert: {
+          action: string
+          actor: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          target_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          target_id?: string | null
+        }
+        Relationships: []
+      }
       ride_events: {
         Row: {
           actor: string | null
@@ -5866,6 +5893,30 @@ export type Database = {
             }
             Returns: string
           }
+      admin_find_user: {
+        Args: { _email: string }
+        Returns: {
+          email: string
+          id: string
+          is_coordinator: boolean
+        }[]
+      }
+      admin_rights_questions: {
+        Args: never
+        Returns: {
+          approved_at: string
+          approver_email: string
+          correct_index: number
+          explanation: string
+          id: string
+          options: Json
+          question: string
+          sort: number
+          state: string
+          takeaway: string
+          title: string
+        }[]
+      }
       admin_unverified_actions: {
         Args: never
         Returns: {
@@ -6163,6 +6214,13 @@ export type Database = {
           user_id: string
         }[]
       }
+      list_ride_coordinators: {
+        Args: never
+        Returns: {
+          email: string
+          id: string
+        }[]
+      }
       log_civic_action: {
         Args: { _note?: string; _office_id?: string }
         Returns: Json
@@ -6307,6 +6365,14 @@ export type Database = {
       set_office_reviewer: {
         Args: { _email: string; _grant: boolean }
         Returns: string
+      }
+      set_ride_coordinator: {
+        Args: { _on: boolean; _user_id: string }
+        Returns: undefined
+      }
+      set_rights_question_approval: {
+        Args: { _approve: boolean; _id: string }
+        Returns: undefined
       }
       signups_by_day: {
         Args: { period_days: number }

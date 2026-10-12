@@ -82,6 +82,7 @@ import RidesPage from "./pages/RidesPage";
 import RideCardPage from "./pages/RideCardPage";
 import RideTrackPage from "./pages/RideTrackPage";
 import RideDeskPage from "./pages/RideDeskPage";
+import RideRightsReviewPage from "./pages/RideRightsReviewPage";
 import RideWaitlistPage from "./pages/RideWaitlistPage";
 
 const queryClient = new QueryClient();
@@ -120,6 +121,7 @@ const App = () => (
               <Route path="/rides/card/:code" element={<RideCardPage />} />
               <Route path="/rides/track/:code" element={<RideTrackPage />} />
               <Route path="/rides/desk" element={<RideDeskPage />} />
+              <Route path="/rides/desk/rights" element={<RideRightsReviewPage />} />
               <Route path="/.lovable/oauth/consent" element={<OAuthConsentPage />} />
 
               <Route path="/vote" element={<Navigate to="/app/vote" replace />} />
