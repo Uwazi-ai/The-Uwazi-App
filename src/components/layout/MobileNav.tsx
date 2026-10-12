@@ -1,3 +1,5 @@
+import { Car } from "lucide-react";
+import { POLL_RIDES_LIVE } from "@/hooks/useVotingRights";
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -23,6 +25,7 @@ const navItems = [
 
 const drawerItems = [
   { to: "/app/my-city", icon: Building2, label: "My City", premium: true },
+  { to: POLL_RIDES_LIVE ? "/rides" : "/rides/waitlist", icon: Car, label: "Free Rides" },
   { to: "/app/settings", icon: User, label: "You" },
   { to: "/app/progress", icon: ProgressIcon, label: "Progress" },
   { to: "/app/saved", icon: SavedIcon, label: "Saved" },
