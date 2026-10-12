@@ -276,6 +276,7 @@ function Report({ rides, settings, blocks, siteDays }: { rides: Ride[]; settings
       </dl>
       <p className="text-xs text-[hsl(var(--rides-ink)/0.55)]">Weekdays count 7 driver hours. Saturdays count 4. The CSV has no names, phones or addresses.</p>
       <button onClick={download} className="w-full rounded-xl bg-[hsl(var(--rides-green))] py-3 font-semibold text-[hsl(var(--rides-bg))]">Export CSV</button>
+      <BirdEmailTest />
     </div>
   );
 }
@@ -316,5 +317,27 @@ function Waitlist({ freed }: { freed: number }) {
         </div>
       )}
     </section>
+  );
+}
+
+function BirdEmailTest() {
+  const [busy, setBusy] = useState(false);
+  const [out, setOut] = useState<string | null>(null);
+  const send = async () => {
+    setBusy(true); setOut(null);
+    const { data, error } = await supabase.functions.invoke("bird-email-test", { body: {} });
+    setBusy(false);
+    if (error || !data || data.error) {
+      let msg: string | undefined = data?.error;
+      try { msg = msg ?? (await (error as { context?: Response })?.context?.json())?.error; } catch { /* ignore */ }
+      return setOut(msg ?? "The test email did not send.");
+    }
+    setOut(`Sent. Id ${data.id}. Status ${data.status}.`);
+  };
+  return (
+    <div className="space-y-2 border-t border-[hsl(var(--rides-ink)/0.1)] pt-4">
+      <button onClick={send} disabled={busy} className="w-full rounded-xl border border-[hsl(var(--rides-ink)/0.25)] py-3 font-semibold disabled:opacity-40">{busy ? "Sending" : "Send Bird test email"}</button>
+      {out && <p className="break-all text-sm">{out}</p>}
+    </div>
   );
 }
