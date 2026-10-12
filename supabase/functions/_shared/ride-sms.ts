@@ -102,3 +102,30 @@ export async function sendRideSms(
     return "failed";
   }
 }
+
+// Sends one text that is not tied to a ride (waitlist). Never throws, never logs the phone.
+export async function sendPlainSms(db: any, phone: string, text: string, fetcher: typeof fetch = fetch): Promise<"sent" | "skipped" | "failed"> {
+  try {
+    const to = e164(phone);
+    if (!to) return "failed";
+    const { data: opt } = await db.from("ride_sms_optouts").select("phone_hash").eq("phone_hash", await phoneHash(to)).maybeSingle();
+    if (opt) return "skipped";
+    const key = Deno.env.get("BIRD_API_KEY");
+    const from = Deno.env.get("BIRD_SENDER");
+    if (!key || !from) return "failed";
+    const res = await fetcher(BIRD_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ to, text: text + STOP, from, category: "transactional" }),
+    });
+    if (!res.ok) {
+      const why = (await res.text().catch(() => "")).replace(/\+?\d{7,}/g, "#").slice(0, 300);
+      console.error("bird error", res.status, why);
+      return "failed";
+    }
+    await res.body?.cancel().catch(() => {});
+    return "sent";
+  } catch (_e) {
+    return "failed";
+  }
+}
