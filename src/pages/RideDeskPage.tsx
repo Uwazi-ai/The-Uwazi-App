@@ -8,6 +8,8 @@ import uwaziLogo from "@/assets/uwazi-app-wordmark.png";
 import { fmtDay, fmtHour, fmtPhone, telHref } from "@/components/rides/RidesUI";
 import { RideDrawer } from "@/components/rides/desk/RideDrawer";
 import { PhoneRequestForm } from "@/components/rides/desk/PhoneRequestForm";
+import { CoordinatorsPanel } from "@/components/rides/desk/CoordinatorsPanel";
+import { Link } from "react-router-dom";
 import {
   FUNDED, NEED_LABELS, avgWait, driverCost, driverDays, fmtWait, reportCsv, tripGroups,
   type Block, type Ride, type Settings,
@@ -40,6 +42,21 @@ export default function RideDeskPage() {
   if (allowed === null) return <Frame><p>Loading.</p></Frame>;
   if (!allowed) return <Frame><h1 className="font-heading text-3xl">This page is for ride coordinators.</h1><p className="mt-3 text-[hsl(var(--rides-ink)/0.7)]">Ask a UWAZI admin if you need access.</p></Frame>;
   return <Desk />;
+}
+
+function AdminTools() {
+  const { user } = useAuth();
+  const [admin, setAdmin] = useState(false);
+  useEffect(() => {
+    if (user) supabase.rpc("is_admin", { _user_id: user.id }).then(({ data }) => setAdmin(!!data));
+  }, [user]);
+  if (!admin) return null;
+  return (
+    <>
+      <Link to="/rides/desk/rights" className="mt-8 block rounded-2xl border border-[hsl(var(--rides-ink)/0.2)] p-4 font-semibold">Review rights questions</Link>
+      <CoordinatorsPanel />
+    </>
+  );
 }
 
 function Frame({ children }: { children: React.ReactNode }) {
@@ -186,6 +203,7 @@ function Desk() {
         {showClosed && <div className="mt-3 grid gap-3 md:grid-cols-4">{closed.map((r) => <div key={r.id}><span className={plain}>{r.status === "referred" ? "Referred" : "Cancelled"}</span><div className="mt-1"><Card r={r} /></div></div>)}</div>}
       </section>
 
+      <AdminTools />
       <Waitlist freed={closed.filter((r) => r.status === "cancelled").length} />
 
 
