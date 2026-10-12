@@ -10,7 +10,7 @@ const Body = z.object({
   zip: z.string().regex(/^\d{5}$/).optional(),
   address: z.string().trim().min(5).max(200).optional(),
   site_id: z.string().uuid().optional(),
-});
+}).strict();
 
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });

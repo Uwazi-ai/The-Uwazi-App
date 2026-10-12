@@ -23,5 +23,3 @@ project_id = "zigemhmhbzegwbgvvmpc"
     verify_jwt = false
   [functions.text-waitlist]
     verify_jwt = false
-  [functions.bird-email-test]
-    verify_jwt = false
