@@ -1,11 +1,14 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { PollRideTeaser } from "@/components/home/PollRideTeaser";
+import { RidesTopBar } from "@/components/rides/RidesTopBar";
 
 export default function RideWaitlistPage() {
   useEffect(() => { document.title = "Free rides to the polls | UWAZI"; }, []);
   return (
-    <main className="min-h-dvh overflow-x-hidden bg-background px-4 py-10">
+    <div className="min-h-dvh overflow-x-hidden bg-background flex flex-col">
+      <RidesTopBar />
+      <main className="flex-1 px-4 py-8">
       <div className="mx-auto flex max-w-md flex-col gap-5">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-primary">UWAZI rides</p>
@@ -15,6 +18,7 @@ export default function RideWaitlistPage() {
         <PollRideTeaser state="MO" startWithPhone />
         <p className="text-xs text-muted-foreground">We never ask who you vote for. Already have an account? <Link to="/login" className="underline">Sign in</Link>.</p>
       </div>
-    </main>
+      </main>
+    </div>
   );
 }
