@@ -14,6 +14,7 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
   const { user } = useAuth();
   const [events, setEvents] = useState<RideEvent[]>([]);
   const [ztrip, setZtrip] = useState(ride.ztrip_confirmation ?? "");
+  const [driver, setDriver] = useState(ride.driver_name ?? "");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
@@ -207,6 +208,17 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
           ) : <button className={ghost} onClick={() => setConfirmCancel(true)}>Cancel request</button>
         )}
         {err && <p className="text-sm text-[hsl(var(--rides-amber))]">{err}</p>}
+      </section>
+
+      <section className="space-y-2">
+        <label htmlFor="driver-name" className="block text-sm font-semibold">Driver</label>
+        <div className="flex gap-2">
+          <input id="driver-name" value={driver} onChange={(e) => setDriver(e.target.value)} maxLength={80} placeholder="Driver name or car number"
+            className="min-h-[44px] flex-1 rounded-xl border border-[hsl(var(--rides-ink)/0.25)] bg-transparent px-3" />
+          <button className="rounded-xl bg-[hsl(var(--rides-green))] px-4 font-semibold text-[hsl(var(--rides-bg))] disabled:opacity-40" disabled={busy || driver.trim() === (ride.driver_name ?? "")}
+            onClick={() => run(async () => { const d = driver.trim() || null; const r = await update({ driver_name: d }); if (!r.error) await log("driver_assigned", d ? `Driver ${d}` : "Driver cleared"); return r; })}>Save</button>
+        </div>
+        <p className="text-xs text-[hsl(var(--rides-ink)/0.55)]">Only coordinators see this. Riders never do.</p>
       </section>
 
       <section className="space-y-2">
