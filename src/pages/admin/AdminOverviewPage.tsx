@@ -1,197 +1,124 @@
-import { PlatformHealthCard } from "@/components/admin/PlatformHealthCard";
-import { UnverifiedActionsPanel } from "@/components/admin/UnverifiedActionsPanel";
-import { useAdminStats, useRecentSignups, useTopScores, useZipBreakdown, useSignupChart } from "@/hooks/useAdminData";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card } from "@/components/ui/card";
-import { Shield, Users, UserPlus, Activity, Brain, Zap, GraduationCap, MessageCircle, FileText, Vote, Award } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { AdminAvatar } from "@/components/admin/AdminAvatar";
+import { useEffect, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { Activity, ArrowUpRight, BookOpen, FlaskConical, RefreshCw, Shield, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { OverviewAnalytics } from "@/components/admin/OverviewAnalytics";
+import { OverviewRecentSignups, OverviewTopScores, OverviewZipBreakdown } from "@/components/admin/OverviewPeople";
 import { JourneyResearchPanels } from "@/components/admin/JourneyResearchPanels";
 import { ResearchSurveysPanel } from "@/components/admin/ResearchSurveysPanel";
 import { PersonaCopyAdmin } from "@/components/admin/PersonaCopyAdmin";
 import { CompassFactsAdmin } from "@/components/admin/CompassFactsAdmin";
+import { PlatformHealthCard } from "@/components/admin/PlatformHealthCard";
+import { UnverifiedActionsPanel } from "@/components/admin/UnverifiedActionsPanel";
+import { useAdminStats, useSignupChart } from "@/hooks/useAdminData";
 
-function formatTimeAgo(d: string) {
-  const diff = Date.now() - new Date(d).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
+const groups = [
+  { id: "people", label: "People", icon: Users, tools: [{ id: "signups", label: "Recent signups" }, { id: "scores", label: "Top civic scores" }, { id: "zip", label: "ZIP breakdown" }] },
+  { id: "research", label: "Research", icon: FlaskConical, tools: [{ id: "journey", label: "Civic Journey" }, { id: "surveys", label: "Research surveys" }] },
+  { id: "content", label: "Content", icon: BookOpen, tools: [{ id: "personas", label: "Persona copy" }, { id: "facts", label: "Compass facts" }] },
+  { id: "platform", label: "Platform", icon: Activity, tools: [{ id: "health", label: "Platform health" }, { id: "actions", label: "Unverified actions" }] },
+];
+
+export function resolveOverviewSelection(params: URLSearchParams) {
+  const group = groups.find((item) => item.id === params.get("tab")) ?? groups[0];
+  const tool = group.tools.find((item) => item.id === params.get("tool")) ?? group.tools[0];
+  return { tab: group.id, tool: tool.id };
 }
 
 export default function AdminOverviewPage() {
-  const { data: stats, isLoading } = useAdminStats();
-  const { data: recent } = useRecentSignups();
-  const { data: topScores } = useTopScores();
-  const { data: zips } = useZipBreakdown();
-  const { data: chartData } = useSignupChart();
-  const [lastUpdated, setLastUpdated] = useState(new Date());
+  const statsQuery = useAdminStats();
+  const chartQuery = useSignupChart();
+  const client = useQueryClient();
+  const [params, setParams] = useSearchParams();
+  const [selection, setSelection] = useState(() => resolveOverviewSelection(params));
+  const [dirty, setDirty] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const acceptedUrl = useRef(params.toString());
+  const url = params.toString();
 
   useEffect(() => {
-    const i = setInterval(() => setLastUpdated(new Date()), 60000);
-    return () => clearInterval(i);
-  }, []);
+    const next = resolveOverviewSelection(new URLSearchParams(url));
+    if (next.tab !== selection.tab || next.tool !== selection.tool) {
+      if (dirty && !window.confirm("You have unsaved changes. Leave without saving?")) {
+        setParams(new URLSearchParams(acceptedUrl.current), { replace: true });
+        return;
+      }
+      setDirty(false);
+      setSelection(next);
+    }
+    acceptedUrl.current = url;
+  }, [url, selection.tab, selection.tool, dirty, setParams]);
 
-  const topStats = [
-    { label: "Total Users", value: stats?.totalUsers, icon: Users },
-    { label: "New Signups (7d)", value: stats?.newSignups7d, icon: UserPlus },
-    { label: "Active Today", value: stats?.activeToday, icon: Activity },
-    { label: "Avg Civic Score", value: stats?.avgScore, icon: Brain },
-    { label: "Total XP Earned", value: stats?.totalXp?.toLocaleString(), icon: Zap },
-    { label: "Lessons Completed", value: stats?.lessonsCompleted, icon: GraduationCap },
-  ];
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
 
-  const secondStats = [
-    { label: "Ask Uwazi Sessions", value: stats?.totalSessions, icon: MessageCircle },
-    { label: "Bills Tracked", value: stats?.totalBills, icon: FileText },
-    { label: "Voting Plans Created", value: stats?.totalPlans, icon: Vote },
-    { label: "Badges Awarded", value: stats?.totalBadges, icon: Award },
-  ];
+  const choose = (tab: string, tool?: string) => {
+    const group = groups.find((item) => item.id === tab) ?? groups[0];
+    const next = new URLSearchParams(params);
+    next.set("tab", group.id);
+    next.set("tool", tool ?? group.tools[0].id);
+    setParams(next, { preventScrollReset: true });
+  };
+  const refresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        statsQuery.refetch(), chartQuery.refetch(),
+        client.invalidateQueries({ predicate: (query) => ["admin-recent-signups", "admin-top-scores", "admin-zip-breakdown", "journey-research-stats", "research-survey-stats"].includes(String(query.queryKey[0])), refetchType: "active" }),
+      ]);
+    } finally { setRefreshing(false); }
+  };
+  const updatedAt = statsQuery.isSuccess && chartQuery.isSuccess ? Math.min(statsQuery.dataUpdatedAt, chartQuery.dataUpdatedAt) : 0;
+  const currentGroup = groups.find((item) => item.id === selection.tab) ?? groups[0];
+  const guardLink = (event: React.MouseEvent) => {
+    if (dirty && !window.confirm("You have unsaved changes. Leave without saving?")) event.preventDefault();
+  };
 
   return (
-    <div className="p-4 md:p-8 space-y-8 max-w-[1400px] mx-auto">
-      {/* Hero */}
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <Shield className="h-4 w-4 text-primary" />
-          <span className="text-xs font-semibold tracking-[0.2em] text-primary uppercase font-axis">SUPER ADMIN</span>
+    <div className="mx-auto w-full max-w-[1400px] space-y-6 overflow-x-hidden p-4 md:p-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase text-primary"><Shield className="h-4 w-4" />UWAZI Admin</div>
+          <h1 className="font-axis text-3xl text-foreground">Admin overview</h1>
+          <p className="mt-2 text-xs text-muted-foreground" aria-live="polite">{updatedAt ? `Analytics updated ${new Date(updatedAt).toLocaleTimeString()}` : "Analytics not yet updated"}</p>
         </div>
-        <h1 className="text-3xl md:text-5xl font-axis uppercase text-foreground">COMMAND CENTER.</h1>
-        <p className="text-muted-foreground mt-1">Real-time platform intelligence for UWAZI.AI</p>
-        <p className="text-xs text-muted-foreground mt-1">Last updated: {lastUpdated.toLocaleTimeString()}</p>
-      </div>
-
-      {/* Top Stats */}
-      <JourneyResearchPanels />
-      <ResearchSurveysPanel showLink />
-      <PersonaCopyAdmin />
-      <PlatformHealthCard />
-      <UnverifiedActionsPanel />
-      <CompassFactsAdmin />
-
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {topStats.map((s) => (
-          <Card key={s.label} className="bg-card border-border p-4">
-            <s.icon className="h-4 w-4 text-primary mb-2" />
-            {isLoading ? <Skeleton className="h-8 w-20" /> : (
-              <p className="text-2xl font-axis text-foreground">{s.value ?? 0}</p>
-            )}
-            <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
-          </Card>
-        ))}
-      </div>
-
-      {/* Second Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {secondStats.map((s) => (
-          <Card key={s.label} className="bg-card border-border p-4">
-            <s.icon className="h-4 w-4 text-primary mb-2" />
-            {isLoading ? <Skeleton className="h-8 w-20" /> : (
-              <p className="text-2xl font-axis text-foreground">{s.value ?? 0}</p>
-            )}
-            <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
-          </Card>
-        ))}
-      </div>
-
-      {/* Charts */}
-      <div className="grid md:grid-cols-2 gap-4">
-        <Card className="bg-card border-border p-4">
-          <h3 className="text-sm font-axis uppercase text-foreground mb-4">USER GROWTH</h3>
-          <div className="h-[250px]">
-            {chartData?.cumulative ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData.cumulative}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
-                  <XAxis dataKey="date" tick={{ fill: "#9CA3AF", fontSize: 10 }} tickFormatter={v => v.slice(5)} />
-                  <YAxis tick={{ fill: "#9CA3AF", fontSize: 10 }} />
-                  <Tooltip contentStyle={{ background: "#161616", border: "1px solid #2A2A2A", color: "#fff" }} />
-                  <Line type="monotone" dataKey="total" stroke="#9bd34b" strokeWidth={2} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : <Skeleton className="h-full w-full" />}
-          </div>
-        </Card>
-
-        <Card className="bg-card border-border p-4">
-          <h3 className="text-sm font-axis uppercase text-foreground mb-4">SIGNUPS BY DAY</h3>
-          <div className="h-[250px]">
-            {chartData?.daily ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData.daily}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
-                  <XAxis dataKey="date" tick={{ fill: "#9CA3AF", fontSize: 10 }} tickFormatter={v => v.slice(5)} />
-                  <YAxis tick={{ fill: "#9CA3AF", fontSize: 10 }} />
-                  <Tooltip contentStyle={{ background: "#161616", border: "1px solid #2A2A2A", color: "#fff" }} />
-                  <Bar dataKey="signups" fill="#9bd34b" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : <Skeleton className="h-full w-full" />}
-          </div>
-        </Card>
-      </div>
-
-      {/* Bottom Panels */}
-      <div className="grid md:grid-cols-3 gap-4">
-        {/* Recent Signups */}
-        <Card className="bg-card border-border p-4">
-          <h3 className="text-sm font-axis uppercase text-foreground mb-3">RECENT SIGNUPS</h3>
-          <div className="space-y-2">
-            {recent?.map((u) => (
-              <div key={u.user_id} className="flex items-center gap-3 py-1.5 border-b border-border last:border-0">
-                <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold shrink-0 overflow-hidden">
-                  <AdminAvatar src={u.avatar_url} fallback={u.display_name?.[0]?.toUpperCase() || "?"} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium text-foreground truncate">{u.display_name || "Unknown"}</p>
-                  <p className="text-[10px] text-muted-foreground">{u.zip_code ? `📍 ${u.zip_code}` : ""} · {formatTimeAgo(u.created_at)}</p>
-                </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" onClick={refresh} disabled={refreshing || statsQuery.isFetching || chartQuery.isFetching}><RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "motion-safe:animate-spin" : ""}`} />Refresh</Button>
+          <Button asChild size="sm"><Link to="/app/admin/analytics" onClick={guardLink}>Open full analytics<ArrowUpRight className="ml-2 h-4 w-4" /></Link></Button>
+        </div>
+      </header>
+      <OverviewAnalytics statsQuery={statsQuery} chartQuery={chartQuery} />
+      <section aria-label="Admin tools" className="border-t border-border pt-5">
+        <Tabs value={selection.tab} onValueChange={(tab) => choose(tab)} activationMode="manual">
+          <TabsList aria-label="Admin sections" className="grid h-auto w-full grid-cols-4 gap-1 bg-muted p-1 md:w-fit">
+            {groups.map((group) => <TabsTrigger key={group.id} value={group.id} className="min-w-0 gap-2 px-2 py-2.5 md:px-5 data-[state=active]:text-primary"><group.icon className="hidden h-4 w-4 shrink-0 sm:block" />{group.label}</TabsTrigger>)}
+          </TabsList>
+          {groups.map((group) => <TabsContent key={group.id} value={group.id} className="mt-4 space-y-4">
+            {selection.tab === group.id && <>
+              <div className="flex flex-wrap gap-2" role="group" aria-label={`${currentGroup.label} tools`}>
+                {group.tools.map((tool) => <Button key={tool.id} variant={selection.tool === tool.id ? "secondary" : "ghost"} size="sm" aria-pressed={selection.tool === tool.id} onClick={() => choose(group.id, tool.id)} className={selection.tool === tool.id ? "text-primary" : "text-muted-foreground"}>{tool.label}</Button>)}
               </div>
-            ))}
-          </div>
-          <Link to="/admin/users" className="text-xs text-primary mt-3 inline-block hover:underline">View All Users →</Link>
-        </Card>
-
-        {/* Top Civic Scores */}
-        <Card className="bg-card border-border p-4">
-          <h3 className="text-sm font-axis uppercase text-foreground mb-3">TOP CIVIC SCORES</h3>
-          <div className="space-y-2">
-            {topScores?.map((s) => (
-              <div key={s.rank} className="flex items-center gap-3 py-1">
-                <span className="text-xs font-axis text-primary w-5">#{s.rank}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-foreground truncate">{s.name}</p>
-                  <div className="w-full bg-border rounded-full h-1.5 mt-1">
-                    <div className="bg-primary h-1.5 rounded-full" style={{ width: `${s.score}%` }} />
-                  </div>
-                </div>
-                <span className="text-[10px] text-muted-foreground">{s.xp} XP</span>
+              <div key={selection.tool} data-testid="overview-tool">
+                {selection.tool === "signups" && <OverviewRecentSignups />}
+                {selection.tool === "scores" && <OverviewTopScores />}
+                {selection.tool === "zip" && <OverviewZipBreakdown />}
+                {selection.tool === "journey" && <JourneyResearchPanels />}
+                {selection.tool === "surveys" && <ResearchSurveysPanel showLink />}
+                {selection.tool === "personas" && <PersonaCopyAdmin onDirtyChange={setDirty} />}
+                {selection.tool === "facts" && <CompassFactsAdmin onDirtyChange={setDirty} />}
+                {selection.tool === "health" && <PlatformHealthCard />}
+                {selection.tool === "actions" && <UnverifiedActionsPanel />}
               </div>
-            ))}
-            {!topScores?.length && <p className="text-xs text-muted-foreground">No scores yet</p>}
-          </div>
-        </Card>
-
-        {/* ZIP Breakdown */}
-        <Card className="bg-card border-border p-4">
-          <h3 className="text-sm font-axis uppercase text-foreground mb-3">ZIP CODE BREAKDOWN</h3>
-          <div className="space-y-2">
-            {zips?.map((z) => (
-              <div key={z.zip} className="flex items-center gap-3 py-1">
-                <span className="text-xs font-mono text-primary">{z.zip}</span>
-                <div className="flex-1 bg-border rounded-full h-1.5">
-                  <div className="bg-primary h-1.5 rounded-full" style={{ width: `${Math.min(100, (z.count / (zips[0]?.count || 1)) * 100)}%` }} />
-                </div>
-                <span className="text-[10px] text-muted-foreground">{z.count}</span>
-              </div>
-            ))}
-            {!zips?.length && <p className="text-xs text-muted-foreground">No ZIP data yet</p>}
-          </div>
-        </Card>
-      </div>
+            </>}
+          </TabsContent>)}
+        </Tabs>
+      </section>
     </div>
   );
 }
