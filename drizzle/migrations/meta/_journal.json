@@ -64,6 +64,13 @@
       "when": 1791824510979,
       "tag": "0008_ride_waitlist_desk_and_drivers",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791848288361,
+      "tag": "0009_migration",
+      "breakpoints": true
     }
   ]
 }
