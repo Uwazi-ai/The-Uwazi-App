@@ -30,6 +30,7 @@ Deno.serve(async (req) => {
     address && zip ? geocode(address, zip) : Promise.resolve(null),
   ]);
   if (!s) return json({ error: "Rides are not open yet." }, 503);
+  if (geo && geo.state !== "MO") return json({ error: "Free rides are only in Missouri right now." }, 400);
 
   // Site hours rule applies to Jackson County voters and to anyone not yet located.
   const siteRule = !geo || geo.county === JACKSON_FIPS;
