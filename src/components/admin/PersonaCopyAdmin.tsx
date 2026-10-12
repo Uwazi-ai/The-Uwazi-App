@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,12 +10,14 @@ import { loadPersonas, personaColor, type Persona } from "@/lib/personas";
 const db = supabase as any;
 const BANNED = /[—–;()]/;
 
-function Row({ p, onSaved }: { p: Persona; onSaved: () => void }) {
+function Row({ p, onSaved, onDirty }: { p: Persona; onSaved: () => void; onDirty: (slug: string, dirty: boolean) => void }) {
   const [f, setF] = useState({ name: p.name, one_line: p.one_line, strength: p.strength, blind_spot: p.blind_spot, archetype_intro: p.archetype_intro ?? "", archetype_examples: p.archetype_examples ?? "" });
   const startPrompts = [0, 1, 2].map((i) => p.suggested_prompts?.[i] ?? "");
   const [prompts, setPrompts] = useState<string[]>(startPrompts);
   const [busy, setBusy] = useState(false);
   const dirty = f.name !== p.name || f.one_line !== p.one_line || f.strength !== p.strength || f.blind_spot !== p.blind_spot || f.archetype_intro !== (p.archetype_intro ?? "") || f.archetype_examples !== (p.archetype_examples ?? "") || prompts.join("|") !== startPrompts.join("|");
+  useEffect(() => { onDirty(p.slug, dirty); }, [dirty, onDirty, p.slug]);
+  useEffect(() => () => onDirty(p.slug, false), [onDirty, p.slug]);
 
   const save = async () => {
     if ([...Object.values(f), ...prompts].some((v) => BANNED.test(v))) return toast.error("Please leave out dashes, semicolons, and parentheses.");
@@ -61,8 +63,11 @@ function Row({ p, onSaved }: { p: Persona; onSaved: () => void }) {
   );
 }
 
-export function PersonaCopyAdmin() {
+export function PersonaCopyAdmin({ onDirtyChange }: { onDirtyChange?: (dirty: boolean) => void } = {}) {
   const [list, setList] = useState<Persona[]>([]);
+  const [dirtyRows, setDirtyRows] = useState<Record<string, boolean>>({});
+  const onDirty = useCallback((slug: string, dirty: boolean) => setDirtyRows((rows) => rows[slug] === dirty ? rows : { ...rows, [slug]: dirty }), []);
+  useEffect(() => { onDirtyChange?.(Object.values(dirtyRows).some(Boolean)); }, [dirtyRows, onDirtyChange]);
   const reload = () => loadPersonas(true).then(setList);
   useEffect(() => { reload(); }, []);
   return (
@@ -71,7 +76,7 @@ export function PersonaCopyAdmin() {
         <h2 className="text-xl font-axis uppercase text-foreground">Civic persona words</h2>
         <p className="text-sm text-muted-foreground">A persona says how someone shows up for their city, never what they believe. Keep it plain and fair to every persona.</p>
       </div>
-      {list.map((p) => <Row key={p.slug + p.name + p.one_line + p.strength + p.blind_spot + (p.archetype_intro ?? "") + (p.archetype_examples ?? "") + (p.suggested_prompts ?? []).join("|")} p={p} onSaved={reload} />)}
+      {list.map((p) => <Row key={p.slug + p.name + p.one_line + p.strength + p.blind_spot + (p.archetype_intro ?? "") + (p.archetype_examples ?? "") + (p.suggested_prompts ?? []).join("|")} p={p} onSaved={reload} onDirty={onDirty} />)}
     </Card>
   );
 }

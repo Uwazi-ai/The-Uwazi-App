@@ -7,13 +7,14 @@ import { toast } from "sonner";
 
 const db = supabase as any;
 
-export function CompassFactsAdmin() {
+export function CompassFactsAdmin({ onDirtyChange }: { onDirtyChange?: (dirty: boolean) => void } = {}) {
   const [dims, setDims] = useState<{ id: string; name: string }[]>([]);
   const [facts, setFacts] = useState<any[]>([]);
   const [dim, setDim] = useState("");
   const [geoid, setGeoid] = useState("");
   const [text, setText] = useState("");
   const [url, setUrl] = useState("");
+  useEffect(() => { onDirtyChange?.(Boolean(dim || geoid || text || url)); }, [dim, geoid, text, url, onDirtyChange]);
 
   const load = async () => {
     const [d, f] = await Promise.all([
@@ -30,7 +31,7 @@ export function CompassFactsAdmin() {
     const { error } = await db.from("compass_facts").insert({ dimension_id: dim, geoid: geoid.trim() || null, text: text.trim(), source_url: url.trim() });
     if (error) return toast.error("We could not save that fact.");
     toast.success("Fact saved.");
-    setText(""); setUrl(""); setGeoid("");
+    setText(""); setUrl(""); setGeoid(""); setDim("");
     load();
   };
 
