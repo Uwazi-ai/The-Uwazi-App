@@ -17,6 +17,9 @@ export function useAdminStats() {
         supabase.from("voting_plans").select("id", { count: "exact" }),
         supabase.from("user_badges").select("id", { count: "exact" }),
       ]);
+      for (const result of [profiles, civicScores, sessions, legislation, plans, badges]) {
+        if (result.error) throw result.error;
+      }
 
       const allProfiles = profiles.data || [];
       const totalUsers = profiles.count || 0;
@@ -51,11 +54,12 @@ export function useRecentSignups() {
   return useQuery({
     queryKey: ["admin-recent-signups"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("user_id, display_name, avatar_url, zip_code, created_at")
         .order("created_at", { ascending: false })
         .limit(10);
+      if (error) throw error;
       return data || [];
     },
     refetchInterval: 60000,
@@ -66,17 +70,19 @@ export function useTopScores() {
   return useQuery({
     queryKey: ["admin-top-scores"],
     queryFn: async () => {
-      const { data: scores } = await supabase
+      const { data: scores, error: scoresError } = await supabase
         .from("civic_scores")
         .select("user_id, civic_literacy_score, total_xp")
         .order("civic_literacy_score", { ascending: false })
         .limit(10);
+      if (scoresError) throw scoresError;
       if (!scores?.length) return [];
       const userIds = scores.map(s => s.user_id);
-      const { data: profiles } = await supabase
+      const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("user_id, display_name")
         .in("user_id", userIds);
+      if (profilesError) throw profilesError;
       const nameMap = new Map((profiles || []).map(p => [p.user_id, p.display_name]));
       return scores.map((s, i) => ({
         rank: i + 1,
@@ -92,9 +98,10 @@ export function useZipBreakdown() {
   return useQuery({
     queryKey: ["admin-zip-breakdown"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("zip_code");
+      if (error) throw error;
       if (!data) return [];
       const counts: Record<string, number> = {};
       data.forEach(p => {
@@ -113,11 +120,12 @@ export function useSignupChart() {
     queryKey: ["admin-signup-chart"],
     queryFn: async () => {
       const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("created_at")
         .gte("created_at", thirtyDaysAgo)
         .order("created_at", { ascending: true });
+      if (error) throw error;
       if (!data) return { daily: [], cumulative: [] };
 
       const dailyCounts: Record<string, number> = {};
@@ -127,10 +135,11 @@ export function useSignupChart() {
       });
 
       // Get total users before 30 days for cumulative
-      const { count } = await supabase
+      const { count, error: countError } = await supabase
         .from("profiles")
         .select("id", { count: "exact", head: true })
         .lt("created_at", thirtyDaysAgo);
+      if (countError) throw countError;
       let cumulative = count || 0;
 
       const days: { date: string; signups: number; total: number }[] = [];

@@ -5,17 +5,17 @@ import { supabase } from "@/integrations/supabase/client";
 
 /** Research panel: answers per survey and the share of people who answered. */
 export function ResearchSurveysPanel({ showLink = false }: { showLink?: boolean }) {
-  const { data = [], isLoading } = useQuery({
+  const { data = [], isLoading, isError } = useQuery({
     queryKey: ["research-survey-stats"],
     queryFn: async () => { const { data, error } = await (supabase as any).rpc("research_survey_stats"); if (error) throw error; return data ?? []; },
   });
   return (
     <Card className="p-5 space-y-3" data-testid="research-panel">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-semibold text-foreground">Research</h3>
         {showLink && <Link to="/app/admin/research-surveys" className="text-sm text-primary underline">Open research surveys</Link>}
       </div>
-      {isLoading ? <div className="h-10 rounded bg-muted animate-pulse" /> : data.length ? data.map((s: any) => {
+      {isLoading ? <div className="h-10 rounded bg-muted animate-pulse" /> : isError ? <p role="alert" className="text-sm text-destructive">We could not load research surveys. Use Refresh to try again.</p> : data.length ? data.map((s: any) => {
         const pct = s.sent ? Math.round((s.responses / s.sent) * 100) : 0;
         return (
           <div key={s.id} className="space-y-1">
