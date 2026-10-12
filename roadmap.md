@@ -54,3 +54,8 @@
 - [x] Bird webhook secret saved (as STRIPE_WEBHOOK_SECRET); bird-inbound now reads it
 - [ ] User to point Bird inbound messages to the bird-inbound webhook URL in the Bird dashboard
 - [x] Waitlist tab on desk, driver field, Text the waitlist button
+
+## Admin overview
+- [ ] Put compact analytics first with an actual refresh timestamp and optional extra metrics.
+- [ ] Add URL-persistent People, Research, Content, and Platform tabs with tools opened on demand and unsaved-edit protection.
+- [ ] Verify the overview and all tool selections with an authorized admin session and focused tests.
