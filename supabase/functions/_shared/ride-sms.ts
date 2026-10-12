@@ -9,7 +9,7 @@ const STOP = " Reply STOP to opt out.";
 
 export type SmsKind =
   | "request_received" | "referred" | "booked" | "reminder"
-  | "destination_assigned" | "ride_home_sent" | "cancelled";
+  | "destination_assigned" | "pickup_confirmed" | "ride_home_sent" | "cancelled";
 
 export function e164(phone: string) {
   const d = String(phone).replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
@@ -48,6 +48,8 @@ export function messageText(kind: SmsKind, r: SmsRide) {
       return `UWAZI: Reminder, your ride to vote is tomorrow at ${fmtTime(r.pickup_time)}. Need to change it? Call ${RIDE_LINE}.`;
     case "destination_assigned":
       return `UWAZI: Your voting place is ${dest}, ${r.site?.address ?? ""}. Your ride card: ${link}`;
+    case "pickup_confirmed":
+      return `UWAZI: Your driver confirmed your pickup on ${fmtDay(r.ride_day)} at ${fmtTime(r.pickup_time)}. Be ready at the door with a photo ID. Questions? Call ${RIDE_LINE}. Track it here: ${link}`;
     case "ride_home_sent":
       return "UWAZI: Your ride home is on the way. Wait near the door.";
     case "cancelled":

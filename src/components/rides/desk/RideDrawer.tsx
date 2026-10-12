@@ -119,6 +119,14 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
       return r;
     });
 
+  const pickupConfirmed = events.some((e) => e.event_type === "pickup_confirmed");
+  const confirmPickup = () =>
+    run(async () => {
+      const r = await log("pickup_confirmed", "Driver confirmed pickup");
+      if (!r.error) await text("pickup_confirmed");
+      return r;
+    });
+
   const [copied, setCopied] = useState(false);
   const riderLink = `${window.location.origin}/rides/card/${ride.ride_code}?t=${encodeURIComponent(ride.card_token)}`;
   const copyLink = async () => {
@@ -183,7 +191,15 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
             </>
           )
         )}
-        {ride.status === "booked" && ride.trip_stage === 0 && <button className={green} disabled={busy} onClick={() => stage(1, "Driver on the way")}>Driver on the way</button>}
+        {ride.status === "booked" && ride.trip_stage === 0 && !pickupConfirmed && (
+          <div className="space-y-2 rounded-2xl border border-[hsl(var(--rides-green)/0.5)] p-4">
+            <h3 className="font-semibold">Confirm pickup</h3>
+            <p className="text-sm text-[hsl(var(--rides-ink)/0.7)]">Tap this once zTrip tells you the driver accepted the pickup. The rider gets a final text.</p>
+            <button className={green} disabled={busy} onClick={confirmPickup}>Driver confirmed pickup</button>
+          </div>
+        )}
+        {ride.status === "booked" && ride.trip_stage === 0 && pickupConfirmed && <p className="text-sm text-[hsl(var(--rides-green))]">Pickup confirmed ✓</p>}
+        {ride.status === "booked" && ride.trip_stage === 0 && <button className={pickupConfirmed ? green : ghost} disabled={busy} onClick={() => stage(1, "Driver on the way")}>Driver on the way</button>}
         {ride.status === "booked" && ride.trip_stage === 1 && <button className={green} disabled={busy} onClick={() => stage(2, "Driver is here")}>Driver is here</button>}
         {ride.status === "booked" && <button className={ride.trip_stage === 2 ? green : ghost} disabled={busy} onClick={() => stage(3, "Picked up", "riding")}>Mark picked up</button>}
         {ride.status === "riding" && ride.trip_stage < 4 && <button className={green} disabled={busy} onClick={() => stage(4, "Dropped at voting place")}>Dropped at voting place</button>}
@@ -250,7 +266,7 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
 
 const TEXT_NAMES: Record<string, string> = {
   request_received: "Request received", referred: "RideKC info", booked: "Ride booked", reminder: "Reminder",
-  destination_assigned: "Voting place", ride_home_sent: "Ride home", cancelled: "Cancelled",
+  destination_assigned: "Voting place", ride_home_sent: "Ride home", cancelled: "Cancelled", pickup_confirmed: "Pickup confirmed",
 };
 
 function Row({ k, children }: { k: string; children: React.ReactNode }) {
