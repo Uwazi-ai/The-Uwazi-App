@@ -32,7 +32,7 @@ export default function AdminRidesPage() {
     queryFn: async () => {
       const [rides, paused] = await Promise.all([
         db.from("ride_requests")
-          .select("id,ride_code,first_name_last_initial,status,trip_stage,ride_day,pickup_time,round_trip,needs_destination,texts_ok,source,site:voter_guide_sites(name)")
+          .select("id,ride_code,first_name_last_initial,status,trip_stage,ride_day,pickup_time,round_trip,needs_destination,texts_ok,source,quiz_score,quiz_finished_at,site:voter_guide_sites(name)")
           .order("ride_day", { ascending: true }).order("pickup_time", { ascending: true }).limit(1000),
         db.rpc("ride_paused_ids"),
       ]);
@@ -98,6 +98,7 @@ export default function AdminRidesPage() {
                     {r.status !== "requested" && r.trip_stage != null && STAGES[r.trip_stage] && (
                       <div className="mt-1 text-xs text-muted-foreground">{STAGES[r.trip_stage]}</div>
                     )}
+                    {r.quiz_finished_at && <div className="mt-1"><Badge variant="outline">Rights quiz {Number(r.quiz_score)}/8</Badge></div>}
                   </td>
                   <td className="p-3 whitespace-nowrap">{fmtDay(r.ride_day)} at {fmtTime(r.pickup_time)}{r.round_trip && <div className="text-xs text-muted-foreground">Round trip</div>}</td>
                   <td className="p-3">{r.site && !r.needs_destination ? r.site.name : <span className="text-amber-400">Needs voting place</span>}</td>
