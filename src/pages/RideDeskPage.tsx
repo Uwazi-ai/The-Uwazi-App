@@ -185,6 +185,9 @@ function Desk() {
         {showClosed && <div className="mt-3 grid gap-3 md:grid-cols-4">{closed.map((r) => <div key={r.id}><span className={plain}>{r.status === "referred" ? "Referred" : "Cancelled"}</span><div className="mt-1"><Card r={r} /></div></div>)}</div>}
       </section>
 
+      <Waitlist freed={closed.filter((r) => r.status === "cancelled").length} />
+
+
       <section className="mt-8">
         <h2 className="font-heading text-2xl">Trips to send zTrip</h2>
         <p className="mb-3 text-sm text-[hsl(var(--rides-ink)/0.7)]">Riders with the same day, hour and voting place share one trip.</p>
