@@ -70,7 +70,7 @@ export default function AdminOverviewPage() {
     try {
       await Promise.all([
         statsQuery.refetch(), chartQuery.refetch(),
-        client.invalidateQueries({ predicate: (query) => ["admin-recent-signups", "admin-top-scores", "admin-zip-breakdown", "journey-research-stats", "research-survey-stats"].includes(String(query.queryKey[0])), refetchType: "active" }),
+        client.invalidateQueries({ predicate: (query) => ["admin-recent-signups", "admin-top-scores", "admin-zip-breakdown", "journey-research-stats", "research-survey-stats", "admin-platform-health", "admin-unverified-actions"].includes(String(query.queryKey[0])), refetchType: "active" }),
       ]);
     } finally { setRefreshing(false); }
   };
@@ -81,7 +81,12 @@ export default function AdminOverviewPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[1400px] space-y-6 overflow-x-hidden p-4 md:p-6">
+    <div className="mx-auto w-full max-w-[1400px] space-y-6 overflow-x-hidden p-4 md:p-6" onClickCapture={(event) => {
+      const target = event.target;
+      if (dirty && target instanceof Element && target.closest("a[href]") && !window.confirm("You have unsaved changes. Leave without saving?")) {
+        event.preventDefault(); event.stopPropagation();
+      }
+    }}>
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase text-primary"><Shield className="h-4 w-4" />UWAZI Admin</div>
@@ -90,7 +95,7 @@ export default function AdminOverviewPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={refresh} disabled={refreshing || statsQuery.isFetching || chartQuery.isFetching}><RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "motion-safe:animate-spin" : ""}`} />Refresh</Button>
-          <Button asChild size="sm"><Link to="/app/admin/analytics" onClick={guardLink}>Open full analytics<ArrowUpRight className="ml-2 h-4 w-4" /></Link></Button>
+          <Button asChild size="sm"><Link to="/app/admin/analytics">Open full analytics<ArrowUpRight className="ml-2 h-4 w-4" /></Link></Button>
         </div>
       </header>
       <OverviewAnalytics statsQuery={statsQuery} chartQuery={chartQuery} />
