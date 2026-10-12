@@ -276,6 +276,7 @@ function Report({ rides, settings, blocks, siteDays }: { rides: Ride[]; settings
       </dl>
       <p className="text-xs text-[hsl(var(--rides-ink)/0.55)]">Weekdays count 7 driver hours. Saturdays count 4. The CSV has no names, phones or addresses.</p>
       <button onClick={download} className="w-full rounded-xl bg-[hsl(var(--rides-green))] py-3 font-semibold text-[hsl(var(--rides-bg))]">Export CSV</button>
+      <BirdEmailTest />
     </div>
   );
 }
