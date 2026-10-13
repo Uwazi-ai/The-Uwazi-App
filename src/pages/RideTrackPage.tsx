@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { fetchRideCard } from "@/lib/rideCard";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import uwaziLogo from "@/assets/uwazi-app-wordmark.png";
@@ -139,9 +140,9 @@ export default function RideTrackPage() {
   const [ask, setAsk] = useState<number | null>(null);
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.functions.invoke("get-ride-card", { body: { ride_code: code, t: token } });
-    if (error) setErr(true);
-    else { setCard(data); setErr(false); }
+    const res = await fetchRideCard(code, token);
+    if (res.ok) { setCard(res.data); setErr(false); }
+    else { setErr(true); if (res.notFound) setCard(null); }
   }, [code, token]);
 
   useEffect(() => {
