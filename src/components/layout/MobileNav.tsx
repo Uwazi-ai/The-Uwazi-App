@@ -4,7 +4,7 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Building2, ChevronRight, Compass, Menu, User } from "lucide-react";
+import { Building2, ChevronRight, Compass, LogIn, Menu, User } from "lucide-react";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -93,21 +93,33 @@ export function MobileNav() {
           >
             <SheetHeader className="mb-4">
               <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mx-auto mb-3" />
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full overflow-hidden border border-border bg-muted flex items-center justify-center">
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-base font-bold text-foreground">{initial}</span>
-                  )}
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full overflow-hidden border border-border bg-muted flex items-center justify-center">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-base font-bold text-foreground">{initial}</span>
+                    )}
+                  </div>
+                  <div className="flex-1 text-left min-w-0">
+                    <SheetTitle className="text-base font-semibold text-foreground truncate">
+                      {displayName}
+                    </SheetTitle>
+                    <p className="text-xs text-muted-foreground">View profile & more</p>
+                  </div>
                 </div>
-                <div className="flex-1 text-left min-w-0">
-                  <SheetTitle className="text-base font-semibold text-foreground truncate">
-                    {displayName}
-                  </SheetTitle>
-                  <p className="text-xs text-muted-foreground">View profile & more</p>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full border border-border bg-primary/10 flex items-center justify-center text-primary">
+                    <LogIn className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 text-left min-w-0">
+                    <SheetTitle className="text-base font-semibold text-foreground truncate">Sign in</SheetTitle>
+                    <p className="text-xs text-muted-foreground">Open the full UWAZI app</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </SheetHeader>
             <div className="flex flex-col gap-1">
               {drawerItems.map((item) => (
