@@ -12,7 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import { openPaywall } from "@/components/plus/Paywall";
 import { PlusLogo } from "@/components/plus/PlusLogo";
-import { useEpisodeVideoUrl } from "@/hooks/useEpisodeVideoUrl";
+import { useEpisodeVideoUrl, episodeSources } from "@/hooks/useEpisodeVideoUrl";
+import { useVideoSource, VIDEO_BUCKET } from "@/lib/videoLibrary";
 
 interface Episode {
   id: string;
@@ -273,6 +274,10 @@ function LikeButton({ episodeId }: { episodeId: string }) {
 
 function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, toggleInfo, locked, onPaywall, onUpgrade }: VideoCardProps) {
   const { url: playableUrl } = useEpisodeVideoUrl(episode);
+  const sources = playableUrl ? episodeSources(episode.id) : [];
+  const poster = useVideoSource(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${VIDEO_BUCKET}/episode-posters/${episode.id}.jpg`);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -302,7 +307,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
     const video = videoRef.current;
     if (!video) return;
     // Guard: don't attempt playback until we have a real source URL
-    if (!episode.video_url || !video.src) return;
+    if (!episode.video_url || !playableUrl || failed) return;
     if (video.readyState < 2) video.load();
     const p = video.play();
     if (p && typeof p.catch === "function") {
@@ -366,12 +371,15 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
     <div ref={cardRef} className="relative w-full md:w-auto md:h-screen md:aspect-[9/16] snap-start flex-shrink-0" style={{ height: "100dvh" }}>
       {episode.video_url ? (
         <video
+          key={`${playableUrl ?? "none"}-${attempt}`}
           ref={videoRef}
-          src={playableUrl ?? undefined}
+          poster={poster}
+          autoPlay={!locked}
           className={`absolute inset-0 w-full h-full object-cover md:object-contain ${locked ? "blur-lg scale-105" : ""}`}
           muted={muted}
           loop
           playsInline
+          {...{ "webkit-playsinline": "true" }}
           preload="metadata"
           onWaiting={() => setIsBuffering(true)}
           onStalled={() => setIsBuffering(true)}
@@ -396,8 +404,19 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
             console.error("[WatchPage] video error:", episode.title, err);
             setLastError(msg);
             if (playableUrl) probeNetwork(playableUrl);
+            setFailed(true);
+            setIsBuffering(false);
           }}
-        />
+        >
+          {(sources.length ? sources : playableUrl ? [{ url: playableUrl, type: "video/mp4" }] : []).map((s, i, all) => (
+            <source
+              key={s.url}
+              src={s.url}
+              type={s.type}
+              onError={i === all.length - 1 ? () => { setFailed(true); setIsBuffering(false); setLastError("No playable source"); } : undefined}
+            />
+          ))}
+        </video>
       ) : (
         <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-zinc-900 to-black flex items-center justify-center">
           <div className="text-center px-6">
@@ -408,7 +427,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
       )}
 
       {/* Buffering overlay */}
-      {isBuffering && episode.video_url && !needsTap && !locked && (
+      {isBuffering && !failed && episode.video_url && !needsTap && !locked && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px] pointer-events-none">
           <div className="w-12 h-12 rounded-full border-2 border-white/20 border-t-white animate-spin" />
           {bufferPct > 0 && bufferPct < 100 && (
@@ -422,7 +441,19 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
         </div>
       )}
 
-      {needsTap && episode.video_url && !locked && (
+      {failed && episode.video_url && !locked && (
+        <div role="alert" className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-black/60 px-6 text-center">
+          <p className="text-white text-sm font-semibold">This video could not load.</p>
+          <button
+            onClick={() => { setFailed(false); setLastError(null); setIsBuffering(true); setAttempt((a) => a + 1); }}
+            className="rounded-full bg-primary px-5 py-2 text-sm font-bold text-primary-foreground"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
+      {needsTap && !failed && episode.video_url && !locked && (
         <button
           onClick={handleTapToPlay}
           className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-sm"

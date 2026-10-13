@@ -9,7 +9,14 @@ function isStored(videoUrl: string) {
 }
 
 // Signed links are reused across Home and Watch so each episode is resolved once.
-const cache = new Map<string, { url: string; expires: number }>();
+export type VideoSource = { url: string; type: string };
+const cache = new Map<string, { url: string; sources: VideoSource[]; expires: number }>();
+
+/** Ordered playable sources for an episode once resolved (phone-safe copies first). */
+export function episodeSources(id: string): VideoSource[] {
+  const hit = cache.get(id);
+  return hit && hit.expires > Date.now() ? hit.sources : [];
+}
 const inflight = new Map<string, Promise<string | null>>();
 
 function resolveStored(id: string): Promise<string | null> {
@@ -22,7 +29,7 @@ function resolveStored(id: string): Promise<string | null> {
     .then(({ data, error }) => {
       if (error || !data?.granted || !data?.url) return null;
       // Signed links last longer than this; refresh well before they expire.
-      cache.set(id, { url: data.url, expires: Date.now() + 30 * 60 * 1000 });
+      cache.set(id, { url: data.url, sources: Array.isArray(data.sources) && data.sources.length ? data.sources : [{ url: data.url, type: "video/mp4" }], expires: Date.now() + 30 * 60 * 1000 });
       return data.url as string;
     })
     .catch(() => null)

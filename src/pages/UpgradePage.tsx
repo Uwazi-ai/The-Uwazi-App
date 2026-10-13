@@ -25,8 +25,7 @@ export default function UpgradePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isPremium, loading } = useSubscription();
-  const initial = params.get("plan") as Tier;
-  const [tier, setTier] = useState<Tier>(initial === "monthly" ? initial : "monthly");
+  const [tier, setTier] = useState<Tier>("monthly");
   const [checkout, setCheckout] = useState(false);
   useEffect(() => { if (!loading && isPremium) navigate("/app/settings/subscription", { replace: true }); }, [isPremium, loading, navigate]);
   useEffect(() => { if (window.location.hash === "#student") setTimeout(() => document.getElementById("student")?.scrollIntoView(), 300); }, []);
