@@ -65,11 +65,11 @@ Deno.serve(async (req) => {
     }
 
     let url = ep.video_url as string | null;
+    // Ordered sources for the player. Phone-safe copies (H.264 MP4, then
+    // WebM) sit next to the original as <base>.h264.mp4 and <base>.webm and
+    // are listed first when they exist. Originals are never changed.
+    const sources: { url: string; type: string }[] = [];
     if (url) {
-      // Determine storage path:
-      //  - legacy:  https://.../storage/v1/object/public/episode-videos/<path>
-      //  - current: <path> (no scheme) — preferred; bucket privacy is enforced
-      //  - external (e.g. Cloudinary): returned as-is
       let path: string | null = null;
       const legacy = url.match(SUPABASE_PUBLIC_RE);
       if (legacy) {
@@ -78,17 +78,26 @@ Deno.serve(async (req) => {
         path = url.replace(/^\/+/, "");
       }
       if (path) {
-        const { data: signed, error: signErr } = await admin.storage
-          .from("episode-videos")
-          .createSignedUrl(path, 60 * 60); // 1 hour
-        if (signErr || !signed?.signedUrl) {
-          return json({ error: "sign_failed" }, 500);
+        const bucket = admin.storage.from("episode-videos");
+        const base = path.replace(/\.[^./]+$/, "");
+        for (const [variant, type] of [[`${base}.h264.mp4`, "video/mp4"], [`${base}.webm`, "video/webm"]]) {
+          if (variant === path) continue;
+          const { data: v } = await bucket.createSignedUrl(variant, 60 * 60);
+          if (v?.signedUrl) sources.push({ url: v.signedUrl, type });
         }
-        url = signed.signedUrl;
+        const { data: signed, error: signErr } = await bucket.createSignedUrl(path, 60 * 60);
+        if (signErr || !signed?.signedUrl) {
+          if (!sources.length) return json({ error: "sign_failed" }, 500);
+        } else {
+          sources.push({ url: signed.signedUrl, type: /\.mov$/i.test(path) ? "video/quicktime" : "video/mp4" });
+        }
+        url = sources[0].url;
+      } else {
+        sources.push({ url, type: "video/mp4" });
       }
     }
 
-    return json({ granted: true, reason: result.reason, url });
+    return json({ granted: true, reason: result.reason, url, sources });
   } catch (e) {
     return json({ error: String(e) }, 500);
   }
