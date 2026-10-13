@@ -90,6 +90,8 @@ Deno.serve(async (req) => {
   // Destination: only verified sites, never invented.
   let site: { id: string; name: string; address: string } | null = null;
   const siteCols = "id,name,address";
+  // Missouri only, checked for every ride day, not just early voting.
+  if (!b.zip || !isMissouriZip(b.zip)) return json({ error: "Free rides are only in Missouri right now. Questions? Call the ride line at (816) 379-6885." }, 400);
   if (isEarly) {
     const geo = await geocode(b.pickup_address, b.zip);
     if ((geo && geo.state !== "MO") || (b.zip && !isMissouriZip(b.zip))) return json({ error: "Free rides are only in Missouri right now. Questions? Call the ride line at (816) 379-6885." }, 400);
