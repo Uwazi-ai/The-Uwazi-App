@@ -140,7 +140,11 @@ export default function RideTrackPage() {
 
   const load = useCallback(async () => {
     const { data, error } = await supabase.functions.invoke("get-ride-card", { body: { ride_code: code, t: token } });
-    if (error) setErr(true);
+    if (error) {
+      setErr(true);
+      // A removed or mismatched ride: drop the old card so the "Ride not found" screen shows.
+      if ((error as { context?: Response }).context?.status === 404) setCard(null);
+    }
     else { setCard(data); setErr(false); }
   }, [code, token]);
 
