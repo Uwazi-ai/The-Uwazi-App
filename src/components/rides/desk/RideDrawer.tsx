@@ -30,7 +30,7 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
   useEffect(() => {
     loadEvents();
     const ch = supabase
-      .channel(`ride-events-${ride.id}`)
+      .channel(`ride-events-${ride.id}-${Math.random().toString(36).slice(2, 8)}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "ride_events", filter: `request_id=eq.${ride.id}` }, loadEvents)
       .subscribe();
     return () => { supabase.removeChannel(ch); };

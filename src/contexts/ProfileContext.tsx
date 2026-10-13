@@ -81,8 +81,11 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   // Realtime: refresh profile when this user's roles or profile change
   useEffect(() => {
     if (!user) return;
+    // Unique per mount so two providers never share one channel name: reusing a
+    // name hands back a channel that is already subscribed, and adding listeners
+    // to it throws.
     const channel = supabase
-      .channel(`profile-sync-${user.id}`)
+      .channel(`profile-sync-${user.id}-${Math.random().toString(36).slice(2, 8)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "user_roles", filter: `user_id=eq.${user.id}` },

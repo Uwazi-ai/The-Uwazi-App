@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { ProfileProvider, useProfile } from "@/contexts/ProfileContext";
+import { useProfile } from "@/contexts/ProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import uwaziLogo from "@/assets/uwazi-logo.png";
 
@@ -53,9 +53,7 @@ export function RidesTopBar() {
       </Link>
       <div className="flex items-center gap-3">
         <ThemeToggle />
-        <ProfileProvider>
-          <ProfileButton />
-        </ProfileProvider>
+        <ProfileButton />
       </div>
     </header>
   );
