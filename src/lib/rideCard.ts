@@ -2,7 +2,7 @@
 const URL_ = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-ride-card`;
 const KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-export type RideCardResult = { ok: true; data: any } | { ok: false; notFound: boolean };
+export type RideCardResult = { ok: boolean; data?: any; notFound?: boolean };
 
 export async function fetchRideCard(ride_code: string, t: string): Promise<RideCardResult> {
   try {

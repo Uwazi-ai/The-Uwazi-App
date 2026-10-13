@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { fetchRideCard } from "@/lib/rideCard";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import uwaziLogo from "@/assets/uwazi-app-wordmark.png";
