@@ -111,7 +111,7 @@ export function RedemptionCodesSection() {
                       </td>
                       <td className="py-2 pr-3">{Number(s.early_signups)}</td>
                       <td className="py-2 pr-3 text-xs text-muted-foreground">
-                        {s.last_redemption ? new Date(s.last_redemption).toLocaleDateString() : "—"}
+                        {s.last_redemption ? new Date(s.last_redemption).toLocaleDateString() : "None"}
                       </td>
                     </tr>
                   ))}

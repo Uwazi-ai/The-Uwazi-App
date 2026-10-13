@@ -1024,7 +1024,7 @@ export default function AskUwaziPage() {
                     You're loving Ask Uwazi! 🎉
                   </p>
                   <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                    You've used your {FREE_DAILY_LIMIT} free questions today. Unlock unlimited access with Uwazi+ — plus Watch, advanced legislation tracking, and more.
+                    You've used your {FREE_DAILY_LIMIT} free questions today. Unlock unlimited access with Uwazi+, plus Watch, advanced legislation tracking, and more.
                   </p>
                   <div className="flex items-center gap-2">
                     <button

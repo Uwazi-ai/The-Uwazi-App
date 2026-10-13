@@ -145,7 +145,7 @@ export function RegistrationOptInCard({ stateCode, onClose }: Props) {
                   Want a reminder when voter registration opens in your state?
                 </p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  We'll send one email — no spam, ever.
+                  We'll send one email, no spam, ever.
                 </p>
               </div>
             </div>

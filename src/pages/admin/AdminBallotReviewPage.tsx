@@ -260,7 +260,7 @@ export default function AdminBallotReviewPage() {
                           {c.contest_type === "candidate_race" && (
                             <span className="text-xs text-muted-foreground">
                               {c.ballot_candidates?.length ?? 0} candidate(s)
-                              {(c.ballot_candidates?.length ?? 0) === 0 && " — missing"}
+                              {(c.ballot_candidates?.length ?? 0) === 0 && ", missing"}
                             </span>
                           )}
                         </div>
@@ -275,7 +275,7 @@ export default function AdminBallotReviewPage() {
                           <li key={cand.id}>
                             • {cand.name}
                             {cand.party ? ` (${cand.party})` : ""}
-                            {cand.is_incumbent ? " — incumbent" : ""}
+                            {cand.is_incumbent ? ", incumbent" : ""}
                           </li>
                         ))}
                         {(c.ballot_candidates ?? []).length === 0 && (
@@ -384,7 +384,7 @@ export default function AdminBallotReviewPage() {
               (history ?? []).map((h) => (
                 <div key={h.id} className="text-sm border-b border-border pb-2 last:border-0">
                   <div className="font-medium">
-                    {h.old_status ?? "—"} → {h.new_status}
+                    {h.old_status ?? "None"} → {h.new_status}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {new Date(h.created_at).toLocaleString()} · by {h.actor_id.slice(0, 8)}

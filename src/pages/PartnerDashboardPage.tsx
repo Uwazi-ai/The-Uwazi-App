@@ -519,7 +519,7 @@ export default function PartnerDashboardPage() {
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-foreground">{o.name}</p>
-                        <p className="text-xs text-muted-foreground">{o.city || "—"}</p>
+                        <p className="text-xs text-muted-foreground">{o.city || "None"}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-2xl font-axis text-primary">{o.civic_impact_score || 0}</p>

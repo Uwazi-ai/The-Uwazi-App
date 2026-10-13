@@ -149,7 +149,7 @@ function RaceCard({
                     <div>
                       <div className="text-sm font-medium text-foreground">{c.name}</div>
                       <div className="text-xs text-muted-foreground mt-0.5">
-                        {c.party || "—"}
+                        {c.party || "None"}
                         {c.is_incumbent && (
                           <span className="ml-2 inline-block rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-primary border border-primary/40">
                             Incumbent

@@ -47,10 +47,10 @@ export default function ImpactPage() {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>UWAZI Impact — Partner organization leaderboard</title>
+        <title>UWAZI Impact, Partner organization leaderboard</title>
         <meta name="description" content="Public leaderboard of UWAZI partner organizations driving civic engagement, voter registrations, and community impact." />
         <link rel="canonical" href="https://uwaziapp.uwazi.ai/impact" />
-        <meta property="og:title" content="UWAZI Impact — Partner organization leaderboard" />
+        <meta property="og:title" content="UWAZI Impact, Partner organization leaderboard" />
         <meta property="og:description" content="See which UWAZI partner organizations are driving civic engagement in their communities." />
         <meta property="og:url" content="https://uwaziapp.uwazi.ai/impact" />
       </Helmet>
@@ -122,7 +122,7 @@ export default function ImpactPage() {
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-foreground">{o.name}</p>
-                  <p className="text-xs text-muted-foreground">{o.city || "—"} · <span className="capitalize">{o.category}</span></p>
+                  <p className="text-xs text-muted-foreground">{o.city || "None"} · <span className="capitalize">{o.category}</span></p>
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-axis text-primary">{o.civic_impact_score || 0}</p>

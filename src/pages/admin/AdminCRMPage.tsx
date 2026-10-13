@@ -245,10 +245,10 @@ export default function AdminCRMPage() {
                               <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold shrink-0 overflow-hidden">
                                 <AdminAvatar src={c.avatar_url} fallback={c.display_name?.[0]?.toUpperCase() || "?"} />
                               </div>
-                              <span className="font-medium text-foreground truncate max-w-[140px]">{c.display_name || "—"}</span>
+                              <span className="font-medium text-foreground truncate max-w-[140px]">{c.display_name || "None"}</span>
                             </div>
                           </td>
-                          <td className="p-3 text-muted-foreground text-xs">{c.zip_code || "—"}</td>
+                          <td className="p-3 text-muted-foreground text-xs">{c.zip_code || "None"}</td>
                           <td className="p-3">
                             <div className="flex gap-1">
                               {c.email_opt_in && <span className="px-1.5 py-0.5 rounded text-[9px] bg-primary/10 text-primary font-medium">Email</span>}
@@ -288,7 +288,7 @@ export default function AdminCRMPage() {
                   <div className="space-y-2 text-xs">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Phone</span>
-                      <span className="text-foreground">{selectedContact.phone_number || "—"}</span>
+                      <span className="text-foreground">{selectedContact.phone_number || "None"}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Contact Score</span>
@@ -474,7 +474,7 @@ export default function AdminCRMPage() {
             <TabsContent value="3" className="space-y-3 mt-4">
               <Card className="bg-primary/5 border-primary/20">
                 <CardContent className="p-4 space-y-2 text-sm">
-                  <p><span className="text-muted-foreground">Campaign:</span> <span className="font-medium">{cName || "—"}</span></p>
+                  <p><span className="text-muted-foreground">Campaign:</span> <span className="font-medium">{cName || "None"}</span></p>
                   <p><span className="text-muted-foreground">Channel:</span> <span className="capitalize">{cType}</span></p>
                   <p><span className="text-muted-foreground">Target:</span> <span className="capitalize">{cTargetType === "all" ? "All users" : cTargetType === "zip_codes" ? `ZIPs: ${cTargetZips}` : `Score ${cScoreRange[0]}–${cScoreRange[1]}`}</span></p>
                   {cSubject && <p><span className="text-muted-foreground">Subject:</span> {cSubject}</p>}

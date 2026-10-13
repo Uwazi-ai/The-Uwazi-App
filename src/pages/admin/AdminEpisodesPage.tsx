@@ -395,7 +395,7 @@ function SortableEpisodeRow({ ep, selected, onToggleSelect, onTogglePublished, o
           {ep.topic_emoji} {ep.topic}
         </span>
       </td>
-      <td className="p-3 text-muted-foreground hidden md:table-cell">{ep.date || "—"}</td>
+      <td className="p-3 text-muted-foreground hidden md:table-cell">{ep.date || "None"}</td>
       <td className="p-3">
         <button
           type="button"

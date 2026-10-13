@@ -428,7 +428,7 @@ function SlideContent({ slide, trackColor }: { slide: any; trackColor: string | 
     return (
       <div className="text-center py-8 space-y-3">
         <p className="text-2xl italic text-foreground leading-relaxed">"{slide.text}"</p>
-        <p className="text-sm text-primary font-semibold">— {slide.author}</p>
+        <p className="text-sm text-primary font-semibold">, {slide.author}</p>
         {slide.context && <p className="text-xs text-muted-foreground">{slide.context}</p>}
       </div>
     );

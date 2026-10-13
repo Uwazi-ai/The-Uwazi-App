@@ -6,7 +6,7 @@ export default function BackpackRulesPage() {
   return (
     <div className="min-h-screen bg-background text-foreground px-4 py-8 max-w-3xl mx-auto">
       <Helmet>
-        <title>Operation Backpack KC Offer Rules — UWAZI</title>
+        <title>Operation Backpack KC Offer Rules, UWAZI</title>
         <meta
           name="description"
           content="Official rules for the UWAZI+ free-year promo cards distributed at Operation Backpack KC on August 1, 2026."
@@ -19,7 +19,7 @@ export default function BackpackRulesPage() {
         Back
       </Link>
 
-      <h1 className="text-3xl font-bold mb-2">Operation Backpack KC — UWAZI+ Offer Rules</h1>
+      <h1 className="text-3xl font-bold mb-2">Operation Backpack KC, UWAZI+ Offer Rules</h1>
       <p className="text-muted-foreground text-sm mb-8">Event date: August 1, 2026</p>
 
       <section className="space-y-6 text-sm leading-relaxed text-muted-foreground">

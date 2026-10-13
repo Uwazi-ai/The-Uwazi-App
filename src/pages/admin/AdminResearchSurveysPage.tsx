@@ -15,7 +15,7 @@ import { Q_TYPE_LABEL, type QType, type SurveyQuestion } from "@/hooks/useResear
 import { ResearchSurveysPanel } from "@/components/admin/ResearchSurveysPanel";
 
 const db = supabase as any;
-const BANNED = /[—–;()]/;
+const BANNED = /[, –;()]/;
 
 interface Def {
   id?: string; title: string; intro: string; questions: SurveyQuestion[];

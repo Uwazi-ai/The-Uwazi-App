@@ -132,7 +132,7 @@ export function FeedbackButton() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Email (optional — for follow-up)"
+                      placeholder="Email (optional, for follow-up)"
                       className="w-full mt-2 px-3 py-2.5 rounded-xl bg-black/40 border border-white/10 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#9bd34b]/50"
                     />
                   )}

@@ -142,7 +142,7 @@ export default function AdminCodesPage() {
                     {c.max_redemptions ? ` / ${c.max_redemptions}` : ""}
                   </td>
                   <td className="py-3 pr-3 text-xs text-muted-foreground">
-                    {c.expires_at ? new Date(c.expires_at).toLocaleDateString() : "—"}
+                    {c.expires_at ? new Date(c.expires_at).toLocaleDateString() : "None"}
                   </td>
                   <td className="py-3 pr-3">
                     <Switch

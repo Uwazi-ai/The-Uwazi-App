@@ -112,7 +112,7 @@ export default function PromoRedeemPage() {
               <div>
                 <h1 className="text-2xl font-black mb-2">One year of UWAZI+, free</h1>
                 <p className="text-sm text-muted-foreground">
-                  You're claiming a full year of UWAZI+ — unlimited Ask UWAZI, every episode, full
+                  You're claiming a full year of UWAZI+, unlimited Ask UWAZI, every episode, full
                   legislation tracking and My Ballot. No card required.
                 </p>
               </div>
@@ -157,7 +157,7 @@ export default function PromoRedeemPage() {
                       {result.kind === "already_claimed_by_user" &&
                         "Your account already has a free year from this event."}
                       {result.kind === "unknown" &&
-                        `We couldn't reach the server. Your code is ${code} — try again in a moment.`}
+                        `We couldn't reach the server. Your code is ${code}, try again in a moment.`}
                     </p>
                   </div>
                   {result.kind === "unknown" && (
@@ -184,7 +184,7 @@ export default function PromoRedeemPage() {
 
               {!user && !authLoading && (
                 <p className="text-xs text-muted-foreground text-center">
-                  You'll create a free account first — your code is saved and applied when you get back.{" "}
+                  You'll create a free account first, your code is saved and applied when you get back.{" "}
                   <button onClick={() => goAuth("/login")} className="text-primary underline">
                     Already have an account?
                   </button>

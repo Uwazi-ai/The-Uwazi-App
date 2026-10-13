@@ -79,7 +79,7 @@ export default function AdminUsersPage() {
     } else {
       await (supabase as any).from("user_roles").delete().eq("user_id", userId).eq("role", "super_admin");
     }
-    toast.success(current ? "Super Admin removed — they must refresh to see changes" : "Super Admin granted — they must refresh to see changes");
+    toast.success(current ? "Super Admin removed, they must refresh to see changes" : "Super Admin granted, they must refresh to see changes");
     invalidateAll(userId);
   };
 
@@ -98,13 +98,13 @@ export default function AdminUsersPage() {
         .eq("user_id", userId)
         .eq("role", "program_admin");
       if (error) return toast.error(error.message);
-      toast.success("Program Admin removed — they must refresh to see changes");
+      toast.success("Program Admin removed, they must refresh to see changes");
     } else {
       const { error } = await (supabase as any)
         .from("user_roles")
         .insert({ user_id: userId, role: "program_admin" });
       if (error) return toast.error(error.message);
-      toast.success("Program Admin granted — they must refresh to see changes");
+      toast.success("Program Admin granted, they must refresh to see changes");
     }
     invalidateAll(userId);
   };
@@ -225,9 +225,9 @@ export default function AdminUsersPage() {
                     </div>
                   </div>
                 </td>
-                <td className="p-3 text-xs text-muted-foreground hidden md:table-cell">{u.zip_code ? `📍 ${u.zip_code}` : "—"}</td>
+                <td className="p-3 text-xs text-muted-foreground hidden md:table-cell">{u.zip_code ? `📍 ${u.zip_code}` : "None"}</td>
                 <td className="p-3 text-xs text-muted-foreground hidden lg:table-cell">{new Date(u.created_at).toLocaleDateString()}</td>
-                <td className="p-3 hidden md:table-cell">{u.is_admin ? <span className="text-primary text-xs">✓</span> : <span className="text-muted-foreground text-xs">—</span>}</td>
+                <td className="p-3 hidden md:table-cell">{u.is_admin ? <span className="text-primary text-xs">✓</span> : <span className="text-muted-foreground text-xs">, </span>}</td>
                 <td className="p-3">
                   <div className="flex gap-1.5 flex-wrap">
                     <Button size="sm" variant="outline" className="text-[10px] h-7 px-2" onClick={() => setSelectedUser(u)}>View</Button>
@@ -291,7 +291,7 @@ export default function AdminUsersPage() {
                 <Row label="UWAZI+" value={compUsers.has(selectedUser.user_id) ? "Complimentary" : paidUsers.has(selectedUser.user_id) ? "Paid" : "No"} />
                 <Row label="Onboarding" value={selectedUser.onboarding_complete ? "Complete" : "Incomplete"} />
                 <Row label="Joined" value={new Date(selectedUser.created_at).toLocaleDateString()} />
-                <Row label="Last Active" value={selectedUser.last_active ? new Date(selectedUser.last_active).toLocaleDateString() : "—"} />
+                <Row label="Last Active" value={selectedUser.last_active ? new Date(selectedUser.last_active).toLocaleDateString() : "None"} />
               </div>
             </div>
           )}
@@ -305,7 +305,7 @@ function Row({ label, value }: { label: string; value?: string | null }) {
   return (
     <div className="flex justify-between py-1.5 border-b border-border">
       <span className="text-muted-foreground">{label}</span>
-      <span className="text-foreground">{value || "—"}</span>
+      <span className="text-foreground">{value || "None"}</span>
     </div>
   );
 }

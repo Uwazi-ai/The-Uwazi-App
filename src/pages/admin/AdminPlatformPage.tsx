@@ -156,7 +156,7 @@ export default function AdminPlatformPage() {
               <RefreshCw className="h-4 w-4 text-primary" /> FORCE REFRESH UI
             </h3>
             <p className="text-xs text-muted-foreground mt-1 max-w-md">
-              Pushes a signal to every active user's browser to unregister the service worker, clear caches, and hard-reload the app — so they immediately see the latest published frontend build. Use after publishing an update.
+              Pushes a signal to every active user's browser to unregister the service worker, clear caches, and hard-reload the app, so they immediately see the latest published frontend build. Use after publishing an update.
             </p>
           </div>
           <AlertDialog>
@@ -167,7 +167,7 @@ export default function AdminPlatformPage() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Force refresh all active users?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Every user currently using the app will be reloaded within seconds. In-progress unsaved input may be lost. This does not trigger a Lovable deployment — make sure you've already clicked Publish → Update in the editor first.
+                  Every user currently using the app will be reloaded within seconds. In-progress unsaved input may be lost. This does not trigger a Lovable deployment, make sure you've already clicked Publish → Update in the editor first.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -202,7 +202,7 @@ export default function AdminPlatformPage() {
           <p className="text-xs text-muted-foreground mt-1 max-w-lg">
             Choose which model answers Ask UWAZI questions. "Auto" lets the cheap
             classifier route simple questions to Sonnet and complex ballot
-            reasoning to Opus. Applies instantly — no redeploy needed.
+            reasoning to Opus. Applies instantly, no redeploy needed.
           </p>
         </div>
         {modelLoading ? <Skeleton className="h-10 w-full max-w-sm" /> : (

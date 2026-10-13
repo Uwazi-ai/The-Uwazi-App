@@ -25,7 +25,7 @@ const SLIDES: Slide[] = [
     emoji: "🏙️",
     eyebrow: "EXCLUSIVE FEATURE",
     title: "MY CITY",
-    body: "See exactly where every tax dollar is spent in your neighborhood — down to the contractor, the contract type, and how much stays local.",
+    body: "See exactly where every tax dollar is spent in your neighborhood, down to the contractor, the contract type, and how much stays local.",
     features: [
       "Active projects in your ZIP code",
       "Who's getting the contracts + how much",
@@ -37,7 +37,7 @@ const SLIDES: Slide[] = [
     emoji: "💰",
     eyebrow: "CONTRACT TRANSPARENCY",
     title: "YOUR MONEY. WHO GETS IT.",
-    body: "Every contract awarded in your ZIP — city, state, and federal — with full vendor details, ownership status, and sub-contractor chains.",
+    body: "Every contract awarded in your ZIP, city, state, and federal, with full vendor details, ownership status, and sub-contractor chains.",
     features: [
       "MBE/WBE/SBE certified vendor tracking",
       "No-bid contract flagging",
@@ -293,7 +293,7 @@ export function MyCityUnlockModal() {
                 }}
                 className="block w-full text-center text-[12px] text-muted-foreground mt-4 hover:text-foreground transition-colors"
               >
-                {isLast ? "Maybe later" : "Skip — what else is in Uwazi+?"}
+                {isLast ? "Maybe later" : "Skip, what else is in Uwazi+?"}
               </button>
             </div>
           </motion.div>

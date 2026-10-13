@@ -106,7 +106,7 @@ export default function CandidateDetailPage() {
 
   const electionFormatted = race?.election_date
     ? format(new Date(race.election_date + "T00:00:00"), "MMM d ''yy")
-    : "—";
+    : "None";
 
   const positions = candidate.positions as Array<{ topic: string; detail: string }> | null;
 
@@ -235,7 +235,7 @@ export default function CandidateDetailPage() {
                 <TrendingUp className="w-4 h-4 text-primary mx-auto mb-1" />
                 <p className="text-xs text-muted-foreground">Last Election</p>
                 <p className="text-sm font-bold text-foreground">
-                  {candidate.last_election_pct != null ? `${candidate.last_election_pct}%` : "—"}
+                  {candidate.last_election_pct != null ? `${candidate.last_election_pct}%` : "None"}
                 </p>
               </div>
               <div className="bg-background rounded-lg p-3 text-center">
@@ -262,7 +262,7 @@ export default function CandidateDetailPage() {
               <div className="flex-1 space-y-2">
                 <h3 className="text-sm font-bold text-foreground">AI-powered candidate interview</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Uwazi.ai asks every candidate the same questions — so you can compare answers side by side.
+                  Uwazi.ai asks every candidate the same questions, so you can compare answers side by side.
                 </p>
                 <Badge className="text-[10px] px-2 py-0.5 bg-accent/30 text-accent-foreground border-accent/40">
                   Coming before Nov 2026

@@ -48,7 +48,7 @@ interface SecurityIncident {
 }
 
 const PHASE_LABELS: Record<Phase, string> = {
-  P0: "P0 — Critical",
+  P0: "P0, Critical",
   "30": "30-day",
   "60": "60-day",
   "90": "90-day",
@@ -202,10 +202,10 @@ function OverviewTab({
     <div className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Total Tasks" value={loading ? "—" : stats.total} />
-        <StatCard label="% Complete" value={loading ? "—" : `${stats.pct}%`} ring={stats.pct} />
-        <StatCard label="Open Incidents" value={loading ? "—" : stats.open} accent="#EF4444" />
-        <StatCard label="Due This Week" value={loading ? "—" : stats.dueSoon} accent="#F59E0B" />
+        <StatCard label="Total Tasks" value={loading ? "..." : stats.total} />
+        <StatCard label="% Complete" value={loading ? "..." : `${stats.pct}%`} ring={stats.pct} />
+        <StatCard label="Open Incidents" value={loading ? "..." : stats.open} accent="#EF4444" />
+        <StatCard label="Due This Week" value={loading ? "..." : stats.dueSoon} accent="#F59E0B" />
       </div>
 
       {/* Phase progress */}
@@ -239,7 +239,7 @@ function OverviewTab({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold flex items-center gap-2 text-foreground">
             {p0Done ? <ShieldCheck className="h-5 w-5 text-[#22C55E]" /> : <ShieldAlert className="h-5 w-5 text-[#EF4444]" />}
-            Priority 0 — Critical This Week
+            Priority 0, Critical This Week
           </h2>
           {p0Done && <span className="text-sm text-[#22C55E] font-medium">✓ All clear</span>}
         </div>
@@ -393,8 +393,8 @@ function TaskRow({ task, onChange }: { task: SecurityTask; onChange: () => void 
           {task.category}
         </span>
         <span className="flex-1 text-sm text-foreground">{task.title}</span>
-        <span className="hidden md:inline text-xs text-muted-foreground">{task.owner ?? "—"}</span>
-        <span className="hidden md:inline text-xs text-muted-foreground">{task.due_date ?? "—"}</span>
+        <span className="hidden md:inline text-xs text-muted-foreground">{task.owner ?? "None"}</span>
+        <span className="hidden md:inline text-xs text-muted-foreground">{task.due_date ?? "None"}</span>
         <button
           onClick={cycleStatus}
           onContextMenu={(e) => { e.preventDefault(); setBlocked(); }}
@@ -549,7 +549,7 @@ function IncidentsTab({ incidents, onChange }: { incidents: SecurityIncident[]; 
                   <span className="col-span-2"><Badge variant="outline" className={severityColor(i.severity)}>{i.severity}</Badge></span>
                   <span className="col-span-2"><Badge variant="outline" className={statusColor(i.status === "resolved" ? "done" : i.status === "contained" ? "in_progress" : "blocked")}>{i.status}</Badge></span>
                   <span className="col-span-2 text-xs text-muted-foreground">{new Date(i.detected_at).toLocaleDateString()}</span>
-                  <span className="col-span-2 text-xs text-muted-foreground">{i.resolved_at ? new Date(i.resolved_at).toLocaleDateString() : "—"}</span>
+                  <span className="col-span-2 text-xs text-muted-foreground">{i.resolved_at ? new Date(i.resolved_at).toLocaleDateString() : "None"}</span>
                 </button>
                 {expandedId === i.id && (
                   <div className="px-4 pb-4 pt-1 space-y-3">
@@ -586,7 +586,7 @@ function LogIncidentDialog({ onSaved }: { onSaved: () => void }) {
     if (!form.title.trim()) return toast.error("Title required");
     const { data, error } = await supabase.from("security_incidents").insert(form).select().single();
     if (error) return toast.error(error.message);
-    toast.success("Incident logged — notifying Myke@uwazi.ai");
+    toast.success("Incident logged, notifying Myke@uwazi.ai");
     notifyIncident("logged", {
       title: form.title,
       severity: form.severity,

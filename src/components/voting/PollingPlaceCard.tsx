@@ -39,7 +39,7 @@ export default function PollingPlaceCard({ compact = false }: { compact?: boolea
     if (!preview) return;
     try {
       await save.mutateAsync(`${preview.ward}-${preview.precinct}`);
-      toast.success("Polling place saved — Ask UWAZI and My Ballot now use it");
+      toast.success("Polling place saved, Ask UWAZI and My Ballot now use it");
       setEditing(false);
     } catch {
       toast.error("Couldn't save your precinct");
@@ -107,7 +107,7 @@ export default function PollingPlaceCard({ compact = false }: { compact?: boolea
           {ward && pct && (
             <p className={`text-xs ${preview ? "text-foreground" : "text-destructive"}`}>
               {preview
-                ? `📍 ${preview.placeName} — ${preview.address}`
+                ? `📍 ${preview.placeName}, ${preview.address}`
                 : "We couldn't find that ward/precinct in the Kansas City list."}
             </p>
           )}

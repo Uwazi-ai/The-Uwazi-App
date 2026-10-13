@@ -97,7 +97,7 @@ export default function RedemptionCodeStep({ initial = "", onDone, loading }: Pr
         className="w-full text-center text-sm hover:underline"
         style={{ color: "#888", fontFamily: "'IBM Plex Sans', sans-serif" }}
       >
-        I don't have a code — skip
+        I don't have a code, skip
       </button>
     </div>
   );

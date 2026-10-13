@@ -6214,6 +6214,22 @@ export type Database = {
           user_id: string
         }[]
       }
+      list_published_episodes: {
+        Args: never
+        Returns: {
+          created_at: string
+          date: string
+          description: string
+          id: string
+          is_free: boolean
+          playable: boolean
+          sort_order: number
+          title: string
+          topic: string
+          topic_emoji: string
+          video_url: string
+        }[]
+      }
       list_ride_coordinators: {
         Args: never
         Returns: {

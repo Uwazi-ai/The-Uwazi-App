@@ -198,7 +198,7 @@ function RaceSection({ race }: { race: RaceWithCandidates }) {
   const phase = getCurrentPhase(race);
   const officeLabel = OFFICE_LABELS[race.office] || race.office;
   const districtLabel = race.district ? `District ${race.district}` : "";
-  const title = districtLabel ? `${officeLabel} — ${districtLabel}` : officeLabel;
+  const title = districtLabel ? `${officeLabel}, ${districtLabel}` : officeLabel;
 
   const activeCandidates = useMemo(() => {
     if (phase === "primary") return race.candidates.filter((c) => c.status === "active");
@@ -339,7 +339,7 @@ export default function CandidatesPage() {
           <ChevronLeft className="w-4 h-4" /> Voting Hub
         </Link>
         <h1 className="text-xl font-bold text-foreground">2026 Candidates</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">{stateCode} — Midterm Elections</p>
+        <p className="text-sm text-muted-foreground mt-0.5">{stateCode}, Midterm Elections</p>
       </div>
 
       {/* Loading */}

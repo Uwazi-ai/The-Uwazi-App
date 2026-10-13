@@ -55,7 +55,7 @@ export default function HomePage() {
         db.from("user_preferences").select("autoplay_on_cellular").eq("user_id", user.id).maybeSingle(),
         db.rpc("home_city_updates"),
         db.from("user_districts").select("resolved").eq("user_id", user.id).maybeSingle(),
-        db.from("episodes").select("id,title,description,topic,video_url,is_free,sort_order,created_at").eq("is_published", true).order("sort_order"),
+        db.rpc("list_published_episodes"),
       ]);
       if (cancelled) return;
       setSeen(profile.data?.home_welcome_seen ?? true);
@@ -63,8 +63,8 @@ export default function HomePage() {
       const [{ data: plus }, { data: freeIds }] = await Promise.all([db.rpc("is_plus", { _user_id: user.id }), db.rpc("free_episode_ids")]);
       if (cancelled) return;
       const freeSet = new Set<string>(((freeIds ?? []) as any[]).map((r) => (typeof r === "string" ? r : r?.id ?? r?.free_episode_ids)));
-      const episodes = ((shows.data ?? []) as EpisodeRow[])
-        .filter((e) => plus === true || e.is_free || freeSet.has(e.id))
+      const episodes = ((shows.data ?? []) as (EpisodeRow & { playable?: boolean })[])
+        .filter((e) => e.video_url && (e.playable || plus === true || e.is_free || freeSet.has(e.id)))
         .map(episodeToVideo);
       const hero = asset.data ?? episodes[0] ?? null;
       const libraryClips = (clips.data ?? []) as HomeVideo[];

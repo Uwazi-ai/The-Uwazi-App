@@ -6,10 +6,10 @@ export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-background text-foreground px-4 py-8 max-w-3xl mx-auto">
       <Helmet>
-        <title>Privacy Policy — UWAZI</title>
+        <title>Privacy Policy, UWAZI</title>
         <meta name="description" content="How UWAZI collects, uses, and protects user data across the civic intelligence platform." />
         <link rel="canonical" href="https://uwaziapp.uwazi.ai/privacy" />
-        <meta property="og:title" content="Privacy Policy — UWAZI" />
+        <meta property="og:title" content="Privacy Policy, UWAZI" />
         <meta property="og:description" content="How UWAZI collects, uses, and protects user data." />
         <meta property="og:url" content="https://uwaziapp.uwazi.ai/privacy" />
       </Helmet>
@@ -18,7 +18,7 @@ export default function PrivacyPolicyPage() {
         Back
       </Link>
 
-      <h1 className="text-3xl font-bold mb-2">Privacy Policy — UWAZI.AI</h1>
+      <h1 className="text-3xl font-bold mb-2">Privacy Policy, UWAZI.AI</h1>
       <p className="text-muted-foreground text-sm mb-8">Effective: April 2026</p>
 
       <section className="space-y-6 text-sm leading-relaxed text-muted-foreground">

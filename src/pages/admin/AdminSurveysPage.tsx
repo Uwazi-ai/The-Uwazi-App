@@ -231,7 +231,7 @@ export default function AdminSurveysPage() {
         {[
           { label: "Active Surveys", value: activeCount, icon: ClipboardList, color: "text-primary" },
           { label: "Total Responses", value: totalResponses, icon: Users, color: "text-primary" },
-          { label: "Avg Completion", value: surveys.length ? `${Math.round(surveys.reduce((a, s) => a + Number(s.completion_rate || 0), 0) / surveys.length)}%` : "—", icon: BarChart3, color: "text-primary" },
+          { label: "Avg Completion", value: surveys.length ? `${Math.round(surveys.reduce((a, s) => a + Number(s.completion_rate || 0), 0) / surveys.length)}%` : "None", icon: BarChart3, color: "text-primary" },
         ].map(s => (
           <Card key={s.label} className="bg-card/50 border-border/50">
             <CardContent className="p-4 flex items-center gap-3">
@@ -542,7 +542,7 @@ export default function AdminSurveysPage() {
       <Dialog open={!!viewingResponses} onOpenChange={() => setViewingResponses(null)}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Responses — {survey?.title}</DialogTitle>
+            <DialogTitle>Responses, {survey?.title}</DialogTitle>
             <DialogDescription>{responses.length} total responses</DialogDescription>
           </DialogHeader>
 
@@ -597,7 +597,7 @@ export default function AdminSurveysPage() {
                   {q.type === "rating" && (() => {
                   const avg = questionResponses.length
                       ? (questionResponses.reduce((a: number, v: any) => a + Number(v), 0) / questionResponses.length).toFixed(1)
-                      : "—";
+                      : "None";
                     return <p className="text-lg font-bold text-primary">Average: {avg} <span className="text-xs text-muted-foreground font-normal">({questionResponses.length} responses)</span></p>;
                   })()}
 

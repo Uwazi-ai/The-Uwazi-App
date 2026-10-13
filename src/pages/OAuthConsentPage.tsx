@@ -93,7 +93,7 @@ export default function OAuthConsentPage() {
           <>
             <h1 className="text-xl font-semibold mb-2">Connect {clientName} to UWAZI</h1>
             <p className="text-sm text-muted-foreground mb-6">
-              This lets {clientName} use UWAZI's civic tools as you — reading your civic profile,
+              This lets {clientName} use UWAZI's civic tools as you, reading your civic profile,
               your practice ballot, and public election data on your behalf.
             </p>
             <div className="flex gap-3">

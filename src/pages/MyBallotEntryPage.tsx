@@ -63,7 +63,7 @@ export default function MyBallotEntryPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 md:px-6 py-6 pb-24 md:pb-10 space-y-5">
       <Helmet>
-        <title>Build My Ballot — UWAZI</title>
+        <title>Build My Ballot, UWAZI</title>
         <meta name="description" content="Walk through your November 3, 2026 ballot and print it for the polls." />
       </Helmet>
 
@@ -118,7 +118,7 @@ export default function MyBallotEntryPage() {
         <div className="rounded-2xl p-6 border border-border bg-card">
           <h2 className="font-heading text-xl text-foreground">One ballot for everyone</h2>
           <p className="text-sm text-muted-foreground mt-2">
-            November 3 is a general election — every voter gets the same ballot for their area, no matter their party.
+            November 3 is a general election, every voter gets the same ballot for their area, no matter their party.
           </p>
           <Button className="mt-4" onClick={() => navigate("/app/my-ballot/walkthrough")}>
             Start my ballot <ArrowRight className="h-4 w-4 ml-1" />
@@ -212,7 +212,7 @@ function PrecinctStep({ profile, onDone }: { profile: any; onDone: () => void })
       <div>
         <h2 className="font-heading text-xl md:text-2xl text-foreground">What's your ward and precinct?</h2>
         <p className="text-sm text-muted-foreground mt-2">
-          November 3 is a general election — everyone gets one ballot, no party choice. Kansas City voters in Jackson
+          November 3 is a general election, everyone gets one ballot, no party choice. Kansas City voters in Jackson
           County: your ward and precinct decide your State Representative and County Legislator races and where you
           vote. They're printed on your voter ID card, or look them up at{" "}
           <a href="https://www.kceb.org" target="_blank" rel="noreferrer" className="text-primary underline">kceb.org</a>.
@@ -233,7 +233,7 @@ function PrecinctStep({ profile, onDone }: { profile: any; onDone: () => void })
       </div>
       {raw && info && (
         <div className="rounded-xl p-3 text-sm border border-primary/30 bg-primary/10 text-foreground">
-          <p><strong>You vote at {info.placeName}</strong>, {info.address}{info.room ? ` — ${info.room}` : ""}.</p>
+          <p><strong>You vote at {info.placeName}</strong>, {info.address}{info.room ? `, ${info.room}` : ""}.</p>
           <p className="text-muted-foreground mt-1">State House District {info.rep} · County Legislature District {info.leg}. Confirm at kceb.org or (816) 842-4820.</p>
         </div>
       )}

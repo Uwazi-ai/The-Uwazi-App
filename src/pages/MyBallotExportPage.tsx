@@ -167,7 +167,7 @@ export default function MyBallotExportPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 md:px-6 py-6 pb-24 md:pb-10">
-      <Helmet><title>My Ballot Notes — UWAZI</title></Helmet>
+      <Helmet><title>My Ballot Notes, UWAZI</title></Helmet>
 
       {/* Screen-only controls */}
       <div className="print:hidden mb-4 flex items-center justify-between gap-2 flex-wrap">
@@ -214,7 +214,7 @@ export default function MyBallotExportPage() {
           </div>
           <div className="ballot-banner">
             <span className="ballot-banner-title">Unofficial · For Personal Use Only</span>
-            <span className="ballot-banner-sub">This is not an official ballot. Use it as a study guide — do not present it at your polling place.</span>
+            <span className="ballot-banner-sub">This is not an official ballot. Use it as a study guide, do not present it at your polling place.</span>
           </div>
         </header>
 
@@ -252,7 +252,7 @@ export default function MyBallotExportPage() {
             These are personal notes. Please don't hand them out or show them to other voters inside the polling place.
           </div>
           <div className="ballot-footer-line ballot-footer-note">
-            Generated {new Date(active.generatedAt).toLocaleDateString()} — UWAZI.
+            Generated {new Date(active.generatedAt).toLocaleDateString()}, UWAZI.
           </div>
         </footer>
       </div>

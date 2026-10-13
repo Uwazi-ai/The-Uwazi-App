@@ -16,7 +16,8 @@ export function episodeToVideo(episode: EpisodeRow): LibraryVideo {
     tag: episode.topic,
     length_seconds: 0,
     url: episode.video_url ?? "",
-    poster_url: "",
+    // Still frame taken from the episode itself, stored under episode-posters/.
+    poster_url: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${VIDEO_BUCKET}/episode-posters/${episode.id}.jpg`,
     dimension_slug: null,
     placement: "home_row",
     sort_order: episode.sort_order ?? 0,

@@ -12,7 +12,7 @@ export function MyCityPaywall() {
 
   const features = [
     "Active projects in your neighborhood",
-    "Who's getting the contracts — and how much",
+    "Who's getting the contracts, and how much",
     "Local vs. out-of-state vendor breakdown",
     "MBE/WBE/SBE equity tracking",
     "Public comment alerts for your district",
@@ -91,7 +91,7 @@ export function MyCityPaywall() {
         </h2>
         <p className="text-sm md:text-base text-muted-foreground mt-3 leading-relaxed max-w-xl">
           My City is Uwazi+ exclusive. See every city, state, and federal dollar invested in your
-          ZIP — with full contractor transparency.
+          ZIP, with full contractor transparency.
         </p>
 
         <ul className="mt-5 space-y-2.5">
@@ -119,7 +119,7 @@ export function MyCityPaywall() {
           onClick={handleSubscribe}
           className="w-full mt-5 bg-primary text-primary-foreground gap-1.5"
         >
-          Unlock My City — Subscribe to Uwazi+
+          Unlock My City, Subscribe to Uwazi+
         </Button>
 
         <p
