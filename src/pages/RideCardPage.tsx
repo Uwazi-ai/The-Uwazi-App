@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchRideCard } from "@/lib/rideCard";
 import uwaziLogo from "@/assets/uwazi-app-wordmark.png";
 import { RidesShell, InfoPanel, fmtDay, fmtHour, fmtPhone, telHref } from "@/components/rides/RidesUI";
 
@@ -61,10 +61,10 @@ export default function RideCardPage() {
   useEffect(() => {
     let alive = true;
     const load = async () => {
-      const { data, error } = await supabase.functions.invoke("get-ride-card", { body: { ride_code: code, t: token } });
+      const res = await fetchRideCard(code, token);
       if (!alive) return;
-      if (error) setErr(true);
-      else { setCard(data as Card); setErr(false); }
+      if (res.ok) { setCard(res.data as Card); setErr(false); }
+      else { setErr(true); if (res.notFound) setCard(null); }
     };
     load();
     const t = setInterval(load, 30000);

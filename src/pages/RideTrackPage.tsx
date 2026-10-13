@@ -139,13 +139,9 @@ export default function RideTrackPage() {
   const [ask, setAsk] = useState<number | null>(null);
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.functions.invoke("get-ride-card", { body: { ride_code: code, t: token } });
-    if (error) {
-      setErr(true);
-      // A removed or mismatched ride: drop the old card so the "Ride not found" screen shows.
-      if ((error as { context?: Response }).context?.status === 404) setCard(null);
-    }
-    else { setCard(data); setErr(false); }
+    const res = await fetchRideCard(code, token);
+    if (res.ok) { setCard(res.data); setErr(false); }
+    else { setErr(true); if (res.notFound) setCard(null); }
   }, [code, token]);
 
   useEffect(() => {
