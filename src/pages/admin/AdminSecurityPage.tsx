@@ -124,7 +124,7 @@ export default function AdminSecurityPage() {
 
   useEffect(() => {
     loadAll();
-    const ch = supabase.channel("sec-cc")
+    const ch = supabase.channel(`sec-cc-${Math.random().toString(36).slice(2, 8)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "security_tasks" }, loadAll)
       .on("postgres_changes", { event: "*", schema: "public", table: "security_incidents" }, loadAll)
       .subscribe();

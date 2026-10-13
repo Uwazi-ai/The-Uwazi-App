@@ -99,7 +99,7 @@ function Desk() {
     supabase.from("driver_blocks").select("*").then(({ data }) => setBlocks(data ?? []));
     supabase.from("ride_site_hours").select("open_date").then(({ data }) => setSiteDays(new Set((data ?? []).map((r) => r.open_date))));
     const ch = supabase
-      .channel("ride-desk")
+      .channel(`ride-desk-${Math.random().toString(36).slice(2, 8)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "ride_requests" }, () => load())
       .subscribe();
     const t = setInterval(() => setNow(Date.now()), 60000);

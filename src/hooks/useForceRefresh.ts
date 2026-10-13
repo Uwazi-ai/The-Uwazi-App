@@ -38,7 +38,7 @@ export function useForceRefresh() {
     check();
 
     const channel = supabase
-      .channel("force-refresh")
+      .channel(`force-refresh-${Math.random().toString(36).slice(2, 8)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "platform_settings", filter: "key=eq.force_refresh_version" },

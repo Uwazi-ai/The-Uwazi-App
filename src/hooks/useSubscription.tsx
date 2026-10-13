@@ -84,7 +84,7 @@ function ensureChannel(userId: string) {
   if (channel) supabase.removeChannel(channel);
   channelUser = userId;
   channel = supabase
-    .channel(`subscriptions-changes-${userId}`)
+    .channel(`subscriptions-changes-${userId}-${Math.random().toString(36).slice(2, 8)}`)
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "subscriptions", filter: `user_id=eq.${userId}` },
