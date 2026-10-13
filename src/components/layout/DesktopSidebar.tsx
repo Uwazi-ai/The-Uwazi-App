@@ -19,7 +19,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useCitiesWaiting } from "@/components/admin/CitiesSection";
 import { openMyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
 
-import { Building2, Compass, Ticket, ShieldCheck, Trophy } from "lucide-react";
+import { Building2, Compass, LogIn, Ticket, ShieldCheck, Trophy } from "lucide-react";
 
 const mainNav = [
   { to: "/app", icon: HomeIcon, label: "Home" },
@@ -139,42 +139,62 @@ export function DesktopSidebar() {
       </nav>
 
       <div className="py-3 flex flex-col gap-0" style={{ borderTop: "1px solid var(--border-subtle)" }}>
-        {bottomNav.map((item) => (
-          <NavLink key={item.to} to={item.to} className={linkClass}>
-            <div className="nav-icon-wrap">
-              <item.icon size={18} />
-            </div>
-            {item.label}
-          </NavLink>
-        ))}
-        <button
-          onClick={handleSignOut}
-          className="nav-item flex items-center gap-[10px] px-[14px] py-[9px] rounded-lg mx-2 my-[1px] text-[13.5px] font-[450] text-destructive hover:bg-destructive/10 transition-all duration-150 border border-transparent"
-        >
-          <div className="nav-icon-wrap">
-            <SignOutIcon size={18} />
-          </div>
-          Sign Out
-        </button>
+        {user ? (
+          <>
+            {bottomNav.map((item) => (
+              <NavLink key={item.to} to={item.to} className={linkClass}>
+                <div className="nav-icon-wrap">
+                  <item.icon size={18} />
+                </div>
+                {item.label}
+              </NavLink>
+            ))}
+            <button
+              onClick={handleSignOut}
+              className="nav-item flex items-center gap-[10px] px-[14px] py-[9px] rounded-lg mx-2 my-[1px] text-[13.5px] font-[450] text-destructive hover:bg-destructive/10 transition-all duration-150 border border-transparent"
+            >
+              <div className="nav-icon-wrap">
+                <SignOutIcon size={18} />
+              </div>
+              Sign Out
+            </button>
 
-        {/* User card */}
-        <div className="flex items-center gap-[10px] mx-2 mt-2 p-3 rounded-card"
-          style={{
-            background: "var(--card-bg)",
-            border: "1px solid var(--border-subtle)",
-          }}>
-          <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold shrink-0 overflow-hidden">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
-            ) : (
-              displayName[0]?.toUpperCase()
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-medium text-foreground truncate">{displayName}</p>
-            <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
-          </div>
-        </div>
+            {/* User card */}
+            <div className="flex items-center gap-[10px] mx-2 mt-2 p-3 rounded-card"
+              style={{
+                background: "var(--card-bg)",
+                border: "1px solid var(--border-subtle)",
+              }}>
+              <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold shrink-0 overflow-hidden">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
+                ) : (
+                  displayName[0]?.toUpperCase()
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[13px] font-medium text-foreground truncate">{displayName}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
+              </div>
+            </div>
+          </>
+        ) : (
+          <Link
+            to="/login"
+            className="flex items-center gap-[10px] mx-2 mt-1 p-3 rounded-card hover:opacity-90 transition-opacity"
+            style={{
+              background: "var(--card-bg)",
+              border: "1px solid var(--border-subtle)",
+            }}>
+            <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary shrink-0">
+              <LogIn size={16} />
+            </div>
+            <div className="min-w-0 flex-1 text-left">
+              <p className="text-[13px] font-medium text-foreground truncate">Sign in</p>
+              <p className="text-[10px] text-muted-foreground truncate">Open the full UWAZI app</p>
+            </div>
+          </Link>
+        )}
       </div>
     </aside>
   );

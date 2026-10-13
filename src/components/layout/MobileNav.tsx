@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/co
 import { Button } from "@/components/ui/button";
 import { Building2, ChevronRight, Compass, Menu, User } from "lucide-react";
 import { useProfile } from "@/contexts/ProfileContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { openMyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
 import {
@@ -34,6 +35,7 @@ const drawerItems = [
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
+  const { user } = useAuth();
   const { displayName, avatarUrl } = useProfile();
   const { isPremium } = useSubscription();
   const initial = (displayName?.[0] || "U").toUpperCase();
