@@ -1,6 +1,6 @@
 import { Car } from "lucide-react";
 import { POLL_RIDES_LIVE } from "@/hooks/useVotingRights";
-import { NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/contexts/ProfileContext";
 import { toast } from "sonner";
