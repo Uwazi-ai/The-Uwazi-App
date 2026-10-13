@@ -82,8 +82,9 @@ function groupChatsByDate(chats: ChatSession[]): { label: string; chats: ChatSes
   return order.map((label) => ({ label, chats: groups[label] }));
 }
 
-async function streamChat({ messages, onDelta, onDone, onError, source = "typed" }: {
-  source?: "typed" | "card";
+async function streamChat({ messages, onDelta, onDone, onError, promptId, sessionId }: {
+  promptId?: string | null;
+  sessionId?: string;
   messages: { role: string; content: string }[];
   onDelta: (text: string) => void;
   onDone: (meta: { sources: Source[]; didSearch: boolean; nudge?: { lesson_id: string; title: string } | null }) => void;
@@ -98,7 +99,7 @@ async function streamChat({ messages, onDelta, onDone, onError, source = "typed"
 
   try {
     const response = await supabase.functions.invoke('ask-uwazi', {
-      body: { message: userQuestion, history, source },
+      body: { message: userQuestion, history, prompt_id: promptId ?? undefined, session_id: sessionId },
     });
 
     if (response.error) {
@@ -375,6 +376,20 @@ export default function AskUwaziPage() {
     reset_at: string | null;
   }>({ is_plus: false, remaining: null, reset_at: null });
   const [limited, setLimited] = useState<{ reset_at: string } | null>(null);
+  // Card ids are signed by the server. Only a signed card or a reply to the server's quick question skips the count.
+  const [cardIds, setCardIds] = useState<Record<string, string>>({});
+  const askSessionRef = useRef<string>(crypto.randomUUID());
+  const cardPromptKey = JSON.stringify([
+    ...(askPersona?.suggested_prompts ?? []), ...suggestedPrompts,
+    "What's on my ballot?", "Who represents me?", "How do I vote in my state?",
+    "Explain a bill in plain language", "When is the next election?",
+    searchParams.get("q") ?? "",
+  ].filter(Boolean));
+  useEffect(() => {
+    if (!session?.access_token) return;
+    supabase.functions.invoke("ask-uwazi", { body: { action: "issue_cards", prompts: JSON.parse(cardPromptKey) } })
+      .then(({ data }) => { if (data?.cards) setCardIds((prev) => ({ ...prev, ...data.cards })); });
+  }, [cardPromptKey, session?.access_token]);
   const [optInClosed, setOptInClosed] = useState(
     () => typeof window !== "undefined" && !!sessionStorage.getItem("uwazi_reg_optin_status")
   );
@@ -447,12 +462,15 @@ export default function AskUwaziPage() {
     toast.success("Chat saved!");
   }, [messages, session]);
 
-  const handleSend = useCallback(async (text?: string, source: "typed" | "card" = text ? "card" : "typed") => {
+  const handleSend = useCallback(async (text?: string) => {
     const msg = text || input.trim();
-    if (!msg || isStreaming || limited) return;
+    const promptId = text ? cardIds[msg.trim()] ?? null : null;
+    const lastA = [...messages].reverse().find((m) => m.role === "assistant");
+    const maybeFree = !!promptId || (!text && !!lastA?.content.includes("**Quick question:**"));
+    if (!msg || isStreaming || (limited && !maybeFree)) return;
 
-    // Server-side rate-limit check BEFORE anything else
-    if (session?.access_token) {
+    // Server-side rate-limit check BEFORE anything else. The server decides what is free.
+    if (session?.access_token && !maybeFree) {
       try {
         const resp = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-ask-limit`,
@@ -522,7 +540,8 @@ export default function AskUwaziPage() {
     };
 
     await streamChat({
-      source,
+      promptId,
+      sessionId: askSessionRef.current,
       messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
       onDelta: (chunk) => {
         if (isSearching) setIsSearching(false);
@@ -565,7 +584,7 @@ export default function AskUwaziPage() {
       },
     });
 
-  }, [input, isStreaming, limited, messages, session, saveMessages, ctx.zipCode, isSubscribed, fetchDailyCount]);
+  }, [input, isStreaming, limited, messages, session, saveMessages, ctx.zipCode, isSubscribed, fetchDailyCount, cardIds]);
 
   // Recheck after window resets in the paywall countdown
   const recheckLimit = useCallback(async () => {
@@ -597,14 +616,14 @@ export default function AskUwaziPage() {
   const autoSentRef = useRef(false);
   useEffect(() => {
     const q = searchParams.get("q");
-    if (!q || autoSentRef.current || isStreaming || !session?.access_token) return;
+    if (!q || autoSentRef.current || isStreaming || !session?.access_token || !Object.keys(cardIds).length) return;
     autoSentRef.current = true;
     handleSend(q);
     // Strip ?q= without a router navigation (a navigation remounts this page and wipes the chat)
     const url = new URL(window.location.href);
     url.searchParams.delete("q");
     window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
-  }, [searchParams, isStreaming, handleSend, session?.access_token]);
+  }, [searchParams, isStreaming, handleSend, session?.access_token, cardIds]);
 
   const handleNewChat = useCallback(() => {
     setMessages([]);
@@ -1061,7 +1080,7 @@ export default function AskUwaziPage() {
         </AnimatePresence>
 
         {/* ─── Input Area / Limit Paywall ─── */}
-        {limited ? (
+        {limited && !(messages.length && [...messages].reverse().find((m) => m.role === "assistant")?.content.includes("**Quick question:**")) ? (
           <div className="shrink-0 mb-16 md:mb-0">
             <AskLimitPaywall resetAt={limited.reset_at} onReset={recheckLimit} />
           </div>

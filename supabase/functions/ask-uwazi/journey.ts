@@ -56,6 +56,7 @@ export async function buildJourneyTurn(
   message: string,
   historyLength: number,
   callRoute: (sys: string, msg: string) => Promise<string>,
+  sessionId: string | null = null,
 ): Promise<JourneyTurn> {
   const empty: JourneyTurn = { contextText: null, greeting: null, calibrationQuestion: null, nudge: null };
   try {
@@ -114,6 +115,7 @@ export async function buildJourneyTurn(
       turns_since_prompt: prompted ? 0 : turns,
       pending_question: calibrationQuestion,
       pending_since: calibrationQuestion ? new Date().toISOString() : null,
+      pending_session_id: calibrationQuestion ? sessionId : null,
       last_prompt_at: prompted ? new Date().toISOString() : (stRow?.last_prompt_at ?? null),
       updated_at: new Date().toISOString(),
     });

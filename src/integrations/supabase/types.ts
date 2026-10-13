@@ -108,6 +108,7 @@ export type Database = {
         Row: {
           last_prompt_at: string | null
           pending_question: string | null
+          pending_session_id: string | null
           pending_since: string | null
           turns_since_prompt: number
           updated_at: string
@@ -116,6 +117,7 @@ export type Database = {
         Insert: {
           last_prompt_at?: string | null
           pending_question?: string | null
+          pending_session_id?: string | null
           pending_since?: string | null
           turns_since_prompt?: number
           updated_at?: string
@@ -124,6 +126,7 @@ export type Database = {
         Update: {
           last_prompt_at?: string | null
           pending_question?: string | null
+          pending_session_id?: string | null
           pending_since?: string | null
           turns_since_prompt?: number
           updated_at?: string

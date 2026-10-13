@@ -110,8 +110,10 @@ export default function RidesPage() {
   const edOpen = avail?.days.some((d) => d.kind === "election_day" && d.open);
   const phoneLine = avail?.ride_line_phone;
 
+  // Missouri ZIPs run 630 to 658. The server checks again.
+  const notMissouri = /^\d{5}$/.test(zip) && !/^6(3\d|4\d|5[0-8])/.test(zip);
   const canNext =
-    step === 1 ? address.trim().length >= 5 && /^\d{5}$/.test(zip)
+    step === 1 ? address.trim().length >= 5 && /^\d{5}$/.test(zip) && !notMissouri
     : step === 2 ? !!day && !!hour
     : step === 3 ? /^[A-Za-z][A-Za-z'\- ]{0,40} [A-Za-z]\.?$/.test(name.trim()) && phone.replace(/\D/g, "").length >= 10
     : true;
@@ -201,7 +203,7 @@ export default function RidesPage() {
           <Field label="Street address" error={errors.pickup_address}>
             <input className="rides-input" value={address} onChange={(e) => setAddress(e.target.value)} autoComplete="street-address" placeholder="123 Main St, Kansas City" />
           </Field>
-          <Field label="ZIP code" error={errors.zip}>
+          <Field label="ZIP code" error={errors.zip || (notMissouri ? "Free rides are only in Missouri right now. Questions? Call the ride line at (816) 379-6885." : undefined)}>
             <input className="rides-input" value={zip} onChange={(e) => setZip(e.target.value.replace(/\D/g, "").slice(0, 5))} inputMode="numeric" autoComplete="postal-code" placeholder="64106" />
           </Field>
         </section>

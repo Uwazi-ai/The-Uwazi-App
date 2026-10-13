@@ -95,9 +95,11 @@ Deno.serve(async (req) => {
   // Destination: only verified sites, never invented.
   let site: { id: string; name: string; address: string } | null = null;
   const siteCols = "id,name,address";
+  // Missouri only, checked for every ride day, not just early voting.
+  if (!b.zip || !isMissouriZip(b.zip)) return json({ error: "Free rides are only in Missouri right now. Questions? Call the ride line at (816) 379-6885." }, 400);
   if (isEarly) {
     const geo = await geocode(b.pickup_address, b.zip);
-    if (geo && geo.state !== "MO") return json({ error: "Free rides are only in Missouri right now." }, 400);
+    if ((geo && geo.state !== "MO") || (b.zip && !isMissouriZip(b.zip))) return json({ error: "Free rides are only in Missouri right now. Questions? Call the ride line at (816) 379-6885." }, 400);
     if (!geo || geo.county === JACKSON_FIPS) {
       // Jackson County: site must be open that day, at pickup and 1 hour after.
       const open = (await openSites(db, b.ride_day)).filter((x) => siteFits(x, hour));
@@ -114,9 +116,8 @@ Deno.serve(async (req) => {
         return json({ error: "No early voting place is open at that time. Pick another day or hour." }, 400);
       }
     } else {
-      const { data } = await db.from("voter_guide_sites").select(siteCols).eq("site_type", "early")
-        .eq("verification_status", "verified").eq("county_fips", geo.county).order("name").limit(1).maybeSingle();
-      site = data;
+      // Outside Jackson County there are no loaded site hours yet. Never pick a site; the desk sets it ("Needs voting place").
+      site = null;
     }
   } else if (b.destination_site_id) {
     const { data } = await db.from("voter_guide_sites").select(siteCols).eq("id", b.destination_site_id)
@@ -167,3 +168,6 @@ Deno.serve(async (req) => {
     referred,
   });
 });
+
+// Missouri ZIPs run 630 to 658. Used even when the address lookup fails.
+function isMissouriZip(z: string): boolean { return /^6(3\d|4\d|5[0-8])\d{2}$/.test(String(z).slice(0, 5)); }

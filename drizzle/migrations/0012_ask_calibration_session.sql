@@ -1,0 +1,1 @@
+ALTER TABLE public.ask_calibration_state ADD COLUMN IF NOT EXISTS pending_session_id text;
