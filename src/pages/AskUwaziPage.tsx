@@ -623,7 +623,7 @@ export default function AskUwaziPage() {
     const url = new URL(window.location.href);
     url.searchParams.delete("q");
     window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
-  }, [searchParams, isStreaming, handleSend, session?.access_token]);
+  }, [searchParams, isStreaming, handleSend, session?.access_token, cardIds]);
 
   const handleNewChat = useCallback(() => {
     setMessages([]);
