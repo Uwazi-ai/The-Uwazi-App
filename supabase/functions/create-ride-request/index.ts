@@ -116,9 +116,8 @@ Deno.serve(async (req) => {
         return json({ error: "No early voting place is open at that time. Pick another day or hour." }, 400);
       }
     } else {
-      const { data } = await db.from("voter_guide_sites").select(siteCols).eq("site_type", "early")
-        .eq("verification_status", "verified").eq("county_fips", geo.county).order("name").limit(1).maybeSingle();
-      site = data;
+      // Outside Jackson County there are no loaded site hours yet. Never pick a site; the desk sets it ("Needs voting place").
+      site = null;
     }
   } else if (b.destination_site_id) {
     const { data } = await db.from("voter_guide_sites").select(siteCols).eq("id", b.destination_site_id)
