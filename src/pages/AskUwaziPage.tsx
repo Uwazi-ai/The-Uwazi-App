@@ -616,7 +616,7 @@ export default function AskUwaziPage() {
   const autoSentRef = useRef(false);
   useEffect(() => {
     const q = searchParams.get("q");
-    if (!q || autoSentRef.current || isStreaming || !session?.access_token) return;
+    if (!q || autoSentRef.current || isStreaming || !session?.access_token || !Object.keys(cardIds).length) return;
     autoSentRef.current = true;
     handleSend(q);
     // Strip ?q= without a router navigation (a navigation remounts this page and wipes the chat)
