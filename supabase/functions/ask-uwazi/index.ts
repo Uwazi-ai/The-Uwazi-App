@@ -15,6 +15,7 @@ import { KCEB_RULES } from "./kceb-rules.ts";
 import KCEB from "./kceb-nov-2026.json" with { type: "json" };
 import { CLAY_RULES } from "./clay-rules.ts";
 import { buildJourneyTurn } from "./journey.ts";
+import { issueCards, isFreeMessage } from "./free-prompts.ts";
 import CLAY from "./clay-nov-2026.json" with { type: "json" };
 
 // deno-lint-ignore no-explicit-any
@@ -626,22 +627,25 @@ Deno.serve(async (req) => {
     if (!user) return json({ error: "unauthorized" }, 401);
     logUserId = user.id;
 
-    const { message, history = [], session_id, source } = await req.json();
+    const body = await req.json();
+    const { message, history = [], session_id, prompt_id } = body ?? {};
+    if (body?.action === "issue_cards") {
+      return json({ cards: await issueCards(user.id, body.prompts) }, 200);
+    }
     logSessionId = session_id ?? null;
     if (typeof message !== "string" || !message.trim()) return json({ error: "empty_message" }, 400);
 
-    // Enforce the free question limit on the server. Only questions the person typed count.
-    // Replies to a calibration check in, fact card prompts, and suggested chips do not count.
-    const lastAssistant = [...(Array.isArray(history) ? history : [])].reverse().find((h: any) => h?.role === "assistant");
-    const isCalibrationReply = typeof lastAssistant?.content === "string" && lastAssistant.content.includes("**Quick question:**");
-    const countIt = (source ?? "typed") === "typed" && !isCalibrationReply;
+    // The server decides what counts. The client's source label is ignored.
+    // Only a server signed card id or a reply to a server sent calibration question is free.
+    const freeKind = await isFreeMessage(user.id, message.trim(), prompt_id, session_id);
+    const countIt = freeKind === null;
     const limitRes = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/check-ask-limit`, {
       method: "POST",
       headers: {
         Authorization: authHeader, apikey: Deno.env.get("SUPABASE_ANON_KEY")!, "Content-Type": "application/json",
         "x-uwazi-internal": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
       },
-      body: JSON.stringify({ count: countIt }),
+      body: JSON.stringify({ count: countIt, free: !countIt }),
     });
     const limitData = await limitRes.json().catch(() => ({}));
     if (limitRes.status === 429 || limitData?.allowed === false) {

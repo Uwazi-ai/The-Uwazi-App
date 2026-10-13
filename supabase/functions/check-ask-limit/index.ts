@@ -37,7 +37,9 @@ Deno.serve(async (req) => {
     });
     if (error) { console.error(error); return json(500, { error: "Database error" }); }
     const r = data as { allowed: boolean; is_plus: boolean; used: number | null; remaining: number | null; reset_at: string | null };
-    const blocked = !r.is_plus && (r.allowed === false || (!count && (r.remaining ?? 1) <= 0));
+    // A server verified free message (fact card or calibration reply) is never blocked.
+    const serverFree = isServer && body?.free === true && !count;
+    const blocked = !serverFree && !r.is_plus && (r.allowed === false || (!count && (r.remaining ?? 1) <= 0));
     if (blocked && count) {
       await admin.from("uwazi_question_log").insert({ user_id: userId, question_text: "[rate_limited]", was_rate_limited: true });
     }
