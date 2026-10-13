@@ -129,7 +129,7 @@ export default function AddressStep({ onSubmit, onSkip, loading, initial }: Addr
               </SelectTrigger>
               <SelectContent className="max-h-60">
                 {US_STATES.map((s) => (
-                  <SelectItem key={s.code} value={s.code}>{s.code} — {s.name}</SelectItem>
+                  <SelectItem key={s.code} value={s.code}>{s.code}, {s.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

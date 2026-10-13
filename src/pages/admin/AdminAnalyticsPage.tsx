@@ -181,7 +181,7 @@ export default function AdminAnalyticsPage() {
         .sort((a, b) => b[1].count - a[1].count)
         .slice(0, 10)
         .map(([zip, d]) => {
-          const topTopic = Object.entries(d.topics).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+          const topTopic = Object.entries(d.topics).sort((a, b) => b[1] - a[1])[0]?.[0] || "None";
           return { zip, state: "", count: d.count, topTopic, gapPct: d.count > 0 ? Math.round((d.noLesson / d.count) * 100) : 0 };
         });
 
@@ -526,14 +526,14 @@ export default function AdminAnalyticsPage() {
                     <td className="p-2">
                       <Badge variant="outline" className="text-[10px]"
                         style={{ borderColor: CATEGORY_COLORS[q.topic_category || "other"] || "#6b7280", color: CATEGORY_COLORS[q.topic_category || "other"] || "#6b7280" }}>
-                        {q.topic_category || "—"}
+                        {q.topic_category || "None"}
                       </Badge>
                     </td>
-                    <td className="p-2 text-muted-foreground text-xs hidden md:table-cell">{q.sub_topic || "—"}</td>
-                    <td className="p-2 text-xs hidden lg:table-cell capitalize">{q.complexity_level || "—"}</td>
-                    <td className="p-2 text-xs text-muted-foreground font-mono hidden lg:table-cell">{q.zip_code || "—"}</td>
+                    <td className="p-2 text-muted-foreground text-xs hidden md:table-cell">{q.sub_topic || "None"}</td>
+                    <td className="p-2 text-xs hidden lg:table-cell capitalize">{q.complexity_level || "None"}</td>
+                    <td className="p-2 text-xs text-muted-foreground font-mono hidden lg:table-cell">{q.zip_code || "None"}</td>
                     <td className="p-2 text-center">{q.has_matching_lesson ? <span className="text-primary">✓</span> : <span className="text-destructive">✗</span>}</td>
-                    <td className="p-2 text-xs text-muted-foreground capitalize hidden md:table-cell">{q.intent_type || "—"}</td>
+                    <td className="p-2 text-xs text-muted-foreground capitalize hidden md:table-cell">{q.intent_type || "None"}</td>
                   </tr>
                 ))}
                 {!filteredQuestions.length && (
@@ -562,24 +562,24 @@ export default function AdminAnalyticsPage() {
                   <p className="text-muted-foreground">Category</p>
                   <Badge variant="outline" className="mt-1"
                     style={{ borderColor: CATEGORY_COLORS[selectedQuestion.topic_category || "other"], color: CATEGORY_COLORS[selectedQuestion.topic_category || "other"] }}>
-                    {selectedQuestion.topic_category || "—"}
+                    {selectedQuestion.topic_category || "None"}
                   </Badge>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Sub-topic</p>
-                  <p className="text-foreground mt-1">{selectedQuestion.sub_topic || "—"}</p>
+                  <p className="text-foreground mt-1">{selectedQuestion.sub_topic || "None"}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Intent</p>
-                  <p className="text-foreground mt-1 capitalize">{selectedQuestion.intent_type || "—"}</p>
+                  <p className="text-foreground mt-1 capitalize">{selectedQuestion.intent_type || "None"}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Complexity</p>
-                  <p className="text-foreground mt-1 capitalize">{selectedQuestion.complexity_level || "—"}</p>
+                  <p className="text-foreground mt-1 capitalize">{selectedQuestion.complexity_level || "None"}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">ZIP / State</p>
-                  <p className="text-foreground mt-1 font-mono">{selectedQuestion.zip_code || "—"} · {selectedQuestion.state_code || "—"}</p>
+                  <p className="text-foreground mt-1 font-mono">{selectedQuestion.zip_code || "None"} · {selectedQuestion.state_code || "None"}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Web Search Used</p>
@@ -588,7 +588,7 @@ export default function AdminAnalyticsPage() {
                 <div>
                   <p className="text-muted-foreground">Has Matching Lesson</p>
                   <p className={`mt-1 ${selectedQuestion.has_matching_lesson ? "text-primary" : "text-amber-400"}`}>
-                    {selectedQuestion.has_matching_lesson ? "✓ Yes" : "✗ No — Gap detected"}
+                    {selectedQuestion.has_matching_lesson ? "✓ Yes" : "✗ No, Gap detected"}
                   </p>
                 </div>
                 <div>

@@ -121,7 +121,7 @@ export default function BallotpediaSection({ racesWithCandidates, measures }: Ba
           {Object.entries(federalByOffice).map(([office, races]) => {
             const sorted = [...races].sort((a, b) => (a.district ?? 0) - (b.district ?? 0));
             const label = office === "us_house"
-              ? `U.S. House — ${stateName}`
+              ? `U.S. House, ${stateName}`
               : officeLabel(office);
 
             return (
@@ -149,7 +149,7 @@ export default function BallotpediaSection({ racesWithCandidates, measures }: Ba
         <>
           <div className="flex items-center gap-2 mt-6">
             <Landmark className="h-5 w-5 text-primary" />
-            <h2 className="font-heading text-xl text-foreground">STATE — {stateName.toUpperCase()}</h2>
+            <h2 className="font-heading text-xl text-foreground">STATE, {stateName.toUpperCase()}</h2>
           </div>
 
           {Object.entries(stateByOffice).map(([office, races]) => {
@@ -353,7 +353,7 @@ function RaceCard({
       >
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">
-            {race.district ?? "—"}
+            {race.district ?? "None"}
           </div>
           <div>
             <p className="text-sm font-medium text-foreground">{districtLabel}</p>

@@ -143,10 +143,10 @@ export default function JoinPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Helmet>
-        <title>Join {org?.name ?? "UWAZI"} — Accept your invite</title>
+        <title>Join {org?.name ?? "UWAZI"}, Accept your invite</title>
         <meta name="description" content={`Accept your invitation to join ${org?.name ?? "a UWAZI partner organization"} and start engaging with your community.`} />
         <link rel="canonical" href="https://uwaziapp.uwazi.ai/join" />
-        <meta property="og:title" content={`Join ${org?.name ?? "UWAZI"} — Accept your invite`} />
+        <meta property="og:title" content={`Join ${org?.name ?? "UWAZI"}, Accept your invite`} />
         <meta property="og:description" content="Accept your invite to a UWAZI partner organization." />
         <meta property="og:url" content="https://uwaziapp.uwazi.ai/join" />
       </Helmet>

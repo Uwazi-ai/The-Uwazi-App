@@ -193,10 +193,18 @@ export function useBallotContestsForState(state: string | null | undefined) {
         .eq("election_date", ELECTION_DATE)
         .eq("verification_status", "verified")
         .order("sort_order", { ascending: true });
-      return filterByDistrict((data || []) as BallotContest[], precinct);
+      return filterByDistrict(((data || []) as BallotContest[]).map(undashContest), precinct);
     },
     enabled: !!state,
   });
+}
+
+/** Shows "Retain Judge Name, Court" instead of a long dash. Only the dash changes. */
+export function undash(text: string | null | undefined): string {
+  return (text ?? "").replace(/\s*\u2014\s*/g, ", ");
+}
+function undashContest<T extends { measure_title?: string | null; office_name?: string | null }>(c: T): T {
+  return { ...c, measure_title: c.measure_title ? undash(c.measure_title) : c.measure_title, office_name: c.office_name ? undash(c.office_name) : c.office_name };
 }
 
 /** The person's district codes, with the KC precinct list filling any gaps. Never includes an address. */
@@ -238,7 +246,7 @@ export function useMyFullBallot(state: string | null | undefined) {
         .eq("election_date", ELECTION_DATE)
         .eq("verification_status", "verified")
         .order("sort_order", { ascending: true });
-      return (data || []) as (BallotContest & { office_name?: string | null; vote_for?: number })[];
+      return ((data || []) as (BallotContest & { office_name?: string | null; vote_for?: number })[]).map(undashContest);
     },
     enabled: !!state,
   });

@@ -190,7 +190,7 @@ export function PWAInstallPrompt() {
             ) : (
               <>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Add to your home screen for quick civic access — works offline!
+                  Add to your home screen for quick civic access, works offline!
                 </p>
                 <button
                   onClick={handleInstall}

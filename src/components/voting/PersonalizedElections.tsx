@@ -391,7 +391,7 @@ function AddAddressPrompt() {
                   <SelectContent className="max-h-60">
                     {US_STATES.map((s) => (
                       <SelectItem key={s.code} value={s.code}>
-                        {s.code} — {s.name}
+                        {s.code}, {s.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

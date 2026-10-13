@@ -1,0 +1,1 @@
+CREATE POLICY "People view episode posters" ON storage.objects FOR SELECT TO anon, authenticated USING (bucket_id = 'home-video-media' AND name LIKE 'episode-posters/%');

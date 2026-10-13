@@ -83,7 +83,7 @@ export default function AdminContentPage() {
                 <td className="p-2 text-foreground capitalize">{e.type}</td>
                 <td className="p-2 text-muted-foreground">{e.jurisdiction}</td>
                 <td className="p-2 text-primary">{e.election_date}</td>
-                <td className="p-2 text-muted-foreground hidden md:table-cell">{e.registration_deadline || "—"}</td>
+                <td className="p-2 text-muted-foreground hidden md:table-cell">{e.registration_deadline || "None"}</td>
               </tr>
             ))}
             {!eLoading && !elections?.length && <tr><td colSpan={4} className="p-4 text-center text-muted-foreground">No elections yet</td></tr>}
@@ -112,7 +112,7 @@ export default function AdminContentPage() {
               <tr key={row.episode_id} className="border-b border-border hover:bg-primary/5">
                 <td className="p-2 text-foreground">{row.episode?.title || row.episode_id}</td>
                 <td className="p-2 text-muted-foreground hidden md:table-cell">
-                  {row.episode?.topic_emoji} {row.episode?.topic || "—"}
+                  {row.episode?.topic_emoji} {row.episode?.topic || "None"}
                 </td>
                 <td className="p-2 text-right">
                   <span className="inline-flex items-center gap-1 text-red-500 font-semibold">
@@ -149,8 +149,8 @@ export default function AdminContentPage() {
               <tr key={c.id} className="border-b border-border hover:bg-primary/5">
                 <td className="p-2 text-foreground">{c.name}</td>
                 <td className="p-2 text-muted-foreground">{c.office}</td>
-                <td className="p-2 text-muted-foreground hidden md:table-cell">{c.party || "—"}</td>
-                <td className="p-2 text-muted-foreground hidden md:table-cell">{c.district || "—"}</td>
+                <td className="p-2 text-muted-foreground hidden md:table-cell">{c.party || "None"}</td>
+                <td className="p-2 text-muted-foreground hidden md:table-cell">{c.district || "None"}</td>
               </tr>
             ))}
             {!cLoading && !candidates?.length && <tr><td colSpan={4} className="p-4 text-center text-muted-foreground">No candidates yet</td></tr>}

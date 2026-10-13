@@ -391,10 +391,10 @@ export default function AdminIntelligencePage() {
                 : "bg-destructive/10 border-destructive/30 text-destructive";
             const msg =
               ratio >= 3
-                ? `✓ Healthy unit economics — ${ratio.toFixed(1)}x LTV:CAC with ${payback.toFixed(1)}-month payback. Investor benchmark cleared.`
+                ? `✓ Healthy unit economics, ${ratio.toFixed(1)}x LTV:CAC with ${payback.toFixed(1)}-month payback. Investor benchmark cleared.`
                 : ratio >= 1
-                ? `⚠ LTV:CAC at ${ratio.toFixed(1)}x — below the 3x benchmark. Improve conversion or reduce CAC to strengthen.`
-                : `🔴 LTV:CAC below 1x — acquisition cost exceeds lifetime value. Raise price, reduce churn, or cut spend.`;
+                ? `⚠ LTV:CAC at ${ratio.toFixed(1)}x, below the 3x benchmark. Improve conversion or reduce CAC to strengthen.`
+                : `🔴 LTV:CAC below 1x, acquisition cost exceeds lifetime value. Raise price, reduce churn, or cut spend.`;
             return <div className={`text-sm rounded-xl border p-3 ${tone}`}>{msg}</div>;
           })()
         )}
@@ -431,7 +431,7 @@ export default function AdminIntelligencePage() {
         </div>
         {!metricsLoading && (metrics?.ask_intel?.rate_limit_hit_rate ?? 0) >= 15 && (
           <div className="text-sm rounded-xl border border-primary/30 bg-primary/10 text-primary p-3">
-            ⚡ {metrics.ask_intel.rate_limit_hit_rate.toFixed(0)}% of today's Ask Uwazi questions hit the cap — strong upgrade-intent signal. Consider an in-app paywall nudge on the limit screen.
+            ⚡ {metrics.ask_intel.rate_limit_hit_rate.toFixed(0)}% of today's Ask Uwazi questions hit the cap, strong upgrade-intent signal. Consider an in-app paywall nudge on the limit screen.
           </div>
         )}
         <div className="grid md:grid-cols-2 gap-3">
@@ -595,10 +595,10 @@ export default function AdminIntelligencePage() {
                       <td className="p-2 hidden md:table-cell">
                         <Badge variant="outline" className="text-[10px]"
                           style={{ borderColor: CATEGORY_COLORS[rec.suggested_category || "other"], color: CATEGORY_COLORS[rec.suggested_category || "other"] }}>
-                          {rec.suggested_category || "—"}
+                          {rec.suggested_category || "None"}
                         </Badge>
                       </td>
-                      <td className="p-2 text-muted-foreground capitalize hidden md:table-cell">{rec.suggested_difficulty || "—"}</td>
+                      <td className="p-2 text-muted-foreground capitalize hidden md:table-cell">{rec.suggested_difficulty || "None"}</td>
                       <td className="p-2 text-foreground font-mono">{rec.question_count || 0}</td>
                       <td className="p-2 hidden lg:table-cell">
                         {examples.length > 0 && (
@@ -693,7 +693,7 @@ export default function AdminIntelligencePage() {
           <h2 className="text-xl md:text-2xl font-axis uppercase text-foreground">BALLOTPEDIA SCRAPER</h2>
           {scraperLogs?.[0] && (
             <span className="text-xs text-muted-foreground ml-auto">
-              Last run: {new Date(scraperLogs[0].started_at || "").toLocaleDateString()} — {scraperLogs[0].status} ({scraperLogs[0].records_scraped} records)
+              Last run: {new Date(scraperLogs[0].started_at || "").toLocaleDateString()}, {scraperLogs[0].status} ({scraperLogs[0].records_scraped} records)
             </span>
           )}
         </div>
@@ -782,7 +782,7 @@ export default function AdminIntelligencePage() {
                   </div>
                   <div className="flex items-center gap-3 text-muted-foreground">
                     <span>{log.records_scraped} records</span>
-                    <span>{log.started_at ? new Date(log.started_at).toLocaleString() : "—"}</span>
+                    <span>{log.started_at ? new Date(log.started_at).toLocaleString() : "None"}</span>
                   </div>
                 </div>
               ))}

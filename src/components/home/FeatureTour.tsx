@@ -35,7 +35,7 @@ const STEPS: TourStep[] = [
     step: "Step 1 of 5",
     route: "/app/ask",
     desc:
-      "Get instant, nonpartisan answers to any civic question — from how a bill works to what your local representatives voted for. Powered by AI, grounded in facts.",
+      "Get instant, nonpartisan answers to any civic question, from how a bill works to what your local representatives voted for. Powered by AI, grounded in facts.",
   },
   {
     icon: BookOpen,
@@ -55,7 +55,7 @@ const STEPS: TourStep[] = [
     step: "Step 3 of 5",
     route: "/app/watch",
     desc:
-      "Original civic video content — from policy breakdowns to community stories. Stream episodes on the issues that affect your neighborhood most.",
+      "Original civic video content, from policy breakdowns to community stories. Stream episodes on the issues that affect your neighborhood most.",
   },
   {
     icon: CheckSquare,
@@ -65,7 +65,7 @@ const STEPS: TourStep[] = [
     step: "Step 4 of 5",
     route: "/app/vote",
     desc:
-      "Everything you need to show up — your candidates, your polling location, your ballot, and a countdown to your next election. Your vote, demystified.",
+      "Everything you need to show up, your candidates, your polling location, your ballot, and a countdown to your next election. Your vote, demystified.",
   },
   {
     icon: TrendingUp,
@@ -75,7 +75,7 @@ const STEPS: TourStep[] = [
     step: "Step 5 of 5",
     route: "/app/progress",
     desc:
-      "Every action earns Civic XP. Build streaks, unlock badges, and watch your Civic Score grow — because an informed citizen is a powerful one.",
+      "Every action earns Civic XP. Build streaks, unlock badges, and watch your Civic Score grow, because an informed citizen is a powerful one.",
   },
 ];
 

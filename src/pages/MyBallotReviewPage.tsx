@@ -52,14 +52,14 @@ export default function MyBallotReviewPage() {
 
   const openMailto = () => {
     const lines = rows.map((r) => `${r.contest.measure_title}\n  ${r.choice}`).join("\n\n");
-    const body = `My Ballot Notes — ${ELECTION_LABEL}\n${PARTY_LABEL[party]} ballot · ${profile.city || ""}, ${state}\n\n${lines}\n\n(Practice ballot — not an official ballot. Personal notes only.)`;
-    const url = `mailto:?subject=${encodeURIComponent("My Ballot Notes — " + ELECTION_LABEL)}&body=${encodeURIComponent(body)}`;
+    const body = `My Ballot Notes, ${ELECTION_LABEL}\n${PARTY_LABEL[party]} ballot · ${profile.city || ""}, ${state}\n\n${lines}\n\n(Practice ballot, not an official ballot. Personal notes only.)`;
+    const url = `mailto:?subject=${encodeURIComponent("My Ballot Notes, " + ELECTION_LABEL)}&body=${encodeURIComponent(body)}`;
     window.location.href = url;
   };
 
   return (
     <div className="max-w-2xl mx-auto px-4 md:px-6 py-6 pb-24 md:pb-10 space-y-5">
-      <Helmet><title>Review My Ballot — UWAZI</title></Helmet>
+      <Helmet><title>Review My Ballot, UWAZI</title></Helmet>
 
       <PracticeBanner />
 

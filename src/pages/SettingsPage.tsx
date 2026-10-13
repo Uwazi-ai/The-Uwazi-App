@@ -286,7 +286,7 @@ export default function SettingsPage() {
     setCurrentFullAddress(fullAddr);
     setSavingAddress(false);
     setEditingAddress(false);
-    toast.success("Address updated ✓ — fetching your neighborhood data");
+    toast.success("Address updated ✓, fetching your neighborhood data");
     refreshProfile();
   };
 
@@ -459,7 +459,7 @@ export default function SettingsPage() {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {subscription?.cancel_at_period_end ? "Access ends" : "Renews"}{" "}
-                  {subscription?.current_period_end ? new Date(subscription.current_period_end).toLocaleDateString() : "—"}
+                  {subscription?.current_period_end ? new Date(subscription.current_period_end).toLocaleDateString() : "None"}
                 </p>
               </>
             ) : (
@@ -566,7 +566,7 @@ export default function SettingsPage() {
                   </SelectTrigger>
                   <SelectContent className="max-h-60">
                     {US_STATES.map((s) => (
-                      <SelectItem key={s.code} value={s.code}>{s.code} — {s.name}</SelectItem>
+                      <SelectItem key={s.code} value={s.code}>{s.code}, {s.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

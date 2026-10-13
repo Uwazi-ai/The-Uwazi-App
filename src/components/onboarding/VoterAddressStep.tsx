@@ -65,7 +65,7 @@ export default function VoterAddressStep({ onComplete, onSkip }: VoterAddressSte
         </div>
         <h2 className="text-2xl font-bold text-foreground">Where are you registered to vote? 🗳️</h2>
         <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
-          We'll show you your upcoming elections, registration deadlines, and ballot info — all personalized to your address.
+          We'll show you your upcoming elections, registration deadlines, and ballot info, all personalized to your address.
         </p>
       </div>
 
@@ -116,7 +116,7 @@ export default function VoterAddressStep({ onComplete, onSkip }: VoterAddressSte
               <SelectContent className="max-h-60">
                 {US_STATES.map((s) => (
                   <SelectItem key={s.code} value={s.code}>
-                    {s.code} — {s.name}
+                    {s.code}, {s.name}
                   </SelectItem>
                 ))}
               </SelectContent>

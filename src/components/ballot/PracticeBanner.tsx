@@ -9,7 +9,7 @@ export function PracticeBanner({ className = "" }: { className?: string }) {
         Unofficial · For Personal Use Only
       </div>
       <div className="mt-0.5 text-[11px] italic text-amber-200/80">
-        Study guide — not an official ballot. Don't present at the polls.
+        Study guide, not an official ballot. Don't present at the polls.
       </div>
     </div>
   );

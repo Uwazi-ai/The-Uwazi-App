@@ -6,10 +6,10 @@ export default function TermsOfServicePage() {
   return (
     <div className="min-h-screen bg-background text-foreground px-4 py-8 max-w-3xl mx-auto">
       <Helmet>
-        <title>Terms of Service — UWAZI</title>
+        <title>Terms of Service, UWAZI</title>
         <meta name="description" content="Terms and conditions governing use of UWAZI's civic intelligence platform and services." />
         <link rel="canonical" href="https://uwaziapp.uwazi.ai/terms" />
-        <meta property="og:title" content="Terms of Service — UWAZI" />
+        <meta property="og:title" content="Terms of Service, UWAZI" />
         <meta property="og:description" content="Terms governing use of UWAZI." />
         <meta property="og:url" content="https://uwaziapp.uwazi.ai/terms" />
       </Helmet>
@@ -18,13 +18,13 @@ export default function TermsOfServicePage() {
         Back
       </Link>
 
-      <h1 className="text-3xl font-bold mb-2">Terms of Service — UWAZI.AI</h1>
+      <h1 className="text-3xl font-bold mb-2">Terms of Service, UWAZI.AI</h1>
       <p className="text-muted-foreground text-sm mb-8">Effective: April 2026</p>
 
       <section className="space-y-6 text-sm leading-relaxed text-muted-foreground">
         <div>
           <h2 className="text-lg font-semibold text-foreground mb-2">Nonpartisan & Educational</h2>
-          <p>UWAZI.AI is a nonpartisan civic education platform. Our mission is to help users understand their government, elections, and legislation — without political bias or advocacy.</p>
+          <p>UWAZI.AI is a nonpartisan civic education platform. Our mission is to help users understand their government, elections, and legislation, without political bias or advocacy.</p>
         </div>
 
         <div>

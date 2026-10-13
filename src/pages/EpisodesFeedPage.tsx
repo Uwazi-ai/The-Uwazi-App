@@ -56,19 +56,15 @@ export default function WatchPage() {
   useEffect(() => {
     const fetchVideos = async () => {
       setLoading(true);
-      let query = supabase
-        .from("episodes")
-        .select("id, title, description, date, topic, topic_emoji, video_url, is_free")
-        .eq("is_published", true);
-      if (activeTab !== "All") {
-        query = query.eq("topic", activeTab);
-      }
+      // Lists every published episode so free members see locked ones too.
+      // The server only returns a video path for episodes this person may play.
       const [{ data }, { data: freeRows }] = await Promise.all([
-        query.order("sort_order", { ascending: true }),
+        (supabase as any).rpc("list_published_episodes"),
         (supabase as any).rpc("free_episode_ids"),
       ]);
       setFreeIds(new Set(((freeRows as any[]) ?? []).map((r: any) => (typeof r === "string" ? r : r.free_episode_ids))));
-      setEpisodes((data as Episode[]) || []);
+      const all = ((data as Episode[]) || []);
+      setEpisodes(activeTab === "All" ? all : all.filter((e) => e.topic === activeTab));
       setLoading(false);
     };
     fetchVideos();
@@ -623,7 +619,7 @@ function PaywallOverlay({ onClose, onUpgrade }: { onClose: () => void; onUpgrade
           </span>
         </div>
         <p className="text-amber-500/90 text-[11px] mb-1">
-          {billing === "monthly" ? "Beta rate — locked through beta" : "Just $3.25/mo billed annually"}
+          {billing === "monthly" ? "Beta rate, locked through beta" : "Just $3.25/mo billed annually"}
         </p>
         <p className="text-muted-foreground text-[11px] mb-4">⏰ Beta pricing ends July 16, 2026</p>
 

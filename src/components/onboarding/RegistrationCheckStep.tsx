@@ -149,7 +149,7 @@ export default function RegistrationCheckStep({ onContinue, loading }: Props) {
           textUnderlineOffset: 4,
         }}
       >
-        I'll check this later — continue to UWAZI
+        I'll check this later, continue to UWAZI
       </button>
 
       <p
@@ -161,7 +161,7 @@ export default function RegistrationCheckStep({ onContinue, loading }: Props) {
           marginTop: 16,
         }}
       >
-        Powered by Vote.org — Partner ID 111111
+        Powered by Vote.org, Partner ID 111111
       </p>
     </motion.div>
   );

@@ -112,7 +112,7 @@ export default function MyBallotWalkthroughPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 md:px-6 py-6 pb-24 md:pb-10 space-y-5">
       <Helmet>
-        <title>Build My Ballot — UWAZI</title>
+        <title>Build My Ballot, UWAZI</title>
       </Helmet>
 
       <PracticeBanner />
@@ -219,7 +219,7 @@ function CandidateChooser({
               <div>
                 <div className="font-medium text-foreground">{c.name}</div>
                 <div className="text-xs text-muted-foreground mt-0.5">
-                  {c.party || "—"}
+                  {c.party || "None"}
                   {c.is_incumbent && (
                     <span className="ml-2 inline-block rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-primary border border-primary/40">
                       Incumbent

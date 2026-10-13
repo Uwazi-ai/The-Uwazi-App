@@ -13,7 +13,7 @@ const SLIDES = [
     eyebrow: 'CIVIC INTELLIGENCE PLATFORM',
     icon: '🏛️',
     headline: 'BUILD YOUR\nCIVIC FREEDOM.',
-    sub: 'UWAZI is your all-in-one civic companion — nonpartisan, AI-powered, and built around your community.',
+    sub: 'UWAZI is your all-in-one civic companion, nonpartisan, AI-powered, and built around your community.',
     statNum: '40K+',
     statLabel: 'elected offices up for election in 2026',
     accent: '#9bd34b',
@@ -25,7 +25,7 @@ const SLIDES = [
     eyebrow: 'FEATURE 1 OF 4 · ASK UWAZI',
     icon: '💬',
     headline: 'ASK ANYTHING\nABOUT YOUR GOVT.',
-    sub: 'Get instant, nonpartisan answers to any civic question — how a bill works, who your reps voted for, what your rights are.',
+    sub: 'Get instant, nonpartisan answers to any civic question, how a bill works, who your reps voted for, what your rights are.',
     statNum: '100%',
     statLabel: 'nonpartisan, every answer, every time',
     accent: '#9bd34b',
@@ -37,7 +37,7 @@ const SLIDES = [
     eyebrow: 'FEATURE 2 OF 4 · LEARN & EARN',
     icon: '📚',
     headline: 'EARN XP.\nRAISE YOUR SCORE.',
-    sub: 'Short Duolingo-style civic lessons. Build streaks, unlock badges, and raise your Civic Literacy Score — one lesson at a time.',
+    sub: 'Short Duolingo-style civic lessons. Build streaks, unlock badges, and raise your Civic Literacy Score, one lesson at a time.',
     statNum: '13+',
     statLabel: 'civic lesson tracks built for your community',
     accent: '#3b82f6',
@@ -127,10 +127,10 @@ export default function Welcome() {
   return (
     <>
       <Helmet>
-        <title>UWAZI — Build your civic freedom</title>
+        <title>UWAZI, Build your civic freedom</title>
         <meta name="description" content="Nonpartisan civic intelligence: Ask Uwazi, earn XP through civic lessons, track legislation, and never miss your vote." />
         <link rel="canonical" href="https://uwaziapp.uwazi.ai/welcome" />
-        <meta property="og:title" content="UWAZI — Build your civic freedom" />
+        <meta property="og:title" content="UWAZI, Build your civic freedom" />
         <meta property="og:description" content="Nonpartisan civic intelligence: Ask Uwazi, earn XP through civic lessons, track legislation, and never miss your vote." />
         <meta property="og:url" content="https://uwaziapp.uwazi.ai/welcome" />
       </Helmet>
@@ -347,7 +347,7 @@ export default function Welcome() {
                   onClick={() => navigate('/signup')}
                   className="w-full py-3.5 bg-[#9bd34b] hover:bg-[#aee06a] text-black font-bold rounded-xl text-sm transition-colors overflow-hidden relative"
                 >
-                  Get Started — It's Free →
+                  Get Started, It's Free →
                   <div
                     className="absolute bottom-0 left-0 h-0.5 bg-black/30 transition-[width] duration-100 ease-linear"
                     style={{ width: `${progress}%` }}

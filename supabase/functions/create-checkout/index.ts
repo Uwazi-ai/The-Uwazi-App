@@ -62,7 +62,8 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       line_items: [{ price: stripePrice.id, quantity: qty }],
       mode: isRecurring ? "subscription" : "payment",
-      ui_mode: "embedded_page",
+      // "embedded" matches the Stripe API version this client uses; "embedded_page" is rejected.
+      ui_mode: "embedded",
       return_url: safeReturnUrl,
       ...(customerEmail && { customer_email: customerEmail }),
       ...(userId && {

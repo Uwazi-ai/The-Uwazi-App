@@ -239,7 +239,7 @@ export default function AdminPartnerOrgsPage() {
                         {org.name}
                       </div>
                     </TableCell>
-                    <TableCell>{org.city || "—"}</TableCell>
+                    <TableCell>{org.city || "None"}</TableCell>
                     <TableCell>
                       <Badge variant="secondary" className="capitalize">{org.category || "other"}</Badge>
                     </TableCell>

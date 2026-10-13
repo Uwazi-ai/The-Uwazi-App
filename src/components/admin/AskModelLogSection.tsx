@@ -136,7 +136,7 @@ export function AskModelLogSection() {
                       {new Date(r.created_at).toLocaleString()}
                     </td>
                     <td className="whitespace-nowrap px-3 py-2 font-medium">
-                      {MODEL_LABELS[r.model_id ?? ""] ?? r.model_id ?? "—"}
+                      {MODEL_LABELS[r.model_id ?? ""] ?? r.model_id ?? "None"}
                     </td>
                     <td className="px-3 py-2 text-muted-foreground">
                       {r.model_source === "admin_override" ? "Admin override" : "Auto"}
@@ -157,11 +157,11 @@ export function AskModelLogSection() {
                       {r.input_tokens}/{r.output_tokens}
                     </td>
                     <td className="whitespace-nowrap px-3 py-2 text-muted-foreground">
-                      {r.duration_ms ? `${(r.duration_ms / 1000).toFixed(1)}s` : "—"}
+                      {r.duration_ms ? `${(r.duration_ms / 1000).toFixed(1)}s` : "None"}
                     </td>
                     <td className="max-w-xs truncate px-3 py-2 text-muted-foreground">
                       {r.success
-                        ? (r.tools_used ?? []).join(", ") || "—"
+                        ? (r.tools_used ?? []).join(", ") || "None"
                         : `${r.error_type ?? "error"}: ${r.error_message ?? ""}`}
                     </td>
                   </tr>
