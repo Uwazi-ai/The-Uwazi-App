@@ -7,10 +7,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/stripe";
 
 const PRICE_LABELS: Record<string, string> = {
-  uwazi_plus_beta_monthly: "Uwazi+ Beta · Monthly · $4.99/mo",
-  uwazi_plus_beta_yearly: "Uwazi+ Beta · Annual · $39/yr",
+  uwazi_plus_beta_monthly: "Uwazi+ · Monthly · $4.99/mo",
+  uwazi_plus_beta_yearly: "Uwazi+ · Annual · $39/yr",
   uwazi_plus_monthly: "Uwazi+ · Monthly · $19.99/mo",
   uwazi_plus_yearly: "Uwazi+ · Annual · $119/yr",
+  uwazi_plus_student_monthly: "Uwazi+ Student · Monthly · $7.99/mo",
 };
 
 export default function ManageSubscriptionPage() {

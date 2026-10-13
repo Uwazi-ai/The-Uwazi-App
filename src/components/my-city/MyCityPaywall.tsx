@@ -7,7 +7,7 @@ export function MyCityPaywall() {
   const navigate = useNavigate();
 
   const handleSubscribe = () => {
-    navigate("/app/upgrade?plan=beta_monthly");
+    navigate("/app/upgrade?plan=monthly");
   };
 
   const features = [
@@ -108,11 +108,10 @@ export function MyCityPaywall() {
         <div className="flex items-baseline justify-between flex-wrap gap-2">
           <div className="flex items-baseline gap-1">
             <span className="font-heading text-3xl sm:text-4xl text-primary leading-none">
-              $4.99
+              $19.99
             </span>
             <span className="text-sm text-muted-foreground">/month</span>
           </div>
-          <span className="text-xs font-semibold text-amber-400">Price increases Jul 16</span>
         </div>
 
         <Button

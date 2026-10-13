@@ -49,7 +49,7 @@ const SLIDES: Slide[] = [
     emoji: "✦",
     eyebrow: "GET FULL ACCESS",
     title: "UNLOCK MY CITY",
-    body: "My City is included in Uwazi+. Subscribe for $4.99/month and get unlimited Ask Uwazi, My City, premium video, and everything we build next.",
+    body: "My City is included in Uwazi+. Subscribe for $19.99 a month and get unlimited Ask Uwazi, My City, premium video, and everything we build next.",
     isCta: true,
   },
 ];
@@ -231,13 +231,10 @@ export function MyCityUnlockModal() {
                           className="font-heading leading-none"
                           style={{ fontSize: 28, color: LIME }}
                         >
-                          $4.99
+                          $19.99
                         </span>
                         <span className="text-[12px] text-muted-foreground">/month</span>
                       </div>
-                      <span className="text-[12px] font-semibold text-amber-400">
-                        Price increases Jul 16
-                      </span>
                     </div>
                   )}
                 </motion.div>

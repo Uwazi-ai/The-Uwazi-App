@@ -95,7 +95,7 @@ export default function WatchPage() {
         <div className="flex items-center justify-between gap-2">
           <span className="text-lg font-black tracking-tight text-primary shrink-0">UWAZI</span>
           <button className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-500/90 text-black shrink-0">
-            Uwazi+ BETA
+            Uwazi+
           </button>
         </div>
         <div className="mt-2 flex items-center gap-2">
@@ -575,64 +575,21 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
   );
 }
 function PaywallOverlay({ onClose, onUpgrade }: { onClose: () => void; onUpgrade: (plan: string) => void }) {
-  const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6" onClick={onClose}>
       <div className="bg-card rounded-2xl p-6 max-w-sm w-full text-center relative" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute top-4 right-4 text-muted-foreground"><X size={20} /></button>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 mb-3">
-          <span className="text-[10px] font-bold text-amber-400 tracking-wider">🚀 BETA PRICE</span>
-        </div>
-        <div className="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center mx-auto mb-3">
-          <Lock size={24} className="text-yellow-400" />
+        <button onClick={onClose} className="absolute top-4 right-4 text-muted-foreground" aria-label="Close"><X size={20} /></button>
+        <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-3">
+          <Lock size={24} className="text-primary" />
         </div>
         <h3 className="text-foreground font-bold text-xl mb-1">Upgrade to Uwazi+</h3>
-        <p className="text-muted-foreground text-[13px] mb-4">
-          Unlimited videos, full legislation tracking & unlimited AI questions.
-        </p>
-
-        {/* Billing toggle */}
-        <div className="flex gap-1 bg-muted rounded-full p-1 mb-4">
-          <button
-            onClick={() => setBilling("monthly")}
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-full transition-all ${billing === "monthly" ? "bg-background text-foreground shadow" : "text-muted-foreground"}`}
-          >
-            Monthly
-          </button>
-          <button
-            onClick={() => setBilling("annual")}
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-full transition-all ${billing === "annual" ? "bg-background text-foreground shadow" : "text-muted-foreground"}`}
-          >
-            Annual <span className="text-amber-500">−35%</span>
-          </button>
+        <p className="text-muted-foreground text-[13px] mb-4">Every video, full legislation tracking, and unlimited questions.</p>
+        <div className="flex items-baseline justify-center gap-1 mb-4">
+          <span className="text-foreground font-black text-3xl">$19.99</span>
+          <span className="text-muted-foreground text-sm">/month</span>
         </div>
-
-        <div className="flex items-baseline justify-center gap-2 mb-1">
-          <span className="text-foreground font-black text-3xl">
-            ${billing === "monthly" ? "4.99" : "39"}
-          </span>
-          <span className="text-muted-foreground text-sm line-through">
-            ${billing === "monthly" ? "19.99" : "119"}
-          </span>
-          <span className="text-muted-foreground text-sm">
-            /{billing === "monthly" ? "mo" : "yr"}
-          </span>
-        </div>
-        <p className="text-amber-500/90 text-[11px] mb-1">
-          {billing === "monthly" ? "Beta rate, locked through beta" : "Just $3.25/mo billed annually"}
-        </p>
-        <p className="text-muted-foreground text-[11px] mb-4">⏰ Beta pricing ends July 16, 2026</p>
-
-        <button
-          onClick={() => onUpgrade(billing === "monthly" ? "beta_monthly" : "beta_yearly")}
-          className="w-full py-3 rounded-xl font-bold text-black text-sm"
-          style={{ background: "linear-gradient(135deg, #facc15, #eab308)" }}
-        >
-          Claim Beta Price
-        </button>
-        <p className="text-muted-foreground text-[10px] mt-3">
-          Price returns to ${billing === "monthly" ? "19.99/mo" : "119/yr"} after beta · No contracts · Cancel anytime
-        </p>
+        <button onClick={() => onUpgrade("monthly")} className="w-full py-3 rounded-xl font-bold text-sm bg-primary text-primary-foreground">Get Uwazi+</button>
+        <p className="text-muted-foreground text-[11px] mt-3">Students pay $7.99 a month. Cancel any time.</p>
       </div>
     </div>
   );
