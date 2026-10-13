@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
     address && zip ? geocode(address, zip) : Promise.resolve(null),
   ]);
   if (!s) return json({ error: "Rides are not open yet." }, 503);
-  if (geo && geo.state !== "MO") return json({ error: "Free rides are only in Missouri right now." }, 400);
+  if ((geo && geo.state !== "MO") || (zip && !isMissouriZip(zip))) return json({ error: "Free rides are only in Missouri right now. Questions? Call the ride line at (816) 379-6885." }, 400);
 
   // Site hours rule applies to Jackson County voters and to anyone not yet located.
   const siteRule = !geo || geo.county === JACKSON_FIPS;
@@ -99,3 +99,6 @@ Deno.serve(async (req) => {
     election_day: s.election_day,
   });
 });
+
+// Missouri ZIPs run 630 to 658. Used even when the address lookup fails.
+function isMissouriZip(z: string): boolean { return /^6(3\d|4\d|5[0-8])\d{2}$/.test(String(z).slice(0, 5)); }
