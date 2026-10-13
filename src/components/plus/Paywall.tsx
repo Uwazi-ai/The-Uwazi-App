@@ -46,8 +46,8 @@ export function PaywallHost() {
             <li key={p} className="flex items-center gap-2 text-sm text-foreground"><Check className="h-4 w-4 text-primary" />{p}</li>
           ))}
         </ul>
-        <p className="mt-5 text-sm text-foreground"><span className="font-heading text-2xl text-primary">$19.99</span> a month after a free week. Cancel any time.</p>
-        <Button size="lg" className="mt-3 w-full" onClick={() => go("/app/upgrade?plan=monthly")}>Start my free week</Button>
+        <p className="mt-5 text-sm text-foreground"><span className="font-heading text-2xl text-primary">$19.99</span> a month. Cancel any time.</p>
+        <Button size="lg" className="mt-3 w-full" onClick={() => go("/app/upgrade?plan=monthly")}>Get Plus</Button>
         <Button variant="outline" className="mt-2 w-full" onClick={() => go("/app/upgrade#student")}><GraduationCap className="h-4 w-4" />Are you a student? $7.99 a month</Button>
         <Link to="/app/upgrade" onClick={() => setReason(null)} className="mt-4 block text-center text-xs font-semibold text-primary underline">See all Plus features</Link>
       </SheetContent>

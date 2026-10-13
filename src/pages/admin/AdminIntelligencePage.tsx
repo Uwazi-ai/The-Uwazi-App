@@ -341,7 +341,7 @@ export default function AdminIntelligencePage() {
         <div className="flex items-center gap-2">
           <DollarSign className="h-5 w-5 text-primary" />
           <h2 className="text-xl md:text-2xl font-axis uppercase text-foreground">REVENUE INTELLIGENCE</h2>
-          <span className="text-xs text-muted-foreground ml-2">$4.99 / mo assumed per active sub</span>
+          <span className="text-xs text-muted-foreground ml-2">$19.99 / mo assumed per active sub</span>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {metricsLoading

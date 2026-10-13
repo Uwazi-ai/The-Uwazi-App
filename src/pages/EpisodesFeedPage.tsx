@@ -12,7 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import { openPaywall } from "@/components/plus/Paywall";
 import { PlusLogo } from "@/components/plus/PlusLogo";
-import { useEpisodeVideoUrl } from "@/hooks/useEpisodeVideoUrl";
+import { useEpisodeVideoUrl, episodeSources } from "@/hooks/useEpisodeVideoUrl";
+import { useVideoSource, VIDEO_BUCKET } from "@/lib/videoLibrary";
 
 interface Episode {
   id: string;
@@ -95,7 +96,7 @@ export default function WatchPage() {
         <div className="flex items-center justify-between gap-2">
           <span className="text-lg font-black tracking-tight text-primary shrink-0">UWAZI</span>
           <button className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-500/90 text-black shrink-0">
-            Uwazi+ BETA
+            Uwazi+
           </button>
         </div>
         <div className="mt-2 flex items-center gap-2">
@@ -273,6 +274,10 @@ function LikeButton({ episodeId }: { episodeId: string }) {
 
 function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, toggleInfo, locked, onPaywall, onUpgrade }: VideoCardProps) {
   const { url: playableUrl } = useEpisodeVideoUrl(episode);
+  const sources = playableUrl ? episodeSources(episode.id) : [];
+  const poster = useVideoSource(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${VIDEO_BUCKET}/episode-posters/${episode.id}.jpg`);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -302,7 +307,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
     const video = videoRef.current;
     if (!video) return;
     // Guard: don't attempt playback until we have a real source URL
-    if (!episode.video_url || !video.src) return;
+    if (!episode.video_url || !playableUrl || failed) return;
     if (video.readyState < 2) video.load();
     const p = video.play();
     if (p && typeof p.catch === "function") {
@@ -366,12 +371,15 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
     <div ref={cardRef} className="relative w-full md:w-auto md:h-screen md:aspect-[9/16] snap-start flex-shrink-0" style={{ height: "100dvh" }}>
       {episode.video_url ? (
         <video
+          key={`${playableUrl ?? "none"}-${attempt}`}
           ref={videoRef}
-          src={playableUrl ?? undefined}
+          poster={poster}
+          autoPlay={!locked}
           className={`absolute inset-0 w-full h-full object-cover md:object-contain ${locked ? "blur-lg scale-105" : ""}`}
           muted={muted}
           loop
           playsInline
+          {...{ "webkit-playsinline": "true" }}
           preload="metadata"
           onWaiting={() => setIsBuffering(true)}
           onStalled={() => setIsBuffering(true)}
@@ -396,8 +404,19 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
             console.error("[WatchPage] video error:", episode.title, err);
             setLastError(msg);
             if (playableUrl) probeNetwork(playableUrl);
+            setFailed(true);
+            setIsBuffering(false);
           }}
-        />
+        >
+          {(sources.length ? sources : playableUrl ? [{ url: playableUrl, type: "video/mp4" }] : []).map((s, i, all) => (
+            <source
+              key={s.url}
+              src={s.url}
+              type={s.type}
+              onError={i === all.length - 1 ? () => { setFailed(true); setIsBuffering(false); setLastError("No playable source"); } : undefined}
+            />
+          ))}
+        </video>
       ) : (
         <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-zinc-900 to-black flex items-center justify-center">
           <div className="text-center px-6">
@@ -408,7 +427,7 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
       )}
 
       {/* Buffering overlay */}
-      {isBuffering && episode.video_url && !needsTap && !locked && (
+      {isBuffering && !failed && episode.video_url && !needsTap && !locked && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px] pointer-events-none">
           <div className="w-12 h-12 rounded-full border-2 border-white/20 border-t-white animate-spin" />
           {bufferPct > 0 && bufferPct < 100 && (
@@ -422,7 +441,19 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
         </div>
       )}
 
-      {needsTap && episode.video_url && !locked && (
+      {failed && episode.video_url && !locked && (
+        <div role="alert" className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-black/60 px-6 text-center">
+          <p className="text-white text-sm font-semibold">This video could not load.</p>
+          <button
+            onClick={() => { setFailed(false); setLastError(null); setIsBuffering(true); setAttempt((a) => a + 1); }}
+            className="rounded-full bg-primary px-5 py-2 text-sm font-bold text-primary-foreground"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
+      {needsTap && !failed && episode.video_url && !locked && (
         <button
           onClick={handleTapToPlay}
           className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-sm"
@@ -575,64 +606,21 @@ function VideoCard({ episode, index, total, muted, setMuted, onShare, infoOpen, 
   );
 }
 function PaywallOverlay({ onClose, onUpgrade }: { onClose: () => void; onUpgrade: (plan: string) => void }) {
-  const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6" onClick={onClose}>
       <div className="bg-card rounded-2xl p-6 max-w-sm w-full text-center relative" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute top-4 right-4 text-muted-foreground"><X size={20} /></button>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 mb-3">
-          <span className="text-[10px] font-bold text-amber-400 tracking-wider">🚀 BETA PRICE</span>
-        </div>
-        <div className="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center mx-auto mb-3">
-          <Lock size={24} className="text-yellow-400" />
+        <button onClick={onClose} className="absolute top-4 right-4 text-muted-foreground" aria-label="Close"><X size={20} /></button>
+        <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-3">
+          <Lock size={24} className="text-primary" />
         </div>
         <h3 className="text-foreground font-bold text-xl mb-1">Upgrade to Uwazi+</h3>
-        <p className="text-muted-foreground text-[13px] mb-4">
-          Unlimited videos, full legislation tracking & unlimited AI questions.
-        </p>
-
-        {/* Billing toggle */}
-        <div className="flex gap-1 bg-muted rounded-full p-1 mb-4">
-          <button
-            onClick={() => setBilling("monthly")}
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-full transition-all ${billing === "monthly" ? "bg-background text-foreground shadow" : "text-muted-foreground"}`}
-          >
-            Monthly
-          </button>
-          <button
-            onClick={() => setBilling("annual")}
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-full transition-all ${billing === "annual" ? "bg-background text-foreground shadow" : "text-muted-foreground"}`}
-          >
-            Annual <span className="text-amber-500">−35%</span>
-          </button>
+        <p className="text-muted-foreground text-[13px] mb-4">Every video, full legislation tracking, and unlimited questions.</p>
+        <div className="flex items-baseline justify-center gap-1 mb-4">
+          <span className="text-foreground font-black text-3xl">$19.99</span>
+          <span className="text-muted-foreground text-sm">/month</span>
         </div>
-
-        <div className="flex items-baseline justify-center gap-2 mb-1">
-          <span className="text-foreground font-black text-3xl">
-            ${billing === "monthly" ? "4.99" : "39"}
-          </span>
-          <span className="text-muted-foreground text-sm line-through">
-            ${billing === "monthly" ? "19.99" : "119"}
-          </span>
-          <span className="text-muted-foreground text-sm">
-            /{billing === "monthly" ? "mo" : "yr"}
-          </span>
-        </div>
-        <p className="text-amber-500/90 text-[11px] mb-1">
-          {billing === "monthly" ? "Beta rate, locked through beta" : "Just $3.25/mo billed annually"}
-        </p>
-        <p className="text-muted-foreground text-[11px] mb-4">⏰ Beta pricing ends July 16, 2026</p>
-
-        <button
-          onClick={() => onUpgrade(billing === "monthly" ? "beta_monthly" : "beta_yearly")}
-          className="w-full py-3 rounded-xl font-bold text-black text-sm"
-          style={{ background: "linear-gradient(135deg, #facc15, #eab308)" }}
-        >
-          Claim Beta Price
-        </button>
-        <p className="text-muted-foreground text-[10px] mt-3">
-          Price returns to ${billing === "monthly" ? "19.99/mo" : "119/yr"} after beta · No contracts · Cancel anytime
-        </p>
+        <button onClick={() => onUpgrade("monthly")} className="w-full py-3 rounded-xl font-bold text-sm bg-primary text-primary-foreground">Get Uwazi+</button>
+        <p className="text-muted-foreground text-[11px] mt-3">Students pay $7.99 a month. Cancel any time.</p>
       </div>
     </div>
   );
