@@ -414,7 +414,7 @@ export default function CivicCompassPage() {
                 <p className="text-sm leading-relaxed text-foreground">See the real offices that match your values, why they matter, and what to watch. Unlock your full report with UWAZI Plus.</p>
                 <div className="flex flex-wrap items-center gap-3 pt-1">
                   <Button size="lg" onClick={() => openPaywall("report")}><Lock className="h-4 w-4 mr-1" />Upgrade</Button>
-                  <span className="text-xs text-muted-foreground">Your first week is free.</span>
+                  <span className="text-xs text-muted-foreground">Cancel any time.</span>
                 </div>
               </div>
             </section>

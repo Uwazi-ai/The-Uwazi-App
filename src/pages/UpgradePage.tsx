@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Compass, Wallet, Landmark, Flag, ShieldCheck, MessageCircle, ArrowRight, Sparkles } from "lucide-react";
 import { StudentPath } from "@/components/plus/StudentPath";
 import { PlusLogo } from "@/components/plus/PlusLogo";
@@ -21,7 +21,6 @@ const perks = [
   { icon: Flag, title: "Report a wrong fact", body: "Flag anything that looks off and a real person reviews it.", tone: "city-tone-4" },
 ];
 export default function UpgradePage() {
-  const [params] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isPremium, loading } = useSubscription();
