@@ -379,6 +379,17 @@ export default function AskUwaziPage() {
   // Card ids are signed by the server. Only a signed card or a reply to the server's quick question skips the count.
   const [cardIds, setCardIds] = useState<Record<string, string>>({});
   const askSessionRef = useRef<string>(crypto.randomUUID());
+  const cardPromptKey = JSON.stringify([
+    ...(askPersona?.suggested_prompts ?? []), ...suggestedPrompts,
+    "What's on my ballot?", "Who represents me?", "How do I vote in my state?",
+    "Explain a bill in plain language", "When is the next election?",
+    searchParams.get("q") ?? "",
+  ].filter(Boolean));
+  useEffect(() => {
+    if (!session?.access_token) return;
+    supabase.functions.invoke("ask-uwazi", { body: { action: "issue_cards", prompts: JSON.parse(cardPromptKey) } })
+      .then(({ data }) => { if (data?.cards) setCardIds((prev) => ({ ...prev, ...data.cards })); });
+  }, [cardPromptKey, session?.access_token]);
   const [optInClosed, setOptInClosed] = useState(
     () => typeof window !== "undefined" && !!sessionStorage.getItem("uwazi_reg_optin_status")
   );
