@@ -691,7 +691,7 @@ Deno.serve(async (req) => {
         return j?.content?.[0]?.text ?? "";
       } catch { return ""; }
     };
-    const journeyTurn = await buildJourneyTurn(supabase, user.id, message, Array.isArray(history) ? history.length : 0, callRoute);
+    const journeyTurn = await buildJourneyTurn(supabase, user.id, message, Array.isArray(history) ? history.length : 0, callRoute, typeof session_id === "string" ? session_id : null);
 
     // Who represents me: use the offices matched to this person's own districts.
     let officesText: string | null = null;
