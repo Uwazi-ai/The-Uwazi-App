@@ -6,7 +6,8 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.23.8";
 import { pickupHours } from "../_shared/rides.ts";
 import { sendRideSms } from "../_shared/ride-sms.ts";
-import { geocode, JACKSON_FIPS, miles, openSites, siteFits } from "../_shared/ride-sites.ts";
+import { miles, openSites, siteFits } from "../_shared/ride-sites.ts";
+import { checkEligibility, LOOKUP_FAILED_MSG, OUT_OF_AREA_MSG } from "../_shared/ride-eligibility.ts";
 
 const NEEDS = ["wheelchair", "walker", "service_animal", "child_seat", "extra_time", "language_help", "other"] as const;
 
@@ -90,29 +91,25 @@ Deno.serve(async (req) => {
   // Destination: only verified sites, never invented.
   let site: { id: string; name: string; address: string } | null = null;
   const siteCols = "id,name,address";
-  // Missouri only, checked for every ride day, not just early voting.
-  if (!b.zip || !isMissouriZip(b.zip)) return json({ error: "Free rides are only in Missouri right now. Questions? Call the ride line at (816) 379-6885." }, 400);
+  // KCEB area only: Kansas City city limits inside Jackson County.
+  const elig = await checkEligibility(b.pickup_address, b.zip);
+  if (elig.status === "out_of_area") return json({ error: OUT_OF_AREA_MSG, code: "out_of_area" }, 400);
+  // Geocoder failed: never guess. The coordinator confirms the address by phone.
   if (isEarly) {
-    const geo = await geocode(b.pickup_address, b.zip);
-    if ((geo && geo.state !== "MO") || (b.zip && !isMissouriZip(b.zip))) return json({ error: "Free rides are only in Missouri right now. Questions? Call the ride line at (816) 379-6885." }, 400);
-    if (!geo || geo.county === JACKSON_FIPS) {
-      // Jackson County: site must be open that day, at pickup and 1 hour after.
-      const open = (await openSites(db, b.ride_day)).filter((x) => siteFits(x, hour));
-      if (b.destination_site_id) {
-        const pick = open.find((x) => x.id === b.destination_site_id);
-        if (!pick) return json({ error: "That voting place is not open at that time. Pick another place or hour." }, 400);
-        site = pick;
-      } else if (open.length) {
-        if (!geo) return json({ error: "Please pick a voting place." }, 400);
-        site = open
-          .map((x) => ({ x, d: x.lat != null && x.lon != null ? miles(geo.lat, geo.lon, x.lat, x.lon) : 1e9 }))
-          .sort((a, c) => a.d - c.d)[0].x;
-      } else {
-        return json({ error: "No early voting place is open at that time. Pick another day or hour." }, 400);
-      }
+    // Only the KCEB early sites, open at pickup and 1 hour after.
+    const open = (await openSites(db, b.ride_day)).filter((x) => siteFits(x, hour));
+    if (b.destination_site_id) {
+      const pick = open.find((x) => x.id === b.destination_site_id);
+      if (!pick) return json({ error: "That voting place is not open at that time. Pick another place or hour." }, 400);
+      site = pick;
+    } else if (open.length && elig.status === "eligible") {
+      site = open
+        .map((x) => ({ x, d: x.lat != null && x.lon != null ? miles(elig.lat, elig.lon, x.lat, x.lon) : 1e9 }))
+        .sort((a, c) => a.d - c.d)[0].x;
+    } else if (open.length) {
+      return json({ error: "Please pick a voting place." }, 400);
     } else {
-      // Outside Jackson County there are no loaded site hours yet. Never pick a site; the desk sets it ("Needs voting place").
-      site = null;
+      return json({ error: "No early voting place is open at that time. Pick another day or hour." }, 400);
     }
   } else if (b.destination_site_id) {
     const { data } = await db.from("voter_guide_sites").select(siteCols).eq("id", b.destination_site_id)
@@ -165,5 +162,3 @@ Deno.serve(async (req) => {
   });
 });
 
-// Missouri ZIPs run 630 to 658. Used even when the address lookup fails.
-function isMissouriZip(z: string): boolean { return /^6(3\d|4\d|5[0-8])\d{2}$/.test(String(z).slice(0, 5)); }
