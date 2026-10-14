@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useVoterProfile, useSavePrecinct, lookupPrecinct } from "@/hooks/useMyBallot";
 import { useMyDistricts } from "@/hooks/useMyOffices";
+import PrecinctFromAddress, { PRECINCT_SOURCE_LINE } from "@/components/voting/PrecinctFromAddress";
 
 /**
  * Shows the voter's Nov 3 polling place + ballot districts from their saved
@@ -68,6 +69,9 @@ export default function PollingPlaceCard({ compact = false }: { compact?: boolea
           <p className="text-xs text-muted-foreground">
             Ward {info.ward}, Precinct {info.precinct} · State House District {info.rep} · County Legislature District {info.leg}
           </p>
+          {(profile as any)?.precinct_source === "kceb_map" && saved && (
+            <p className="text-xs text-muted-foreground">{PRECINCT_SOURCE_LINE}.</p>
+          )}
           <div className="flex flex-wrap gap-2 pt-1">
             <a
               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(info.address + ", Kansas City, MO")}`}
@@ -93,6 +97,8 @@ export default function PollingPlaceCard({ compact = false }: { compact?: boolea
 
       {showForm && (
         <div className="space-y-3">
+          <PrecinctFromAddress onDone={() => setEditing(false)} />
+          <p className="text-xs text-muted-foreground">Or enter it yourself.</p>
           <p className="text-xs text-muted-foreground leading-relaxed">
             {inKc
               ? "Enter your ward and precinct (printed on your voter card) to see your exact polling place and the races on your ballot. Ask UWAZI will use it too."
