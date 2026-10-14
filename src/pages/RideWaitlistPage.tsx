@@ -11,7 +11,7 @@ export default function RideWaitlistPage() {
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-primary">UWAZI rides</p>
           <h1 className="mt-1 font-heading text-3xl tracking-[-0.02em] text-foreground">Get a text when rides open</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Free rides to vote in Missouri. Add your number and we will text you when booking opens.</p>
+          <p className="mt-2 text-sm text-muted-foreground">Free rides to vote, for voters who live in Kansas City, in Jackson County. Add your address and number and we will text you when booking opens.</p>
         </div>
         <PollRideTeaser state="MO" startWithPhone />
         <p className="text-xs text-muted-foreground">We never ask who you vote for. Already have an account? <Link to="/login" className="underline">Sign in</Link>.</p>
