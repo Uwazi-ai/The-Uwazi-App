@@ -3,7 +3,8 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.23.8";
 import { ACTIVE_STATUSES, allDays, dayOfWeek, inBlocks, pickupHours, tooSoon } from "../_shared/rides.ts";
-import { geocode, JACKSON_FIPS, miles, openSites, siteFits, type OpenSite } from "../_shared/ride-sites.ts";
+import { miles, openSites, siteFits, type OpenSite } from "../_shared/ride-sites.ts";
+import { checkEligibility, LOOKUP_FAILED_MSG, OUT_OF_AREA_MSG, type Eligibility } from "../_shared/ride-eligibility.ts";
 
 const Body = z.object({
   ride_day: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
@@ -23,17 +24,18 @@ Deno.serve(async (req) => {
   const { ride_day, zip, address, site_id } = p.data;
 
   const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-  const [{ data: s }, { data: blocks }, { data: reqs }, geo] = await Promise.all([
+  const [{ data: s }, { data: blocks }, { data: reqs }, elig] = await Promise.all([
     db.from("ride_settings").select("*").eq("id", true).single(),
     db.from("driver_blocks").select("day_of_week,start_time,end_time,active").eq("active", true),
     db.from("ride_requests").select("ride_day,pickup_time,status").in("status", ACTIVE_STATUSES),
-    address && zip ? geocode(address, zip) : Promise.resolve(null),
+    address && zip ? checkEligibility(address, zip) : Promise.resolve(null as Eligibility | null),
   ]);
   if (!s) return json({ error: "Rides are not open yet." }, 503);
-  if ((geo && geo.state !== "MO") || (zip && !isMissouriZip(zip))) return json({ error: "Free rides are only in Missouri right now. Questions? Call the ride line at (816) 379-6885." }, 400);
-
-  // Site hours rule applies to Jackson County voters and to anyone not yet located.
-  const siteRule = !geo || geo.county === JACKSON_FIPS;
+  // KCEB area only. Out of area is refused before any day is shown.
+  if (elig?.status === "out_of_area") return json({ error: OUT_OF_AREA_MSG, code: "out_of_area" }, 400);
+  const geo = elig?.status === "eligible" ? elig : null;
+  // Early rides only go to the KCEB early sites.
+  const siteRule = true;
 
   const taken = new Map<string, number>();
   let fundedUsed = 0;
@@ -90,7 +92,8 @@ Deno.serve(async (req) => {
     days: dayList,
     hours: ride_day ? hoursFor(ride_day, site_id) : undefined,
     sites,
-    jackson: !!geo && geo.county === JACKSON_FIPS,
+    eligibility: elig?.status ?? null,
+    eligibility_message: elig?.status === "lookup_failed" ? LOOKUP_FAILED_MSG : null,
     earliest_bookable: earliest,
     funded_left: Math.max(0, s.funded_cap - fundedUsed),
     ride_line_phone: s.ride_line_phone ?? null,
@@ -100,5 +103,3 @@ Deno.serve(async (req) => {
   });
 });
 
-// Missouri ZIPs run 630 to 658. Used even when the address lookup fails.
-function isMissouriZip(z: string): boolean { return /^6(3\d|4\d|5[0-8])\d{2}$/.test(String(z).slice(0, 5)); }

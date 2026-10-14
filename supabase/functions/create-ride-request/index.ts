@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
   const elig = await checkEligibility(b.pickup_address, b.zip);
   if (elig.status === "out_of_area") return json({ error: OUT_OF_AREA_MSG, code: "out_of_area" }, 400);
   // Geocoder failed: never guess. Coordinators may still book by phone.
-  if (elig.status === "lookup_failed" && true) return json({ error: LOOKUP_FAILED_MSG, code: "lookup_failed" }, 400);
+  if (elig.status === "lookup_failed") return json({ error: LOOKUP_FAILED_MSG, code: "lookup_failed" }, 400);
   if (isEarly) {
     // Only the KCEB early sites, open at pickup and 1 hour after.
     const open = (await openSites(db, b.ride_day)).filter((x) => siteFits(x, hour));
