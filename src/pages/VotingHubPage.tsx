@@ -1,3 +1,4 @@
+import PrecinctFromAddress, { PRECINCT_SOURCE_LINE } from "@/components/voting/PrecinctFromAddress";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -272,6 +273,9 @@ export default function VotingHubPage() {
               <p className="text-xs text-muted-foreground">Ward {pollingInfo.ward}, Precinct {pollingInfo.precinct}</p>
             )}
           </div>
+          {pollingInfo && (profile as any)?.precinct_source === "kceb_map" && (
+            <p className="mt-1 text-xs text-muted-foreground">{PRECINCT_SOURCE_LINE}.</p>
+          )}
           {pollingInfo ? (
             <>
               <p className="city-tone-text mt-3 font-heading text-[22px] leading-tight">{pollingInfo.placeName}</p>
@@ -292,10 +296,10 @@ export default function VotingHubPage() {
             </>
           ) : (
             <>
-              <p className="mt-3 text-sm text-foreground">Add your ward and precinct to find your polling place.</p>
-              <p className="mt-1 text-xs text-muted-foreground">It is printed on your voter card.</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Button asChild size="sm"><Link to="/app/settings">Add it in settings</Link></Button>
+              <div className="mt-3"><PrecinctFromAddress /></div>
+              <p className="mt-3 text-xs text-muted-foreground">Or add the ward and precinct printed on your voter card.</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <Button asChild size="sm" variant="outline"><Link to="/app/settings">Add it in settings</Link></Button>
                 <AskButton q="How do I find my ward and precinct?" label="Ask UWAZI" variant="outline" />
               </div>
             </>
