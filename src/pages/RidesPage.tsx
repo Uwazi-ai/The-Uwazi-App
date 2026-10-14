@@ -58,9 +58,6 @@ export default function RidesPage() {
   const [hour, setHour] = useState<string | null>(null);
   const [sites, setSites] = useState<Site[] | null>(null);
   const [siteId, setSiteId] = useState<string | null>(null);
-  const [ward, setWard] = useState("");
-  const [precinct, setPrecinct] = useState("");
-  const [noPrecinct, setNoPrecinct] = useState(false);
   const [roundTrip, setRoundTrip] = useState(true);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -153,10 +150,6 @@ export default function RidesPage() {
       source: "web",
     };
     if (kind === "early" && siteId) body.destination_site_id = siteId;
-    if (kind === "election_day" && !noPrecinct && ward && precinct) {
-      body.ward = ward;
-      body.precinct = precinct;
-    }
     const { data, error } = await supabase.functions.invoke("create-ride-request", { body });
     setSending(false);
     if (error) {
@@ -301,16 +294,16 @@ export default function RidesPage() {
           </InfoPanel>
 
           {kind === "election_day" && (
-            <div className="space-y-2">
-              <p className="font-semibold">Ward and precinct (on your voter card)</p>
-              <p className="text-xs text-[hsl(var(--rides-ink)/0.6)]">This helps us find your polling place. It is optional.</p>
-              {!noPrecinct && (
-                <div className="grid grid-cols-2 gap-2">
-                  <input className="rides-input" placeholder="Ward" inputMode="numeric" value={ward} onChange={(e) => setWard(e.target.value.replace(/\D/g, "").slice(0, 3))} />
-                  <input className="rides-input" placeholder="Precinct" inputMode="numeric" value={precinct} onChange={(e) => setPrecinct(e.target.value.replace(/\D/g, "").slice(0, 3))} />
-                </div>
+            <div className="space-y-1">
+              <p className="font-semibold">Where you vote</p>
+              {(avail as any)?.election_day_place ? (
+                <>
+                  <p>{(avail as any).election_day_place.name}, {(avail as any).election_day_place.address}</p>
+                  <p className="text-xs text-[hsl(var(--rides-ink)/0.6)]">Precinct from the Kansas City Election Board map.</p>
+                </>
+              ) : (
+                <p className="text-xs text-[hsl(var(--rides-ink)/0.6)]">We could not match your polling place. A ride coordinator will confirm it with you.</p>
               )}
-              <Toggle checked={noPrecinct} onChange={setNoPrecinct} label="I don't know" />
             </div>
           )}
 
@@ -350,7 +343,7 @@ export default function RidesPage() {
           <Review label="Pickup" value={`${address}, ${zip}`} error={errors.pickup_address || errors.zip} onEdit={() => setStep(1)} />
           <Review
             label="When"
-            value={`${day ? fmtDay(day) : ""}, ${hour ? fmtHour(hour) : ""}${roundTrip ? ". Round trip" : ". One way"}${kind === "election_day" && ward && precinct && !noPrecinct ? `. Ward ${ward}, precinct ${precinct}` : ""}${kind === "early" && site ? `. Vote at ${site.name}` : ""}`}
+            value={`${day ? fmtDay(day) : ""}, ${hour ? fmtHour(hour) : ""}${roundTrip ? ". Round trip" : ". One way"}${kind === "election_day" && (avail as any)?.election_day_place ? `. Vote at ${(avail as any).election_day_place.name}` : ""}${kind === "early" && site ? `. Vote at ${site.name}` : ""}`}
             error={errors.ride_day || errors.pickup_time}
             onEdit={() => setStep(2)}
           />

@@ -4,6 +4,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.23.8";
 import { ACTIVE_STATUSES, allDays, dayOfWeek, inBlocks, pickupHours, tooSoon } from "../_shared/rides.ts";
 import { miles, openSites, siteFits, type OpenSite } from "../_shared/ride-sites.ts";
+import { pollingPlaceFor } from "../_shared/kceb-precincts.ts";
 import { checkEligibility, LOOKUP_FAILED_MSG, OUT_OF_AREA_MSG, type Eligibility } from "../_shared/ride-eligibility.ts";
 
 const Body = z.object({
@@ -28,7 +29,7 @@ Deno.serve(async (req) => {
     db.from("ride_settings").select("*").eq("id", true).single(),
     db.from("driver_blocks").select("day_of_week,start_time,end_time,active").eq("active", true),
     db.from("ride_requests").select("ride_day,pickup_time,status").in("status", ACTIVE_STATUSES),
-    address && zip ? checkEligibility(address, zip) : Promise.resolve(null as Eligibility | null),
+    address && zip ? checkEligibility(address, zip, db) : Promise.resolve(null as Eligibility | null),
   ]);
   if (!s) return json({ error: "Rides are not open yet." }, 503);
   // KCEB area only. Out of area is refused before any day is shown.
@@ -88,7 +89,13 @@ Deno.serve(async (req) => {
       .sort((a, b) => (a.distance_mi ?? 1e9) - (b.distance_mi ?? 1e9) || a.name.localeCompare(b.name));
   }
 
+  // Election Day polling place from the KCEB precinct map. Null means a coordinator picks it.
+  const precinct_key = geo?.precinct_key ?? null;
+  const place = await pollingPlaceFor(db, precinct_key);
+
   return json({
+    precinct_key,
+    election_day_place: place ? { name: place.name, address: place.address } : null,
     days: dayList,
     hours: ride_day ? hoursFor(ride_day, site_id) : undefined,
     sites,
