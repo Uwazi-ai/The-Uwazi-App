@@ -52,7 +52,7 @@ async function load(userId: string | null, force = false) {
   const env = getStripeEnvironment();
   inflight = (async () => {
     try {
-      const [subRes, profileRes] = await Promise.all([
+      const [subRes, profileRes, accessRes] = await Promise.all([
         (supabase as any)
           .from("subscriptions")
           .select("id, status, product_id, price_id, current_period_end, cancel_at_period_end, stripe_subscription_id")
@@ -62,12 +62,14 @@ async function load(userId: string | null, force = false) {
           .limit(1)
           .maybeSingle(),
         supabase.from("profiles").select("is_admin, plan").eq("user_id", userId).maybeSingle(),
+        (supabase as any).rpc("my_plus_access"),
       ]);
       if (state.userId !== userId) return;
       setState({
         subscription: (subRes.data as SubscriptionRow | null) ?? null,
         isAdmin: Boolean((profileRes.data as { is_admin?: boolean } | null)?.is_admin),
         plan: (((profileRes.data as any)?.plan ?? "free") as Plan),
+        access: accessRes?.data === true,
         loading: false,
       });
     } catch {
@@ -126,16 +128,8 @@ export function useSubscription() {
   const { subscription, isAdmin, plan } = current;
   const loading = userId ? current.loading : false;
 
-  const isPremium = (() => {
-    // Admins always have full Uwazi+ access
-    if (isAdmin) return true;
-    if (plan === "plus" || plan === "plus_student") return true;
-    if (!subscription) return false;
-    const periodOk = !subscription.current_period_end || new Date(subscription.current_period_end) > new Date();
-    if (["active", "trialing"].includes(subscription.status) && periodOk) return true;
-    if (subscription.status === "canceled" && periodOk) return true;
-    return false;
-  })();
+  // Access comes only from the server rule has_plus_access (via my_plus_access).
+  const isPremium = current.access;
 
   return { subscription, isPremium, plan, loading, refresh };
 }

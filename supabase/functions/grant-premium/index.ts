@@ -51,6 +51,8 @@ Deno.serve(async (req) => {
     const targetUserId = body.user_id;
     const action = body.action; // "grant" or "revoke"
     const environment = body.environment || "live";
+    // Optional end date. A comp with a past end date gives no access.
+    const until = typeof body.until === "string" && !isNaN(Date.parse(body.until)) ? new Date(body.until).toISOString() : null;
 
     if (!targetUserId || !["grant", "revoke"].includes(action)) {
       return new Response(JSON.stringify({ error: "Invalid params: need user_id and action (grant|revoke)" }), {
@@ -77,7 +79,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Insert a complimentary subscription (no expiry)
+      // Insert a complimentary subscription (no expiry unless until is set)
       const { error: insertErr } = await adminClient.from("subscriptions").insert({
         user_id: targetUserId,
         stripe_subscription_id: `comp_${targetUserId}`,
@@ -86,7 +88,7 @@ Deno.serve(async (req) => {
         price_id: "comp_free",
         status: "active",
         current_period_start: new Date().toISOString(),
-        current_period_end: null,
+        current_period_end: until,
         cancel_at_period_end: false,
         environment,
       });

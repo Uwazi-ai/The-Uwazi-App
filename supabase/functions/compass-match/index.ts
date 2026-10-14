@@ -111,11 +111,8 @@ Deno.serve(async (req) => {
     if (!sess || sess.user_id !== uid) return json(403, { error: "This quiz is not yours." });
     if (!sess.completed_at) return json(400, { error: "Finish the quiz first." });
 
-    const [{ data: live }, { data: sandbox }] = await Promise.all([
-      admin.rpc("has_active_subscription", { user_uuid: uid, check_env: "live" }),
-      admin.rpc("has_active_subscription", { user_uuid: uid, check_env: "sandbox" }),
-    ]);
-    if (!live && !sandbox) return json(403, { error: "This report is part of UWAZI+." });
+    const { data: plus } = await admin.rpc("has_plus_access", { _user_id: uid });
+    if (plus !== true) return json(403, { error: "This report is part of UWAZI+." });
 
     // Reuse stored rows when they are fresh and districts have not changed.
     const [{ data: existing }, { data: dist }] = await Promise.all([
