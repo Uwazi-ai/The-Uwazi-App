@@ -172,15 +172,21 @@ export function useVoteReadyChecklist(state: VoterState) {
 export function useJoinRideWaitlist() {
   const { user } = useAuth();
   const [status, setStatus] = useState<"idle" | "saving" | "done" | "error">("idle");
-  const join = useCallback(async ({ phone, state }: { phone?: string; state: VoterState }) => {
+  // Server checks the KCEB ride area. The address is never stored.
+  const join = useCallback(async ({ phone, address, zip }: { phone?: string; state: VoterState; address: string; zip: string }): Promise<{ ok: boolean; error?: string }> => {
     const digits = phone?.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "") ?? "";
-    if (!user && !/^\d{10}$/.test(digits)) { setStatus("error"); return false; }
+    if (!user && !/^\d{10}$/.test(digits)) { setStatus("error"); return { ok: false, error: "Enter a 10-digit mobile number." }; }
     setStatus("saving");
-    const { error } = await supabase.from("poll_ride_waitlist").insert({
-      user_id: user?.id ?? null, phone: digits || null, state_code: state,
-    });
-    setStatus(error ? "error" : "done");
-    return !error;
+    const { error } = await supabase.functions.invoke("join-ride-waitlist", { body: { phone: digits || undefined, address, zip } });
+    if (error) {
+      let msg = "Something went wrong. Try again.";
+      const ctx = (error as { context?: Response }).context;
+      if (ctx && typeof ctx.json === "function") { const j = await ctx.json().catch(() => null); if (j?.error) msg = j.error; }
+      setStatus("error");
+      return { ok: false, error: msg };
+    }
+    setStatus("done");
+    return { ok: true };
   }, [user]);
   return { join, status };
 }

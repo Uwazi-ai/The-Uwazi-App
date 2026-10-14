@@ -16,6 +16,8 @@ export function PollRideTeaser({ state, startWithPhone = false }: { state: Voter
   const [onList, setOnList] = useState(false);
   const [showPhone, setShowPhone] = useState(startWithPhone);
   const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [zip, setZip] = useState("");
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
@@ -26,19 +28,17 @@ export function PollRideTeaser({ state, startWithPhone = false }: { state: Voter
 
   const finish = () => { setOnList(true); setShowPhone(false); toast.success(DONE_MSG); };
 
-  const onNotify = async () => {
-    if (!user) { setShowPhone(true); return; }
-    if (await join({ state })) finish();
-    else toast.error("Something went wrong. Try again.");
-  };
+  const onNotify = () => setShowPhone(true);
 
   const onSubmitPhone = async (e: React.FormEvent) => {
     e.preventDefault();
     const digits = phone.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
-    if (!/^\d{10}$/.test(digits)) { setErr("Enter a 10-digit mobile number."); return; }
+    if (!user && !/^\d{10}$/.test(digits)) { setErr("Enter a 10-digit mobile number."); return; }
+    if (address.trim().length < 5 || !/^\d{5}$/.test(zip)) { setErr("Enter your street address and ZIP."); return; }
     setErr(null);
-    if (await join({ phone: digits, state })) finish();
-    else setErr("Something went wrong. Try again.");
+    const r = await join({ phone: digits || undefined, state, address: address.trim(), zip });
+    if (r.ok) finish();
+    else setErr(r.error ?? "Something went wrong. Try again.");
   };
 
   const saving = status === "saving";
@@ -79,17 +79,24 @@ export function PollRideTeaser({ state, startWithPhone = false }: { state: Voter
         <div className="flex flex-col gap-2">
           {onList ? (
             <button type="button" disabled className={btn} style={{ background: TEAL, color: "#0a0a0a" }}>You are on the list</button>
-          ) : showPhone && !user ? (
+          ) : showPhone ? (
             <form onSubmit={onSubmitPhone} noValidate className="flex flex-col gap-2">
-              <label htmlFor="ride-waitlist-phone" className="text-[13px] font-semibold text-foreground">Mobile number</label>
+              <p className="text-[13px] text-muted-foreground">For voters who live in Kansas City, in Jackson County.</p>
+              <label htmlFor="ride-waitlist-address" className="text-[13px] font-semibold text-foreground">Home street address</label>
+              <input id="ride-waitlist-address" autoComplete="street-address" value={address} maxLength={200}
+                onChange={(e) => { setAddress(e.target.value); setErr(null); }} placeholder="123 Main St" className="min-h-[48px] min-w-0 flex-1 rounded-[10px] border border-border bg-background px-3 text-[15px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+              <label htmlFor="ride-waitlist-zip" className="text-[13px] font-semibold text-foreground">ZIP code</label>
+              <input id="ride-waitlist-zip" inputMode="numeric" autoComplete="postal-code" value={zip} maxLength={5}
+                onChange={(e) => { setZip(e.target.value.replace(/\D/g, "").slice(0, 5)); setErr(null); }} placeholder="64106" className="min-h-[48px] min-w-0 flex-1 rounded-[10px] border border-border bg-background px-3 text-[15px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+              {!user && <label htmlFor="ride-waitlist-phone" className="text-[13px] font-semibold text-foreground">Mobile number</label>}
               <div className="flex gap-2">
-                <input
+                {!user && <input
                   id="ride-waitlist-phone" type="tel" inputMode="tel" autoComplete="tel" value={phone}
                   onChange={(e) => { setPhone(e.target.value); setErr(null); }}
                   aria-invalid={!!err} aria-describedby={err ? "ride-waitlist-err" : undefined}
                   placeholder="(816) 555-0123" maxLength={20}
                   className="min-h-[48px] min-w-0 flex-1 rounded-[10px] border border-border bg-background px-3 text-[15px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                />
+                />}
                 <button type="submit" disabled={saving} className="min-h-[48px] rounded-[10px] px-4 text-[15px] font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" style={{ background: TEAL, color: "#0a0a0a" }}>
                   Notify me
                 </button>

@@ -28,6 +28,27 @@ export function PhoneRequestForm({ onDone }: { onDone: (code: string) => void })
   const [err, setErr] = useState<string | null>(null);
 
   const avail = (body: Record<string, unknown>) => supabase.functions.invoke("get-ride-availability", { body });
+  // Same KCEB area check the server runs on save.
+  const [area, setArea] = useState<{ status: "checking" | "eligible" | "out_of_area" | "lookup_failed"; msg: string } | null>(null);
+  useEffect(() => {
+    setArea(null);
+    if (address.trim().length < 5 || !/^\d{5}$/.test(zip)) return;
+    let live = true;
+    const t = setTimeout(async () => {
+      setArea({ status: "checking", msg: "Checking address." });
+      const { data, error } = await avail({ zip, address: address.trim() });
+      if (!live) return;
+      if (error) {
+        const j = error instanceof FunctionsHttpError ? await error.context.json().catch(() => null) : null;
+        if (j?.code === "out_of_area") return setArea({ status: "out_of_area", msg: j.error });
+        return setArea({ status: "lookup_failed", msg: "Address check failed. Confirm they live in Kansas City, in Jackson County, before booking." });
+      }
+      if (data?.eligibility === "eligible") return setArea({ status: "eligible", msg: "In the ride area: Kansas City, Jackson County." });
+      setArea({ status: "lookup_failed", msg: "Address check failed. Confirm they live in Kansas City, in Jackson County, before booking." });
+    }, 600);
+    return () => { live = false; clearTimeout(t); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address, zip]);
 
   useEffect(() => {
     avail({}).then(({ data }) => setDays((data?.days ?? []).map((d: Day) => ({ day: d.day, kind: d.kind }))));
@@ -50,7 +71,7 @@ export function PhoneRequestForm({ onDone }: { onDone: (code: string) => void })
   }, [day, zip, siteId]);
 
   const isElection = days.find((d) => d.day === day)?.kind === "election_day";
-  const ok = /^[A-Za-z][A-Za-z'\- ]{0,40} [A-Za-z]\.?$/.test(name.trim()) && phone.replace(/\D/g, "").length >= 10 && address.trim().length >= 5 && /^\d{5}$/.test(zip) && day && hour;
+  const ok = /^[A-Za-z][A-Za-z'\- ]{0,40} [A-Za-z]\.?$/.test(name.trim()) && phone.replace(/\D/g, "").length >= 10 && address.trim().length >= 5 && /^\d{5}$/.test(zip) && day && hour && area?.status !== "out_of_area" && area?.status !== "checking";
 
   const send = async () => {
     setBusy(true);
@@ -84,6 +105,7 @@ export function PhoneRequestForm({ onDone }: { onDone: (code: string) => void })
       <div><span className={label}>Mobile number</span><input className="rides-input" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="816 555 0100" /></div>
       <div><span className={label}>Pickup street address</span><input className="rides-input" value={address} onChange={(e) => setAddress(e.target.value)} /></div>
       <div><span className={label}>ZIP</span><input className="rides-input" inputMode="numeric" maxLength={5} value={zip} onChange={(e) => setZip(e.target.value.replace(/\D/g, ""))} /></div>
+      {area && <p role="status" className={`text-sm ${area.status === "eligible" ? "text-[hsl(var(--rides-green))]" : area.status === "checking" ? "" : "text-[hsl(var(--rides-amber))]"}`}>{area.msg}</p>}
       <div>
         <span className={label}>Day</span>
         <select className="rides-input" value={day ?? ""} onChange={(e) => { setSiteId(null); setDay(e.target.value || null); }}>

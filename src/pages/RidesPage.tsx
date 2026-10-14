@@ -110,10 +110,28 @@ export default function RidesPage() {
   const edOpen = avail?.days.some((d) => d.kind === "election_day" && d.open);
   const phoneLine = avail?.ride_line_phone;
 
-  // Missouri ZIPs run 630 to 658. The server checks again.
-  const notMissouri = /^\d{5}$/.test(zip) && !/^6(3\d|4\d|5[0-8])/.test(zip);
+  // Area check runs on the server before any day is shown.
+  const [areaError, setAreaError] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+  const checkArea = async () => {
+    setChecking(true);
+    setAreaError(null);
+    const { data, error } = await supabase.functions.invoke("get-ride-availability", { body: { zip, address: address.trim() } });
+    setChecking(false);
+    if (error) {
+      let msg = "We could not check your address. Please call the ride line at (816) 379-6885.";
+      if (error instanceof FunctionsHttpError) {
+        const j = await error.context.json().catch(() => null);
+        if (j?.error) msg = j.error;
+      }
+      return setAreaError(msg);
+    }
+    if (data?.eligibility !== "eligible") return setAreaError(data?.eligibility_message ?? "We could not check your address. Please call the ride line at (816) 379-6885 to book.");
+    setAvail(data as Avail);
+    setStep(2);
+  };
   const canNext =
-    step === 1 ? address.trim().length >= 5 && /^\d{5}$/.test(zip) && !notMissouri
+    step === 1 ? address.trim().length >= 5 && /^\d{5}$/.test(zip) && !checking
     : step === 2 ? !!day && !!hour
     : step === 3 ? /^[A-Za-z][A-Za-z'\- ]{0,40} [A-Za-z]\.?$/.test(name.trim()) && phone.replace(/\D/g, "").length >= 10
     : true;
@@ -173,12 +191,13 @@ export default function RidesPage() {
       {step === 0 && (
         <section className="space-y-6">
           <h1 className="font-heading text-4xl leading-tight">Need a ride to vote?</h1>
-          <p className="text-lg text-[hsl(var(--rides-ink)/0.8)]">We will drive you to your voting place and back home. It is free.</p>
+          <p className="text-lg text-[hsl(var(--rides-ink)/0.8)]">We will drive you to your voting place and back home. It is free. For voters who live in Kansas City, in Jackson County.</p>
           <ul className="space-y-4">
             {[
               ["Free round trip", "Rides by zTrip, paid for by this program."],
               ["Early voting or Election Day", "Oct 20 to Nov 2, or Tuesday, Nov 3."],
               ["Learn your rights on the way", "Eight quick questions while you ride."],
+              ["Who can ride", "For voters who live in Kansas City, in Jackson County."],
               ["Open to every voter", "No one will ask who you vote for."],
             ].map(([t, d]) => (
               <li key={t} className="flex gap-3">
@@ -201,11 +220,12 @@ export default function RidesPage() {
           <h1 className="font-heading text-3xl">Where should we pick you up?</h1>
           <p className="text-[hsl(var(--rides-ink)/0.75)]">Enter the address where the driver should meet you.</p>
           <Field label="Street address" error={errors.pickup_address}>
-            <input className="rides-input" value={address} onChange={(e) => setAddress(e.target.value)} autoComplete="street-address" placeholder="123 Main St, Kansas City" />
+            <input className="rides-input" value={address} onChange={(e) => { setAddress(e.target.value); setAreaError(null); }} autoComplete="street-address" placeholder="123 Main St, Kansas City" />
           </Field>
-          <Field label="ZIP code" error={errors.zip || (notMissouri ? "Free rides are only in Missouri right now. Questions? Call the ride line at (816) 379-6885." : undefined)}>
-            <input className="rides-input" value={zip} onChange={(e) => setZip(e.target.value.replace(/\D/g, "").slice(0, 5))} inputMode="numeric" autoComplete="postal-code" placeholder="64106" />
+          <Field label="ZIP code" error={errors.zip}>
+            <input className="rides-input" value={zip} onChange={(e) => { setZip(e.target.value.replace(/\D/g, "").slice(0, 5)); setAreaError(null); }} inputMode="numeric" autoComplete="postal-code" placeholder="64106" />
           </Field>
+          {areaError && <p role="alert" className="rounded-xl bg-destructive/20 p-3 text-sm">{areaError}</p>}
         </section>
       )}
 
@@ -348,7 +368,7 @@ export default function RidesPage() {
       {step >= 1 && step <= 3 && (
         <div className="mt-8 flex gap-3">
           <button className="rounded-xl border border-[hsl(var(--rides-ink)/0.25)] px-5 py-3.5 font-semibold" onClick={() => setStep(step - 1)}>Back</button>
-          <GreenButton onClick={() => setStep(step + 1)} disabled={!canNext}>Next</GreenButton>
+          <GreenButton onClick={() => (step === 1 ? checkArea() : setStep(step + 1))} disabled={!canNext}>{step === 1 && checking ? "Checking address" : "Next"}</GreenButton>
         </div>
       )}
       {step === 4 && (
