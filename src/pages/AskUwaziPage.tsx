@@ -367,7 +367,6 @@ export default function AskUwaziPage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [civicScore, setCivicScore] = useState<number | null>(null);
-  const [dailyCount, setDailyCount] = useState(0);
   const [showBanner, setShowBanner] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [limitInfo, setLimitInfo] = useState<{
@@ -402,23 +401,15 @@ export default function AskUwaziPage() {
       .then(({ data }) => { if (data) setCivicScore(data.civic_literacy_score); });
   }, [session?.user?.id]);
 
-  const fetchDailyCount = useCallback(async () => {
-    if (!session?.user?.id || isSubscribed) return;
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const { count } = await supabase
-      .from("uwazi_question_log")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", session.user.id)
-      .gte("created_at", todayStart.toISOString());
-    const todayCount = count ?? 0;
-    setDailyCount(todayCount);
-    if (todayCount >= FREE_DAILY_LIMIT && !bannerDismissed) {
-      setShowBanner(true);
-    }
-  }, [session?.user?.id, isSubscribed, bannerDismissed]);
-
-  useEffect(() => { fetchDailyCount(); }, [fetchDailyCount]);
+  // The count and reset time come only from check-ask-limit (rolling 12 hours).
+  const dailyCount = isSubscribed || limitInfo.is_plus || limitInfo.remaining == null
+    ? 0 : Math.max(0, FREE_DAILY_LIMIT - limitInfo.remaining);
+  const resetIso = limited?.reset_at ?? limitInfo.reset_at;
+  const resetClock = resetIso ? new Date(resetIso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : null;
+  const fetchDailyCount = useCallback(async () => {}, []);
+  useEffect(() => {
+    if (!isSubscribed && dailyCount >= FREE_DAILY_LIMIT && !bannerDismissed) setShowBanner(true);
+  }, [dailyCount, isSubscribed, bannerDismissed]);
 
   const groupedHistory = useMemo(() => groupChatsByDate(chatHistory), [chatHistory]);
 
@@ -818,7 +809,7 @@ export default function AskUwaziPage() {
                     className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-[11px] text-muted-foreground mt-2 ml-2"
                   >
                     <Zap className="w-3 h-3 text-primary" />
-                    {FREE_DAILY_LIMIT - dailyCount} free questions left today
+                    {FREE_DAILY_LIMIT - dailyCount} of 5 free questions left. You get 5 every 12 hours.
                   </motion.div>
                 )}
               </motion.div>
@@ -1043,7 +1034,7 @@ export default function AskUwaziPage() {
                     You're loving Ask Uwazi! 🎉
                   </p>
                   <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                    You've used your {FREE_DAILY_LIMIT} free questions today. Unlock unlimited access with Uwazi+, plus Watch, advanced legislation tracking, and more.
+                    You have used your {FREE_DAILY_LIMIT} free questions. You get 5 free questions every 12 hours.{resetClock ? ` More questions open at ${resetClock}.` : ""} UWAZI+ is unlimited.
                   </p>
                   <div className="flex items-center gap-2">
                     <button
@@ -1065,8 +1056,8 @@ export default function AskUwaziPage() {
 
               <div className="px-4 pb-3">
                 <div className="flex justify-between text-[10px] text-muted-foreground/70 mb-1">
-                  <span>{dailyCount} of {FREE_DAILY_LIMIT} free questions used today</span>
-                  <span>Resets at midnight</span>
+                  <span>{dailyCount} of {FREE_DAILY_LIMIT} free questions used</span>
+                  <span>{resetClock ? `More questions open at ${resetClock}` : "5 free questions every 12 hours"}</span>
                 </div>
                 <div className="h-1 bg-foreground/[0.07] rounded-full overflow-hidden">
                   <div
