@@ -81,7 +81,7 @@ export function AskLimitPill({
     color = "#EF9F27";
     content = <>⬡ Last free question</>;
   } else {
-    content = <>⬡ {remaining} questions left today</>;
+    content = <>⬡ {remaining} of 5 free questions left{resetAt ? `. More open at ${new Date(resetAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : ""}</>;
   }
 
   return (

@@ -5964,6 +5964,7 @@ export type Database = {
         Returns: number
       }
       award_report_unlock: { Args: { _session_id: string }; Returns: number }
+      can_open_lesson: { Args: { _lesson_id: string }; Returns: boolean }
       challenge_zip_board: {
         Args: { _challenge: string }
         Returns: {
@@ -6173,6 +6174,7 @@ export type Database = {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
       }
+      has_plus_access: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -6260,6 +6262,7 @@ export type Database = {
         Args: { _lat: number; _lon: number }
         Returns: Json
       }
+      my_plus_access: { Args: never; Returns: boolean }
       next_stage_lesson: {
         Args: { _exclude?: string[]; _uid: string }
         Returns: string

@@ -19,12 +19,13 @@ type State = {
   subscription: SubscriptionRow | null;
   isAdmin: boolean;
   plan: Plan;
+  access: boolean;
   loading: boolean;
 };
 
 // One shared store so every screen reads the plan from a single fetch and a
 // single realtime channel, instead of each component querying on its own.
-let state: State = { userId: null, subscription: null, isAdmin: false, plan: "free", loading: true };
+let state: State = { userId: null, subscription: null, isAdmin: false, plan: "free", access: false, loading: true };
 const listeners = new Set<() => void>();
 let inflight: Promise<void> | null = null;
 let channel: ReturnType<typeof supabase.channel> | null = null;
@@ -43,16 +44,16 @@ function subscribe(l: () => void) {
 
 async function load(userId: string | null, force = false) {
   if (!userId) {
-    setState({ userId: null, subscription: null, isAdmin: false, plan: "free", loading: false });
+    setState({ userId: null, subscription: null, isAdmin: false, plan: "free", access: false, loading: false });
     return;
   }
   if (!force && state.userId === userId && !state.loading) return;
   if (!force && inflight && state.userId === userId) return inflight;
-  if (state.userId !== userId) setState({ userId, subscription: null, isAdmin: false, plan: "free", loading: true });
+  if (state.userId !== userId) setState({ userId, subscription: null, isAdmin: false, plan: "free", access: false, loading: true });
   const env = getStripeEnvironment();
   inflight = (async () => {
     try {
-      const [subRes, profileRes] = await Promise.all([
+      const [subRes, profileRes, accessRes] = await Promise.all([
         (supabase as any)
           .from("subscriptions")
           .select("id, status, product_id, price_id, current_period_end, cancel_at_period_end, stripe_subscription_id")
@@ -62,12 +63,14 @@ async function load(userId: string | null, force = false) {
           .limit(1)
           .maybeSingle(),
         supabase.from("profiles").select("is_admin, plan").eq("user_id", userId).maybeSingle(),
+        (supabase as any).rpc("my_plus_access"),
       ]);
       if (state.userId !== userId) return;
       setState({
         subscription: (subRes.data as SubscriptionRow | null) ?? null,
         isAdmin: Boolean((profileRes.data as { is_admin?: boolean } | null)?.is_admin),
         plan: (((profileRes.data as any)?.plan ?? "free") as Plan),
+        access: accessRes?.data === true,
         loading: false,
       });
     } catch {
@@ -122,20 +125,12 @@ export function useSubscription() {
 
   const refresh = useCallback(() => load(userId, true), [userId]);
 
-  const current = snap.userId === userId ? snap : { ...snap, subscription: null, isAdmin: false, plan: "free" as Plan, loading: Boolean(userId) };
+  const current = snap.userId === userId ? snap : { ...snap, subscription: null, isAdmin: false, plan: "free" as Plan, access: false, loading: Boolean(userId) };
   const { subscription, isAdmin, plan } = current;
   const loading = userId ? current.loading : false;
 
-  const isPremium = (() => {
-    // Admins always have full Uwazi+ access
-    if (isAdmin) return true;
-    if (plan === "plus" || plan === "plus_student") return true;
-    if (!subscription) return false;
-    const periodOk = !subscription.current_period_end || new Date(subscription.current_period_end) > new Date();
-    if (["active", "trialing"].includes(subscription.status) && periodOk) return true;
-    if (subscription.status === "canceled" && periodOk) return true;
-    return false;
-  })();
+  // Access comes only from the server rule has_plus_access (via my_plus_access).
+  const isPremium = current.access;
 
   return { subscription, isPremium, plan, loading, refresh };
 }
