@@ -25,7 +25,7 @@ type State = {
 
 // One shared store so every screen reads the plan from a single fetch and a
 // single realtime channel, instead of each component querying on its own.
-let state: State = { userId: null, subscription: null, isAdmin: false, plan: "free", loading: true };
+let state: State = { userId: null, subscription: null, isAdmin: false, plan: "free", access: false, loading: true };
 const listeners = new Set<() => void>();
 let inflight: Promise<void> | null = null;
 let channel: ReturnType<typeof supabase.channel> | null = null;
@@ -44,12 +44,12 @@ function subscribe(l: () => void) {
 
 async function load(userId: string | null, force = false) {
   if (!userId) {
-    setState({ userId: null, subscription: null, isAdmin: false, plan: "free", loading: false });
+    setState({ userId: null, subscription: null, isAdmin: false, plan: "free", access: false, loading: false });
     return;
   }
   if (!force && state.userId === userId && !state.loading) return;
   if (!force && inflight && state.userId === userId) return inflight;
-  if (state.userId !== userId) setState({ userId, subscription: null, isAdmin: false, plan: "free", loading: true });
+  if (state.userId !== userId) setState({ userId, subscription: null, isAdmin: false, plan: "free", access: false, loading: true });
   const env = getStripeEnvironment();
   inflight = (async () => {
     try {
@@ -125,7 +125,7 @@ export function useSubscription() {
 
   const refresh = useCallback(() => load(userId, true), [userId]);
 
-  const current = snap.userId === userId ? snap : { ...snap, subscription: null, isAdmin: false, plan: "free" as Plan, loading: Boolean(userId) };
+  const current = snap.userId === userId ? snap : { ...snap, subscription: null, isAdmin: false, plan: "free" as Plan, access: false, loading: Boolean(userId) };
   const { subscription, isAdmin, plan } = current;
   const loading = userId ? current.loading : false;
 
