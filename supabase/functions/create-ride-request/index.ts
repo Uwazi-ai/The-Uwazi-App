@@ -6,6 +6,7 @@ import { z } from "npm:zod@3.23.8";
 import { pickupHours } from "../_shared/rides.ts";
 import { sendRideSms } from "../_shared/ride-sms.ts";
 import { miles, openSites, siteFits } from "../_shared/ride-sites.ts";
+import { pollingPlaceFor } from "../_shared/kceb-precincts.ts";
 import { checkEligibility, LOOKUP_FAILED_MSG, OUT_OF_AREA_MSG } from "../_shared/ride-eligibility.ts";
 
 const NEEDS = ["wheelchair", "walker", "service_animal", "child_seat", "extra_time", "language_help", "other"] as const;
@@ -97,7 +98,7 @@ Deno.serve(async (req) => {
   let site: { id: string; name: string; address: string } | null = null;
   const siteCols = "id,name,address";
   // KCEB area only: Kansas City city limits inside Jackson County.
-  const elig = await checkEligibility(b.pickup_address, b.zip);
+  const elig = await checkEligibility(b.pickup_address, b.zip, db);
   if (elig.status === "out_of_area") return json({ error: OUT_OF_AREA_MSG, code: "out_of_area" }, 400);
   // Geocoder failed: never guess. Coordinators may still book by phone.
   if (elig.status === "lookup_failed") return json({ error: LOOKUP_FAILED_MSG, code: "lookup_failed" }, 400);
@@ -121,6 +122,9 @@ Deno.serve(async (req) => {
     const { data } = await db.from("voter_guide_sites").select(siteCols).eq("id", b.destination_site_id)
       .eq("verification_status", "verified").eq("site_type", "polling").maybeSingle();
     site = data;
+  } else if (elig.status === "eligible" && elig.precinct_key) {
+    // Election Day: precinct from the KCEB map. No match keeps needs_destination.
+    site = await pollingPlaceFor(db, elig.precinct_key);
   } else if (b.ward && b.precinct) {
     const { data } = await db.from("voter_guide_sites").select(siteCols).eq("site_type", "polling")
       .eq("verification_status", "verified").eq("precinct_key", `${Number(b.ward)}-${Number(b.precinct)}`).limit(1).maybeSingle();

@@ -9,6 +9,7 @@ import { fmtDay, fmtHour, fmtPhone, telHref } from "@/components/rides/RidesUI";
 import { RideDrawer } from "@/components/rides/desk/RideDrawer";
 import { PhoneRequestForm } from "@/components/rides/desk/PhoneRequestForm";
 import { CoordinatorsPanel } from "@/components/rides/desk/CoordinatorsPanel";
+import { PrecinctMapRefresh } from "@/components/rides/desk/PrecinctMapRefresh";
 import { Link } from "react-router-dom";
 import {
   FUNDED, NEED_LABELS, avgWait, driverCost, driverDays, fmtWait, reportCsv, tripGroups,
@@ -55,6 +56,7 @@ function AdminTools() {
     <>
       <Link to="/rides/desk/rights" className="mt-8 block rounded-2xl border border-[hsl(var(--rides-ink)/0.2)] p-4 font-semibold">Review rights questions</Link>
       <CoordinatorsPanel />
+      <PrecinctMapRefresh />
     </>
   );
 }

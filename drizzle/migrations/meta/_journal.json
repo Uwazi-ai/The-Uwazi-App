@@ -113,6 +113,20 @@
       "when": 1791952679510,
       "tag": "0015_waitlist_server_only",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1791994987377,
+      "tag": "0016_kceb_precincts",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1791995189369,
+      "tag": "0017_kceb_precincts_trim_nbsp",
+      "breakpoints": true
     }
   ]
 }

@@ -138,7 +138,7 @@ export function useVoterProfile() {
       const { data } = await supabase
         .from("profiles")
         .select(
-          "user_id, full_address, address_line1, city, state_code, zip_code, county_name, election_authority_key, party_preference, registration_verified_at, precinct_id",
+          "user_id, full_address, address_line1, city, state_code, zip_code, county_name, election_authority_key, party_preference, registration_verified_at, precinct_id, precinct_source",
         )
         .eq("user_id", user.id)
         .maybeSingle();
@@ -339,7 +339,7 @@ export function useSavePrecinct() {
   return useMutation({
     mutationFn: async (precinct: string | null) => {
       if (!user) throw new Error("Must be signed in");
-      const { error } = await supabase.from("profiles").update({ precinct_id: precinct }).eq("user_id", user.id);
+      const { error } = await supabase.from("profiles").update({ precinct_id: precinct, precinct_source: null } as any).eq("user_id", user.id);
       if (error) throw error;
     },
     onSuccess: () => {

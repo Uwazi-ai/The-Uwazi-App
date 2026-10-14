@@ -29,7 +29,7 @@ export function PhoneRequestForm({ onDone }: { onDone: (code: string) => void })
 
   const avail = (body: Record<string, unknown>) => supabase.functions.invoke("get-ride-availability", { body });
   // Same KCEB area check the server runs on save.
-  const [area, setArea] = useState<{ status: "checking" | "eligible" | "out_of_area" | "lookup_failed"; msg: string } | null>(null);
+  const [area, setArea] = useState<{ status: "checking" | "eligible" | "out_of_area" | "lookup_failed"; msg: string; place?: boolean } | null>(null);
   useEffect(() => {
     setArea(null);
     if (address.trim().length < 5 || !/^\d{5}$/.test(zip)) return;
@@ -43,7 +43,11 @@ export function PhoneRequestForm({ onDone }: { onDone: (code: string) => void })
         if (j?.code === "out_of_area") return setArea({ status: "out_of_area", msg: j.error });
         return setArea({ status: "lookup_failed", msg: "Address check failed. Confirm they live in Kansas City, in Jackson County, before booking." });
       }
-      if (data?.eligibility === "eligible") return setArea({ status: "eligible", msg: "In the ride area: Kansas City, Jackson County." });
+      if (data?.eligibility === "eligible") {
+        const p = data.election_day_place;
+        const pk = data.precinct_key ? `Ward ${data.precinct_key.replace("-", ", precinct ")}. ` : "";
+        return setArea({ status: "eligible", place: !!p, msg: `In the ride area: Kansas City, Jackson County. ${pk}${p ? `Election Day: ${p.name}, ${p.address}. Precinct from the Kansas City Election Board map.` : "No Election Day polling place matched."}` });
+      }
       setArea({ status: "lookup_failed", msg: "Address check failed. Confirm they live in Kansas City, in Jackson County, before booking." });
     }, 600);
     return () => { live = false; clearTimeout(t); };
@@ -139,7 +143,7 @@ export function PhoneRequestForm({ onDone }: { onDone: (code: string) => void })
           )}
         </div>
       )}
-      {isElection && (
+      {isElection && !area?.place && (
         <div className="grid grid-cols-2 gap-2">
           <div><span className={label}>Ward, optional</span><input className="rides-input" inputMode="numeric" value={ward} onChange={(e) => setWard(e.target.value.replace(/\D/g, ""))} /></div>
           <div><span className={label}>Precinct, optional</span><input className="rides-input" inputMode="numeric" value={precinct} onChange={(e) => setPrecinct(e.target.value.replace(/\D/g, ""))} /></div>

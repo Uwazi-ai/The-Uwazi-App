@@ -2,6 +2,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, CalendarDays, ExternalLink, MapPin, Phone, Vote } from "lucide-react";
+import PrecinctFromAddress, { PRECINCT_SOURCE_LINE } from "@/components/voting/PrecinctFromAddress";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useVoterProfile, useElectionAuthority, useMyDistricts, lookupPrecinct, ELECTION_LABEL, ELECTION_DATE } from "@/hooks/useMyBallot";
@@ -28,9 +29,10 @@ export default function VoterGuidePage() {
   const { data: authority } = useElectionAuthority(profile);
   const { data: districts } = useMyDistricts();
   const state = (profile?.state_code as string) || "MO";
-  const county = districts?.resolved?.county || null;
   const pinfo = lookupPrecinct(profile?.precinct_id);
   const precinctKey = pinfo ? `${pinfo.ward}-${pinfo.precinct}` : null;
+  // A KCEB precinct means Jackson County, even before districts resolve.
+  const county = districts?.resolved?.county || (precinctKey ? "29095" : null);
 
   const { data: guide, isLoading: gLoading } = useQuery({
     queryKey: ["voter-guide", state, county, precinctKey],
@@ -122,7 +124,15 @@ export default function VoterGuidePage() {
         {place ? (
           <p className="text-sm text-foreground mt-3"><strong>{place.name}</strong><br />{place.address}{place.room ? `. ${place.room}` : ""}{place.hours ? <span className="block text-xs text-muted-foreground mt-1">{place.hours} on Election Day</span> : null}</p>
         ) : (
-          <p className="text-sm text-muted-foreground mt-3">Your polling place is listed in your voter record.</p>
+          <>
+            <p className="text-sm text-muted-foreground mt-3">Your polling place is listed in your voter record.</p>
+            <div className="mt-3"><PrecinctFromAddress /></div>
+          </>
+        )}
+        {place && pinfo && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Ward {pinfo.ward}, Precinct {pinfo.precinct}.{(profile as any)?.precinct_source === "kceb_map" ? ` ${PRECINCT_SOURCE_LINE}.` : ""}
+          </p>
         )}
         {early.length > 0 && (
           <div className="mt-4">

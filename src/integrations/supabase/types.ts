@@ -2635,6 +2635,39 @@ export type Database = {
         }
         Relationships: []
       }
+      kceb_precincts: {
+        Row: {
+          geom: unknown
+          id: string
+          loaded_at: string
+          precinct: number
+          precinct_key: string
+          raw_name: string
+          source_url: string
+          ward: number
+        }
+        Insert: {
+          geom: unknown
+          id?: string
+          loaded_at?: string
+          precinct: number
+          precinct_key: string
+          raw_name: string
+          source_url: string
+          ward: number
+        }
+        Update: {
+          geom?: unknown
+          id?: string
+          loaded_at?: string
+          precinct?: number
+          precinct_key?: string
+          raw_name?: string
+          source_url?: string
+          ward?: number
+        }
+        Relationships: []
+      }
       learn_path_offers: {
         Row: {
           completed_at: string | null
@@ -3311,6 +3344,7 @@ export type Database = {
           phone_verified: boolean | null
           plan: string
           precinct_id: string | null
+          precinct_source: string | null
           push_opt_in: boolean | null
           push_token: string | null
           referred_by_org: string | null
@@ -3375,6 +3409,7 @@ export type Database = {
           phone_verified?: boolean | null
           plan?: string
           precinct_id?: string | null
+          precinct_source?: string | null
           push_opt_in?: boolean | null
           push_token?: string | null
           referred_by_org?: string | null
@@ -3439,6 +3474,7 @@ export type Database = {
           phone_verified?: boolean | null
           plan?: string
           precinct_id?: string | null
+          precinct_source?: string | null
           push_opt_in?: boolean | null
           push_token?: string | null
           referred_by_org?: string | null
@@ -6242,6 +6278,10 @@ export type Database = {
           id: string
         }[]
       }
+      load_kceb_precincts: {
+        Args: { _fc: Json; _source: string }
+        Returns: Json
+      }
       log_civic_action: {
         Args: { _note?: string; _office_id?: string }
         Returns: Json
@@ -6300,6 +6340,10 @@ export type Database = {
       }
       persona_label: { Args: { _scores: Json }; Returns: Json }
       platform_health: { Args: never; Returns: Json }
+      precinct_for_point: {
+        Args: { lat: number; lon: number }
+        Returns: string
+      }
       preview_survey_targets: { Args: { _filter: Json }; Returns: number }
       propose_office_district: {
         Args: {
