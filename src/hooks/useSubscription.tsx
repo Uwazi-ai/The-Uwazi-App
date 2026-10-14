@@ -19,6 +19,7 @@ type State = {
   subscription: SubscriptionRow | null;
   isAdmin: boolean;
   plan: Plan;
+  access: boolean;
   loading: boolean;
 };
 
