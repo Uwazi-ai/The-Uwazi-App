@@ -1,6 +1,9 @@
 // KCEB area eligibility for Rides to the Polls. Rides are only for addresses
 // inside Kansas City, MO city limits AND Jackson County (FIPS 29095).
 // Census geocoder only. If the lookup fails, never guess.
+// When a db client is passed, an eligible address also gets its KCEB precinct.
+// deno-lint-ignore-file no-explicit-any
+import { precinctForPoint } from "./kceb-precincts.ts";
 
 export const KCEB_COUNTY = "29095";
 export const KCMO_PLACE = "2938000";
@@ -10,11 +13,11 @@ export const LOOKUP_FAILED_MSG =
   "We could not check your address. Please call the ride line at (816) 379-6885 to book.";
 
 export type Eligibility =
-  | { status: "eligible"; lat: number; lon: number }
+  | { status: "eligible"; lat: number; lon: number; precinct_key: string | null }
   | { status: "out_of_area" }
   | { status: "lookup_failed" };
 
-export async function checkEligibility(address: string, zip: string): Promise<Eligibility> {
+export async function checkEligibility(address: string, zip: string, db?: any): Promise<Eligibility> {
   try {
     const url = `https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=${encodeURIComponent(
       `${address} ${zip}`,
@@ -30,7 +33,9 @@ export async function checkEligibility(address: string, zip: string): Promise<El
     const county = `${c.STATE}${c.COUNTY}`;
     const place = p ? `${p.STATE}${p.PLACE}` : "";
     if (county !== KCEB_COUNTY || place !== KCMO_PLACE) return { status: "out_of_area" };
-    return { status: "eligible", lat: m.coordinates.y, lon: m.coordinates.x };
+    const lat = m.coordinates.y, lon = m.coordinates.x;
+    const precinct_key = db ? await precinctForPoint(db, lat, lon) : null;
+    return { status: "eligible", lat, lon, precinct_key };
   } catch {
     return { status: "lookup_failed" };
   }
