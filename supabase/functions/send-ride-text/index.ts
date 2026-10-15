@@ -3,11 +3,11 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.23.8";
-import { sendRideSms } from "../_shared/ride-sms.ts";
+import { sendRideSms, sendClaimedRideSms } from "../_shared/ride-sms.ts";
 
 const Body = z.object({
   ride_id: z.string().uuid(),
-  kind: z.enum(["request_received", "referred", "booked", "destination_assigned", "pickup_confirmed", "ride_home_sent", "cancelled"]),
+   kind: z.enum(["request_received", "referred", "booked", "destination_assigned", "pickup_confirmed", "ride_home_sent", "cancelled", "driver_on_way"]),
 }).strict();
 
 const json = (b: unknown, s = 200) =>
@@ -28,6 +28,12 @@ Deno.serve(async (req) => {
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return json({ error: "Bad request" }, 400);
   const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-  const result = await sendRideSms(db, parsed.data.kind, parsed.data.ride_id, uid);
+  if (parsed.data.kind === "driver_on_way") {
+    const { data: ride } = await db.from("ride_requests").select("trip_stage,status").eq("id", parsed.data.ride_id).maybeSingle();
+    if (!ride || ride.trip_stage !== 1 || ride.status !== "booked") return json({ error: "That step is not open yet." }, 409);
+  }
+  const result = parsed.data.kind === "driver_on_way"
+    ? await sendClaimedRideSms(db, "driver_on_way", parsed.data.ride_id, uid)
+    : await sendRideSms(db, parsed.data.kind, parsed.data.ride_id, uid);
   return json({ result });
 });

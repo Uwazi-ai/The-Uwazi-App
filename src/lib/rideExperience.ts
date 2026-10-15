@@ -25,7 +25,7 @@ export function countdown(card: RiderCard, now = new Date()) {
  return `Pickup at ${time}`;
 }
 export function downloadRideCalendar(c: RiderCard) {
- const start = c.ride_day.replaceAll('-', '') + 'T' + c.pickup_time.replace(':', '') + '00';
+ const start = c.ride_day.replace(/-/g, '') + 'T' + c.pickup_time.slice(0,5).replace(':', '') + '00';
  const escape = (s: string) => s.replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/([,;])/g, '\\$1');
  const text = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//UWAZI//Rides//EN','BEGIN:VEVENT',`UID:${c.ride_code}@uwazi.ai`,`DTSTAMP:${new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'')}`,`DTSTART;TZID=America/Chicago:${start}`,'DURATION:PT1H','SUMMARY:Ride to the voting place',`LOCATION:${escape(c.destination ? c.destination.name + ', ' + c.destination.address : 'Voting place to be confirmed')}`,'DESCRIPTION:Bring a photo ID. Questions? Call ' + RIDE_LINE,'END:VEVENT','END:VCALENDAR'].join('\r\n');
  downloadBlob(new Blob([text], { type: 'text/calendar' }), c.ride_code + '.ics');
