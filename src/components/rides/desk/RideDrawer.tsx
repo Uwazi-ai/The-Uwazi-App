@@ -49,8 +49,8 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
           .eq("open_date", ride.ride_day)
           .eq("voter_guide_sites.site_type", "early")
           .eq("voter_guide_sites.verification_status", "verified");
-        const at = `${String(hour).padStart(2, "0")}:00:00`;
-        const after = `${String(hour + 1).padStart(2, "0")}:00:00`;
+        const at = `${ride.pickup_time.slice(0, 5)}:00`;
+        const after = `${String(hour + 1).padStart(2, "0")}:${ride.pickup_time.slice(3, 5)}:00`;
         const list = (data ?? [])
           .filter((r) => r.open_time <= at && r.close_time >= after)
           .map((r) => {

@@ -117,7 +117,6 @@ function Desk() {
     });
   };
 
-  const fundedBooked = rides.filter((r) => FUNDED.includes(r.status)).length;
   const groups = useMemo(() => tripGroups(rides), [rides]);
   const current = rides.find((r) => r.id === openId) ?? null;
   const closed = rides.filter((r) => r.status === "referred" || r.status === "cancelled");
