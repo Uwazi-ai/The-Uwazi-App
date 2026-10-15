@@ -127,6 +127,13 @@
       "when": 1791995189369,
       "tag": "0017_kceb_precincts_trim_nbsp",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1792029417347,
+      "tag": "0018_ride_service_days_budget",
+      "breakpoints": true
     }
   ]
 }

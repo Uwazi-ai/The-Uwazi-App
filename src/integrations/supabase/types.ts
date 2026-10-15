@@ -3274,6 +3274,8 @@ export type Database = {
           created_at: string | null
           id: string
           phone: string | null
+          reason: string | null
+          requested_date: string | null
           state_code: string | null
           texted_at: string | null
           texted_count: number
@@ -3283,6 +3285,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           phone?: string | null
+          reason?: string | null
+          requested_date?: string | null
           state_code?: string | null
           texted_at?: string | null
           texted_count?: number
@@ -3292,6 +3296,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           phone?: string | null
+          reason?: string | null
+          requested_date?: string | null
           state_code?: string | null
           texted_at?: string | null
           texted_count?: number
@@ -3957,6 +3963,7 @@ export type Database = {
           picked_up_at: string | null
           pickup_address: string
           pickup_time: string
+          provider: string
           quiz_finished_at: string | null
           quiz_score: number | null
           reminder_sent_at: string | null
@@ -3986,6 +3993,7 @@ export type Database = {
           picked_up_at?: string | null
           pickup_address: string
           pickup_time: string
+          provider?: string
           quiz_finished_at?: string | null
           quiz_score?: number | null
           reminder_sent_at?: string | null
@@ -4015,6 +4023,7 @@ export type Database = {
           picked_up_at?: string | null
           pickup_address?: string
           pickup_time?: string
+          provider?: string
           quiz_finished_at?: string | null
           quiz_score?: number | null
           reminder_sent_at?: string | null
@@ -4038,8 +4047,39 @@ export type Database = {
           },
         ]
       }
+      ride_service_days: {
+        Row: {
+          block_end: string
+          block_start: string
+          cost_cents: number
+          created_at: string
+          note: string | null
+          service_date: string
+          wave_times: string[]
+        }
+        Insert: {
+          block_end: string
+          block_start: string
+          cost_cents?: number
+          created_at?: string
+          note?: string | null
+          service_date: string
+          wave_times?: string[]
+        }
+        Update: {
+          block_end?: string
+          block_start?: string
+          cost_cents?: number
+          created_at?: string
+          note?: string | null
+          service_date?: string
+          wave_times?: string[]
+        }
+        Relationships: []
+      }
       ride_settings: {
         Row: {
+          budget_cents: number
           driver_rate: number
           early_end: string
           early_start: string
@@ -4051,6 +4091,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          budget_cents?: number
           driver_rate?: number
           early_end?: string
           early_start?: string
@@ -4062,6 +4103,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          budget_cents?: number
           driver_rate?: number
           early_end?: string
           early_start?: string
