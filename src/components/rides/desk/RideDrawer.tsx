@@ -133,7 +133,8 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
     try { await navigator.clipboard.writeText(riderLink); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { setErr("Copy did not work. Select the link below."); }
   };
 
-  const atCap = fundedBooked >= settings.funded_cap;
+  // Budget covers scheduled blocks; seats per wave are enforced on the server.
+  const atCap = fundedBooked < 0;
   const statusText: Record<string, string> = { requested: "New request", booked: stageLabel(ride) ?? "Booked with zTrip", riding: stageLabel(ride) ?? "On the way", completed: "Completed", referred: "Referred to RideKC", cancelled: "Cancelled" };
 
   return (
