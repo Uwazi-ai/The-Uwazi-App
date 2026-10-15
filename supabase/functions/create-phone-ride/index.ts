@@ -133,7 +133,7 @@ Deno.serve(async (req) => {
     pickup_time: b.pickup_time,
     round_trip: b.round_trip,
     needs: b.needs,
-    texts_ok: b.texts_ok,
+    texts_ok: settings.sms_live === true && b.texts_ok,
     source: "phone",
     status: referred ? "referred" : "requested",
   }).select("id,ride_code,card_token").single();
@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
   });
 
   await sendRideSms(db, referred ? "referred" : "request_received", {
-    id: row.id, ride_code: row.ride_code, card_token: row.card_token, phone: digits, texts_ok: b.texts_ok,
+    id: row.id, ride_code: row.ride_code, card_token: row.card_token, phone: digits, texts_ok: settings.sms_live === true && b.texts_ok,
     ride_day: b.ride_day, pickup_time: b.pickup_time, needs_destination: !site, site,
   }, uid);
 

@@ -209,7 +209,7 @@ function Desk() {
       </section>
 
       <AdminTools settings={settings} onSettings={setSettings} />
-      <Waitlist freed={closed.filter((r) => r.status === "cancelled").length} />
+      <Waitlist smsLive={settings.sms_live} freed={closed.filter((r) => r.status === "cancelled").length} />
 
 
       <section className="mt-8">
@@ -327,7 +327,7 @@ function Report({ rides, settings, svcDays, unmet }: { rides: Ride[]; settings: 
 
 type WaitRow = { id: string; state_code: string | null; created_at: string; texted_at: string | null; texted_count: number; has_phone: boolean; has_account: boolean };
 
-function Waitlist({ freed }: { freed: number }) {
+function Waitlist({ freed, smsLive }: { freed: number; smsLive: boolean }) {
   const [rows, setRows] = useState<WaitRow[]>([]);
   const [shown, setShown] = useState<Record<string, string | null>>({});
   useEffect(() => {
@@ -344,7 +344,7 @@ function Waitlist({ freed }: { freed: number }) {
     <section className="mt-8">
       <h2 className="font-heading text-2xl">Waitlist</h2>
       <p className="mb-3 text-sm text-[hsl(var(--rides-ink)/0.7)]">
-        {rows.length} people waiting. {freed > 0 ? `${freed} cancelled rides may have freed a seat. A super admin can text the waitlist from the admin Ride Desk.` : "Phones stay hidden until you open one."}
+        {rows.length} people waiting. {freed > 0 ? (smsLive ? `${freed} cancelled rides may have freed a seat. A super admin can text the waitlist from the admin Ride Desk.` : `${freed} cancelled rides may have freed a seat. Call people on the waitlist.`) : "Phones stay hidden until you open one."}
       </p>
       {rows.length === 0 ? <p className="text-sm">No one is waiting.</p> : (
         <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
