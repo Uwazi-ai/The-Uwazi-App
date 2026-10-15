@@ -3,7 +3,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { authorizeSystemJob } from "../_shared/system-auth.ts";
-import { loadSmsRide, sendRideSms } from "../_shared/ride-sms.ts";
+import { loadSmsRide, sendRideSms, rideSmsLive } from "../_shared/ride-sms.ts";
 
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -14,6 +14,7 @@ Deno.serve(async (req) => {
   const a = await authorizeSystemJob(req, db);
   if (!a.ok) return json({ error: "Not allowed" }, 403);
 
+  if (!(await rideSmsLive(db))) return json({ sent: 0, skipped: "texting off", failed: 0 });
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Chicago" });
   // Two UTC runs cover daylight time changes; only the 6 PM Central one works.
   const hour = Number(new Date().toLocaleString("en-US", { timeZone: "America/Chicago", hour: "numeric", hourCycle: "h23" }));

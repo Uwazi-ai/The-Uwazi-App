@@ -75,8 +75,10 @@ export async function loadSmsRide(db: any, id: string): Promise<SmsRide | null> 
 
 // Fail closed before any claim, event, or provider request.
 export async function rideSmsLive(db: any): Promise<boolean> {
-  const { data, error } = await db.from("ride_settings").select("sms_live").eq("id", true).maybeSingle();
-  return !error && data?.sms_live === true;
+  try {
+    const { data, error } = await db.from("ride_settings").select("sms_live").eq("id", true).maybeSingle();
+    return !error && data?.sms_live === true;
+  } catch { return false; }
 }
 
 // Claim before sending. Concurrent taps cannot send the same text twice.
