@@ -22,9 +22,10 @@ Deno.serve(async (req) => {
     const { data } = await db.from("voter_guide_sites").select("name,address,state").eq("id", r.destination_site_id).maybeSingle();
     destination = data;
   }
-  const { data: s } = await db.from("ride_settings").select("ride_line_phone").eq("id", true).maybeSingle();
+  const { data: s } = await db.from("ride_settings").select("ride_line_phone,sms_live").eq("id", true).maybeSingle();
 
   return json({
+    sms_live: s?.sms_live === true,
     ride_code: r.ride_code,
     ride_day: r.ride_day,
     pickup_time: String(r.pickup_time).slice(0, 5),

@@ -105,6 +105,7 @@ Deno.serve(async (req) => {
   const place = await pollingPlaceFor(db, precinct_key);
 
   return json({
+    sms_live: s.sms_live === true,
     precinct_key,
     election_day_place: place ? { name: place.name, address: place.address } : null,
     days: dayList,

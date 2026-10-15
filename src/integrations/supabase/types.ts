@@ -4097,6 +4097,7 @@ export type Database = {
           id: boolean
           ride_line_phone: string | null
           seats_per_slot: number
+          sms_live: boolean
           updated_at: string
         }
         Insert: {
@@ -4109,6 +4110,7 @@ export type Database = {
           id?: boolean
           ride_line_phone?: string | null
           seats_per_slot?: number
+          sms_live?: boolean
           updated_at?: string
         }
         Update: {
@@ -4121,6 +4123,7 @@ export type Database = {
           id?: boolean
           ride_line_phone?: string | null
           seats_per_slot?: number
+          sms_live?: boolean
           updated_at?: string
         }
         Relationships: []

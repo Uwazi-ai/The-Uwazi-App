@@ -7,12 +7,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { POLL_RIDES_LIVE, useJoinRideWaitlist, type VoterState } from "@/hooks/useVotingRights";
 
 const TEAL = "#34d3b4";
-const DONE_MSG = "You are on the list. We will text you when rides open.";
+
 const btn = "flex w-full min-h-[48px] items-center justify-center rounded-[10px] text-[15px] font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-80";
 
 export function PollRideTeaser({ state, startWithPhone = false }: { state: VoterState; startWithPhone?: boolean }) {
   const { user } = useAuth();
   const { join, status } = useJoinRideWaitlist();
+  const [smsLive, setSmsLive] = useState(false);
+  useEffect(() => { supabase.functions.invoke("get-ride-availability", { body: {} }).then(({ data }) => setSmsLive(data?.sms_live === true)); }, []);
+  const doneMessage = smsLive ? "You are on the list. We will text you when rides open." : "You are on the list. A coordinator will call you when rides open.";
   const [onList, setOnList] = useState(false);
   const [showPhone, setShowPhone] = useState(startWithPhone);
   const [phone, setPhone] = useState("");
@@ -26,7 +29,7 @@ export function PollRideTeaser({ state, startWithPhone = false }: { state: Voter
       .then(({ data }) => { if (data && data.length) setOnList(true); });
   }, [user]);
 
-  const finish = () => { setOnList(true); setShowPhone(false); toast.success(DONE_MSG); };
+  const finish = () => { setOnList(true); setShowPhone(false); toast.success(doneMessage); };
 
   const onNotify = () => setShowPhone(true);
 
@@ -108,7 +111,7 @@ export function PollRideTeaser({ state, startWithPhone = false }: { state: Voter
               Notify me when rides open
             </button>
           )}
-          <p className="text-[11px] text-muted-foreground">We only text about poll rides. Reply STOP to opt out.</p>
+          <p className="text-[11px] text-muted-foreground">{smsLive ? "We only text about poll rides. Reply STOP to opt out." : "This does not book a ride. A coordinator will call you if a ride opens up."}</p>
         </div>
       )}
     </div>

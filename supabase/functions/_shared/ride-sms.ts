@@ -73,9 +73,18 @@ export async function loadSmsRide(db: any, id: string): Promise<SmsRide | null> 
   return data ?? null;
 }
 
+// Fail closed before any claim, event, or provider request.
+export async function rideSmsLive(db: any): Promise<boolean> {
+  try {
+    const { data, error } = await db.from("ride_settings").select("sms_live").eq("id", true).maybeSingle();
+    return !error && data?.sms_live === true;
+  } catch { return false; }
+}
+
 // Claim before sending. Concurrent taps cannot send the same text twice.
 // Ambiguous delivery failures retain the claim to avoid duplicate messages.
 export async function sendClaimedRideSms(db: any, kind: "rights_card" | "driver_on_way", id: string, actor: string | null = null, fetcher: typeof fetch = fetch): Promise<"sent" | "skipped" | "failed" | "already_sent"> {
+  if (!(await rideSmsLive(db))) return "skipped";
   const r = await loadSmsRide(db, id);
   if (!r || !r.texts_ok) return "skipped";
   const to = e164(r.phone);
@@ -99,6 +108,7 @@ export async function sendRideSms(
   db: any, kind: SmsKind, rideOrId: SmsRide | string, actor: string | null = null,
   fetcher: typeof fetch = fetch,
 ): Promise<"sent" | "skipped" | "failed"> {
+  if (!(await rideSmsLive(db))) return "skipped";
   const log = (event_type: string, note: string) =>
     db.from("ride_events").insert({ request_id: typeof rideOrId === "string" ? rideOrId : rideOrId.id, event_type, note, actor }).then(() => {}, () => {});
   try {
@@ -134,6 +144,7 @@ export async function sendRideSms(
 
 // Sends one text that is not tied to a ride (waitlist). Never throws, never logs the phone.
 export async function sendPlainSms(db: any, phone: string, text: string, fetcher: typeof fetch = fetch): Promise<"sent" | "skipped" | "failed"> {
+  if (!(await rideSmsLive(db))) return "skipped";
   try {
     const to = e164(phone);
     if (!to) return "failed";

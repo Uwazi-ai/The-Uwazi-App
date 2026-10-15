@@ -24,6 +24,7 @@ function fmtTime(t?: string) {
 }
 
 export default function AdminRidesPage() {
+  const { data: smsLive = false } = useQuery({ queryKey: ["ride-sms-live"], queryFn: async () => { const { data } = await supabase.from("ride_settings").select("sms_live").eq("id", true).single(); return data?.sms_live === true; } });
   const [view, setView] = useState<View>("booked");
   const [search, setSearch] = useState("");
 
@@ -58,9 +59,10 @@ export default function AdminRidesPage() {
           <h1 className="font-heading text-2xl tracking-tight">Ride desk</h1>
           <p className="text-sm text-muted-foreground">Every ride with its status, pickup time and voting place. Open the full desk to take action.</p>
         </div>
-        <div className="flex gap-2"><TextWaitlist /><Button asChild><Link to="/rides/desk">Open full ride desk</Link></Button></div>
+        <div className="flex gap-2">{smsLive && <TextWaitlist />}<Button asChild><Link to="/rides/desk">Open full ride desk</Link></Button></div>
       </div>
 
+      {!smsLive && <p role="status" className="text-primary">Texting is off. Call riders to confirm.</p>}
       <div className="flex flex-wrap items-center gap-3">
         <Tabs value={view} onValueChange={(v) => setView(v as View)}>
           <TabsList>
