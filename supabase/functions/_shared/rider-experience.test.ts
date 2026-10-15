@@ -1,8 +1,18 @@
 import { assertEquals } from 'https://deno.land/std@0.224.0/assert/mod.ts';
 import { messageText, sendClaimedRideSms, sendRideSms, type SmsRide } from './ride-sms.ts';
+const liveSettings = (db: any) => ({ from: (table: string) => table === 'ride_settings' ? { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { sms_live: true } }) }) }) } : db.from(table) });
 const ride: SmsRide = {id:'fixture',ride_code:'UZ-FAKE',card_token:'fixture-only',phone:'2025550100',texts_ok:true,ride_day:'2026-10-27',pickup_time:'11:00',needs_destination:false};
 Deno.test('rights card text has secure tracker and no quiz answers',()=>{const text=messageText('rights_card',ride);assertEquals(text.includes('/rides/track/UZ-FAKE?t='),true);assertEquals(text.includes('score'),false);});
-Deno.test('opted out rider makes no external send',async()=>{let sends=0;const db={from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:{phone_hash:'fixture'}})})}),insert:async()=>({error:null})})};assertEquals(await sendRideSms(db,'rights_card',ride,null,async()=>{sends++;return new Response('ok');}), 'skipped');assertEquals(sends,0);});
+Deno.test('opted out rider makes no external send',async()=>{let sends=0;const db={from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:{phone_hash:'fixture'}})})}),insert:async()=>({error:null})})};assertEquals(await sendRideSms(liveSettings(db),'rights_card',ride,null,async()=>{sends++;return new Response('ok');}), 'skipped');assertEquals(sends,0);});
 Deno.test('no SMS consent makes no external send',async()=>{let sends=0;assertEquals(await sendRideSms({},'rights_card',{...ride,texts_ok:false},null,async()=>{sends++;return new Response('ok');}),'skipped');assertEquals(sends,0);});
-Deno.test('opt out lookup failure refuses sending',async()=>{const db={from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:null,error:{message:'offline'}})})})})};let sends=0;assertEquals(await sendRideSms(db,'rights_card',ride,null,async()=>{sends++;return new Response('ok');}),'failed');assertEquals(sends,0);});
-Deno.test('claimed SMS checks consent before delivery claim',async()=>{let updates=0;const db={from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:{...ride,texts_ok:false}})})}),update:()=>{updates++;throw Error('should not claim');}})};assertEquals(await sendClaimedRideSms(db,'rights_card',ride.id),'skipped');assertEquals(updates,0);});
+Deno.test('opt out lookup failure refuses sending',async()=>{const db={from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:null,error:{message:'offline'}})})})})};let sends=0;assertEquals(await sendRideSms(liveSettings(db),'rights_card',ride,null,async()=>{sends++;return new Response('ok');}),'failed');assertEquals(sends,0);});
+Deno.test('claimed SMS checks consent before delivery claim',async()=>{let updates=0;const db={from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:{...ride,texts_ok:false}})})}),update:()=>{updates++;throw Error('should not claim');}})};assertEquals(await sendClaimedRideSms(liveSettings(db),'rights_card',ride.id),'skipped');assertEquals(updates,0);});
+
+Deno.test('texting off never sends, claims or logs', async () => {
+ let writes = 0; let sends = 0;
+ const db = { from: (table: string) => { assertEquals(table, 'ride_settings'); return { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { sms_live: false } }) }) }), insert: () => { writes++; }, update: () => { writes++; } }; } };
+ const fetcher = async () => { sends++; return new Response('ok'); };
+ assertEquals(await sendRideSms(db, 'rights_card', ride, null, fetcher), 'skipped');
+ assertEquals(await sendClaimedRideSms(db, 'rights_card', ride.id, null, fetcher), 'skipped');
+ assertEquals(writes, 0); assertEquals(sends, 0);
+});
