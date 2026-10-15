@@ -3955,6 +3955,7 @@ export type Database = {
           created_at: string
           destination_site_id: string | null
           driver_name: string | null
+          driver_on_way_sms_claimed_at: string | null
           first_name_last_initial: string
           id: string
           needs: string[]
@@ -3969,6 +3970,8 @@ export type Database = {
           reminder_sent_at: string | null
           ride_code: string
           ride_day: string
+          ride_rating: number | null
+          rights_card_sms_claimed_at: string | null
           round_trip: boolean
           source: string
           status: string
@@ -3985,6 +3988,7 @@ export type Database = {
           created_at?: string
           destination_site_id?: string | null
           driver_name?: string | null
+          driver_on_way_sms_claimed_at?: string | null
           first_name_last_initial: string
           id?: string
           needs?: string[]
@@ -3999,6 +4003,8 @@ export type Database = {
           reminder_sent_at?: string | null
           ride_code?: string
           ride_day: string
+          ride_rating?: number | null
+          rights_card_sms_claimed_at?: string | null
           round_trip?: boolean
           source?: string
           status?: string
@@ -4015,6 +4021,7 @@ export type Database = {
           created_at?: string
           destination_site_id?: string | null
           driver_name?: string | null
+          driver_on_way_sms_claimed_at?: string | null
           first_name_last_initial?: string
           id?: string
           needs?: string[]
@@ -4029,6 +4036,8 @@ export type Database = {
           reminder_sent_at?: string | null
           ride_code?: string
           ride_day?: string
+          ride_rating?: number | null
+          rights_card_sms_claimed_at?: string | null
           round_trip?: boolean
           source?: string
           status?: string
@@ -6369,6 +6378,7 @@ export type Database = {
         Returns: Json
       }
       my_plus_access: { Args: never; Returns: boolean }
+      my_ride_demo_access: { Args: never; Returns: boolean }
       next_stage_lesson: {
         Args: { _exclude?: string[]; _uid: string }
         Returns: string
