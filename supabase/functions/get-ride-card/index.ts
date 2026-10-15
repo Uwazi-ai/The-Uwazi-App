@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
 
   const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const r = await rideByToken(db, p.data.ride_code, p.data.t,
-    "ride_code,ride_day,pickup_time,round_trip,status,trip_stage,needs_destination,destination_site_id,quiz_score,quiz_finished_at");
+    "ride_code,ride_day,pickup_time,round_trip,status,trip_stage,needs_destination,destination_site_id,quiz_score,quiz_finished_at,ride_rating,provider");
   if (!r) return notFound();
 
   let destination: { name: string; address: string; state: string } | null = null;
@@ -37,5 +37,7 @@ Deno.serve(async (req) => {
     ride_line_phone: s?.ride_line_phone ?? null,
     quiz_score: r.quiz_score,
     quiz_finished: !!r.quiz_finished_at,
+    ride_rating: r.ride_rating,
+    provider: r.provider,
   });
 });

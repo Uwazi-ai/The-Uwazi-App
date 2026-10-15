@@ -79,7 +79,7 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
   }, [ride.id, ride.needs_destination, ride.destination_site_id, isElection, search, hour, ride.ride_day, settings.election_day]);
 
   const log = (event_type: string, note: string) =>
-    supabase.from("ride_events").insert({ request_id: ride.id, event_type, note, actor: user!.id });
+    supabase.from("ride_events").insert({ request_id: ride.id, event_type, note, actor: user?.id });
 
   const run = async (fn: () => PromiseLike<{ error: unknown } | void>) => {
     setBusy(true);
@@ -115,6 +115,7 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
     run(async () => {
       const r = await update(status ? { status, trip_stage } : { trip_stage });
       if (!r.error) await log("trip_stage", note);
+      if (!r.error && trip_stage === 1) await text("driver_on_way");
       if (!r.error && trip_stage === 5) await text("ride_home_sent");
       return r;
     });
@@ -267,7 +268,7 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
 
 const TEXT_NAMES: Record<string, string> = {
   request_received: "Request received", referred: "RideKC info", booked: "Ride booked", reminder: "Reminder",
-  destination_assigned: "Voting place", ride_home_sent: "Ride home", cancelled: "Cancelled", pickup_confirmed: "Pickup confirmed",
+  destination_assigned: "Voting place", ride_home_sent: "Ride home", cancelled: "Cancelled", pickup_confirmed: "Pickup confirmed", driver_on_way: "Driver on the way", rights_card: "Rights card",
 };
 
 function Row({ k, children }: { k: string; children: React.ReactNode }) {

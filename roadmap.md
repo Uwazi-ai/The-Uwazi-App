@@ -50,6 +50,10 @@
 - [ ] Pass 3: poll ride teaser slot
 
 ## Rides to the Polls
+- [x] Build booked rider screens, accessible once-only stage sheets, quiz completion, private rating and rights-card text actions.
+- [x] Build server-authorized, fixture-only marketing demo and verify no ride requests or persistent demo data.
+- [x] Verify phone/desktop demo states, focus trap, Escape, 48px targets, sharing download, numeric rating and consent safeguards. 14 focused tests pass. No ride rows or texts created; next code remains UZ-1001.
+- [ ] Marketing captures wait for visual approval. Real token-authorized ride saves and SMS delivery remain unverified because this sprint prohibits real ride rows and texts.
 - [ ] User to add BIRD_API_KEY + BIRD_SENDER in Project Settings → Secrets, then send one real test text to their number
 - [x] Bird webhook secret saved (as STRIPE_WEBHOOK_SECRET); bird-inbound now reads it
 - [ ] User to point Bird inbound messages to the bird-inbound webhook URL in the Bird dashboard

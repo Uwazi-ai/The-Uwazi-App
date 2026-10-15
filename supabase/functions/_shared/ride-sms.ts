@@ -9,7 +9,7 @@ const STOP = " Reply STOP to opt out.";
 
 export type SmsKind =
   | "request_received" | "referred" | "booked" | "reminder"
-  | "destination_assigned" | "pickup_confirmed" | "ride_home_sent" | "cancelled";
+  | "destination_assigned" | "pickup_confirmed" | "ride_home_sent" | "cancelled" | "driver_on_way" | "rights_card";
 
 export function e164(phone: string) {
   const d = String(phone).replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
@@ -53,6 +53,10 @@ export function messageText(kind: SmsKind, r: SmsRide) {
       return `UWAZI: Your driver confirmed your pickup on ${fmtDay(r.ride_day)} at ${fmtTime(r.pickup_time)}. Be ready at the door with a photo ID. Questions? Call ${RIDE_LINE}. Track it here: ${link}`;
     case "ride_home_sent":
       return "UWAZI: Your ride home is on the way. Wait near the door.";
+    case "driver_on_way":
+      return `UWAZI: Your driver is on the way. Bring your photo ID and ride card. Questions? Call ${RIDE_LINE}. ${link}`;
+    case "rights_card":
+      return `UWAZI: Your voting rights card: ${APP_ORIGIN}/rides/track/${r.ride_code}?t=${encodeURIComponent(r.card_token)}. Questions? Call ${RIDE_LINE}.`;
     case "cancelled":
       return `UWAZI: Your ride ${r.ride_code} is cancelled. Need a new one? Call ${RIDE_LINE}.`;
   }
@@ -69,6 +73,27 @@ export async function loadSmsRide(db: any, id: string): Promise<SmsRide | null> 
   return data ?? null;
 }
 
+// Claim before sending. Concurrent taps cannot send the same text twice.
+// Ambiguous delivery failures retain the claim to avoid duplicate messages.
+export async function sendClaimedRideSms(db: any, kind: "rights_card" | "driver_on_way", id: string, actor: string | null = null, fetcher: typeof fetch = fetch): Promise<"sent" | "skipped" | "failed" | "already_sent"> {
+  const r = await loadSmsRide(db, id);
+  if (!r || !r.texts_ok) return "skipped";
+  const to = e164(r.phone);
+  if (!to) return "failed";
+  const { data: opt, error: optError } = await db.from("ride_sms_optouts").select("phone_hash").eq("phone_hash", await phoneHash(to)).maybeSingle();
+  if (optError) return "failed";
+  if (opt) return "skipped";
+  if (!Deno.env.get("BIRD_API_KEY") || !Deno.env.get("BIRD_SENDER")) return "failed";
+  const column = kind === "rights_card" ? "rights_card_sms_claimed_at" : "driver_on_way_sms_claimed_at";
+  const { data: claim, error } = await db.from("ride_requests").update({ [column]: new Date().toISOString() }).eq("id", id).is(column, null).select("id").maybeSingle();
+  if (error) return "failed";
+  if (!claim) {
+    const { data: sent } = await db.from("ride_events").select("id").eq("request_id", id).eq("event_type", "texted").eq("note", kind).limit(1);
+    return sent?.length ? "already_sent" : "failed";
+  }
+  return sendRideSms(db, kind, r, actor, fetcher);
+}
+
 // Sends one text. Returns what happened; never throws.
 export async function sendRideSms(
   db: any, kind: SmsKind, rideOrId: SmsRide | string, actor: string | null = null,
@@ -82,7 +107,8 @@ export async function sendRideSms(
     if (!r.texts_ok) return "skipped";
     const to = e164(r.phone);
     if (!to) { await log("texted_failed", `${kind}. Phone not valid`); return "failed"; }
-    const { data: opt } = await db.from("ride_sms_optouts").select("phone_hash").eq("phone_hash", await phoneHash(to)).maybeSingle();
+    const { data: opt, error: optError } = await db.from("ride_sms_optouts").select("phone_hash").eq("phone_hash", await phoneHash(to)).maybeSingle();
+    if (optError) return "failed";
     if (opt) { await log("text_skipped", `${kind}. Rider opted out`); return "skipped"; }
     const key = Deno.env.get("BIRD_API_KEY");
     const from = Deno.env.get("BIRD_SENDER");

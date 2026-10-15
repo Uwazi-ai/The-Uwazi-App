@@ -4,7 +4,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.23.8";
 import { CodeToken, json, notFound, rideByToken } from "../_shared/ride-token.ts";
 
-const Body = z.object({ ...CodeToken, action: z.enum(["in_car", "ready_home"]) }).strict();
+const Body = z.object({ ...CodeToken, action: z.enum(["in_car", "ready_home", "complete_one_way"]) }).strict();
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -22,14 +22,18 @@ Deno.serve(async (req) => {
     if (!(["booked", "riding"].includes(r.status) && r.trip_stage === 2)) return json({ error: "That step is not open yet." }, 409);
     patch = { trip_stage: 3, status: "riding" };
     event = { event_type: "picked_up", note: "Picked up. Confirmed by rider" };
-  } else {
+  } else if (p.data.action === "ready_home") {
     if (!(r.round_trip && r.status === "riding" && r.trip_stage === 4)) return json({ error: "That step is not open yet." }, 409);
     patch = { trip_stage: 5 };
     event = { event_type: "rider_ready_for_return", note: "Rider is done voting. Send the ride home" };
+  } else {
+    if (r.round_trip || r.status !== "riding" || r.trip_stage !== 4) return json({ error: "That step is not open yet." }, 409);
+    patch = { trip_stage: 7, status: "completed" };
+    event = { event_type: "rider_trip_complete", note: "One way trip complete. Confirmed by rider" };
   }
 
   // Conditional update so two taps cannot both move the trip.
-  const { data: upd, error } = await db.from("ride_requests").update(patch).eq("id", r.id).eq("trip_stage", r.trip_stage).select("trip_stage").maybeSingle();
+  const { data: upd, error } = await db.from("ride_requests").update(patch).eq("id", r.id).eq("trip_stage", r.trip_stage).eq("status", r.status).select("trip_stage").maybeSingle();
   if (error || !upd) return json({ error: "That did not save. Please try again." }, 409);
   await db.from("ride_events").insert({ request_id: r.id, ...event });
   return json({ trip_stage: upd.trip_stage });

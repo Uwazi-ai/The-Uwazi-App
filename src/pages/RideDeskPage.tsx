@@ -270,6 +270,7 @@ function Report({ rides, settings, svcDays, unmet }: { rides: Ride[]; settings: 
   const unmetDays = [...new Set(unmet.filter((u) => u.reason !== "turned_away").map((u) => u.requested_date ?? ""))].filter(Boolean).sort();
   const [w20, w27] = weekCompare(rides, "2026-10-20", "2026-10-27");
   const [w22, w29] = weekCompare(rides, "2026-10-22", "2026-10-29");
+  const ratings = rides.flatMap(r => r.ride_rating == null ? [] : [r.ride_rating]);
   const rows: [string, string | number][] = [
     ["Ride requests received", rides.length],
     ["Seats booked", `${b.seatsBooked} of ${b.seatsTotal}`],
@@ -279,6 +280,9 @@ function Report({ rides, settings, svcDays, unmet }: { rides: Ride[]; settings: 
     ["Referred to RideKC", rides.filter((r) => r.status === "referred").length],
     ["Needs voting place", rides.filter((r) => r.needs_destination && !["cancelled", "referred"].includes(r.status)).length],
     ["Finished the rights quiz", rides.filter((r) => r.quiz_finished_at).length],
+    ["Ride ratings received", ratings.length],
+    ["Average ride rating", ratings.length ? (ratings.reduce((a,b) => a + b, 0) / ratings.length).toFixed(1) + " of 5" : "None yet"],
+    ...[1,2,3,4,5].map(n => [`Ride rating ${n} stars`, ratings.filter(r => r === n).length] as [string, number]),
     ["Average wait to book", fmtWait(avgWait(rides))],
     ["Rides not by zTrip (not in budget)", rides.length - z.length],
     ["Driver days scheduled", svcDays.length],

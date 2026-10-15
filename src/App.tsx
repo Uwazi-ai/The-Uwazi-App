@@ -84,6 +84,7 @@ import RideTrackPage from "./pages/RideTrackPage";
 import RideDeskPage from "./pages/RideDeskPage";
 import RideRightsReviewPage from "./pages/RideRightsReviewPage";
 import RideWaitlistPage from "./pages/RideWaitlistPage";
+import RideDemoPage from "./pages/RideDemoPage";
 
 const queryClient = new QueryClient();
 
@@ -117,6 +118,7 @@ const App = () => (
               <Route path="/redeem" element={<PromoRedeemPage />} />
               <Route path="/backpack-rules" element={<BackpackRulesPage />} />
               <Route path="/rides" element={<RidesPage />} />
+              <Route path="/rides/demo/:stage" element={<RideDemoPage />} />
               <Route path="/rides/waitlist" element={<RideWaitlistPage />} />
               <Route path="/rides/card/:code" element={<RideCardPage />} />
               <Route path="/rides/track/:code" element={<RideTrackPage />} />

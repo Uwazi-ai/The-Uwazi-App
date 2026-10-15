@@ -1,0 +1,4 @@
+CREATE OR REPLACE FUNCTION public.guard_rider_experience_writes() RETURNS trigger LANGUAGE plpgsql SET search_path = public AS $$ BEGIN IF (NEW.ride_rating IS DISTINCT FROM OLD.ride_rating OR NEW.rights_card_sms_claimed_at IS DISTINCT FROM OLD.rights_card_sms_claimed_at OR NEW.driver_on_way_sms_claimed_at IS DISTINCT FROM OLD.driver_on_way_sms_claimed_at) AND coalesce(auth.role(), '') <> 'service_role' THEN RAISE EXCEPTION 'Rider feedback and text delivery are server-only'; END IF; RETURN NEW; END $$;
+CREATE TRIGGER guard_rider_experience_writes BEFORE UPDATE ON public.ride_requests FOR EACH ROW EXECUTE FUNCTION public.guard_rider_experience_writes();
+REVOKE ALL ON FUNCTION public.guard_rider_experience_writes() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.guard_rider_experience_writes() TO service_role;
