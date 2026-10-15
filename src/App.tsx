@@ -118,6 +118,7 @@ const App = () => (
               <Route path="/redeem" element={<PromoRedeemPage />} />
               <Route path="/backpack-rules" element={<BackpackRulesPage />} />
               <Route path="/rides" element={<RidesPage />} />
+              <Route path="/rides/demo" element={<RideDemoPage />} />
               <Route path="/rides/demo/:stage" element={<RideDemoPage />} />
               <Route path="/rides/waitlist" element={<RideWaitlistPage />} />
               <Route path="/rides/card/:code" element={<RideCardPage />} />

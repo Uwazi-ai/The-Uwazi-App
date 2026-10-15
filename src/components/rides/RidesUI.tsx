@@ -1,12 +1,11 @@
 import { ReactNode } from "react";
+import './rider/rider.css';
 
-export function RidesShell({ logo, children }: { logo: string; children: ReactNode }) {
+export function RidesShell({ logo, children, context }: { logo: string; children: ReactNode; context?: ReactNode }) {
   return (
-    <main className="min-h-[100dvh] overflow-x-hidden bg-[hsl(var(--rides-bg))] text-[hsl(var(--rides-ink))]">
-      <div className="mx-auto w-full max-w-[460px] px-5 pb-12 pt-[calc(var(--sat)+1.25rem)]">
-        <header className="mb-6">
-          <img src={logo} alt="UWAZI.APP" className="h-10 w-auto" />
-        </header>
+    <main className="rider-experience min-h-[100dvh] overflow-x-hidden">
+      <header className="rider-header"><img src={logo} alt="UWAZI.APP" /><div>{context ?? <span className="rider-eyebrow rider-pill rider-selected">FREE</span>}</div></header>
+      <div className="rider-content">
         {children}
       </div>
     </main>

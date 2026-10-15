@@ -1,6 +1,6 @@
 import type { RiderCard, RightsQuestion } from '@/lib/rideExperience';
-export const demoCard: RiderCard = {ride_code:'UZ-DEMO',ride_day:'2026-10-27',pickup_time:'11:00',round_trip:true,status:'booked',trip_stage:0,needs_destination:false,destination:{name:'Garrison Community Center',address:'',state:'MO'},ride_line_phone:'8163796885',provider:'ztrip',quiz_score:8};
-export const demoClock = new Date('2026-10-26T16:00:00Z');
+export const demoCard: RiderCard = {ride_code:'UZ-1001',ride_day:'2026-10-27',pickup_time:'11:00',round_trip:true,status:'booked',trip_stage:0,needs_destination:false,destination:{name:'Garrison Community Center',address:'1124 E. 5th St',state:'MO'},ride_line_phone:'8163796885',provider:'ztrip',quiz_score:7};
+export const demoClock = new Date('2026-10-25T16:00:00Z');
 export const demoQuestions: RightsQuestion[] = [
  {id:'demo-1',sort:1,question:'What do you need to show to get a regular ballot?',options:['A photo ID','A utility bill','Nothing at all'],correct_index:0,title:'Bring a photo ID.',explanation:'Missouri asks for a photo ID from Missouri or the federal government. A driver or nondriver license, a U.S. passport, or a military or veteran ID all work.',takeaway:'Bring a photo ID'},
  {id:'demo-2',sort:2,question:'Your photo ID is at home. What can you do?',options:["Go home. You can't vote.",'Ask for a provisional ballot',"Use a friend's ID"],correct_index:1,title:'You can still vote with a provisional ballot.',explanation:'It counts if you come back with your ID that day, or if your signature matches your voter record. Keep the stub they give you. It tells you how to check.',takeaway:'No ID? Ask for a provisional ballot'},
