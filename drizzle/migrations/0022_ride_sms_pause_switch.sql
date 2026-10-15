@@ -1,0 +1,2 @@
+ALTER TABLE public.ride_settings ADD COLUMN sms_live boolean NOT NULL DEFAULT false;
+COMMENT ON COLUMN public.ride_settings.sms_live IS 'Admin-only texting switch. False suppresses sends and delivery logging.';
