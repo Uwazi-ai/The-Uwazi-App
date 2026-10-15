@@ -1,3 +1,2 @@
-import { Check } from 'lucide-react';
-import logo from '@/assets/uwazi-app-wordmark.png';
-export function RideCompletionCard() { return <div className="rider-share-card space-y-5 rounded-lg p-6"><img src={logo} alt="UWAZI" className="h-8 w-auto" /><Check className="size-10" /><p className="font-heading text-3xl leading-tight">I rode to the polls with UWAZI</p><p className="text-sm">Free rides. A stronger community.</p><p className="font-semibold">(816) 379-6885</p></div>; }
+import mark from '@/assets/uwazi-pinwheel.png';
+export function RideCompletionCard() { return <div id="ride-completion-share-card" className="rider-share-card space-y-4"><div className="flex items-center justify-between"><img src={mark} alt="UWAZI pinwheel"/><span className="text-[10px] font-semibold">KANSAS CITY, 2026</span></div><p className="font-heading text-[30px]">I RODE TO THE POLLS WITH UWAZI.</p><p className="text-xs leading-relaxed">Free rides for Kansas City voters.<br/>uwaziapp.uwazi.ai/rides</p></div>; }

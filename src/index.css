@@ -14,37 +14,8 @@
   --rides-blue: 202 81% 37%;
   --rides-ink: 0 0% 98%;
   --rides-amber: 38 92% 56%;
-  --rider-bg: 0 0% 3.92%;
-  --rider-green: 86.47 60.71% 56.08%;
-  --rider-blue: 203.23 81.15% 37.45%;
-  --rider-surface: 0 0% 8%;
-  --rider-ink: 0 0% 98%;
-  --rider-muted: 0 0% 70%;
-  --rider-border: 0 0% 24%;
 }
 
-.rider-experience { --background: var(--rider-bg); --foreground: var(--rider-ink); --primary: var(--rider-green); --primary-foreground: var(--rider-bg); --muted-foreground: var(--rider-muted); --border: var(--rider-border); --input: var(--rider-border); --accent: var(--rider-surface); --accent-foreground: var(--rider-ink); --ring: var(--rider-green); background: hsl(var(--rider-bg)); color: hsl(var(--rider-ink)); letter-spacing: 0; }
-.rider-experience .font-heading { letter-spacing: 0; }
-.rider-primary { min-height: 48px; height: auto; padding-top: 12px; padding-bottom: 12px; background: hsl(var(--rider-green)); color: hsl(var(--rider-bg)); }
-.rider-primary:hover { background: hsl(var(--rider-green) / .9); }
-.rider-accent, .rider-star { color: hsl(var(--rider-green)); }
-.rider-muted { color: hsl(var(--rider-muted)); }
-.rider-ticket { background: hsl(var(--rider-green)); color: hsl(var(--rider-bg)); }
-.rider-ticket-divider { border-top: 1px dashed hsl(var(--rider-bg) / .35); }
-.rider-info { background: hsl(var(--rider-blue) / .2); border: 1px solid hsl(var(--rider-blue) / .55); }
-.rider-stop-active { border-color: hsl(var(--rider-green)); color: hsl(var(--rider-green)); }
-.rider-stop-pending { border-color: hsl(var(--rider-border)); color: hsl(var(--rider-muted)); }
-.rider-travel-scene { background: hsl(var(--rider-surface)); border: 1px solid hsl(var(--rider-border)); color: hsl(var(--rider-green)); }
-.rider-route-line { border-top: 2px dashed hsl(var(--rider-blue)); }
-.rider-progress-filled { background: hsl(var(--rider-green)); }
-.rider-progress-empty { background: hsl(var(--rider-border)); }
-.rider-answer-correct { border-color: hsl(var(--rider-green)); background: hsl(var(--rider-green) / .12); }
-.rider-star-filled { fill: hsl(var(--rider-green)); }
-.rider-share-card { background: hsl(var(--rider-surface)); border: 1px solid hsl(var(--rider-green) / .45); }
-.rider-share-card > svg { color: hsl(var(--rider-green)); }
-.rider-demo-bar { border-bottom: 1px solid hsl(var(--rider-border)); }
-.rider-sheet { padding-bottom: max(24px, env(safe-area-inset-bottom)); }
-@media (prefers-reduced-motion: reduce) { .rider-sheet, .rider-sheet-overlay, .rider-experience * { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 
 html {
   height: 100%;

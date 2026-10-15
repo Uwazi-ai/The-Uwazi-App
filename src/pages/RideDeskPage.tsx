@@ -54,6 +54,7 @@ function AdminTools() {
   if (!admin) return null;
   return (
     <>
+      <Link to="/rides/demo" className="mt-6 inline-flex min-h-11 items-center font-semibold text-primary underline">Open demo flow</Link>
       <Link to="/rides/desk/rights" className="mt-8 block rounded-2xl border border-[hsl(var(--rides-ink)/0.2)] p-4 font-semibold">Review rights questions</Link>
       <CoordinatorsPanel />
       <PrecinctMapRefresh />
