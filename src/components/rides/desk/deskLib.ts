@@ -108,14 +108,14 @@ export function weekCompare(rides: Ride[], a: string, b: string) {
 }
 
 export function reportCsv(rides: Ride[], summary: [string, string | number][] = []) {
-  const cols = ["ride_code", "source", "provider", "ride_day", "pickup_time", "destination", "round_trip", "needs", "status", "created_at", "booked_at", "completed_at", "wait_minutes"];
+  const cols = ["ride_code", "source", "provider", "ride_day", "pickup_time", "destination", "round_trip", "needs", "status", "created_at", "booked_at", "completed_at", "wait_minutes", "ride_rating"];
   const esc = (v: unknown) => {
     let s = v == null ? "" : String(v);
     if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   const rows = rides.map((r) =>
-    [r.ride_code, r.source, r.provider, r.ride_day, r.pickup_time.slice(0, 5), r.site?.name ?? "", r.round_trip, r.needs.join(" "), r.status, r.created_at, r.booked_at, r.completed_at, waitMinutes(r)].map(esc).join(","),
+    [r.ride_code, r.source, r.provider, r.ride_day, r.pickup_time.slice(0, 5), r.site?.name ?? "", r.round_trip, r.needs.join(" "), r.status, r.created_at, r.booked_at, r.completed_at, waitMinutes(r), r.ride_rating].map(esc).join(","),
   );
   const sum = summary.map(([k, v]) => [k, v].map(esc).join(","));
   return [cols.join(","), ...rows, "", "metric,value", ...sum].join("\n");
