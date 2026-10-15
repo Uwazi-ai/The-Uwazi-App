@@ -8,7 +8,7 @@ type Day = { day: string; kind: "early" | "election_day" };
 type Hour = { hour: string; seats_left: number };
 type Site = { id: string; name: string; address: string; open: string; close: string; distance_mi: number | null };
 
-export function PhoneRequestForm({ onDone }: { onDone: (code: string) => void }) {
+export function PhoneRequestForm({ onDone, smsLive = false }: { smsLive?: boolean; onDone: (code: string) => void }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
@@ -82,7 +82,7 @@ export function PhoneRequestForm({ onDone }: { onDone: (code: string) => void })
     setErr(null);
     const body: Record<string, unknown> = {
       first_name_last_initial: name.trim(), phone, pickup_address: address.trim(), zip,
-      ride_day: day, pickup_time: hour, round_trip: roundTrip, needs, texts_ok: textsOk,
+      ride_day: day, pickup_time: hour, round_trip: roundTrip, needs, texts_ok: smsLive && textsOk,
     };
     if (!isElection && siteId) body.destination_site_id = siteId;
     if (isElection && ward && precinct) { body.ward = ward; body.precinct = precinct; }
@@ -155,7 +155,7 @@ export function PhoneRequestForm({ onDone }: { onDone: (code: string) => void })
           <Chip key={k} small active={needs.includes(k)} onClick={() => setNeeds((n) => (n.includes(k) ? n.filter((x) => x !== k) : [...n, k]))}>{l}</Chip>
         ))}
       </div>
-      <Toggle checked={textsOk} onChange={setTextsOk} label="Text them ride updates" />
+      {smsLive && <Toggle checked={textsOk} onChange={setTextsOk} label="Text them ride updates" />}
       {err && <p className="text-sm text-[hsl(var(--rides-amber))]">{err}</p>}
       <button className="w-full rounded-xl bg-[hsl(var(--rides-green))] py-3 font-semibold text-[hsl(var(--rides-bg))] disabled:opacity-40" disabled={!ok || busy} onClick={send}>
         {busy ? "Saving" : "Save phone request"}

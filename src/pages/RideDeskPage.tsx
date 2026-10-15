@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -45,7 +46,7 @@ export default function RideDeskPage() {
   return <Desk />;
 }
 
-function AdminTools() {
+function AdminTools({ settings, onSettings }: { settings: Settings; onSettings: (s: Settings) => void }) {
   const { user } = useAuth();
   const [admin, setAdmin] = useState(false);
   useEffect(() => {
@@ -56,6 +57,7 @@ function AdminTools() {
     <>
       <Link to="/rides/demo" className="mt-6 inline-flex min-h-11 items-center font-semibold text-primary underline">Open demo flow</Link>
       <Link to="/rides/desk/rights" className="mt-8 block rounded-2xl border border-[hsl(var(--rides-ink)/0.2)] p-4 font-semibold">Review rights questions</Link>
+      <Button role="switch" aria-checked={settings.sms_live} variant="outline" className="mt-4" onClick={async () => { const { data, error } = await supabase.from("ride_settings").update({ sms_live: !settings.sms_live }).eq("id", true).select("*").single(); if (!error && data) onSettings(data); }}>Texting {settings.sms_live ? "on" : "off"}</Button>
       <CoordinatorsPanel />
       <PrecinctMapRefresh />
     </>
@@ -172,6 +174,7 @@ function Desk() {
         </div>
       </div>
 
+      {!settings.sms_live && <p role="status" className="mt-4 text-primary">Texting is off. Call riders to confirm.</p>}
       <section className="mt-6 grid gap-4 rounded-3xl bg-[hsl(var(--rides-ink)/0.05)] p-5 md:grid-cols-[2fr_1fr_1fr_1fr]">
         <div>
           <p className="font-heading text-4xl">Scheduled {dollars(budget.scheduledCents)} of {dollars(settings.budget_cents)}</p>
@@ -191,7 +194,7 @@ function Desk() {
           return (
             <div key={status} className="w-[82vw] shrink-0 snap-start space-y-3 md:w-auto">
               <h2 className="flex justify-between font-semibold"><span>{title}</span><span className="text-[hsl(var(--rides-ink)/0.6)]">{list.length}</span></h2>
-              {list.map((r) => <Card key={r.id} r={r} />)}
+              {list.map((r) => <div key={r.id}><Card r={r}/><a className="inline-flex min-h-11 items-center text-sm text-primary underline" href={telHref(r.phone)}>{fmtPhone(r.phone)}</a></div>)}
               {list.length === 0 && <p className="rounded-2xl border border-dashed border-[hsl(var(--rides-ink)/0.15)] p-4 text-sm text-[hsl(var(--rides-ink)/0.5)]">None right now.</p>}
             </div>
           );
@@ -205,7 +208,7 @@ function Desk() {
         {showClosed && <div className="mt-3 grid gap-3 md:grid-cols-4">{closed.map((r) => <div key={r.id}><span className={plain}>{r.status === "referred" ? "Referred" : "Cancelled"}</span><div className="mt-1"><Card r={r} /></div></div>)}</div>}
       </section>
 
-      <AdminTools />
+      <AdminTools settings={settings} onSettings={setSettings} />
       <Waitlist freed={closed.filter((r) => r.status === "cancelled").length} />
 
 
@@ -247,7 +250,7 @@ function Desk() {
       <Sheet open={panel !== null} onOpenChange={(o) => !o && setPanel(null)}>
         <SheetContent side={sheetSide} className={sheetCls}>
           <SheetTitle className="sr-only">{panel === "phone" ? "Log a phone request" : "WIP report"}</SheetTitle>
-          {panel === "phone" && <PhoneRequestForm onDone={() => { setPanel(null); load(); }} />}
+          {panel === "phone" && <PhoneRequestForm smsLive={settings.sms_live} onDone={() => { setPanel(null); load(); }} />}
           {panel === "report" && <Report rides={rides} settings={settings} svcDays={svcDays} unmet={unmet} />}
         </SheetContent>
       </Sheet>

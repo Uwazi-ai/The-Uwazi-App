@@ -1,4 +1,5 @@
 export type RiderCard = {
+  sms_live?: boolean;
   ride_code: string; ride_day: string; pickup_time: string; round_trip: boolean;
   status: string; trip_stage: number; needs_destination: boolean; referred?: boolean;
   destination: { name: string; address: string; state?: string } | null;

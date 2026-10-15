@@ -8,3 +8,7 @@
 <!-- LOVABLE:BEGIN -->
 - AppLayout keeps the content column as the vertical scroll container and avoids overflow-x-hidden on main. Why: main's overflow traps long pages on phones and hides actions.
 <!-- LOVABLE:END -->
+
+- Ride texting is gated by admin-only ride_settings.sms_live; shared senders fail closed before claims, delivery logs or provider requests. Why: paused messaging must not promise or attempt delivery.
+- Rider rights PNGs use the same DOM-to-PNG renderer as completion sharing and contain only reviewed takeaways. Why: saved cards never expose rider data.
+- Legal ride copy must never claim that a rider voted or voted with UWAZI; use "I rode to the polls with UWAZI". Why: travel does not establish a voting outcome.

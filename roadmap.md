@@ -66,3 +66,8 @@
 - [x] Put compact analytics first with an actual refresh timestamp and optional extra metrics.
 - [x] Add URL-persistent People, Research, Content, and Platform tabs with tools opened on demand and unsaved-edit protection.
 - [x] Verify the overview and all nine tool selections with an authorized admin session, keyboard navigation, reload and Back, narrow layout, and 11 passing focused tests.
+
+## Ride texting pause sprint
+- [ ] Gate all ride senders and public copy with admin-only sms_live.
+- [ ] Save rights takeaways as PNG, audit legal copy, and set demo distance to 0.9 mi.
+- [ ] Verify phone booking and demo screens 4, 5, 6, 10, 12, clean test data and reset codes.

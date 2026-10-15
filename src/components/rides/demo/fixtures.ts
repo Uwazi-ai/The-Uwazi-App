@@ -1,5 +1,5 @@
 import type { RiderCard, RightsQuestion } from '@/lib/rideExperience';
-export const demoCard: RiderCard = {ride_code:'UZ-1001',ride_day:'2026-10-27',pickup_time:'11:00',round_trip:true,status:'booked',trip_stage:0,needs_destination:false,destination:{name:'Garrison Community Center',address:'1124 E. 5th St',state:'MO'},ride_line_phone:'8163796885',provider:'ztrip',quiz_score:7};
+export const demoCard: RiderCard = {sms_live:false,ride_code:'UZ-1001',ride_day:'2026-10-27',pickup_time:'11:00',round_trip:true,status:'booked',trip_stage:0,needs_destination:false,destination:{name:'Garrison Community Center',address:'1124 E. 5th St',state:'MO'},ride_line_phone:'8163796885',provider:'ztrip',quiz_score:7};
 export const demoClock = new Date('2026-10-25T16:00:00Z');
 export const demoQuestions: RightsQuestion[] = [
  {id:'demo-1',sort:1,question:'What do you need to show to get a regular ballot?',options:['A photo ID','A utility bill','Nothing at all'],correct_index:0,title:'Bring a photo ID.',explanation:'Missouri asks for a photo ID from Missouri or the federal government. A driver or nondriver license, a U.S. passport, or a military or veteran ID all work.',takeaway:'Bring a photo ID'},

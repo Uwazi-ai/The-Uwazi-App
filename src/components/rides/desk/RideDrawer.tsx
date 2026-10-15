@@ -196,7 +196,7 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
         {ride.status === "booked" && ride.trip_stage === 0 && !pickupConfirmed && (
           <div className="space-y-2 rounded-2xl border border-[hsl(var(--rides-green)/0.5)] p-4">
             <h3 className="font-semibold">Confirm pickup</h3>
-            <p className="text-sm text-[hsl(var(--rides-ink)/0.7)]">Tap this once zTrip tells you the driver accepted the pickup. The rider gets a final text.</p>
+            <p className="text-sm text-[hsl(var(--rides-ink)/0.7)]">Tap this once zTrip tells you the driver accepted the pickup. {settings.sms_live?'The rider gets a final text.':'Call the rider to confirm. Their ride card shows updates.'}</p>
             <button className={green} disabled={busy} onClick={confirmPickup}>Driver confirmed pickup</button>
           </div>
         )}
@@ -240,7 +240,7 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
       </section>
 
       <section className="space-y-2">
-        {ride.texts_ok && <button className={ghost} disabled={busy} onClick={() => run(() => text("request_received"))}>Text rider link</button>}
+        {settings.sms_live && ride.texts_ok && <button className={ghost} disabled={busy} onClick={() => run(() => text("request_received"))}>Text rider link</button>}
         <button className={ghost} onClick={copyLink}>{copied ? "Rider link copied" : "Copy rider link"}</button>
         <p className="break-all text-xs text-[hsl(var(--rides-ink)/0.55)]">{riderLink}</p>
         {ride.quiz_finished_at && <p className="text-sm">Rights quiz {Number(ride.quiz_score)}/8</p>}

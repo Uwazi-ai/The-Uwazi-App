@@ -10,6 +10,7 @@ type Day = { day: string; dow: number; kind: "early" | "election_day"; open: boo
 type Hour = { hour: string; seats_left: number; too_soon: boolean; bookable: boolean };
 type Site = { id: string; name: string; address: string; open: string; close: string; distance_mi: number | null };
 type Avail = {
+  sms_live: boolean;
   days: Day[];
   sites?: Site[];
   hours?: Hour[];
@@ -151,7 +152,7 @@ export default function RidesPage() {
       pickup_time: hour,
       round_trip: roundTrip,
       needs,
-      texts_ok: textsOk,
+      texts_ok: avail?.sms_live === true && textsOk,
       source: "web",
     };
     if (kind === "early" && siteId) body.destination_site_id = siteId;
@@ -175,7 +176,7 @@ export default function RidesPage() {
   };
 
   const data = avail as (Avail & { election_day_place?: { name:string;address:string }; precinct_key?:string }) | null;
-  return <RideRequestView step={step} address={address} zip={zip} name={name} phone={phone} needs={needs} textsOk={textsOk} roundTrip={roundTrip} kind={kind} day={day} hour={hour} siteId={siteId} days={avail?.days??[]} sites={sites??[]} hours={hours} pollingPlace={data?.election_day_place} precinct={data?.precinct_key} eligible={areaEligible} checking={checking} sending={sending} error={areaError??formError??Object.values(errors)[0]} canNext={canNext}
+  return <RideRequestView smsLive={avail?.sms_live === true} step={step} address={address} zip={zip} name={name} phone={phone} needs={needs} textsOk={textsOk} roundTrip={roundTrip} kind={kind} day={day} hour={hour} siteId={siteId} days={avail?.days??[]} sites={sites??[]} hours={hours} pollingPlace={data?.election_day_place} precinct={data?.precinct_key} eligible={areaEligible} checking={checking} sending={sending} error={areaError??formError??Object.values(errors)[0]} canNext={canNext}
     onStep={setStep} onAddress={v=>{setAddress(v);setAreaEligible(false);setAreaError(null);}} onZip={v=>{setZip(v);setAreaEligible(false);setAreaError(null);}} onName={setName} onPhone={setPhone} onNeeds={setNeeds} onTexts={setTextsOk} onRoundTrip={setRoundTrip}
     onKind={k=>{setKind(k);setListDay(null);setDay(k==='election_day'?avail?.election_day??null:null);setHour(null);}} onDay={d=>{setListMsg(null);setHour(null);if(d.open){setListDay(null);setDay(d.day);}else{setDay(null);setListDay(d);}}} onSite={id=>{setSiteId(id);setHour(null);}} onHour={setHour}
     onContinue={()=>{if(step===1&&!areaEligible){void checkArea();return;}setStep(step===2?4:step+1);}} onSend={()=>void send()} listDay={listDay} listPhone={listPhone} listMessage={listMsg} listDone={listDay?listDone.has(listDay.day):false} onListPhone={setListPhone} onJoinList={()=>void joinDay()}/>;
