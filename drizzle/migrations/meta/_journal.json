@@ -148,6 +148,13 @@
       "when": 1792080699979,
       "tag": "0020_rider_experience_rating_and_sms",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1792081181212,
+      "tag": "0021_guard_rider_experience_writes",
+      "breakpoints": true
     }
   ]
 }
