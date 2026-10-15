@@ -17,18 +17,18 @@ import {
 
 const navItems = [
   { to: "/app", icon: HomeIcon, label: "Home" },
-  { to: "/app/learn", icon: LearnIcon, label: "Learn" },
-  { to: "/app/watch", icon: WatchIcon, label: "Watch" },
-  { to: "/app/ask", icon: AskUwaziIcon, label: "Ask" },
-  { to: "/app/vote", icon: VotingHubIcon, label: "Vote" },
+  { to: "/app/vote", icon: VotingHubIcon, label: "Voting hub" },
+  { to: POLL_RIDES_LIVE ? "/rides" : "/rides/waitlist", icon: Car, label: "Free Rides" },
+  { to: "/app/ask", icon: AskUwaziIcon, label: "Ask Uwazi" },
   { to: "/app/compass", icon: Compass, label: "Compass" },
+  { to: "/app/progress", icon: ProgressIcon, label: "Progress" },
 ];
 
 const drawerItems = [
+  { to: "/app/learn", icon: LearnIcon, label: "Learn" },
+  { to: "/app/watch", icon: WatchIcon, label: "Watch" },
   { to: "/app/my-city", icon: Building2, label: "My City", premium: true },
-  { to: POLL_RIDES_LIVE ? "/rides" : "/rides/waitlist", icon: Car, label: "Free Rides" },
   { to: "/app/settings", icon: User, label: "You" },
-  { to: "/app/progress", icon: ProgressIcon, label: "Progress" },
   { to: "/app/saved", icon: SavedIcon, label: "Saved" },
   { to: "/app/settings", icon: SettingsIcon, label: "Settings" },
 ];
@@ -51,14 +51,16 @@ export function MobileNav() {
         paddingBottom: "max(8px, env(safe-area-inset-bottom))",
       }}
     >
-      <div className="flex items-center justify-around px-2 h-16">
+      <div className="grid grid-cols-7 items-center px-2 h-16">
         {navItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
+            aria-label={item.label}
+            title={item.label}
             end={item.to === "/app"}
             className={({ isActive }) =>
-              `bottom-nav-item flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-medium tracking-[0.02em] transition-all duration-150 ${
+              `bottom-nav-item flex min-w-0 h-11 justify-center flex-col items-center gap-1 px-1 py-1.5 rounded-xl text-[10px] font-medium tracking-[0.02em] transition-all duration-150 ${
                 isActive ? "active text-primary" : "text-muted-foreground"
               }`
             }
@@ -78,7 +80,8 @@ export function MobileNav() {
               type="button"
               variant="ghost"
               aria-label="Open navigation menu"
-              className={`bottom-nav-item flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-medium tracking-[0.02em] transition-all duration-150 ${
+              title="Menu"
+              className={`bottom-nav-item flex min-w-0 h-11 justify-center flex-col items-center gap-1 px-1 py-1.5 rounded-xl text-[10px] font-medium tracking-[0.02em] transition-all duration-150 ${
                 open ? "active text-primary" : "text-muted-foreground"
               }`}
             >
