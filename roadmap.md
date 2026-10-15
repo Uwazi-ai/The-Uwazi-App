@@ -50,6 +50,9 @@
 - [ ] Pass 3: poll ride teaser slot
 
 ## Rides to the Polls
+- [ ] Build booked rider screens, accessible once-only stage sheets, quiz completion, private rating and rights-card text actions.
+- [ ] Build server-authorized, fixture-only marketing demo and verify no ride requests or persistent demo data.
+- [ ] Verify rider states, accessibility, sharing privacy and report ratings. Captures wait for visual approval.
 - [ ] User to add BIRD_API_KEY + BIRD_SENDER in Project Settings → Secrets, then send one real test text to their number
 - [x] Bird webhook secret saved (as STRIPE_WEBHOOK_SECRET); bird-inbound now reads it
 - [ ] User to point Bird inbound messages to the bird-inbound webhook URL in the Bird dashboard
