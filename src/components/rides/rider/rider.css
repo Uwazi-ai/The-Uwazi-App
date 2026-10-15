@@ -4,6 +4,8 @@
 @font-face { font-family: Inter; src: url('/fonts/Inter-700.ttf') format('truetype'); font-weight:700; font-display:swap; }
 :root { --rider-bg:0 0% 3.92%; --rider-surface:0 0% 7.06%; --rider-cell:0 0% 10.2%; --rider-green:86.47 60.71% 56.08%; --rider-ink:240 4% 79.22%; --rider-heading:0 0% 98%; --rider-muted:240 5.2% 64.9%; --rider-blue:203.47 79.66% 36.86%; --rider-blue-panel:204 64.86% 14.51%; --rider-blue-label:205.71 74.39% 74.9%; --rider-amber:37.03 91.67% 55.1%; --rider-border:0 0% 100%; --rider-overlay:0 0% 0%; }
 .rider-experience { font-family:Inter,sans-serif; background:hsl(var(--rider-bg)); color:hsl(var(--rider-ink)); --border:0 0% 16%; --foreground:var(--rider-heading); }
+.rider-rights-download { position:absolute; left:-10000px; top:0; width:390px; padding:28px; }
+.rider-rights-download p { margin-top:20px; line-height:1.5; }
 .rider-experience .font-heading { font-family:Axis,sans-serif; text-transform:uppercase; letter-spacing:0; color:hsl(var(--rider-heading)); font-weight:800; line-height:1.1; }
 .rider-header { position:fixed; top:0; left:0; right:0; height:64px; z-index:100; background:hsl(var(--rider-bg)); border-bottom:1px solid hsl(var(--rider-border)/.08); display:flex; align-items:center; justify-content:space-between; padding:0 24px; }
 .rider-header img { height:24px; width:auto; }
