@@ -1,10 +1,13 @@
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
+import { POLL_RIDES_LIVE } from "@/hooks/useVotingRights";
 import { PollRideTeaser } from "@/components/home/PollRideTeaser";
 import { RidesAppShell } from "@/components/rides/RidesAppShell";
 
 export default function RideWaitlistPage() {
   useEffect(() => { document.title = "Free rides to the polls | UWAZI"; }, []);
+  // The general waitlist goes away once rides are on. Day lists live on /rides.
+  if (POLL_RIDES_LIVE) return <Navigate to="/rides" replace />;
   return (
     <RidesAppShell>
       <div className="mx-auto flex max-w-md flex-col gap-5 px-4 py-8">
