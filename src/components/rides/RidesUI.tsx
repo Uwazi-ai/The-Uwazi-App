@@ -65,7 +65,8 @@ export function fmtDay(day: string) {
 
 export function fmtHour(h: string) {
   const n = Number(h.slice(0, 2));
-  return `${n % 12 || 12} ${n < 12 ? "AM" : "PM"}`;
+  const m = h.slice(3, 5);
+  return `${n % 12 || 12}${m && m !== "00" ? `:${m}` : ""} ${n < 12 ? "AM" : "PM"}`;
 }
 
 export function phoneDigits(p?: string | null) {

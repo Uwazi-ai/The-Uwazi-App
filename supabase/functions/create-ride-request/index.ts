@@ -3,9 +3,9 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.23.8";
-import { pickupHours } from "../_shared/rides.ts";
+import { loadServiceDays, siteFitsWave, waveLoads, WAVE_FULL_MSG, WAVE_SITE_MSG } from "../_shared/rides.ts";
 import { sendRideSms } from "../_shared/ride-sms.ts";
-import { miles, openSites, siteFits } from "../_shared/ride-sites.ts";
+import { miles, openSites } from "../_shared/ride-sites.ts";
 import { pollingPlaceFor } from "../_shared/kceb-precincts.ts";
 import { checkEligibility, LOOKUP_FAILED_MSG, OUT_OF_AREA_MSG } from "../_shared/ride-eligibility.ts";
 
@@ -17,7 +17,7 @@ const Body = z.object({
   pickup_address: z.string().trim().min(5).max(200),
   zip: z.string().trim().regex(/^\d{5}$/),
   ride_day: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  pickup_time: z.string().regex(/^\d{2}:00$/),
+  pickup_time: z.string().regex(/^\d{2}:\d{2}$/),
   round_trip: z.boolean().default(true),
   needs: z.array(z.enum(NEEDS)).max(7).default([]),
   texts_ok: z.boolean().default(false),
@@ -73,26 +73,23 @@ Deno.serve(async (req) => {
   const isEarly = b.ride_day >= settings.early_start && b.ride_day <= settings.early_end;
   if (!isElectionDay && !isEarly) return json({ error: "Pick a day during early voting or Election Day." }, 400);
 
-  const dow = new Date(`${b.ride_day}T12:00:00Z`).getUTCDay();
-  const hour = Number(b.pickup_time.slice(0, 2));
-  // Pickup windows leave room for the ride home.
-  const okHour = pickupHours(b.ride_day, settings, b.zip).includes(hour);
-  const { data: blocks } = await db.from("driver_blocks").select("start_time,end_time").eq("day_of_week", dow).eq("active", true);
-  const inBlock = (blocks ?? []).some((x) => b.pickup_time + ":00" >= x.start_time && b.pickup_time + ":00" < x.end_time);
-  if (!okHour || !inBlock) return json({ error: "That pickup time is not available. Pick another hour." }, 400);
+  // Locked schedule: only ride_service_days, only their wave times.
+  const svc = (await loadServiceDays(db)).get(b.ride_day);
+  if (!svc || !svc.waves.includes(b.pickup_time)) return json({ error: "That pickup time is not available. Pick another time." }, 400);
 
   const pickup = new Date(`${b.ride_day}T${b.pickup_time}:00`);
   if (pickup.getTime() - centralNow().getTime() < 24 * 36e5) {
     return json({ error: "Rides must be booked at least 24 hours ahead." }, 400);
   }
 
-  const { count: slotCount } = await db.from("ride_requests").select("id", { count: "exact", head: true })
-    .eq("ride_day", b.ride_day).eq("pickup_time", b.pickup_time + ":00").neq("status", "cancelled").neq("status", "referred");
-  if ((slotCount ?? 0) >= settings.seats_per_slot) return json({ error: "That hour is full. Pick another hour." }, 409);
-
-  const { count: funded } = await db.from("ride_requests").select("id", { count: "exact", head: true })
-    .in("status", ["requested", "booked", "riding", "completed"]);
-  const referred = (funded ?? 0) >= settings.funded_cap;
+  const wave = (await waveLoads(db, b.ride_day)).get(`${b.ride_day} ${b.pickup_time}`) ?? { count: 0, site_id: null };
+  const turnAway = async () => {
+    await db.from("ride_turnaways").insert({ ride_day: b.ride_day, pickup_time: b.pickup_time, source: "web" });
+    return json({ error: WAVE_FULL_MSG, code: "full" }, 409);
+  };
+  if (wave.count >= settings.seats_per_slot) return await turnAway();
+  // The budget covers scheduled driver blocks, so no ride is referred for cost.
+  const referred = false;
 
   // Destination: only verified sites, never invented.
   let site: { id: string; name: string; address: string } | null = null;
@@ -104,10 +101,12 @@ Deno.serve(async (req) => {
   if (elig.status === "lookup_failed") return json({ error: LOOKUP_FAILED_MSG, code: "lookup_failed" }, 400);
   if (isEarly) {
     // Only the KCEB early sites, open at pickup and 1 hour after.
-    const open = (await openSites(db, b.ride_day)).filter((x) => siteFits(x, hour));
+    const open = (await openSites(db, b.ride_day)).filter((x) => siteFitsWave(x, b.pickup_time))
+      // An early wave goes to one site: the first booking sets it.
+      .filter((x) => !wave.site_id || x.id === wave.site_id);
     if (b.destination_site_id) {
       const pick = open.find((x) => x.id === b.destination_site_id);
-      if (!pick) return json({ error: "That voting place is not open at that time. Pick another place or hour." }, 400);
+      if (!pick) return json({ error: wave.site_id ? WAVE_SITE_MSG : "That voting place is not open at that time. Pick another place or time." }, wave.site_id ? 409 : 400);
       site = pick;
     } else if (open.length && elig.status === "eligible") {
       site = open
@@ -116,7 +115,7 @@ Deno.serve(async (req) => {
     } else if (open.length) {
       return json({ error: "Please pick a voting place." }, 400);
     } else {
-      return json({ error: "No early voting place is open at that time. Pick another day or hour." }, 400);
+      return json({ error: wave.site_id ? WAVE_SITE_MSG : "No early voting place is open at that time. Pick another day or time." }, wave.site_id ? 409 : 400);
     }
   } else if (b.destination_site_id) {
     const { data } = await db.from("voter_guide_sites").select(siteCols).eq("id", b.destination_site_id)
@@ -146,6 +145,8 @@ Deno.serve(async (req) => {
     source: b.source,
     status: referred ? "referred" : "requested",
   }).select("id,ride_code,card_token").single();
+  if (error?.message?.includes("wave_full")) return await turnAway();
+  if (error?.message?.includes("wave_site")) return json({ error: WAVE_SITE_MSG, code: "wave_site" }, 409);
   if (error || !row) {
     console.error("ride insert failed", error);
     return json({ error: "We could not save your ride. Please call the ride line." }, 500);

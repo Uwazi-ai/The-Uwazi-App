@@ -12,8 +12,8 @@ import { CoordinatorsPanel } from "@/components/rides/desk/CoordinatorsPanel";
 import { PrecinctMapRefresh } from "@/components/rides/desk/PrecinctMapRefresh";
 import { Link } from "react-router-dom";
 import {
-  FUNDED, NEED_LABELS, avgWait, driverCost, driverDays, fmtWait, reportCsv, tripGroups,
-  type Block, type Ride, type Settings,
+  FUNDED, NEED_LABELS, avgWait, budgetStats, dollars, fmtWait, reportCsv, tripGroups, weekCompare, ztrip,
+  type Ride, type ServiceDay, type Settings, type Unmet,
 } from "@/components/rides/desk/deskLib";
 
 const COLUMNS = [
@@ -76,8 +76,8 @@ function Desk() {
   const isMobile = useIsMobile();
   const [rides, setRides] = useState<Ride[]>([]);
   const [settings, setSettings] = useState<Settings | null>(null);
-  const [blocks, setBlocks] = useState<Block[]>([]);
-  const [siteDays, setSiteDays] = useState<Set<string>>(new Set());
+  const [svcDays, setSvcDays] = useState<ServiceDay[]>([]);
+  const [unmet, setUnmet] = useState<Unmet[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
   const [panel, setPanel] = useState<"phone" | "report" | null>(null);
   const [showClosed, setShowClosed] = useState(false);
@@ -98,8 +98,8 @@ function Desk() {
   useEffect(() => {
     load();
     supabase.from("ride_settings").select("*").eq("id", true).single().then(({ data }) => setSettings(data));
-    supabase.from("driver_blocks").select("*").then(({ data }) => setBlocks(data ?? []));
-    supabase.from("ride_site_hours").select("open_date").then(({ data }) => setSiteDays(new Set((data ?? []).map((r) => r.open_date))));
+    supabase.from("ride_service_days").select("*").order("service_date").then(({ data }) => setSvcDays(data ?? []));
+    supabase.rpc("ride_unmet_demand").then(({ data }) => setUnmet(((data ?? []) as unknown as Unmet[]).map((u) => ({ ...u, n: Number(u.n) }))));
     const ch = supabase
       .channel(`ride-desk-${Math.random().toString(36).slice(2, 8)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "ride_requests" }, () => load())
@@ -117,13 +117,12 @@ function Desk() {
     });
   };
 
-  const fundedBooked = rides.filter((r) => FUNDED.includes(r.status)).length;
   const groups = useMemo(() => tripGroups(rides), [rides]);
   const current = rides.find((r) => r.id === openId) ?? null;
   const closed = rides.filter((r) => r.status === "referred" || r.status === "cancelled");
 
   if (!settings) return <Frame><p>Loading the ride desk.</p></Frame>;
-  const cap = settings.funded_cap;
+  const budget = budgetStats(rides, svcDays, settings.seats_per_slot);
 
   const Card = ({ r }: { r: Ride }) => {
     const waiting = r.status === "requested" && now - new Date(r.created_at).getTime() > 30 * 60000;
@@ -174,14 +173,14 @@ function Desk() {
 
       <section className="mt-6 grid gap-4 rounded-3xl bg-[hsl(var(--rides-ink)/0.05)] p-5 md:grid-cols-[2fr_1fr_1fr_1fr]">
         <div>
-          <p className="font-heading text-4xl">{fundedBooked} of {cap}</p>
-          <p className="text-sm text-[hsl(var(--rides-ink)/0.7)]">Funded round trips booked</p>
+          <p className="font-heading text-4xl">Scheduled {dollars(budget.scheduledCents)} of {dollars(settings.budget_cents)}</p>
+          <p className="text-sm text-[hsl(var(--rides-ink)/0.7)]">Driver budget. Only zTrip rides count.</p>
           <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-[hsl(var(--rides-ink)/0.12)]">
-            <div className="h-full rounded-full bg-[hsl(var(--rides-green))]" style={{ width: `${Math.min(100, (fundedBooked / Math.max(1, cap)) * 100)}%` }} />
+            <div className="h-full rounded-full bg-[hsl(var(--rides-green))]" style={{ width: `${Math.min(100, (budget.scheduledCents / Math.max(1, settings.budget_cents)) * 100)}%` }} />
           </div>
         </div>
-        <Stat n={rides.filter((r) => r.status === "requested").length} l="Waiting to book" />
-        <Stat n={rides.filter((r) => r.status === "completed").length} l="Trips completed" />
+        <Stat n={`${budget.seatsBooked} of ${budget.seatsTotal}`} l="Seats booked" />
+        <Stat n={budget.completed} l="Rides completed" />
         <Stat n={fmtWait(avgWait(rides))} l="Average wait to book" />
       </section>
 
@@ -211,14 +210,16 @@ function Desk() {
 
       <section className="mt-8">
         <h2 className="font-heading text-2xl">Trips to send zTrip</h2>
-        <p className="mb-3 text-sm text-[hsl(var(--rides-ink)/0.7)]">Riders with the same day, hour and voting place share one trip.</p>
+        <p className="mb-3 text-sm text-[hsl(var(--rides-ink)/0.7)]">Each pickup time is one car with up to {settings.seats_per_slot} riders. Early voting cars go to one place. Election Day cars may stop at more than one.</p>
         {groups.length === 0 && <p className="text-sm">No active rides yet.</p>}
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {groups.map((g) => (
             <div key={g.key} className="space-y-2 rounded-2xl border border-[hsl(var(--rides-ink)/0.15)] p-4">
               <p className="font-semibold">{fmtDay(g.day)}, {fmtHour(g.time)}</p>
-              <p className="text-sm">{g.destId ? g.destName : <span className={amber}>Needs voting place</span>}</p>
-              <p className="text-sm">{g.rides.length} of {settings.seats_per_slot} riders. {g.rides.length > 1 ? "One multi-pickup trip" : "Single pickup"}</p>
+              <ul className="space-y-0.5 text-sm">
+                {g.stops.map((x, i) => <li key={String(x.id)}>{g.stops.length > 1 ? `Stop ${i + 1}: ` : ""}{x.id ? x.name : <span className={amber}>Needs voting place</span>}</li>)}
+              </ul>
+              <p className="text-sm">{g.rides.length} of {settings.seats_per_slot} riders. {g.rides.length > 1 ? "One multi pickup trip" : "Single pickup"}</p>
               <p className="text-sm text-[hsl(var(--rides-ink)/0.75)]">{g.rides.map((r) => r.first_name_last_initial).join(", ")}</p>
               {g.conflict && (
                 <p className="rounded-xl bg-[hsl(var(--rides-amber)/0.15)] p-2 text-xs text-[hsl(var(--rides-amber))]">
@@ -238,7 +239,7 @@ function Desk() {
               Texts paused. This rider replied STOP. Call them instead. They can reply START to get texts again.
             </p>
           )}
-          {current && <RideDrawer key={current.id + current.status + current.trip_stage + String(current.destination_site_id)} ride={current} settings={settings} fundedBooked={fundedBooked} onClose={() => setOpenId(null)} />}
+          {current && <RideDrawer key={current.id + current.status + current.trip_stage + String(current.destination_site_id)} ride={current} settings={settings} fundedBooked={budget.seatsBooked} onClose={() => setOpenId(null)} />}
         </SheetContent>
       </Sheet>
 
@@ -246,7 +247,7 @@ function Desk() {
         <SheetContent side={sheetSide} className={sheetCls}>
           <SheetTitle className="sr-only">{panel === "phone" ? "Log a phone request" : "WIP report"}</SheetTitle>
           {panel === "phone" && <PhoneRequestForm onDone={() => { setPanel(null); load(); }} />}
-          {panel === "report" && <Report rides={rides} settings={settings} blocks={blocks} siteDays={siteDays} />}
+          {panel === "report" && <Report rides={rides} settings={settings} svcDays={svcDays} unmet={unmet} />}
         </SheetContent>
       </Sheet>
     </Frame>
@@ -262,12 +263,16 @@ function Stat({ n, l }: { n: number | string; l: string }) {
   );
 }
 
-function Report({ rides, settings, blocks, siteDays }: { rides: Ride[]; settings: Settings; blocks: Block[]; siteDays: Set<string> }) {
-  const days = driverDays(settings, blocks, siteDays);
-  const { hours, cost } = driverCost(days, Number(settings.driver_rate));
+function Report({ rides, settings, svcDays, unmet }: { rides: Ride[]; settings: Settings; svcDays: ServiceDay[]; unmet: Unmet[] }) {
+  const b = budgetStats(rides, svcDays, settings.seats_per_slot);
+  const z = ztrip(rides);
+  const sum = (reason: string, day?: string) => unmet.filter((u) => u.reason === reason && (!day || u.requested_date === day)).reduce((a, u) => a + u.n, 0);
+  const unmetDays = [...new Set(unmet.filter((u) => u.reason !== "turned_away").map((u) => u.requested_date ?? ""))].filter(Boolean).sort();
+  const [w20, w27] = weekCompare(rides, "2026-10-20", "2026-10-27");
+  const [w22, w29] = weekCompare(rides, "2026-10-22", "2026-10-29");
   const rows: [string, string | number][] = [
     ["Ride requests received", rides.length],
-    ["Funded round trips booked", `${rides.filter((r) => FUNDED.includes(r.status)).length} of ${settings.funded_cap}`],
+    ["Seats booked", `${b.seatsBooked} of ${b.seatsTotal}`],
     ["Trips completed", rides.filter((r) => r.status === "completed").length],
     ["Requests by phone", rides.filter((r) => r.source === "phone").length],
     ["Riders with access needs", rides.filter((r) => r.needs.length > 0).length],
@@ -275,11 +280,22 @@ function Report({ rides, settings, blocks, siteDays }: { rides: Ride[]; settings
     ["Needs voting place", rides.filter((r) => r.needs_destination && !["cancelled", "referred"].includes(r.status)).length],
     ["Finished the rights quiz", rides.filter((r) => r.quiz_finished_at).length],
     ["Average wait to book", fmtWait(avgWait(rides))],
-    ["Driver days scheduled", days.length],
-    ["Estimated driver cost", `$${cost.toLocaleString()} for ${hours} hours at $${Number(settings.driver_rate)}/hr`],
+    ["Rides not by zTrip (not in budget)", rides.length - z.length],
+    ["Driver days scheduled", svcDays.length],
+    ["Scheduled driver cost", `${dollars(b.scheduledCents)} of ${dollars(settings.budget_cents)}`],
+    ["Unmet demand, no driver", sum("no_driver")],
+    ["Unmet demand, full", sum("full")],
+    ...unmetDays.map((d) => [`Unmet demand ${d}`, `${sum("no_driver", d)} no driver, ${sum("full", d)} full`] as [string, string]),
+    ["Turned away when full", sum("turned_away")],
+    ["Riders per car", b.trips ? (b.completed / b.trips).toFixed(1) : "None yet"],
+    ["Cost per completed ride", b.completed ? dollars(Math.round(b.scheduledCents / b.completed)) : "None yet"],
+    ["Week 1 Oct 20", w20],
+    ["Week 2 Oct 27", w27],
+    ["Week 1 Oct 22", w22],
+    ["Week 2 Oct 29", w29],
   ];
   const download = () => {
-    const url = URL.createObjectURL(new Blob([reportCsv(rides)], { type: "text/csv" }));
+    const url = URL.createObjectURL(new Blob([reportCsv(rides, rows)], { type: "text/csv" }));
     const a = document.createElement("a");
     a.href = url;
     a.download = `ride-report-${new Date().toISOString().slice(0, 10)}.csv`;
@@ -294,7 +310,7 @@ function Report({ rides, settings, blocks, siteDays }: { rides: Ride[]; settings
           <div key={k} className="flex justify-between gap-4 py-2.5 text-sm"><dt>{k}</dt><dd className="text-right font-semibold">{v}</dd></div>
         ))}
       </dl>
-      <p className="text-xs text-[hsl(var(--rides-ink)/0.55)]">Weekdays count 7 driver hours. Saturdays count 4. The CSV has no names, phones or addresses.</p>
+      <p className="text-xs text-[hsl(var(--rides-ink)/0.55)]">Cost is the scheduled driver blocks. Riders per car is completed riders divided by trips sent. The CSV has no names, phones or addresses.</p>
       <button onClick={download} className="w-full rounded-xl bg-[hsl(var(--rides-green))] py-3 font-semibold text-[hsl(var(--rides-bg))]">Export CSV</button>
       <BirdEmailTest />
     </div>

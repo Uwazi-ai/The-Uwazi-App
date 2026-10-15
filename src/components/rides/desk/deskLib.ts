@@ -45,22 +45,28 @@ export function stageLabel(r: Ride) {
   return null;
 }
 
-export type Group = { key: string; day: string; time: string; destName: string; destId: string | null; rides: Ride[]; conflict: boolean };
+export type Stop = { id: string | null; name: string };
+export type Group = { key: string; day: string; time: string; destName: string; destId: string | null; stops: Stop[]; rides: Ride[]; conflict: boolean };
 
+// One trip per wave. Early waves go to one site. Election Day waves may stop at several polling places.
 export function tripGroups(rides: Ride[]): Group[] {
   const active = rides.filter((r) => r.status === "requested" || r.status === "booked");
   const map = new Map<string, Group>();
   for (const r of active) {
-    const key = `${r.ride_day}|${r.pickup_time}|${r.destination_site_id ?? "none"}`;
-    const g = map.get(key) ?? { key, day: r.ride_day, time: r.pickup_time, destName: r.site?.name ?? "Needs voting place", destId: r.destination_site_id, rides: [], conflict: false };
+    const key = `${r.ride_day}|${r.pickup_time}`;
+    const g = map.get(key) ?? { key, day: r.ride_day, time: r.pickup_time, destName: "", destId: null, stops: [], rides: [], conflict: false };
     g.rides.push(r);
+    const id = r.needs_destination ? null : r.destination_site_id;
+    if (!g.stops.some((x) => x.id === id)) g.stops.push({ id, name: id ? r.site?.name ?? "Voting place" : "Needs voting place" });
     map.set(key, g);
   }
   const groups = [...map.values()];
-  const perHour = new Map<string, number>();
-  groups.forEach((g) => perHour.set(`${g.day}|${g.time}`, (perHour.get(`${g.day}|${g.time}`) ?? 0) + 1));
-  groups.forEach((g) => (g.conflict = (perHour.get(`${g.day}|${g.time}`) ?? 0) > 1));
-  return groups.sort((a, b) => `${a.day}${a.time}`.localeCompare(`${b.day}${b.time}`) || a.destName.localeCompare(b.destName));
+  groups.forEach((g) => {
+    const known = g.stops.filter((x) => x.id);
+    g.destId = known.length === g.stops.length && known.length === 1 ? known[0].id : null;
+    g.destName = g.stops.map((x) => x.name).join(", ");
+  });
+  return groups.sort((a, b) => `${a.day}${a.time}`.localeCompare(`${b.day}${b.time}`));
 }
 
 function daysBetween(a: string, b: string) {
@@ -74,28 +80,43 @@ function daysBetween(a: string, b: string) {
   return out;
 }
 
-// A driver day is any ride day with an active driver block, and for early voting at least one open site.
-export function driverDays(s: Settings, blocks: Block[], siteDays: Set<string>) {
-  return daysBetween(s.early_start, s.election_day).filter((day) => {
-    const dow = new Date(`${day}T12:00:00Z`).getUTCDay();
-    if (!blocks.some((b) => b.active && b.day_of_week === dow)) return false;
-    return day === s.election_day || siteDays.has(day);
-  });
+export type ServiceDay = Tables<"ride_service_days">;
+export type Unmet = { requested_date: string | null; reason: string; n: number };
+
+// Only zTrip rides count against the budget.
+export const ztrip = (rides: Ride[]) => rides.filter((r) => (r.provider ?? "ztrip") === "ztrip");
+
+export function budgetStats(rides: Ride[], days: ServiceDay[], seatsPerWave: number) {
+  const z = ztrip(rides);
+  const scheduledCents = days.reduce((a, d) => a + d.cost_cents, 0);
+  const seatsTotal = days.reduce((a, d) => a + (d.wave_times?.length ?? 0) * seatsPerWave, 0);
+  const seatsBooked = z.filter((r) => ["requested", ...FUNDED].includes(r.status)).length;
+  const completed = z.filter((r) => r.status === "completed").length;
+  const trips = new Set(z.filter((r) => FUNDED.includes(r.status)).map((r) => `${r.ride_day}|${r.pickup_time}`)).size;
+  return { scheduledCents, seatsTotal, seatsBooked, completed, trips };
 }
 
-export function driverCost(days: string[], rate: number) {
-  const hours = days.reduce((a, d) => a + (new Date(`${d}T12:00:00Z`).getUTCDay() === 6 ? 4 : 7), 0);
-  return { hours, cost: hours * rate };
+export const dollars = (cents: number) => `$${(cents / 100).toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+
+export function weekCompare(rides: Ride[], a: string, b: string) {
+  const z = ztrip(rides);
+  const count = (day: string) => {
+    const d = z.filter((r) => r.ride_day === day && r.status !== "referred");
+    return `${d.length} requested, ${d.filter((r) => FUNDED.includes(r.status)).length} booked, ${d.filter((r) => r.status === "completed").length} completed`;
+  };
+  return [count(a), count(b)];
 }
 
-export function reportCsv(rides: Ride[]) {
-  const cols = ["ride_code", "source", "ride_day", "pickup_time", "destination", "round_trip", "needs", "status", "created_at", "booked_at", "completed_at", "wait_minutes"];
+export function reportCsv(rides: Ride[], summary: [string, string | number][] = []) {
+  const cols = ["ride_code", "source", "provider", "ride_day", "pickup_time", "destination", "round_trip", "needs", "status", "created_at", "booked_at", "completed_at", "wait_minutes"];
   const esc = (v: unknown) => {
-    const s = v == null ? "" : String(v);
+    let s = v == null ? "" : String(v);
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   const rows = rides.map((r) =>
-    [r.ride_code, r.source, r.ride_day, r.pickup_time.slice(0, 5), r.site?.name ?? "", r.round_trip, r.needs.join(" "), r.status, r.created_at, r.booked_at, r.completed_at, waitMinutes(r)].map(esc).join(","),
+    [r.ride_code, r.source, r.provider, r.ride_day, r.pickup_time.slice(0, 5), r.site?.name ?? "", r.round_trip, r.needs.join(" "), r.status, r.created_at, r.booked_at, r.completed_at, waitMinutes(r)].map(esc).join(","),
   );
-  return [cols.join(","), ...rows].join("\n");
+  const sum = summary.map(([k, v]) => [k, v].map(esc).join(","));
+  return [cols.join(","), ...rows, "", "metric,value", ...sum].join("\n");
 }

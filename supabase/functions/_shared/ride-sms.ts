@@ -25,7 +25,8 @@ const fmtDay = (d: string) =>
   new Date(`${d}T12:00:00Z`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" });
 const fmtTime = (t: string) => {
   const h = Number(t.slice(0, 2));
-  return `${h % 12 || 12} ${h < 12 ? "AM" : "PM"}`;
+  const m = t.slice(3, 5);
+  return `${h % 12 || 12}${m && m !== "00" ? `:${m}` : ""} ${h < 12 ? "AM" : "PM"}`;
 };
 
 export type SmsRide = {

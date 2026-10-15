@@ -47,3 +47,48 @@ export function allDays(settings: any): string[] {
 }
 
 export const ACTIVE_STATUSES = ["requested", "booked", "riding", "completed"];
+
+// Locked schedule: only ride_service_days are bookable, at their wave times.
+export type ServiceDay = { date: string; waves: string[]; note: string | null; cost_cents: number };
+
+export async function loadServiceDays(db: any): Promise<Map<string, ServiceDay>> {
+  const { data } = await db.from("ride_service_days").select("*");
+  return new Map((data ?? []).map((d: any) => [d.service_date, {
+    date: d.service_date,
+    waves: (d.wave_times ?? []).map((t: string) => String(t).slice(0, 5)),
+    note: d.note ?? null,
+    cost_cents: d.cost_cents ?? 0,
+  }]));
+}
+
+export const toMin = (t: string) => { const [h, m] = String(t).split(":").map(Number); return h * 60 + (m || 0); };
+
+// Site open at the wave and at least 1 hour after.
+export function siteFitsWave(site: { open: string; close: string }, wave: string) {
+  return toMin(site.open) <= toMin(wave) && toMin(site.close) >= toMin(wave) + 60;
+}
+
+export function waveTooSoon(day: string, wave: string) {
+  return new Date(`${day}T${wave}:00`).getTime() - centralNow().getTime() < 24 * 36e5;
+}
+
+export type WaveLoad = { count: number; site_id: string | null };
+
+// Riders per wave, and the site set by the first booking in that wave.
+export async function waveLoads(db: any, day?: string): Promise<Map<string, WaveLoad>> {
+  let q = db.from("ride_requests").select("ride_day,pickup_time,destination_site_id,created_at").in("status", ACTIVE_STATUSES).order("created_at");
+  if (day) q = q.eq("ride_day", day);
+  const { data } = await q;
+  const out = new Map<string, WaveLoad>();
+  for (const r of data ?? []) {
+    const k = `${r.ride_day} ${String(r.pickup_time).slice(0, 5)}`;
+    const w = out.get(k) ?? { count: 0, site_id: null };
+    w.count++;
+    if (!w.site_id && r.destination_site_id) w.site_id = r.destination_site_id;
+    out.set(k, w);
+  }
+  return out;
+}
+
+export const WAVE_FULL_MSG = "That time is full. Pick another time.";
+export const WAVE_SITE_MSG = "That time is going to another voting place. Pick another time.";

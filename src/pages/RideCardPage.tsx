@@ -29,8 +29,9 @@ const STATUS: Record<string, string> = {
 function downloadIcs(c: Card) {
   const [y, m, d] = c.ride_day.split("-");
   const hh = c.pickup_time.slice(0, 2);
-  const start = `${y}${m}${d}T${hh}0000`;
-  const end = `${y}${m}${d}T${String(Number(hh) + 1).padStart(2, "0")}0000`;
+  const mm = c.pickup_time.slice(3, 5) || "00";
+  const start = `${y}${m}${d}T${hh}${mm}00`;
+  const end = `${y}${m}${d}T${String(Number(hh) + 1).padStart(2, "0")}${mm}00`;
   const where = c.destination ? `${c.destination.name}, ${c.destination.address}` : "Your voting place";
   const esc = (s: string) => s.replace(/([,;\\])/g, "\\$1");
   const ics = [

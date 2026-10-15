@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import uwaziLogo from "@/assets/uwazi-app-wordmark.png";
+import { useJoinRideWaitlist } from "@/hooks/useVotingRights";
 import { RidesShell, GreenButton, InfoPanel, Chip, Toggle, fmtDay, fmtHour, fmtPhone, telHref } from "@/components/rides/RidesUI";
 
-type Day = { day: string; dow: number; kind: "early" | "election_day"; open: boolean };
+type Day = { day: string; dow: number; kind: "early" | "election_day"; open: boolean; status?: "open" | "full" | "no_driver" | "closed"; note?: string | null };
 type Hour = { hour: string; seats_left: number; too_soon: boolean; bookable: boolean };
 type Site = { id: string; name: string; address: string; open: string; close: string; distance_mi: number | null };
 type Avail = {
@@ -13,7 +14,7 @@ type Avail = {
   sites?: Site[];
   hours?: Hour[];
   earliest_bookable: { day: string; hour: string } | null;
-  funded_left: number;
+  seats_left?: number;
   ride_line_phone: string | null;
   early_start: string;
   early_end: string;
@@ -102,6 +103,21 @@ export default function RidesPage() {
   }, [day, zip, siteId]);
 
   const site = sites?.find((x) => x.id === siteId) ?? null;
+
+  // Unmet demand: a day with no driver, or a full day. Never books a ride.
+  const { join } = useJoinRideWaitlist();
+  const [listDay, setListDay] = useState<Day | null>(null);
+  const [listPhone, setListPhone] = useState("");
+  const [listMsg, setListMsg] = useState<string | null>(null);
+  const [listDone, setListDone] = useState<Set<string>>(new Set());
+  const joinDay = async () => {
+    if (!listDay) return;
+    setListMsg(null);
+    const res = await join({ phone: listPhone, state: "MO", address: address.trim(), zip, requested_date: listDay.day, reason: listDay.status === "full" ? "full" : "no_driver" });
+    if (!res.ok) return setListMsg(res.error ?? "Something went wrong. Try again.");
+    setListDone((d) => new Set(d).add(listDay.day));
+    setListMsg("You are on the list for this day.");
+  };
 
   const earlyOpen = avail?.days.some((d) => d.kind === "early" && d.open);
   const edOpen = avail?.days.some((d) => d.kind === "election_day" && d.open);
@@ -225,7 +241,7 @@ export default function RidesPage() {
       {step === 2 && (
         <section className="space-y-5">
           <h1 className="font-heading text-3xl">When do you want to go?</h1>
-          <p className="text-sm text-[hsl(var(--rides-ink)/0.75)]">Rides run weekdays 11 AM to 6 PM and Saturdays 8 AM to noon. You may share the car with neighbors going to the same place.</p>
+          <p className="text-sm text-[hsl(var(--rides-ink)/0.75)]">Cars leave at set times. Up to 3 riders share a car going to the same place.</p>
           <div className="grid grid-cols-2 gap-2">
             <Chip active={kind === "early"} disabled={!earlyOpen} onClick={() => { setKind("early"); setDay(null); setHour(null); }}>
               <b className="block">Early voting</b>
@@ -237,7 +253,26 @@ export default function RidesPage() {
             </Chip>
           </div>
 
-          {kind === "early" && avail && <Calendar days={avail.days.filter((d) => d.kind === "early")} value={day} onPick={(d) => { setDay(d); setHour(null); }} />}
+          {kind === "early" && avail && <Calendar days={avail.days.filter((d) => d.kind === "early")} value={day ?? listDay?.day ?? null} onPick={(d) => { setListDay(null); setListMsg(null); setDay(d); setHour(null); }} onList={(d) => { setDay(null); setHour(null); setListMsg(null); setListDay(d); }} />}
+
+          {kind === "early" && listDay && (
+            <div className="space-y-3 rounded-2xl border border-[hsl(var(--rides-ink)/0.15)] p-4">
+              <p className="font-semibold">{fmtDay(listDay.day)}</p>
+              <p>{listDay.status === "full" ? "Full. Join the list for this day." : "No driver this day yet"}</p>
+              {listDone.has(listDay.day) ? (
+                <p role="status" className="text-sm">{listMsg ?? "You are on the list for this day."}</p>
+              ) : (
+                <>
+                  <Field label="Mobile number">
+                    <input className="rides-input" value={listPhone} onChange={(e) => setListPhone(e.target.value)} inputMode="tel" autoComplete="tel" placeholder="816 555 0100" />
+                  </Field>
+                  <GreenButton onClick={joinDay} disabled={listPhone.replace(/\D/g, "").length < 10}>Join the list for this day</GreenButton>
+                  {listMsg && <p role="alert" className="text-sm">{listMsg}</p>}
+                </>
+              )}
+              <p className="text-xs text-[hsl(var(--rides-ink)/0.6)]">This does not book a ride. We will text you if a ride opens up.</p>
+            </div>
+          )}
 
           {kind === "early" && day && sites && sites.length > 0 && (
             <div className="space-y-2" role="radiogroup" aria-label="Early voting place">
@@ -272,13 +307,13 @@ export default function RidesPage() {
               {!hours ? (
                 <p className="text-sm text-[hsl(var(--rides-ink)/0.6)]">Checking open seats.</p>
               ) : hours.length === 0 ? (
-                <p className="text-sm">No pickups that day. Pick another day.</p>
+                <p className="text-sm">No pickups left that day for this place. Pick another place or day.</p>
               ) : (
                 <div className="grid grid-cols-3 gap-2">
                   {hours.map((h) => (
                     <Chip key={h.hour} active={hour === h.hour} disabled={!h.bookable} onClick={() => setHour(h.hour)}>
                       <b className="block">{fmtHour(h.hour)}</b>
-                      <span className="text-xs">{h.too_soon ? "Too soon" : h.seats_left === 0 ? "Full" : `${h.seats_left} seats left`}</span>
+                      <span className="text-xs">{h.too_soon ? "Too soon" : h.seats_left === 0 ? "Full" : `${h.seats_left} ${h.seats_left === 1 ? "seat" : "seats"} left`}</span>
                     </Chip>
                   ))}
                 </div>
@@ -396,7 +431,7 @@ function Review({ label, value, error, onEdit }: { label: string; value: string;
   );
 }
 
-function Calendar({ days, value, onPick }: { days: Day[]; value: string | null; onPick: (d: string) => void }) {
+function Calendar({ days, value, onPick, onList }: { days: Day[]; value: string | null; onPick: (d: string) => void; onList: (d: Day) => void }) {
   const cells = useMemo(() => {
     if (!days.length) return [];
     const lead = days[0].dow;
@@ -412,19 +447,20 @@ function Calendar({ days, value, onPick }: { days: Day[]; value: string | null; 
           if (!c) return <div key={i} />;
           const sunday = c.dow === 0;
           const n = Number(c.day.slice(8));
+          const listable = c.status === "no_driver" || c.status === "full";
           return (
             <button
               key={c.day}
-              disabled={!c.open}
-              onClick={() => onPick(c.day)}
+              disabled={!c.open && !listable}
+              onClick={() => (c.open ? onPick(c.day) : onList(c))}
               className={`flex aspect-square flex-col items-center justify-center rounded-lg text-sm ${
                 value === c.day
                   ? "bg-[hsl(var(--rides-green))] font-bold text-[hsl(var(--rides-bg))]"
-                  : c.open ? "bg-[hsl(var(--rides-ink)/0.08)]" : "opacity-35"
+                  : c.open ? "bg-[hsl(var(--rides-ink)/0.08)]" : listable ? "border border-dashed border-[hsl(var(--rides-ink)/0.3)]" : "opacity-35"
               }`}
             >
               {n}
-              {sunday && <span className="text-[9px] leading-none">No rides</span>}
+              {listable ? <span className="text-[9px] leading-none">{c.status === "full" ? "Full" : "No driver"}</span> : sunday && <span className="text-[9px] leading-none">No rides</span>}
             </button>
           );
         })}

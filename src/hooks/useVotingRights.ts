@@ -173,11 +173,11 @@ export function useJoinRideWaitlist() {
   const { user } = useAuth();
   const [status, setStatus] = useState<"idle" | "saving" | "done" | "error">("idle");
   // Server checks the KCEB ride area. The address is never stored.
-  const join = useCallback(async ({ phone, address, zip }: { phone?: string; state: VoterState; address: string; zip: string }): Promise<{ ok: boolean; error?: string }> => {
+  const join = useCallback(async ({ phone, address, zip, requested_date, reason }: { phone?: string; state: VoterState; address: string; zip: string; requested_date?: string; reason?: "no_driver" | "full" }): Promise<{ ok: boolean; error?: string }> => {
     const digits = phone?.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "") ?? "";
     if (!user && !/^\d{10}$/.test(digits)) { setStatus("error"); return { ok: false, error: "Enter a 10-digit mobile number." }; }
     setStatus("saving");
-    const { error } = await supabase.functions.invoke("join-ride-waitlist", { body: { phone: digits || undefined, address, zip } });
+    const { error } = await supabase.functions.invoke("join-ride-waitlist", { body: { phone: digits || undefined, address, zip, requested_date, reason } });
     if (error) {
       let msg = "Something went wrong. Try again.";
       const ctx = (error as { context?: Response }).context;
