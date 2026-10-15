@@ -4201,6 +4201,30 @@ export type Database = {
         }
         Relationships: []
       }
+      ride_turnaways: {
+        Row: {
+          created_at: string
+          id: string
+          pickup_time: string
+          ride_day: string
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pickup_time: string
+          ride_day: string
+          source?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pickup_time?: string
+          ride_day?: string
+          source?: string
+        }
+        Relationships: []
+      }
       rights_cards: {
         Row: {
           active: boolean
@@ -6433,6 +6457,14 @@ export type Database = {
         Returns: string
       }
       ride_paused_ids: { Args: never; Returns: string[] }
+      ride_unmet_demand: {
+        Args: never
+        Returns: {
+          n: number
+          reason: string
+          requested_date: string
+        }[]
+      }
       ride_waitlist_list: {
         Args: never
         Returns: {

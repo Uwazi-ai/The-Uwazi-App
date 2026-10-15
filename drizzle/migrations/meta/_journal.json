@@ -134,6 +134,13 @@
       "when": 1792029417347,
       "tag": "0018_ride_service_days_budget",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792029512089,
+      "tag": "0019_ride_wave_guard_unmet_demand",
+      "breakpoints": true
     }
   ]
 }
