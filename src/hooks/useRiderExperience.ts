@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchRideCard } from '@/lib/rideCard';
-import { downloadRideCalendar, type RiderCard, type RiderAction, type RightsQuestion } from '@/lib/rideExperience';
+import { downloadRideCalendar, rideStage, stageTitles, type RiderCard, type RiderAction, type RightsQuestion } from '@/lib/rideExperience';
 import { useRideStageSheets } from './useRideStageSheets';
 export function useRiderExperience(code: string, token: string, isCard: boolean) {
  const [card, setCard] = useState<RiderCard | null>(null); const [questions, setQuestions] = useState<RightsQuestion[]>([]); const [error, setError] = useState(false); const [busy, setBusy] = useState(false); const [message, setMessage] = useState(''); const [share, setShare] = useState(false);
@@ -10,6 +10,8 @@ export function useRiderExperience(code: string, token: string, isCard: boolean)
  const state = card?.destination?.state ?? 'MO'; const loaded = !!card;
  useEffect(() => { if (!loaded || isCard) return; let alive = true; supabase.from('rights_questions').select('id,sort,question,options,correct_index,title,explanation,takeaway').eq('state',state).not('approved_at','is',null).order('sort').then(({data}) => { if (alive) setQuestions((data as RightsQuestion[]) ?? []); }); return () => { alive = false; }; }, [state,loaded,isCard]);
  const sheets = useRideStageSheets(card,isCard);
+ useEffect(() => { if (card) setMessage(stageTitles[rideStage(card)]); }, [card?.trip_stage, card?.status]);
+ useEffect(() => { if (isCard || !questions.length || window.location.hash !== '#quiz') return; const quiz = document.getElementById('ride-rights-quiz'); quiz?.scrollIntoView({block:'start'}); quiz?.focus({preventScroll:true}); }, [questions.length,isCard]);
  const invoke = async (name: string, body: Record<string,unknown>) => { const {data,error} = await supabase.functions.invoke(name,{body:{ride_code:code,t:token,...body}}); if (error) throw new Error('That did not save. Please try again or call the ride line.'); return data; };
  const onAction = async (action: RiderAction) => { if (busy) return; setBusy(true); setMessage(''); try { await invoke('rider-update-stage',{action}); await load(); setMessage('Ride updated.'); } catch { setMessage('That did not save. Please try again or call the ride line.'); } finally { setBusy(false); } };
  const onText = async () => { setBusy(true); let result = ''; try { const data = await invoke('rider-text-rights-card',{}); result = data.sent ? 'Rights card text sent.' : data.already_sent ? 'Your rights card was already texted.' : 'We could not send a text. Your rights card is still on this screen.'; } catch { result = 'We could not send a text. Your rights card is still on this screen.'; } finally { setBusy(false); } setMessage(result); return result; };

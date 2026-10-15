@@ -8,7 +8,7 @@ import { JourneyRibbon, RideCallButton } from './RideCardView';
 import { RideRightsQuiz } from './RideRightsQuiz';
 import { RideCompletionCard } from './RideCompletionCard';
 import { RideRating } from './RideRating';
-export type RiderHandlers = { onAction: (action: RiderAction) => Promise<void>; onFinishQuiz: (score: number) => Promise<string | void>; onText: () => Promise<string>; onRate: (rating: number) => Promise<string | void>; onShare: () => void; onCalendar: () => void };
+export type RiderHandlers = { onAction: (action: RiderAction) => Promise<void>; onFinishQuiz: (score: number) => Promise<string | void>; onText: () => Promise<string>; onRate: (rating: number) => Promise<string | void>; onShare: () => void; onCalendar: () => void; onStartQuiz?: () => void };
 export function AtPlaceChecklist({ electionDay }: { electionDay: boolean }) { return <ul className="space-y-3 text-sm"><li className="flex gap-2"><ShieldCheck className="size-5 shrink-0" />Bring your photo ID.</li><li>Ask for a provisional ballot if there is a problem.</li>{electionDay && <li>If it is 7 PM, stay in line.</li>}</ul>; }
 export function RiderSheets({ card, sheet, close, handlers, busy, message, demo }: { card: RiderCard; sheet: string | null; close: () => void; handlers: RiderHandlers; busy?: boolean; message?: string; demo?: boolean }) {
  const stage = sheet?.startsWith('stage-') ? Number(sheet.slice(6)) : 0; const quiz = sheet === 'quiz-finished'; const confirmed = sheet === 'booking-confirmed';
