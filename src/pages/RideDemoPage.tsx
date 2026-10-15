@@ -18,7 +18,7 @@ export default function RideDemoPage() {
 function AuthorizedDemo() {
  const {stage='confirmed'}=useParams(); const [params]=useSearchParams(); const navigate=useNavigate(); const shot=params.get('shot')==='1';
  const numeric=/^[1-7]$/.test(stage) ? Number(stage) : 0;
- const [card,setCard]=useState<RiderCard>({...demoCard,round_trip:params.get('oneway')!=='1',trip_stage:numeric,status:numeric===7?'completed':numeric>=3?'riding':'booked'});
+ const [card,setCard]=useState<RiderCard>({...demoCard,quiz_finished:stage==='quiz-finished',round_trip:params.get('oneway')!=='1',trip_stage:numeric,status:numeric===7?'completed':numeric>=3?'riding':'booked'});
  const [sheet,setSheet]=useState<string|null>(params.get('sheet')==='0' || ['waiting','quiz'].includes(stage) ? null : stage==='confirmed'?'booking-confirmed':stage==='quiz-finished'?'quiz-finished':`stage-${numeric}`);
  const [share,setShare]=useState(false); const [message,setMessage]=useState(''); const [view,setView]=useState(stage==='confirmed'||stage==='waiting'?'card':'tracker');
  useEffect(() => { setCard({...demoCard,round_trip:params.get('oneway')!=='1',quiz_finished:stage==='quiz-finished',trip_stage:numeric,status:numeric===7?'completed':numeric>=3?'riding':'booked'}); setView(stage==='confirmed'||stage==='waiting'?'card':'tracker'); setSheet(params.get('sheet')==='0'||['waiting','quiz'].includes(stage)?null:stage==='confirmed'?'booking-confirmed':stage==='quiz-finished'?'quiz-finished':`stage-${numeric}`); setMessage(''); },[stage,numeric,params]);
