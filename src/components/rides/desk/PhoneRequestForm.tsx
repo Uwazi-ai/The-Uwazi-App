@@ -131,8 +131,8 @@ export function PhoneRequestForm({ onDone }: { onDone: (code: string) => void })
       )}
       {day && (
         <div>
-          <span className={label}>Pickup hour</span>
-          {!/^\d{5}$/.test(zip) ? <p className="text-sm">Enter the ZIP first.</p> : hours === null ? <p className="text-sm">Loading hours.</p> : hours.length === 0 ? <p className="text-sm">No pickups that day.</p> : (
+          <span className={label}>Pickup time</span>
+          {!/^\d{5}$/.test(zip) ? <p className="text-sm">Enter the ZIP first.</p> : hours === null ? <p className="text-sm">Loading times.</p> : hours.length === 0 ? <p className="text-sm">No pickups that day.</p> : (
             <div className="flex flex-wrap gap-2">
               {hours.map((h) => (
                 <Chip key={h.hour} small active={hour === h.hour} disabled={h.seats_left <= 0} onClick={() => setHour(h.hour)}>
