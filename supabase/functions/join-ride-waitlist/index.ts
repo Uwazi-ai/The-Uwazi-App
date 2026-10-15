@@ -9,7 +9,9 @@ const Body = z.object({
   phone: z.string().trim().max(20).optional(),
   address: z.string().trim().min(5).max(200),
   zip: z.string().trim().regex(/^\d{5}$/),
-}).strict();
+  requested_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  reason: z.enum(["no_driver", "full"]).optional(),
+}).strict().refine((v) => !v.requested_date === !v.reason);
 
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -35,7 +37,15 @@ Deno.serve(async (req) => {
   if (e.status === "lookup_failed") return json({ error: LOOKUP_FAILED_MSG, code: "lookup_failed" }, 400);
 
   const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-  const { error } = await db.from("poll_ride_waitlist").insert({ user_id: uid, phone: digits || null, state_code: "MO" });
+  // A day list entry is unmet demand only. It never creates a ride.
+  if (p.data.requested_date) {
+    const { data: s } = await db.from("ride_settings").select("early_start,election_day").eq("id", true).single();
+    if (!s || p.data.requested_date < s.early_start || p.data.requested_date > s.election_day) return json({ error: "Pick a day during early voting or Election Day." }, 400);
+  }
+  const { error } = await db.from("poll_ride_waitlist").insert({
+    user_id: uid, phone: digits || null, state_code: "MO",
+    requested_date: p.data.requested_date ?? null, reason: p.data.reason ?? null,
+  });
   if (error) { console.error("waitlist insert failed", error); return json({ error: "Something went wrong. Try again." }, 500); }
   return json({ ok: true });
 });

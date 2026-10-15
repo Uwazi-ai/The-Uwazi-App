@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
     } else if (open.length) {
       return json({ error: "Please pick a voting place." }, 400);
     } else {
-      return json({ error: "No early voting place is open at that time. Pick another day or hour." }, 400);
+      return json({ error: wave.site_id ? WAVE_SITE_MSG : "No early voting place is open at that time. Pick another day or time." }, wave.site_id ? 409 : 400);
     }
   } else if (b.destination_site_id) {
     const { data } = await db.from("voter_guide_sites").select(siteCols).eq("id", b.destination_site_id)
