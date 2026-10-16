@@ -38,3 +38,4 @@
 - Ride budget is ride_settings.budget_cents against the sum of ride_service_days.cost_cents; funded_cap is retired. Only ride_requests.provider 'ztrip' counts toward budget, seats and cost per ride; iris, uber_voucher and other never do. Day list sign-ups (no_driver or full) save to poll_ride_waitlist with requested_date and reason after the KCEB check and never create a ride. Why: the $1,000 grant pays only for zTrip.
 
 - ride_settings.sms_live defaults false and only admins can edit it; all ride SMS helpers and reminder claims skip without new delivery events when off, and bookings save texts_ok=false. Why: Bird is paused and no rider should be promised a text.
+- Desk "Today's calls" is derived from ride_requests plus ride_events (late_called, no_show, confirmed_by_call, call_no_answer, place_confirmed); waitlist calls log to ride_waitlist_calls via ride_waitlist_calls_due(). Why: every coordinator call is auditable without new ride state.
