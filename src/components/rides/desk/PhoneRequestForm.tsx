@@ -157,6 +157,7 @@ export function PhoneRequestForm({ onDone, smsLive = false }: { smsLive?: boolea
       </div>
       {smsLive && <Toggle checked={textsOk} onChange={setTextsOk} label="Text them ride updates" />}
       {err && <p className="text-sm text-[hsl(var(--rides-amber))]">{err}</p>}
+      <p className="text-sm text-[hsl(var(--rides-ink)/0.75)]">Tell the caller: to book the ride, we share their name, phone number, and address with zTrip.</p>
       <button className="w-full rounded-xl bg-[hsl(var(--rides-green))] py-3 font-semibold text-[hsl(var(--rides-bg))] disabled:opacity-40" disabled={!ok || busy} onClick={send}>
         {busy ? "Saving" : "Save phone request"}
       </button>

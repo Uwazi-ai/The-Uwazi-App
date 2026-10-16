@@ -11,6 +11,7 @@ import { RideDrawer } from "@/components/rides/desk/RideDrawer";
 import { PhoneRequestForm } from "@/components/rides/desk/PhoneRequestForm";
 import { CoordinatorsPanel } from "@/components/rides/desk/CoordinatorsPanel";
 import { PrecinctMapRefresh } from "@/components/rides/desk/PrecinctMapRefresh";
+import { TodaysCalls } from "@/components/rides/desk/TodaysCalls";
 import { Link } from "react-router-dom";
 import {
   FUNDED, NEED_LABELS, avgWait, budgetStats, dollars, fmtWait, reportCsv, tripGroups, weekCompare, ztrip,
@@ -175,6 +176,7 @@ function Desk() {
       </div>
 
       {!settings.sms_live && <p role="status" className="mt-4 text-primary">Texting is off. Call riders to confirm.</p>}
+      <div className="mt-6"><TodaysCalls rides={rides} now={now} onOpen={open} onChanged={load} /></div>
       <section className="mt-6 grid gap-4 rounded-3xl bg-[hsl(var(--rides-ink)/0.05)] p-5 md:grid-cols-[2fr_1fr_1fr_1fr]">
         <div>
           <p className="font-heading text-4xl">Scheduled {dollars(budget.scheduledCents)} of {dollars(settings.budget_cents)}</p>
