@@ -169,6 +169,13 @@
       "when": 1792123248622,
       "tag": "0023_ride_waitlist_calls",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1792162837682,
+      "tag": "0024_ride_tables_tighten_grants",
+      "breakpoints": true
     }
   ]
 }
