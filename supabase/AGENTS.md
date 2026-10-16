@@ -39,3 +39,4 @@
 
 - ride_settings.sms_live defaults false and only admins can edit it; all ride SMS helpers and reminder claims skip without new delivery events when off, and bookings save texts_ok=false. Why: Bird is paused and no rider should be promised a text.
 - Desk "Today's calls" is derived from ride_requests plus ride_events (late_called, no_show, confirmed_by_call, call_no_answer, place_confirmed); waitlist calls log to ride_waitlist_calls via ride_waitlist_calls_due(). Why: every coordinator call is auditable without new ride state.
+- Ride tables grant nothing to anon unless an anon RLS policy exists (only rights_questions SELECT today); authenticated never gets TRUNCATE, REFERENCES or TRIGGER, and append-only ride_events, ride_admin_log and ride_waitlist_calls get no UPDATE or DELETE. Default privileges for postgres in public no longer grant tables to anon, so every new table must GRANT explicitly. Why: RLS must not be the only wall between the public and rider data.
