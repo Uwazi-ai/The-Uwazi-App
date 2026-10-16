@@ -1,0 +1,4 @@
+REVOKE ALL ON public.driver_blocks, public.kceb_precincts, public.poll_ride_waitlist, public.ride_admin_log, public.ride_events, public.ride_rate_limits, public.ride_requests, public.ride_service_days, public.ride_settings, public.ride_site_geo, public.ride_site_hours, public.ride_sms_optouts, public.ride_turnaways, public.ride_waitlist_calls FROM anon;
+REVOKE TRUNCATE, REFERENCES, TRIGGER ON public.driver_blocks, public.kceb_precincts, public.poll_ride_waitlist, public.ride_admin_log, public.ride_events, public.ride_rate_limits, public.ride_requests, public.ride_service_days, public.ride_settings, public.ride_site_geo, public.ride_site_hours, public.ride_sms_optouts, public.ride_turnaways, public.ride_waitlist_calls, public.rights_questions FROM authenticated;
+REVOKE UPDATE, DELETE ON public.ride_events, public.ride_admin_log, public.ride_waitlist_calls FROM authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE ALL ON TABLES FROM anon;
