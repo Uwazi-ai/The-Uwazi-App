@@ -4237,6 +4237,35 @@ export type Database = {
         }
         Relationships: []
       }
+      ride_waitlist_calls: {
+        Row: {
+          actor: string
+          created_at: string
+          id: string
+          waitlist_id: string
+        }
+        Insert: {
+          actor: string
+          created_at?: string
+          id?: string
+          waitlist_id: string
+        }
+        Update: {
+          actor?: string
+          created_at?: string
+          id?: string
+          waitlist_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_waitlist_calls_waitlist_id_fkey"
+            columns: ["waitlist_id"]
+            isOneToOne: false
+            referencedRelation: "poll_ride_waitlist"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rights_cards: {
         Row: {
           active: boolean
@@ -6474,6 +6503,15 @@ export type Database = {
         Args: never
         Returns: {
           n: number
+          reason: string
+          requested_date: string
+        }[]
+      }
+      ride_waitlist_calls_due: {
+        Args: never
+        Returns: {
+          id: string
+          phone: string
           reason: string
           requested_date: string
         }[]
