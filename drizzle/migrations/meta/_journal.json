@@ -162,6 +162,13 @@
       "when": 1792088204814,
       "tag": "0022_ride_sms_pause_switch",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1792123248622,
+      "tag": "0023_ride_waitlist_calls",
+      "breakpoints": true
     }
   ]
 }
