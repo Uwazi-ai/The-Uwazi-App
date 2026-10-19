@@ -22,6 +22,8 @@ import { PersonaHeadline, type PersonaState } from "@/lib/personas";
 import { motion, animate } from "framer-motion";
 import { PackOpening } from "@/components/compass/PackOpening";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { scoreAnswers } from "@/lib/compassScoring";
+export { scoreAnswers } from "@/lib/compassScoring";
 
 const db = supabase as any;
 const THRESHOLD = 0.6;
@@ -36,26 +38,6 @@ const LIKERT = [
 interface Question { id: string; dimension_id: string; prompt_text: string; weight: number; reverse_scored: boolean }
 interface Dimension { id: string; name: string; slug: string }
 interface Top { slug: string; name: string; score: number }
-
-// Same scoring as before. Used for the live rose and the saved result.
-export function scoreAnswers(questions: Question[], dims: Dimension[], all: Record<string, number>) {
-  const acc: Record<string, { sum: number; w: number }> = {};
-  for (const q of questions) {
-    const raw = all[q.id];
-    if (!raw) continue;
-    const v = q.reverse_scored ? 6 - raw : raw;
-    const w = Number(q.weight) || 1;
-    acc[q.dimension_id] ??= { sum: 0, w: 0 };
-    acc[q.dimension_id].sum += v * w;
-    acc[q.dimension_id].w += w;
-  }
-  const scores: Record<string, number> = {};
-  for (const d of dims) {
-    const a = acc[d.id];
-    if (a && a.w > 0) scores[d.slug] = Math.round(((a.sum / a.w - 1) / 4) * 1000) / 1000;
-  }
-  return scores;
-}
 
 interface Fact { id: string; dimension_id: string; geoid: string | null; text: string; source_url: string }
 

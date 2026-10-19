@@ -1,4 +1,5 @@
 # Backend rules
+- Compass event demos persist only anonymous persona/top-issue/duration totals in compass_demo_results via log_demo_completion; active windows and persona validity are checked server-side, and a one-run result UUID deduplicates retries without identifying a participant. evaluate_compass_demo calls existing persona_label with no writes. Event controls and result reads require super_admin. Why: minors can explore without accounts, identity collection, entitlements or engagement writes.
 
 - Office data changes flow only through civic_office_pending_changes + review_office_change RPC; office-monitor never writes civic_offices. Why: every officeholder change needs explicit admin approval.
 - Civic Journey points are written only by SECURITY DEFINER functions (award_points via complete_compass_session, award_lesson_completion, award_report_unlock, log_civic_action, survey trigger); user_points_ledger is append-only by trigger. Why: points must never be trusted from the client.

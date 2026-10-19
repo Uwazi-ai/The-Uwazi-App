@@ -1787,6 +1787,81 @@ export type Database = {
           },
         ]
       }
+      compass_demo_events: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          label: string
+          slug: string
+          starts_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          expires_at: string
+          id?: string
+          label: string
+          slug: string
+          starts_at: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          label?: string
+          slug?: string
+          starts_at?: string
+        }
+        Relationships: []
+      }
+      compass_demo_results: {
+        Row: {
+          completed_at: string
+          duration_seconds: number
+          event_id: string
+          id: string
+          persona_key: string
+          top_issue_keys: string[]
+        }
+        Insert: {
+          completed_at?: string
+          duration_seconds: number
+          event_id: string
+          id?: string
+          persona_key: string
+          top_issue_keys?: string[]
+        }
+        Update: {
+          completed_at?: string
+          duration_seconds?: number
+          event_id?: string
+          id?: string
+          persona_key?: string
+          top_issue_keys?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compass_demo_results_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "compass_demo_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compass_demo_results_persona_key_fkey"
+            columns: ["persona_key"]
+            isOneToOne: false
+            referencedRelation: "compass_personas"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
       compass_dimensions: {
         Row: {
           created_at: string
@@ -6239,8 +6314,19 @@ export type Database = {
         Args: { _challenge: string; _zip: string }
         Returns: Json
       }
+      evaluate_compass_demo: {
+        Args: { p_event_slug: string; p_scores: Json }
+        Returns: Json
+      }
       export_my_data: { Args: never; Returns: Json }
       free_episode_ids: { Args: never; Returns: string[] }
+      get_active_demo_event: {
+        Args: { p_slug: string }
+        Returns: {
+          label: string
+          slug: string
+        }[]
+      }
       get_episode_like_count: { Args: { _episode_id: string }; Returns: number }
       get_invite_by_token: {
         Args: { _token: string }
@@ -6392,6 +6478,16 @@ export type Database = {
       log_civic_action: {
         Args: { _note?: string; _office_id?: string }
         Returns: Json
+      }
+      log_demo_completion: {
+        Args: {
+          p_completion_id?: string
+          p_duration: number
+          p_event_slug: string
+          p_persona_key: string
+          p_top_issues: string[]
+        }
+        Returns: string
       }
       log_episode_video_access: {
         Args: {

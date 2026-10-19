@@ -176,6 +176,13 @@
       "when": 1792162837682,
       "tag": "0024_ride_tables_tighten_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1792412502103,
+      "tag": "0025_compass_demo_events_and_private_results",
+      "breakpoints": true
     }
   ]
 }

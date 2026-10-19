@@ -86,6 +86,8 @@ import RideRightsReviewPage from "./pages/RideRightsReviewPage";
 import RideWaitlistPage from "./pages/RideWaitlistPage";
 import RideDemoPage from "./pages/RideDemoPage";
 import ElectionDayMapPage from "./pages/ElectionDayMapPage";
+import CompassDemoPage from "./pages/CompassDemoPage";
+import CompassPersonaPage from "./pages/CompassPersonaPage";
 
 const queryClient = new QueryClient();
 
@@ -97,6 +99,10 @@ const App = () => (
         <Sonner />
         <PWAUpdateBanner />
         <BrowserRouter>
+          <Routes>
+            <Route path="/compass/demo/:eventSlug" element={<CompassDemoPage />} />
+            <Route path="/compass/persona/:personaKey" element={<CompassPersonaPage />} />
+            <Route path="*" element={
           <AuthProvider>
             <InAppBrowserProvider>
             <Routes>
@@ -190,6 +196,8 @@ const App = () => (
             </Routes>
             </InAppBrowserProvider>
           </AuthProvider>
+            } />
+          </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
