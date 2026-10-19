@@ -75,3 +75,9 @@
 ## Election Day ride map
 - [x] Add public official precinct map, reviewed polling-place lookup, directions and links from rides and Voter Guide.
 - [x] Verify address lookup, missing destinations, and phone/desktop map controls without creating rides or enabling bookings.
+
+## Compass expo demo Part 1
+- [ ] Add isolated event/result storage, active-event lookup, existing persona evaluation and completion logging.
+- [ ] Add session-only demo logic, minimal working routes and public take-home persona pages. Visual redesign waits for Part 2.
+- [ ] Add super-admin event controls, QR links and aggregate counts. Seed expo-oct-19 with the requested expiry.
+- [ ] Verify one signed-out completion, retries/reset, event expiry, normal paywall and ride regressions. Remove test results only.
