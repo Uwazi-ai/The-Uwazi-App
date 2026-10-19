@@ -1,0 +1,26 @@
+[data-compass-kiosk] {
+  --background: var(--kiosk-background);
+  --foreground: var(--kiosk-foreground);
+  --card: var(--kiosk-card);
+  --card-foreground: var(--kiosk-foreground);
+  --muted: var(--kiosk-muted);
+  --muted-foreground: var(--kiosk-muted-foreground);
+  --primary: var(--kiosk-primary);
+  --primary-foreground: var(--kiosk-background);
+  --border: var(--kiosk-border);
+  --input: var(--kiosk-border);
+  --ring: var(--kiosk-primary);
+  letter-spacing: 0;
+}
+[data-compass-kiosk] button, [data-compass-kiosk] [role="slider"] { min-height: 56px; }
+[data-compass-kiosk] button { white-space: normal; }
+[data-compass-kiosk] [role="slider"] { display: flex; align-items: center; }
+[data-compass-kiosk] [role="slider"] > span { min-width: 28px; min-height: 28px; }
+[data-compass-kiosk] .font-heading { letter-spacing: 0; }
+body:has([data-compass-kiosk]) > [data-sonner-toaster],
+body:has([data-compass-kiosk]) #root > div > [role="status"],
+body:has([data-compass-kiosk]) [aria-label="Notifications (F8)"] { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  [data-compass-kiosk] .tilt-foil { display: none; }
+  [data-compass-kiosk] .tilt-card { transform: none; }
+}
