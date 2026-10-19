@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { Copy, Plus, Save, Power } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,6 +46,7 @@ export function CompassDemoEvents({ onDirtyChange }: { onDirtyChange?: (value: b
   const [expiry, setExpiry] = useState("");
   const [error, setError] = useState(false);
   const [dirtyRows, setDirtyRows] = useState<Record<string, boolean>>({});
+  const onDirty = useCallback((id: string, value: boolean) => setDirtyRows(previous => previous[id] === value ? previous : { ...previous, [id]: value }), []);
   const refresh = async () => {
     const [eventRows, resultRows] = await Promise.all([
       supabase.from("compass_demo_events").select("id,slug,label,active,starts_at,expires_at").order("created_at", { ascending: false }),
@@ -67,5 +68,5 @@ export function CompassDemoEvents({ onDirtyChange }: { onDirtyChange?: (value: b
     setSlug(""); setLabel(""); setExpiry(""); void refresh();
   };
   if (!allowed) return <p className="text-sm text-muted-foreground">Compass Demo Events is for super admins.</p>;
-  return <Card className="rounded-lg p-5 space-y-4"><h2 className="font-heading text-xl">Compass Demo Events</h2><div className="grid gap-3 sm:grid-cols-3"><label className="text-sm">Link name<Input placeholder="expo-oct-19" value={slug} onChange={e => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))} /></label><label className="text-sm">Label<Input value={label} maxLength={200} onChange={e => setLabel(e.target.value)} /></label><label className="text-sm">Expiry (UTC)<Input type="datetime-local" value={expiry} onChange={e => setExpiry(e.target.value)} /></label></div><Button disabled={!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) || !label.trim() || !expiry} onClick={() => void create()}><Plus className="mr-2 size-4" />Create event</Button>{error && <p role="alert">We could not load event totals.</p>}{events.map(event => <EventRow key={`${event.id}:${event.label}:${event.expires_at}`} event={event} results={results.filter(result => result.event_id === event.id)} refresh={() => void refresh()} onDirty={(id, value) => setDirtyRows(previous => previous[id] === value ? previous : { ...previous, [id]: value })} />)}</Card>;
+  return <Card className="rounded-lg p-5 space-y-4"><h2 className="font-heading text-xl">Compass Demo Events</h2><div className="grid gap-3 sm:grid-cols-3"><label className="text-sm">Link name<Input placeholder="expo-oct-19" value={slug} onChange={e => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))} /></label><label className="text-sm">Label<Input value={label} maxLength={200} onChange={e => setLabel(e.target.value)} /></label><label className="text-sm">Expiry (UTC)<Input type="datetime-local" value={expiry} onChange={e => setExpiry(e.target.value)} /></label></div><Button disabled={!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) || !label.trim() || !expiry} onClick={() => void create()}><Plus className="mr-2 size-4" />Create event</Button>{error && <p role="alert">We could not load event totals.</p>}{events.map(event => <EventRow key={`${event.id}:${event.label}:${event.expires_at}`} event={event} results={results.filter(result => result.event_id === event.id)} refresh={() => void refresh()} onDirty={onDirty} />)}</Card>;
 }

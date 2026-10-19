@@ -28,6 +28,18 @@ export function useCompassDemo(slug: string) {
 
   useEffect(() => { if (status === "ready") storeDemoRun(slug, run); }, [slug, run, status]);
 
+  useEffect(() => {
+    if (status !== "ready") return;
+    const interval = setInterval(() => {
+      demoRequest<{ slug: string; label: string }[]>("rpc/get_active_demo_event", { p_slug: slug }).then(events => {
+        if (events.length) return;
+        generation.current++; loggingAbort.current?.abort(); clearDemoRun(slug);
+        setRun(newDemoRun()); setStatus("inactive");
+      }).catch(() => { /* transient network failure does not interrupt the quiz */ });
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [slug, status]);
+
   const log = useCallback(async () => {
     if (status !== "ready" || run.stage !== "result" || run.logged || sending.current) return;
     const completion = completionFor(slug, run);
