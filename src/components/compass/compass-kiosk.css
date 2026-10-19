@@ -17,9 +17,7 @@
 [data-compass-kiosk] [role="slider"] { display: flex; align-items: center; }
 [data-compass-kiosk] [role="slider"] > span { min-width: 28px; min-height: 28px; }
 [data-compass-kiosk] .font-heading { letter-spacing: 0; }
-body:has([data-compass-kiosk]) > [data-sonner-toaster],
-body:has([data-compass-kiosk]) #root > div > [role="status"],
-body:has([data-compass-kiosk]) [aria-label="Notifications (F8)"] { display: none; }
+[data-compass-kiosk] [data-testid="swipe-card"] { border-radius: 8px; }
 @media (prefers-reduced-motion: reduce) {
   [data-compass-kiosk] .tilt-foil { display: none; }
   [data-compass-kiosk] .tilt-card { transform: none; }

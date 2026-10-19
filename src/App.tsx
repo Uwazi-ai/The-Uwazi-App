@@ -95,15 +95,15 @@ const App = () => (
   <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange={false}>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <PWAUpdateBanner />
         <BrowserRouter>
           <Routes>
             <Route path="/compass/demo/:eventSlug" element={<CompassDemoPage />} />
             <Route path="/compass/persona/:personaKey" element={<CompassPersonaPage />} />
             <Route path="*" element={
           <AuthProvider>
+            <Toaster />
+            <Sonner />
+            <PWAUpdateBanner />
             <InAppBrowserProvider>
             <Routes>
               {/* Root redirect */}
