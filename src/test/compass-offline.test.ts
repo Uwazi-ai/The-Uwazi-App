@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { offlineCatalog, offlineEvent, offlinePersonaLabels } from "@/lib/compassOffline";
-import { refuseKioskWorker } from "@/lib/kioskServiceWorker";
+import { refuseKioskWorker } from "@/lib/kioskWorkerPolicy";
 
 describe("Compass offline boundaries", () => {
   it("ends the expo at its approved Chicago expiry", () => {

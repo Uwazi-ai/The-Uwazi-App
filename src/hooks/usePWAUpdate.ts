@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { refuseKioskWorker } from "@/lib/kioskServiceWorker";
+import { refuseKioskWorker } from "@/lib/kioskWorkerPolicy";
 
 /**
  * Detects when a new service worker has been installed and is waiting,

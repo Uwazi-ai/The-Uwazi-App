@@ -1,6 +1,4 @@
-export function refuseKioskWorker(production: boolean, hostname: string, iframe: boolean, search: string) {
-  return !production || iframe || hostname.startsWith("id-preview--") || hostname.startsWith("preview--") || ["lovableproject.com", "lovableproject-dev.com", "beta.lovable.dev"].some(domain => hostname === domain || hostname.endsWith(`.${domain}`)) || new URLSearchParams(search).get("sw") === "off";
-}
+import { refuseKioskWorker } from "./kioskWorkerPolicy";
 
 export async function registerKioskWorker() {
   if (!("serviceWorker" in navigator)) return;
