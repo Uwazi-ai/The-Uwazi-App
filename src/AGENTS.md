@@ -1,4 +1,5 @@
 # Frontend rules
+- Compass demos and public persona routes mount outside AuthProvider, use an anonymous REST client and sessionStorage-only state; live and demo scoring share compassScoring while demo assignment calls existing persona_label through a persistence-free RPC. Why: expo devices must never create users, unlock normal routes or record individual answers.
 
 - Badge celebrations play from one BadgeWatcher in AppLayout, which diffs user_badges against a per-user seen list; persona badges are skipped there because the Compass pack shows them. Why: one place shows every badge over any screen.
 - Home and Watch use videos, edited in Content, with private media; journey steps share a mapper. Why: one reviewed library and consistent next steps.
