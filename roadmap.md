@@ -82,3 +82,8 @@
 - [x] Add super-admin event controls, QR links and aggregate counts. Seed expo-oct-19 with the requested expiry.
 - [x] Verify one signed-out completion, retries/reset, event expiry, no auth requests, ride screen/authorized desk regressions, and unchanged normal records. Remove QA results and event.
 - [ ] Verify normal Compass paywall as a signed-in free user. Blocked: no authorized free-user browser session; its paywall and entitlements were not changed.
+
+## Compass expo demo Part 2
+- [ ] Build portrait kiosk welcome, question screens, persona reveal and public persona page using existing brand visuals.
+- [ ] Add persona QR, accessible idle countdown and full Next student reset with no prior-run history.
+- [ ] Verify two consecutive students, idle reset, reduced motion and privacy at phone and iPad portrait sizes.
