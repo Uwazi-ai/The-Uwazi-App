@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { MotionConfig } from "framer-motion";
@@ -15,6 +15,8 @@ import { scoreAnswers } from "@/lib/compassScoring";
 
 export default function CompassDemoPage() {
   const { eventSlug = "" } = useParams();
+  const [params] = useSearchParams();
+  const exitTo = params.get("admin") ? "/compass" : undefined;
   const demo = useCompassDemo(eventSlug);
   const [budget, setBudget] = useState(defaultBudget);
   const heading = useRef<HTMLDivElement | null>(null);
