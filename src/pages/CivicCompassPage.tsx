@@ -51,6 +51,7 @@ function joinNames(n: string[]) {
 
 export default function CivicCompassPage() {
   const { user } = useAuth();
+  const isSuperAdmin = useIsSuperAdmin();
   const { isPremium } = useSubscription();
   const [params] = useSearchParams();
   const [questions, setQuestions] = useState<Question[]>([]);
