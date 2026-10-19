@@ -12,3 +12,4 @@
 - Ride texting is gated by admin-only ride_settings.sms_live; shared senders fail closed before claims, delivery logs or provider requests. Why: paused messaging must not promise or attempt delivery.
 - Rider rights PNGs use the same DOM-to-PNG renderer as completion sharing and contain only reviewed takeaways. Why: saved cards never expose rider data.
 - Legal ride copy must never claim that a rider voted or voted with UWAZI; use "I rode to the polls with UWAZI". Why: travel does not establish a voting outcome.
+- The public Election Day map combines official KCEB precinct geometry with reviewed polling rows via election-day-map; address checks reuse get-ride-availability without creating rides or saving profiles, and map tiles receive no pickup coordinates. Why: trip planning must never guess destinations or reveal riders.
