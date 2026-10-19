@@ -13,11 +13,12 @@ import { CompassFactsAdmin } from "@/components/admin/CompassFactsAdmin";
 import { PlatformHealthCard } from "@/components/admin/PlatformHealthCard";
 import { UnverifiedActionsPanel } from "@/components/admin/UnverifiedActionsPanel";
 import { useAdminStats, useSignupChart } from "@/hooks/useAdminData";
+import { CompassDemoEvents } from "@/components/admin/CompassDemoEvents";
 
 const groups = [
   { id: "people", label: "People", icon: Users, tools: [{ id: "signups", label: "Recent signups" }, { id: "scores", label: "Top civic scores" }, { id: "zip", label: "ZIP breakdown" }] },
   { id: "research", label: "Research", icon: FlaskConical, tools: [{ id: "journey", label: "Civic Journey" }, { id: "surveys", label: "Research surveys" }] },
-  { id: "content", label: "Content", icon: BookOpen, tools: [{ id: "personas", label: "Persona copy" }, { id: "facts", label: "Compass facts" }] },
+  { id: "content", label: "Content", icon: BookOpen, tools: [{ id: "personas", label: "Persona copy" }, { id: "facts", label: "Compass facts" }, { id: "demo-events", label: "Compass Demo Events" }] },
   { id: "platform", label: "Platform", icon: Activity, tools: [{ id: "health", label: "Platform health" }, { id: "actions", label: "Unverified actions" }] },
 ];
 
@@ -114,6 +115,7 @@ export default function AdminOverviewPage() {
                 {selection.tool === "surveys" && <ResearchSurveysPanel showLink />}
                 {selection.tool === "personas" && <PersonaCopyAdmin onDirtyChange={setDirty} />}
                 {selection.tool === "facts" && <CompassFactsAdmin onDirtyChange={setDirty} />}
+                {selection.tool === "demo-events" && <CompassDemoEvents onDirtyChange={setDirty} />}
                 {selection.tool === "health" && <PlatformHealthCard />}
                 {selection.tool === "actions" && <UnverifiedActionsPanel />}
               </div>
