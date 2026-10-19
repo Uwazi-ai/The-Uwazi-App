@@ -15,7 +15,7 @@
 [data-compass-kiosk] button, [data-compass-kiosk] [role="slider"] { min-height: 56px; }
 [data-compass-kiosk] button { white-space: normal; }
 [data-compass-kiosk] [role="slider"] { display: flex; align-items: center; }
-[data-compass-kiosk] [role="slider"] > span { min-width: 28px; min-height: 28px; }
+[data-compass-kiosk] [role="slider"] { min-width: 56px; }
 [data-compass-kiosk] .font-heading { letter-spacing: 0; }
 [data-compass-kiosk] [data-testid="swipe-card"] { border-radius: 8px; }
 @media (prefers-reduced-motion: reduce) {
