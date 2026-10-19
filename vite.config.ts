@@ -1,37 +1,9 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { readFileSync, writeFileSync, existsSync } from "fs";
+import { VitePWA } from "vite-plugin-pwa";
 import { componentTagger } from "lovable-tagger";
 import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/supabase/vite";
-
-// Injects a unique CACHE_VERSION into dist/sw.js after each production build
-// so browsers always pick up the new service worker on deploy.
-function injectSWVersion() {
-  return {
-    name: "inject-sw-version",
-    apply: "build" as const,
-    closeBundle() {
-      const version = `uwazi-${Date.now()}`;
-      const swPath = path.resolve(__dirname, "dist/sw.js");
-      try {
-        if (!existsSync(swPath)) {
-          console.warn("⚠️  dist/sw.js not found — skipping SW version injection");
-          return;
-        }
-        let swContent = readFileSync(swPath, "utf-8");
-        swContent = swContent.replace(
-          /const CACHE_VERSION = ['"`][^'"`]*['"`]/,
-          `const CACHE_VERSION = '${version}'`,
-        );
-        writeFileSync(swPath, swContent);
-        console.log(`✅ SW cache version injected: ${version}`);
-      } catch (err) {
-        console.warn("⚠️  Could not inject SW version:", err);
-      }
-    },
-  };
-}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -45,7 +17,26 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
-    injectSWVersion(),
+    VitePWA({
+      strategies: "generateSW", filename: "sw.js", manifest: false,
+      injectRegister: null, registerType: "autoUpdate", devOptions: { enabled: false },
+      includeAssets: ["fonts/*"],
+      workbox: {
+        cacheId: "uwazi-compass-kiosk", cleanupOutdatedCaches: true,
+        skipWaiting: true, clientsClaim: true,
+        globPatterns: ["**/*.{js,css,png,svg,woff,woff2,ttf,otf}", "index.html"],
+        maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
+        navigateFallback: undefined,
+        runtimeCaching: [{
+          urlPattern: ({ request, url }) => request.mode === "navigate" && url.origin === self.location.origin && /^\/compass\/(demo|persona)\//.test(url.pathname),
+          handler: "NetworkFirst",
+          options: { cacheName: "uwazi-compass-kiosk-pages", networkTimeoutSeconds: 3, expiration: { maxEntries: 30, maxAgeSeconds: 7 * 86400 }, precacheFallback: { fallbackURL: "index.html" } },
+        }, {
+          urlPattern: ({ url }) => url.origin === self.location.origin && /^\/assets\/.*-[\w-]+\.(js|css|png|svg|woff2?)$/.test(url.pathname),
+          handler: "CacheFirst", options: { cacheName: "uwazi-compass-kiosk-assets", expiration: { maxEntries: 150, maxAgeSeconds: 7 * 86400 } },
+        }],
+      },
+    }),
     mcpPlugin(),
   ].filter(Boolean),
   resolve: {

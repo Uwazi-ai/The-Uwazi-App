@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { clearDemoRun, completionFor, demoQueueKey, demoRequest, loadDemoCatalog, loadDemoRun, newDemoRun, storeDemoRun, type DemoLabels } from "@/lib/compassDemo";
 import { scoreAnswers } from "@/lib/compassScoring";
+import { offlineCatalog, offlineEvent, offlinePersonaLabels } from "@/lib/compassOffline";
 
 export function useCompassDemo(slug: string) {
   const [event, setEvent] = useState<{ slug: string; label: string } | null>(null);
@@ -12,17 +13,25 @@ export function useCompassDemo(slug: string) {
   const generation = useRef(0);
   const sending = useRef(false);
   const loggingAbort = useRef<AbortController | null>(null);
+  const eventChecked = useRef(false);
 
   useEffect(() => {
     let mounted = true;
+    eventChecked.current = false;
     setStatus("loading"); setRun(loadDemoRun(slug));
     demoRequest<{ slug: string; label: string }[]>("rpc/get_active_demo_event", { p_slug: slug }).then(async events => {
       if (!mounted) return;
+      eventChecked.current = true;
       if (!events[0]) { clearDemoRun(slug); setStatus("inactive"); return; }
       setEvent(events[0]);
-      const data = await loadDemoCatalog();
+      const data = await loadDemoCatalog().catch(() => offlineCatalog);
       if (mounted) { setCatalog(data); setStatus("ready"); }
-    }).catch(() => { if (mounted) setStatus("error"); });
+    }).catch(() => {
+      if (!mounted) return;
+      const fallback = offlineEvent(slug);
+      if (fallback) { setEvent(fallback); setCatalog(offlineCatalog); setStatus("ready"); }
+      else { clearDemoRun(slug); setStatus("error"); }
+    });
     return () => { mounted = false; generation.current++; loggingAbort.current?.abort(); };
   }, [slug]);
 
@@ -31,7 +40,11 @@ export function useCompassDemo(slug: string) {
   useEffect(() => {
     if (status !== "ready") return;
     const interval = setInterval(() => {
+      if (!eventChecked.current && !offlineEvent(slug)) {
+        generation.current++; loggingAbort.current?.abort(); clearDemoRun(slug); setRun(newDemoRun()); setStatus("inactive"); return;
+      }
       demoRequest<{ slug: string; label: string }[]>("rpc/get_active_demo_event", { p_slug: slug }).then(events => {
+        eventChecked.current = true;
         if (events.length) return;
         generation.current++; loggingAbort.current?.abort(); clearDemoRun(slug);
         setRun(newDemoRun()); setStatus("inactive");
@@ -73,7 +86,12 @@ export function useCompassDemo(slug: string) {
     const scores = scoreAnswers(catalog.questions, catalog.dimensions, run.answers);
     try {
       // Reuses the existing SQL persona_label verbatim. This RPC never persists.
-      const labels = await demoRequest<DemoLabels>("rpc/evaluate_compass_demo", { p_event_slug: slug, p_scores: scores });
+      let labels: DemoLabels;
+      try { labels = await demoRequest<DemoLabels>("rpc/evaluate_compass_demo", { p_event_slug: slug, p_scores: scores }); }
+      catch {
+        if (!offlineEvent(slug)) throw new Error("Offline event expired");
+        labels = offlinePersonaLabels(scores, catalog);
+      }
       if (generation.current !== current) return;
       const top = catalog.dimensions.filter(d => (scores[d.slug] ?? 0) >= 0.6).sort((a, b) => scores[b.slug] - scores[a.slug]).slice(0, 3).map(d => d.slug);
       setRun(previous => ({ ...previous, stage: "result", result: { scores, labels, top, duration: Math.min(86400, Math.max(0, Math.round((Date.now() - previous.startedAt) / 1000))), id: crypto.randomUUID() } }));

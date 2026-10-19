@@ -87,3 +87,8 @@
 - [x] Build portrait kiosk welcome, question screens, persona reveal and public persona page using existing brand visuals.
 - [x] Add persona QR, accessible idle countdown and full Next student reset with no prior-run history.
 - [x] Verify two consecutive students, idle reset, reduced motion and privacy at 390px and 834px portrait sizes. No auth calls, persistent test completions or ride changes.
+
+## Compass kiosk offline fallback
+- [ ] Bundle public quiz/persona content and demo-only persona rules with event expiry checks.
+- [ ] Add guarded production offline caching for demo/persona screens without caching private requests.
+- [ ] Verify Wi-Fi loss, persona handoffs, reload, clean student resets and preview worker safety.
