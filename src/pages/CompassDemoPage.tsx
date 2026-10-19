@@ -16,7 +16,7 @@ import { scoreAnswers } from "@/lib/compassScoring";
 export default function CompassDemoPage() {
   const { eventSlug = "" } = useParams();
   const [params] = useSearchParams();
-  const exitTo = params.get("admin") ? "/compass" : undefined;
+  const exitTo = params.get("admin") ? "/app/compass" : undefined;
   const demo = useCompassDemo(eventSlug);
   const [budget, setBudget] = useState(defaultBudget);
   const heading = useRef<HTMLDivElement | null>(null);
