@@ -84,6 +84,6 @@
 - [ ] Verify normal Compass paywall as a signed-in free user. Blocked: no authorized free-user browser session; its paywall and entitlements were not changed.
 
 ## Compass expo demo Part 2
-- [ ] Build portrait kiosk welcome, question screens, persona reveal and public persona page using existing brand visuals.
-- [ ] Add persona QR, accessible idle countdown and full Next student reset with no prior-run history.
-- [ ] Verify two consecutive students, idle reset, reduced motion and privacy at phone and iPad portrait sizes.
+- [x] Build portrait kiosk welcome, question screens, persona reveal and public persona page using existing brand visuals.
+- [x] Add persona QR, accessible idle countdown and full Next student reset with no prior-run history.
+- [x] Verify two consecutive students, idle reset, reduced motion and privacy at 390px and 834px portrait sizes. No auth calls, persistent test completions or ride changes.
