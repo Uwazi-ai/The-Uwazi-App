@@ -4,6 +4,13 @@
 
 /* ═══ Safe area insets ═══ */
 :root {
+  --kiosk-background: 0 0% 3%;
+  --kiosk-foreground: 240 7% 97%;
+  --kiosk-card: 0 0% 7%;
+  --kiosk-muted: 0 0% 10%;
+  --kiosk-muted-foreground: 240 4% 70%;
+  --kiosk-primary: 87 58% 56%;
+  --kiosk-border: 0 0% 100% / 0.2;
   --sat: env(safe-area-inset-top, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
   --sal: env(safe-area-inset-left, 0px);
