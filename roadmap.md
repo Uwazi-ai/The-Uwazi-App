@@ -73,5 +73,5 @@
 - [x] Verify phone booking and demo screens 4, 5, 6, 10, 12, clean test data and reset codes.
 
 ## Election Day ride map
-- [ ] Add public official precinct map, reviewed polling-place lookup, directions and links from rides and Voter Guide.
-- [ ] Verify address lookup, missing destinations, and phone/desktop map controls without creating rides or enabling bookings.
+- [x] Add public official precinct map, reviewed polling-place lookup, directions and links from rides and Voter Guide.
+- [x] Verify address lookup, missing destinations, and phone/desktop map controls without creating rides or enabling bookings.
