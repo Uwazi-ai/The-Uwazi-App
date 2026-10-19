@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { refuseKioskWorker } from "@/lib/kioskWorkerPolicy";
 
 /**
  * Detects when a new service worker has been installed and is waiting,
@@ -26,14 +27,14 @@ export function usePWAUpdate() {
     const isPreview =
       window.location.hostname.includes("id-preview--") ||
       window.location.hostname.includes("lovableproject.com");
-    if (isInIframe || isPreview) return;
+    if (isPreview || refuseKioskWorker(import.meta.env.PROD, location.hostname, isInIframe, location.search)) return;
 
     let interval: ReturnType<typeof setInterval> | undefined;
     let cancelled = false;
 
     navigator.serviceWorker
       .getRegistration()
-      .then((reg) => reg ?? navigator.serviceWorker.register("/sw.js"))
+      .then((reg) => reg)
       .then((reg) => {
         if (cancelled || !reg) return;
         setRegistration(reg);

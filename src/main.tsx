@@ -2,29 +2,13 @@ import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import App from "./App.tsx";
 import "./index.css";
+import { registerKioskWorker } from "./lib/kioskServiceWorker";
 
-createRoot(document.getElementById("root")!).render(
+const root = document.getElementById("root");
+if (root) createRoot(root).render(
   <HelmetProvider>
     <App />
   </HelmetProvider>,
 );
 
-// Register service worker (only in production, not in iframes/preview)
-const isInIframe = (() => {
-  try { return window.self !== window.top; } catch { return true; }
-})();
-const isPreviewHost =
-  window.location.hostname.includes("id-preview--") ||
-  window.location.hostname.includes("lovableproject.com");
-
-if ("serviceWorker" in navigator && !isInIframe && !isPreviewHost) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js")
-      .then((reg) => console.log("SW registered:", reg.scope))
-      .catch((err) => console.log("SW error:", err));
-  });
-} else if (isInIframe || isPreviewHost) {
-  navigator.serviceWorker?.getRegistrations().then((regs) => {
-    regs.forEach((r) => r.unregister());
-  });
-}
+void registerKioskWorker().catch(() => { /* kiosk stays usable without worker support */ });

@@ -1,0 +1,259 @@
+{
+  "questions": [
+    {
+      "id": "b4c4b641-3302-4e09-987e-3538a7743b18",
+      "dimension_id": "ac24301a-71d0-4c07-a7d9-1482169e828f",
+      "prompt_text": "City and county leaders should show how they spend our tax money.",
+      "weight": 1,
+      "reverse_scored": false
+    },
+    {
+      "id": "640c06b5-37cd-4e75-9c00-1332af246ffd",
+      "dimension_id": "ecdd11ef-c7e8-496f-a2d1-d88846d0f08d",
+      "prompt_text": "Leaders should work hard to bring good-paying jobs to my area.",
+      "weight": 1,
+      "reverse_scored": false
+    },
+    {
+      "id": "bac12b05-18b5-491a-8d4f-2da65b257d45",
+      "dimension_id": "d3da1a7e-31b8-431a-b1fe-af474fcdfbec",
+      "prompt_text": "Feeling safe in my neighborhood is one of my biggest worries.",
+      "weight": 1,
+      "reverse_scored": false
+    },
+    {
+      "id": "789dc09c-85d2-42c1-9d7d-cb3c55a00bf8",
+      "dimension_id": "00537866-69ec-4cb5-b12c-0a67b3fa2a39",
+      "prompt_text": "Rent and home prices cost too much where I live.",
+      "weight": 1,
+      "reverse_scored": false
+    },
+    {
+      "id": "6153c8e6-52f4-4385-9d72-de2350b49554",
+      "dimension_id": "d10a796f-cdfa-455e-a0e3-264c9bb22fe6",
+      "prompt_text": "Good public schools are key to my community's future.",
+      "weight": 1,
+      "reverse_scored": false
+    },
+    {
+      "id": "53546e28-3e77-4451-abaa-2b3ea09259f4",
+      "dimension_id": "bb0a2440-d63c-4927-a638-c371a024cba6",
+      "prompt_text": "Leaders should make health care and mental health help easier to afford.",
+      "weight": 1,
+      "reverse_scored": false
+    },
+    {
+      "id": "5b3972d4-3f28-49f8-9a05-f15769644b4b",
+      "dimension_id": "39704137-a991-4245-b90b-106d3556e187",
+      "prompt_text": "Fixing roads, sidewalks, and buses should be a top job in my area.",
+      "weight": 1,
+      "reverse_scored": false
+    },
+    {
+      "id": "0d3465bb-af94-47e1-ab2b-f388b5a5a5e4",
+      "dimension_id": "fdfce501-e297-4f3a-b59d-81c9b2d6e184",
+      "prompt_text": "Voting in local elections makes a real difference where I live.",
+      "weight": 1,
+      "reverse_scored": false
+    },
+    {
+      "id": "1541e84f-f84c-46c5-9fe0-d7d70a24b575",
+      "dimension_id": "ac24301a-71d0-4c07-a7d9-1482169e828f",
+      "prompt_text": "I trust local leaders to make good choices without people checking on them.",
+      "weight": 1,
+      "reverse_scored": true
+    },
+    {
+      "id": "f35725f3-5bd5-421a-8f67-03ff55954fc2",
+      "dimension_id": "ecdd11ef-c7e8-496f-a2d1-d88846d0f08d",
+      "prompt_text": "Helping small local businesses matters more to me than most issues.",
+      "weight": 1,
+      "reverse_scored": false
+    },
+    {
+      "id": "701bc06f-2609-44a8-8000-2aa146793c7a",
+      "dimension_id": "d3da1a7e-31b8-431a-b1fe-af474fcdfbec",
+      "prompt_text": "My area is already safe, so safety is not a big issue for me.",
+      "weight": 1,
+      "reverse_scored": true
+    },
+    {
+      "id": "d07a3582-747a-4b9f-bb06-bd088e51d126",
+      "dimension_id": "00537866-69ec-4cb5-b12c-0a67b3fa2a39",
+      "prompt_text": "New buildings in my area should be homes people can afford.",
+      "weight": 1,
+      "reverse_scored": false
+    },
+    {
+      "id": "1af8d982-969b-4553-992e-a1b9431a5843",
+      "dimension_id": "d10a796f-cdfa-455e-a0e3-264c9bb22fe6",
+      "prompt_text": "Kids and teens here need more safe places and programs after school.",
+      "weight": 1,
+      "reverse_scored": false
+    },
+    {
+      "id": "443b17c2-b34d-4d66-965f-7ae10a070247",
+      "dimension_id": "bb0a2440-d63c-4927-a638-c371a024cba6",
+      "prompt_text": "Staying healthy is up to each person. Leaders should not focus on it.",
+      "weight": 1,
+      "reverse_scored": true
+    },
+    {
+      "id": "c4f7b843-e0f5-40a0-b111-b8693d0e04d5",
+      "dimension_id": "39704137-a991-4245-b90b-106d3556e187",
+      "prompt_text": "It should be easier to get around my city without a car.",
+      "weight": 1,
+      "reverse_scored": false
+    },
+    {
+      "id": "a9f4bf9d-209a-4b5a-9e33-8c5419b646af",
+      "dimension_id": "fdfce501-e297-4f3a-b59d-81c9b2d6e184",
+      "prompt_text": "Going to community meetings or calling leaders is a waste of my time.",
+      "weight": 1,
+      "reverse_scored": true
+    }
+  ],
+  "dimensions": [
+    {
+      "id": "ac24301a-71d0-4c07-a7d9-1482169e828f",
+      "name": "Local Accountability",
+      "slug": "local-accountability"
+    },
+    {
+      "id": "ecdd11ef-c7e8-496f-a2d1-d88846d0f08d",
+      "name": "Economic Opportunity",
+      "slug": "economic-opportunity"
+    },
+    {
+      "id": "d3da1a7e-31b8-431a-b1fe-af474fcdfbec",
+      "name": "Public Safety",
+      "slug": "public-safety"
+    },
+    {
+      "id": "00537866-69ec-4cb5-b12c-0a67b3fa2a39",
+      "name": "Housing & Development",
+      "slug": "housing-development"
+    },
+    {
+      "id": "d10a796f-cdfa-455e-a0e3-264c9bb22fe6",
+      "name": "Education & Youth",
+      "slug": "education-youth"
+    },
+    {
+      "id": "bb0a2440-d63c-4927-a638-c371a024cba6",
+      "name": "Health & Wellbeing",
+      "slug": "health-wellbeing"
+    },
+    {
+      "id": "39704137-a991-4245-b90b-106d3556e187",
+      "name": "Infrastructure & Mobility",
+      "slug": "infrastructure-mobility"
+    },
+    {
+      "id": "fdfce501-e297-4f3a-b59d-81c9b2d6e184",
+      "name": "Civic Participation",
+      "slug": "civic-participation"
+    }
+  ],
+  "personas": [
+    {
+      "slug": "watchdog",
+      "name": "The Watchdog",
+      "one_line": "You want to see the receipts. Open records and clear votes matter most to you.",
+      "strength": "You notice when something does not add up. You help keep leaders honest by asking clear questions and reading the record.",
+      "blind_spot": "Not every delay is a cover up, and sometimes a slow answer is just a busy office.",
+      "archetype_intro": "You stand in the tradition of investigative journalists, auditors, and open records advocates.",
+      "archetype_examples": "Investigative journalists, auditors, open records advocates",
+      "next_step_lean": "office_action",
+      "top_dimension_slug": "local-accountability"
+    },
+    {
+      "slug": "builder",
+      "name": "The Builder",
+      "one_line": "You care about jobs, small business, and whether people can get ahead here.",
+      "strength": "You see how a new shop or a good job can change a whole block. You bring energy to plans that help people earn and grow.",
+      "blind_spot": "Some of the best things a city does never show up on a paycheck.",
+      "archetype_intro": "You stand with the small business founders, tradespeople, and job creators.",
+      "archetype_examples": "Small business founders, tradespeople, job creators",
+      "next_step_lean": "my_city",
+      "top_dimension_slug": "economic-opportunity"
+    },
+    {
+      "slug": "guardian",
+      "name": "The Guardian",
+      "one_line": "You want every street to feel safe and every call answered.",
+      "strength": "You pay attention to what helps people feel safe walking home. You show up for the calls, lights, and crossings that protect a block.",
+      "blind_spot": "Safety can mean different things to different neighbors, so it helps to ask them.",
+      "archetype_intro": "You stand with the first responders, safety organizers, and neighbors who look out for each other.",
+      "archetype_examples": "First responders, safety organizers, neighbors who look out",
+      "next_step_lean": "office_action",
+      "top_dimension_slug": "public-safety"
+    },
+    {
+      "slug": "neighbor",
+      "name": "The Neighbor",
+      "one_line": "You care about who can afford to live here and what gets built next door.",
+      "strength": "You notice who is moving in, who is moving out, and why. You speak up at the meetings where the next building gets decided.",
+      "blind_spot": "The block you know best is one of many, and other blocks may need different things.",
+      "archetype_intro": "You stand with the housing advocates, block clubs, and neighborhood planners.",
+      "archetype_examples": "Housing advocates, block clubs, neighborhood planners",
+      "next_step_lean": "my_city",
+      "top_dimension_slug": "housing-development"
+    },
+    {
+      "slug": "mentor",
+      "name": "The Mentor",
+      "one_line": "You think a city is only as strong as what it gives its kids.",
+      "strength": "You think about the kids who will grow up here next. You back the schools, programs, and places that help young people grow.",
+      "blind_spot": "Grown ups who are struggling need a hand too, and helping them helps kids as well.",
+      "archetype_intro": "You stand with the teachers, coaches, and youth mentors.",
+      "archetype_examples": "Teachers, coaches, youth mentors",
+      "next_step_lean": "lesson",
+      "top_dimension_slug": "education-youth"
+    },
+    {
+      "slug": "caretaker",
+      "name": "The Caretaker",
+      "one_line": "You measure a city by how it treats people when they are hurting.",
+      "strength": "You notice who is being left out and who needs help first. You push for clinics, care, and support that reach people in time.",
+      "blind_spot": "Taking care of yourself matters too, so you can keep showing up for others.",
+      "archetype_intro": "You stand with the public health pioneers, care workers, and mutual aid networks.",
+      "archetype_examples": "Public health pioneers, care workers, mutual aid networks",
+      "next_step_lean": "lesson",
+      "top_dimension_slug": "health-wellbeing"
+    },
+    {
+      "slug": "connector",
+      "name": "The Connector",
+      "one_line": "You want buses that come, streets that work, and everyone able to get around.",
+      "strength": "You see how roads, buses, and sidewalks link people to jobs, school, and each other. You speak up for the everyday trips most people never think about.",
+      "blind_spot": "A fix that works for your route may not work for every route.",
+      "archetype_intro": "You stand with the transit planners, road crews, and access advocates.",
+      "archetype_examples": "Transit planners, road crews, access advocates",
+      "next_step_lean": "my_city",
+      "top_dimension_slug": "infrastructure-mobility"
+    },
+    {
+      "slug": "organizer",
+      "name": "The Organizer",
+      "one_line": "You believe the answer is more people at the table.",
+      "strength": "You bring people in and help them find their voice. You know a meeting changes when more neighbors show up.",
+      "blind_spot": "Some people help in quiet ways, and that counts too.",
+      "archetype_intro": "You stand in the tradition of community organizers, union hall leaders, and get out the vote captains.",
+      "archetype_examples": "Community organizers, union hall leaders, vote captains",
+      "next_step_lean": "survey",
+      "top_dimension_slug": "civic-participation"
+    },
+    {
+      "slug": "steward",
+      "name": "The Steward",
+      "one_line": "You see the whole picture and refuse to pick just one fight.",
+      "strength": "You keep many needs in mind at once and see how they connect. You help a group find a plan that works for more people.",
+      "blind_spot": "Seeing every side is a gift, and sometimes it helps to pick one thing and push hard on it.",
+      "archetype_intro": "You stand with the coalition builders and public servants who hold many needs at once.",
+      "archetype_examples": "Coalition builders, public servants",
+      "next_step_lean": "lesson",
+      "top_dimension_slug": null
+    }
+  ]
+}
