@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { clearDemoRun, completionFor, demoQueueKey, demoRequest, loadDemoCatalog, loadDemoRun, newDemoRun, storeDemoRun, type DemoLabels } from "@/lib/compassDemo";
+import { clearDemoRun, completionFor, demoQueueKey, demoRequest, DemoNetworkError, loadDemoCatalog, loadDemoRun, newDemoRun, storeDemoRun, type DemoLabels } from "@/lib/compassDemo";
 import { scoreAnswers } from "@/lib/compassScoring";
 import { offlineCatalog, offlineEvent, offlinePersonaLabels } from "@/lib/compassOffline";
 
@@ -26,10 +26,10 @@ export function useCompassDemo(slug: string) {
       setEvent(events[0]);
       const data = await loadDemoCatalog().catch(() => offlineCatalog);
       if (mounted) { setCatalog(data); setStatus("ready"); }
-    }).catch(() => {
+    }).catch(error => {
       if (!mounted) return;
       const fallback = offlineEvent(slug);
-      if (fallback) { setEvent(fallback); setCatalog(offlineCatalog); setStatus("ready"); }
+      if (fallback && error instanceof DemoNetworkError) { setEvent(fallback); setCatalog(offlineCatalog); setStatus("ready"); }
       else { clearDemoRun(slug); setStatus("error"); }
     });
     return () => { mounted = false; generation.current++; loggingAbort.current?.abort(); };
@@ -40,7 +40,7 @@ export function useCompassDemo(slug: string) {
   useEffect(() => {
     if (status !== "ready") return;
     const interval = setInterval(() => {
-      if (!eventChecked.current && !offlineEvent(slug)) {
+      if (!offlineEvent(slug) && slug === "expo-oct-19") {
         generation.current++; loggingAbort.current?.abort(); clearDemoRun(slug); setRun(newDemoRun()); setStatus("inactive"); return;
       }
       demoRequest<{ slug: string; label: string }[]>("rpc/get_active_demo_event", { p_slug: slug }).then(events => {
@@ -88,8 +88,8 @@ export function useCompassDemo(slug: string) {
       // Reuses the existing SQL persona_label verbatim. This RPC never persists.
       let labels: DemoLabels;
       try { labels = await demoRequest<DemoLabels>("rpc/evaluate_compass_demo", { p_event_slug: slug, p_scores: scores }); }
-      catch {
-        if (!offlineEvent(slug)) throw new Error("Offline event expired");
+      catch (error) {
+        if (!(error instanceof DemoNetworkError) || !offlineEvent(slug)) throw new Error("Offline event unavailable");
         labels = offlinePersonaLabels(scores, catalog);
       }
       if (generation.current !== current) return;

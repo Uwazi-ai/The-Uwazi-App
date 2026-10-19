@@ -4,6 +4,8 @@ import path from "path";
 import { VitePWA } from "vite-plugin-pwa";
 import { componentTagger } from "lovable-tagger";
 import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/supabase/vite";
+// Workbox serializes these callbacks into the worker global context.
+declare const self: { location: { origin: string } };
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -16,6 +18,10 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
+    {
+      name: "single-kiosk-worker-registrar",
+      transformIndexHtml: (html: string) => html.replace(/<script>\s*if \('serviceWorker' in navigator\)[\s\S]*?<\/script>/, ""),
+    },
     mode === "development" && componentTagger(),
     VitePWA({
       strategies: "generateSW", filename: "sw.js", manifest: false,

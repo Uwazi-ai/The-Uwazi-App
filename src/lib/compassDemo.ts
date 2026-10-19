@@ -20,12 +20,20 @@ export function completionFor(slug: string, run: DemoRun): DemoCompletion | null
 
 // Anonymous REST requests deliberately do not import the authenticated app client.
 // No auth calls, stored session, user identifiers or engagement requests.
+export class DemoNetworkError extends Error {}
 export async function demoRequest<T>(path: string, body?: unknown, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${path}`, {
-    method: body === undefined ? "GET" : "POST", credentials: "omit", signal,
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  if (signal?.aborted) abort();
+  signal?.addEventListener("abort", abort, { once: true });
+  const timeout = setTimeout(abort, 3000);
+  let response: Response;
+  try { response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${path}`, {
+    method: body === undefined ? "GET" : "POST", credentials: "omit", signal: controller.signal,
     headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, "Content-Type": "application/json" },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-  });
+  }); } catch { throw new DemoNetworkError("Demo connection unavailable"); }
+  finally { clearTimeout(timeout); signal?.removeEventListener("abort", abort); }
   if (!response.ok) throw new Error("Demo request unavailable");
   return response.json();
 }
