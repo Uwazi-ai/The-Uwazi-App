@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import QRCode from "qrcode";
 import logo from "@/assets/uwazi-app-logo.png";
@@ -10,8 +11,8 @@ import "./compass-kiosk.css";
 
 export const kioskCopy = (value: string | null | undefined) => (value ?? "").replace(/\s*[—–]\s*/g, ". ");
 
-export function CompassKiosk({ children }: { children: ReactNode }) {
-  return <main data-compass-kiosk className="min-h-dvh w-full overflow-x-hidden bg-background text-foreground"><div className="mx-auto flex min-h-dvh max-w-2xl flex-col px-5 pb-8 pt-6 sm:px-10 sm:pt-10"><header className="mb-8 flex items-center justify-between gap-4"><img src={logo} alt="UWAZI" className="h-auto w-32" /><span className="text-sm font-medium text-muted-foreground">Civic Compass</span></header>{children}</div></main>;
+export function CompassKiosk({ children, exitTo }: { children: ReactNode; exitTo?: string }) {
+  return <main data-compass-kiosk className="min-h-dvh w-full overflow-x-hidden bg-background text-foreground"><div className="mx-auto flex min-h-dvh max-w-2xl flex-col px-5 pb-8 pt-6 sm:px-10 sm:pt-10"><header className="mb-8 flex items-center justify-between gap-4"><img src={logo} alt="UWAZI" className="h-auto w-32" />{exitTo ? <Link to={exitTo} className="inline-flex min-h-12 items-center rounded-lg border border-border px-4 text-sm font-medium hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" onClick={() => window.scrollTo(0, 0)}>Exit demo</Link> : <span className="text-sm font-medium text-muted-foreground">Civic Compass</span>}</header>{children}</div></main>;
 }
 
 export function PersonaReveal({ persona, scores }: { persona: DemoPersona; scores: Record<string, number> }) {
