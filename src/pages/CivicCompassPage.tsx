@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Compass, Lock, ArrowLeft, Sparkles, MessageCircle, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/contexts/ProfileContext";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
@@ -26,6 +27,7 @@ import { scoreAnswers } from "@/lib/compassScoring";
 export { scoreAnswers } from "@/lib/compassScoring";
 
 const db = supabase as any;
+const useIsSuperAdmin = () => useProfile().isAdmin;
 const THRESHOLD = 0.6;
 const LIKERT = [
   { v: 1, label: "Strongly disagree" },
@@ -49,6 +51,7 @@ function joinNames(n: string[]) {
 
 export default function CivicCompassPage() {
   const { user } = useAuth();
+  const isSuperAdmin = useIsSuperAdmin();
   const { isPremium } = useSubscription();
   const [params] = useSearchParams();
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -243,6 +246,15 @@ export default function CivicCompassPage() {
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8 overflow-x-hidden">
+      {isSuperAdmin && (
+        <div className="flex justify-end mb-4">
+          <Button size="sm" variant="outline" asChild>
+            <Link to="/compass/demo/expo-oct-19">
+              <Sparkles className="h-4 w-4 mr-2" /> Start demo mode
+            </Link>
+          </Button>
+        </div>
+      )}
       {stage === "intro" && (
         <div className="text-center space-y-5">
           <div className="mx-auto h-16 w-16 rounded-2xl bg-primary/15 flex items-center justify-center">
