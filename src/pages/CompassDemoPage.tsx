@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { MotionConfig } from "framer-motion";
@@ -15,6 +15,8 @@ import { scoreAnswers } from "@/lib/compassScoring";
 
 export default function CompassDemoPage() {
   const { eventSlug = "" } = useParams();
+  const [params] = useSearchParams();
+  const exitTo = params.get("admin") ? "/app/compass" : undefined;
   const demo = useCompassDemo(eventSlug);
   const [budget, setBudget] = useState(defaultBudget);
   const heading = useRef<HTMLDivElement | null>(null);
@@ -29,7 +31,7 @@ export default function CompassDemoPage() {
     if (!question) return;
     demo.setRun(previous => previous.stage !== "quiz" || catalog?.questions[previous.index]?.id !== question.id ? previous : ({ ...previous, answers: { ...previous.answers, [question.id]: value }, index: Math.min(previous.index + 1, catalog.questions.length - 1), stage: previous.index === catalog.questions.length - 1 ? "budget" : "quiz" }));
   };
-  return <MotionConfig reducedMotion="user"><CompassKiosk>
+  return <MotionConfig reducedMotion="user"><CompassKiosk exitTo={exitTo}>
     <div ref={heading} tabIndex={-1} className="flex flex-1 flex-col outline-none">
       {demo.status === "loading" && <p role="status">Loading Civic Compass.</p>}
       {demo.status === "inactive" && <p>This demo is not running right now.</p>}

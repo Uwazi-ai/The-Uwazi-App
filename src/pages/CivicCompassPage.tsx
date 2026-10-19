@@ -249,7 +249,7 @@ export default function CivicCompassPage() {
       {isSuperAdmin && (
         <div className="flex justify-end mb-4">
           <Button size="sm" variant="outline" asChild>
-            <Link to="/compass/demo/expo-oct-19">
+            <Link to="/compass/demo/expo-oct-19?admin=1">
               <Sparkles className="h-4 w-4 mr-2" /> Start demo mode
             </Link>
           </Button>
