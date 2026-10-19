@@ -1,0 +1,25 @@
+.election-precinct-map {
+  --election-map-boundary: hsl(var(--rides-blue));
+  --election-map-selected: hsl(var(--primary));
+  height: 560px;
+  min-width: 0;
+  width: 100%;
+  z-index: 0;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+}
+.election-precinct-map .leaflet-control-zoom a {
+  min-width: 44px;
+  min-height: 44px;
+  line-height: 44px;
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
+}
+.election-precinct-map .leaflet-control-attribution {
+  background: hsl(var(--card));
+  color: hsl(var(--muted-foreground));
+}
+.election-precinct-map .leaflet-control-attribution a { color: hsl(var(--primary)); }
+@media (max-width: 639px) { .election-precinct-map { height: 390px; } }

@@ -71,3 +71,7 @@
 - [x] Gate all ride senders and public copy with admin-only sms_live.
 - [x] Save rights takeaways as PNG, audit legal copy, and set demo distance to 0.9 mi.
 - [x] Verify phone booking and demo screens 4, 5, 6, 10, 12, clean test data and reset codes.
+
+## Election Day ride map
+- [ ] Add public official precinct map, reviewed polling-place lookup, directions and links from rides and Voter Guide.
+- [ ] Verify address lookup, missing destinations, and phone/desktop map controls without creating rides or enabling bookings.

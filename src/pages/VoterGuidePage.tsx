@@ -121,6 +121,7 @@ export default function VoterGuidePage() {
 
       <section className={card}>
         <h2 className="font-heading text-lg text-foreground flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> Where to vote</h2>
+        {state === "MO" && <Button asChild variant="outline" className="mt-3"><Link to={`/rides/map${precinctKey ? `?precinct=${precinctKey}` : ""}`}><MapPin className="mr-2 h-4 w-4" /> KCEB Election Day map</Link></Button>}
         {place ? (
           <p className="text-sm text-foreground mt-3"><strong>{place.name}</strong><br />{place.address}{place.room ? `. ${place.room}` : ""}{place.hours ? <span className="block text-xs text-muted-foreground mt-1">{place.hours} on Election Day</span> : null}</p>
         ) : (
