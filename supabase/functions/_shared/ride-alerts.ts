@@ -22,23 +22,34 @@ export async function sendRideAlert(db: SupabaseClient, kind: 'ride' | 'waitlist
   }
   const fail = async () => {
     if (kind === 'ride') await db.from('ride_events').insert({ request_id: id, event_type: 'note', note: 'notify_failed' });
-    else if (actor) await db.from('ride_admin_log').insert({ actor, action: 'notify_failed', target_id: id, note: 'notify_failed' });
+    else {
+      const { data: admin } = actor ? { data: { user_id: actor } } : await db.from('user_roles').select('user_id').eq('role', 'super_admin').order('created_at').limit(1).single();
+      if (admin) await db.from('ride_admin_log').insert({ actor: admin.user_id, action: 'notify_failed', target_id: id, note: 'notify_failed' });
+    }
   };
   const { data: claim, error: claimError } = await db.rpc('claim_ride_email_alert', { _kind: kind, _id: id, _actor: actor ?? null });
   if (claimError) { await fail(); return { status: 'not_sent' }; }
-  if (!claim) return { status: 'duplicate_or_limited' };
+  if (!claim) {
+    const { count } = kind === 'ride'
+      ? await db.from('ride_events').select('id', { count: 'exact', head: true }).eq('request_id', id).eq('event_type', 'notify_claimed')
+      : await db.from('ride_admin_log').select('id', { count: 'exact', head: true }).eq('target_id', id).in('action', ['notify_test_claimed', 'notify_waitlist_claimed']);
+    if (!count) await fail();
+    return { status: count ? 'duplicate' : 'limited' };
+  }
   let result: { status: string; messageId?: string } = { status: 'not_sent' };
-  await boundedAlert(async () => {
+  const completed = await boundedAlert(async () => {
     const sent = await sendTemplateEmail('ride-coordinator-alert', settings.notify_emails[0], { templateData, idempotencyKey: `ride-alert-${kind}-${id}` });
     result = sent.sent ? { status: sent.status || 'accepted', messageId: sent.messageId } : { status: 'suppressed' };
     if (sent.sent && kind === 'ride') await db.from('ride_events').insert({ request_id: id, event_type: 'note', note: 'notify_sent' });
   }, fail);
-  return result;
+  return completed ? result : { status: 'not_sent' };
 }
 
 export function startRideAlert(db: SupabaseClient, kind: 'ride' | 'waitlist', id: string) {
   // Construct inside the promise so even synchronous failures cannot affect intake.
-  const task = Promise.resolve().then(() => sendRideAlert(db, kind, id)).catch(() => {});
+  const task = Promise.resolve().then(() => sendRideAlert(db, kind, id)).catch(async () => {
+    try { if (kind === 'ride') await db.from('ride_events').insert({ request_id: id, event_type: 'note', note: 'notify_failed' }); } catch { /* No personal data in logs. */ }
+  });
   const runtime = (globalThis as unknown as { EdgeRuntime?: { waitUntil: (promise: Promise<unknown>) => void } }).EdgeRuntime;
   try { runtime?.waitUntil(task); } catch { /* Booking already saved. */ }
 }
