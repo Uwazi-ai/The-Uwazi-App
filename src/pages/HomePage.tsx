@@ -28,7 +28,7 @@ function ago(date: string) { const days = Math.max(0, Math.floor((Date.now() - n
 function greeting() { const hour = new Date().getHours(); return hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening"; }
 export default function HomePage() {
   const { user } = useAuth();
-  const { city, stateCode, zipCode } = useProfile();
+  const { city, stateCode, zipCode, displayName } = useProfile();
   const navigate = useNavigate();
   const { journey, loading, reload } = useMyJourney();
   const { challenge } = useMyChallenge();
@@ -92,7 +92,7 @@ export default function HomePage() {
   };
   if (loading) return <LoadingScreen fullScreen={false} label="Loading Home" />;
   const persona = journey?.personalization ? bySlug(journey.persona) : null;
-  const name = persona ? shortName(persona) : "there";
+  const name = (displayName && displayName !== "User" ? displayName.trim().split(/\s+/)[0] : "") || "there";
   const topIssues = journey?.personalization && journey.dimension_scores ? Object.entries(journey.dimension_scores).sort((a,b) => b[1]-a[1]).slice(0,3).map(([slug]) => slug) : [];
   const step = journey ? stepInfo(journey.next_step) : null;
   const covered = !!districts?.resolved?.place && !!election && ["MO", "KS"].includes(stateCode ?? "");
@@ -100,7 +100,7 @@ export default function HomePage() {
   const prompt = persona?.suggested_prompts?.find((q) => !/ballot|polling place/i.test(q)) ?? (persona ? `How can I help with ${PERSONA_TOPIC[persona.slug] ?? "my city"} in my area?` : "Who represents me and what can I do next?");
   const live = challenge?.active && !challenge.ended_at && new Date(challenge.ends_at) > new Date() ? challenge : null;
   return <div className="city-bento mx-auto max-w-6xl space-y-6 overflow-x-hidden px-4 py-6 pb-28 md:px-8 md:py-8 md:pb-10">
-    <header className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">{persona && <PersonaBadge slug={persona.slug} size="chip" label={`${persona.name} badge`} className="[&_svg]:!h-5 [&_svg]:!w-5" />}{persona?.name ?? "Your journey"}</div><h1 className="font-heading text-[28px] leading-tight text-foreground sm:text-4xl">{greeting()}, {name}</h1><p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="h-3.5 w-3.5" />{city ? `${city}${stateCode ? `, ${stateCode}` : ""}` : "Your area"}</p></div><Link to="/app/progress" className="shrink-0 rounded-full border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary"><span className="font-heading text-lg">{journey?.total_points ?? 0}</span> pts</Link></header>
+    <header className="flex items-start justify-between gap-3"><div className="min-w-0"><h1 className="font-heading text-[28px] leading-tight text-foreground sm:text-4xl">{greeting()}, {name}</h1><div><div className="mt-2 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">{persona && <PersonaBadge slug={persona.slug} size="chip" label={`${persona.name} badge`} className="[&_svg]:!h-5 [&_svg]:!w-5" />}{persona?.name ?? "Your journey"}</div></div><p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="h-3.5 w-3.5" />{city ? `${city}${stateCode ? `, ${stateCode}` : ""}` : "Your area"}</p></div><Link to="/app/progress" className="shrink-0 rounded-full border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary"><span className="font-heading text-lg">{journey?.total_points ?? 0}</span> pts</Link></header>
     <WelcomeHero video={welcome} seen={seen} onDismiss={dismiss} />
     <WatchAndLearn videos={videos} topIssues={topIssues} allowCellular={allowCellular} />
     <KnowYourVotingRights />
