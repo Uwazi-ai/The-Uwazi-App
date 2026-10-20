@@ -4353,6 +4353,10 @@ export type Database = {
           show_driver_to_riders: boolean
           sms_live: boolean
           updated_at: string
+          ztrip_dispatch_email: string
+          ztrip_dispatch_enabled: boolean
+          ztrip_email_on_changes: boolean
+          ztrip_email_ride_home: boolean
           ztrip_text_phone: string
         }
         Insert: {
@@ -4382,6 +4386,10 @@ export type Database = {
           show_driver_to_riders?: boolean
           sms_live?: boolean
           updated_at?: string
+          ztrip_dispatch_email?: string
+          ztrip_dispatch_enabled?: boolean
+          ztrip_email_on_changes?: boolean
+          ztrip_email_ride_home?: boolean
           ztrip_text_phone?: string
         }
         Update: {
@@ -4411,6 +4419,10 @@ export type Database = {
           show_driver_to_riders?: boolean
           sms_live?: boolean
           updated_at?: string
+          ztrip_dispatch_email?: string
+          ztrip_dispatch_enabled?: boolean
+          ztrip_email_on_changes?: boolean
+          ztrip_email_ride_home?: boolean
           ztrip_text_phone?: string
         }
         Relationships: []
@@ -6487,6 +6499,14 @@ export type Database = {
         Args: { _attempt: string; _hash: string; _kind: string; _ride: string }
         Returns: string
       }
+      claim_ztrip_dispatch_email: {
+        Args: {
+          _event_id?: string
+          _sample_actor?: string
+          _sample_id?: string
+        }
+        Returns: string
+      }
       code_redemption_stats: {
         Args: never
         Returns: {
@@ -6935,6 +6955,10 @@ export type Database = {
       survey_matches: {
         Args: { _filter: Json; _uid: string }
         Returns: boolean
+      }
+      ztrip_dispatch_fingerprint: {
+        Args: { _ride: Database["public"]["Tables"]["ride_requests"]["Row"] }
+        Returns: string
       }
     }
     Enums: {
