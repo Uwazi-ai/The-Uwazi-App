@@ -1,6 +1,6 @@
 ## Autocab live launch
 - [ ] Enable autocab_live through the admin desk. Blocked: customer account is not selected.
-- [ ] Publish current app. Awaiting owner's decision on critical security findings.
+- [x] Publishing requested for the current app at https://uwaziapp.uwazi.ai. Deployment completion is unverified; three critical findings remain unresolved.
 - [ ] Send one identified real ride and verify booking status and tracking on the desk. Blocked: no real ride exists and passenger details are not supplied.
 
 ## Home and Plus
