@@ -56,5 +56,5 @@ Deno.serve(async req=>{
  const runtime=(globalThis as unknown as {EdgeRuntime?:{waitUntil:(p:Promise<unknown>)=>void}}).EdgeRuntime;
  runtime?.waitUntil(task);
  let timer:ReturnType<typeof setTimeout>|undefined;
- try{return json(await Promise.race([task,new Promise(resolve=>{timer=setTimeout(()=>resolve({status:'pending'}),5000);})]));}finally{if(timer)clearTimeout(timer);}
+ try{return json(await Promise.race([task,new Promise(resolve=>{timer=setTimeout(()=>{if(rideId){const note=Promise.resolve(db.from('ride_events').insert({request_id:rideId,event_type:'note',note:'ztrip_email_failed'})).catch(()=>undefined);runtime?.waitUntil(note);}resolve({status:'pending'});},5000);})]));}finally{if(timer)clearTimeout(timer);}
 });
