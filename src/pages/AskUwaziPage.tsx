@@ -341,6 +341,7 @@ const FREE_DAILY_LIMIT = 5;
 export default function AskUwaziPage() {
   const { session } = useAuth();
   const { displayName } = useProfile();
+  const firstName = displayName && displayName !== "User" ? displayName.trim().split(/\s+/)[0] : "";
   const ctx = useAskUwaziContext();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -782,7 +783,7 @@ export default function AskUwaziPage() {
                   <div className="mt-2 space-y-1">
                     <p className="text-sm text-foreground" data-testid="ask-greeting">
                       {askPersona
-                        ? <><PersonaBadge slug={askPersona.slug} size="chip" className="inline-block align-middle mr-2" label={`${askPersona.name} badge`} />Welcome back, {shortName(askPersona)}. Here is what changed on {PERSONA_TOPIC[askPersona.slug] ?? "your issues"} in your city this week. Ask me about it.</>
+                        ? <>Welcome back{firstName ? `, ${firstName}` : ""}.<span className="mt-1 flex items-center gap-2 text-xs font-semibold text-primary"><PersonaBadge slug={askPersona.slug} size="chip" label={`${askPersona.name} badge`} />{askPersona.name}</span>Here is what changed on {PERSONA_TOPIC[askPersona.slug] ?? "your issues"} in your city this week. Ask me about it.</>
                         : askJourney.lead_name
                         ? <>Welcome back. You lead with {askJourney.lead_name}. Ask what changed on that in your city this week.</>
                         : <>Welcome back. Your Compass says {askJourney.label}. Ask what changed in your city this week.</>}
