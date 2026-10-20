@@ -1,5 +1,5 @@
 import { Car } from "lucide-react";
-import { POLL_RIDES_LIVE } from "@/hooks/useVotingRights";
+import { ridesAreLive } from "@/lib/ridesLive";
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -18,7 +18,7 @@ import {
 const navItems = [
   { to: "/app", icon: HomeIcon, label: "Home" },
   { to: "/app/vote", icon: VotingHubIcon, label: "Voting hub" },
-  { to: POLL_RIDES_LIVE ? "/rides" : "/rides/waitlist", icon: Car, label: "Free Rides" },
+  { get to() { return ridesAreLive() ? "/rides" : "/rides/waitlist"; }, icon: Car, get label() { return ridesAreLive() ? "Now booking" : "Free Rides"; } },
   { to: "/app/ask", icon: AskUwaziIcon, label: "Ask Uwazi" },
   { to: "/app/compass", icon: Compass, label: "Compass" },
   { to: "/app/progress", icon: ProgressIcon, label: "Progress" },

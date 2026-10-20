@@ -9,8 +9,8 @@ export const STATE_NAMES: Record<VoterState, string> = { MO: "Missouri", KS: "Ka
 const STATE_KEY = "uwazi_kyvr_state";
 const CHECK_KEY = `uwazi_checklist_${ELECTION_DATE}`;
 
-/** Poll rides feature flag. Off unless VITE_POLL_RIDES_LIVE is "true". */
-export const POLL_RIDES_LIVE = import.meta.env.VITE_POLL_RIDES_LIVE === "true";
+/** @deprecated Use ridesAreLive() from "@/lib/ridesLive". */
+export { ridesAreLive } from "@/lib/ridesLive";
 
 const isVS = (s: unknown): s is VoterState => s === "MO" || s === "KS";
 
