@@ -1,8 +1,8 @@
 ## Private driver tracking
-- [ ] Add service-only token-hashed sessions, validated atomic pings, coordinator reads/revoke and daily coordinate purge.
-- [ ] Add public consent-based driver page and desk-only Leaflet panel/drawer map with cached Autocab positions.
-- [ ] Correct single-ride reminders for today without changing claims or sending emails.
-- [ ] Verify temporary driver sessions end to end, permissions, rejection states, 390/1280 screenshots and regressions. Delete only own sessions by id and confirm existing rows, rate limits and sequence unchanged. No publish or live Autocab.
+- [x] Added service-only SHA-256 session tables, consent and five-second atomic ping limits, coordinator reads/revoke, immediate revoke purge and daily 48-hour point purge. Rider visibility defaults false.
+- [x] Added isolated Start/Stop driver page, optional screen wake lock, offline warnings and private desk/drawer Leaflet maps. Existing cached Autocab positions are display-only. Coordinates are transiently resolved for drawer pickup pins and never sent in tile requests.
+- [x] Corrected today reminder subject and body using Central dates; claims and limits unchanged. Two rendered email tests pass with Deno runtime rendering; pinned React type versions require --no-check.
+- [x] Real temporary sessions saved two points and a trail; Stop/revoke/expiry, out-of-area, consent, 501m accuracy and too-fast pings verified. Anonymous/authenticated table reads denied. Signed-in 390/1280 screenshots verify private maps, stale/Autocab mocked markers, drawer pins, one-time link clearing and tile fallback. 96 unit/regression tests passed. Purge removed one old QA point and kept its session. All three own sessions deleted by exact id. No publish, email sending or live Autocab calls. Physical locked-screen/wake-lock behavior and real vehicle positions remain unverified.
 
 ## Desk navigation and manual rider reminders
 - [x] Added shared desk-route app navigation and phone safe-area spacing. Sheets end above bottom tabs; drawer bottom Close action is unobscured. Rider/demo screens unchanged.
