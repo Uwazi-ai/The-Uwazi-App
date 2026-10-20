@@ -1,3 +1,7 @@
+## zTrip dispatch emails
+- [ ] Add off-by-default admin settings and sample-only controls, single-recipient dispatch template, new/change/stage-five claims and display chips.
+- [ ] Verify mocks, rendered templates, sample recipient safety, failure isolation and 390/1280 desk layout without zTrip sends or existing-row changes; report preservation counts.
+
 ## Private driver tracking
 - [x] Added service-only SHA-256 session tables, consent and five-second atomic ping limits, coordinator reads/revoke, immediate revoke purge and daily 48-hour point purge. Rider visibility defaults false.
 - [x] Added isolated Start/Stop driver page, optional screen wake lock, offline warnings and private desk/drawer Leaflet maps. Existing cached Autocab positions are display-only. Coordinates are transiently resolved for drawer pickup pins and never sent in tile requests.
