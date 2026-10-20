@@ -1,10 +1,10 @@
 import { ReactNode } from "react";
 import './rider/rider.css';
 
-export function RidesShell({ logo, children, context }: { logo: string; children: ReactNode; context?: ReactNode }) {
+export function RidesShell({ logo, children, context, action }: { logo: string; children: ReactNode; context?: ReactNode; action?: ReactNode }) {
   return (
     <main className="rider-experience min-h-[100dvh] overflow-x-hidden">
-      <header className="rider-header"><img src={logo} alt="UWAZI.APP" /><div>{context ?? <span className="rider-eyebrow rider-pill rider-selected">FREE</span>}</div></header>
+      <header className="rider-header gap-3"><div className="flex min-w-0 items-center gap-3"><img src={logo} alt="UWAZI.APP" />{action}</div><div className="shrink-0 whitespace-nowrap">{context ?? <span className="rider-eyebrow rider-pill rider-selected">FREE</span>}</div></header>
       <div className="rider-content">
         {children}
       </div>
