@@ -204,6 +204,13 @@
       "when": 1792460621885,
       "tag": "0028_autocab_coordinator_dispatch",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1792460957699,
+      "tag": "0029_autocab_settings_validation",
+      "breakpoints": true
     }
   ]
 }
