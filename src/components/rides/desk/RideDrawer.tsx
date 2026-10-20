@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { fmtDay, fmtHour, fmtPhone, telHref } from "@/components/rides/RidesUI";
+import { ZtripTextButton } from "./ZtripTextButton";
+import { singleMessage, updateMessage, zState } from "./ztripText";
 import { NEED_LABELS, type Ride, type RideEvent, type Settings, stageLabel } from "./deskLib";
 
 type Option = { id: string; name: string; address: string; extra?: string };
@@ -158,6 +160,8 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
         {ride.needs.length > 0 && <Row k="Needs">{ride.needs.map((n) => NEED_LABELS[n] ?? n).join(", ")}</Row>}
         {ride.ztrip_confirmation && <Row k="zTrip number">{ride.ztrip_confirmation}</Row>}
       </dl>
+      {(() => { const st = zState(ride, events); return ["requested", "booked"].includes(ride.status) || st === "update"
+        ? <ZtripTextButton rides={[ride]} message={st === "update" ? updateMessage(ride) : singleMessage(ride)} update={st === "update"} phone={settings.ztrip_text_phone} onMarked={loadEvents} /> : null; })()}
 
       {(ride.needs_destination || !ride.destination_site_id) && !["completed", "cancelled", "referred"].includes(ride.status) && (
         <section className="space-y-2 rounded-2xl border border-[hsl(var(--rides-amber)/0.5)] p-4">
