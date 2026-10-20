@@ -37,7 +37,7 @@ Deno.serve(async req => {
         const str = (v: unknown) => typeof v === 'string' || typeof v === 'number' ? redactError(String(v), key) : null;
         const coord = location?.coordinate ?? location?.location ?? location;
         const data = { status, estimatedPickup: str(booking.estimatedPickupTimeUtc ?? booking.estimatedPickupTime ?? booking.eta), driver: str(booking.driver?.name ?? booking.driverName), vehicle: str(booking.vehicle?.registration ?? booking.vehicle?.callsign ?? booking.vehicleName), position: Number.isFinite(coord?.latitude) && Number.isFinite(coord?.longitude) ? { lat: coord.latitude, lon: coord.longitude } : null, trackingLink: safeTrackingLink(tracking?.trackingLink ?? tracking?.url ?? tracking), error: secondaryErrors.length ? secondaryErrors.join(' ') : null, updatedAt: new Date().toISOString() };
-        await db.from('autocab_poll_cache').update({ data, failures: 0, updated_at: data.updatedAt, next_poll_at: new Date(Date.now()+30000).toISOString() }).eq('booking_id',id);
+        await db.from('autocab_poll_cache').update({ data, failures: 0, updated_at: data.updatedAt, next_poll_at: new Date(Date.now()+55000).toISOString() }).eq('booking_id',id);
         for (const r of rows) if (r.autocab_status !== status) {
           await db.from('ride_requests').update({ autocab_status: status }).eq('id',r.id).eq('autocab_booking_id',id);
           await db.from('ride_events').insert({ request_id: r.id, event_type: 'autocab_status', note: status, actor: uid });
