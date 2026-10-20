@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { RideRequestView } from "@/components/rides/RideRequestView";
+import { RidesAppShell } from "@/components/rides/RidesAppShell";
 import { useJoinRideWaitlist } from "@/hooks/useVotingRights";
 
 
