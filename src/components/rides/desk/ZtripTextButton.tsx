@@ -6,7 +6,7 @@ import { signature, smsHref } from "./ztripText";
 
 const btn = "inline-flex min-h-[44px] items-center justify-center rounded-xl px-3 text-sm font-semibold disabled:opacity-40";
 
-export function ZtripTextButton({ rides, message, phone, update = false, onMarked }: { rides: Ride[]; message: string; phone: string; update?: boolean; onMarked?: () => void }) {
+export function ZtripTextButton({ rides, message, phone, update = false, eventType = "ztrip_texted", onMarked }: { eventType?: string; rides: Ride[]; message: string; phone: string; update?: boolean; onMarked?: () => void }) {
   const { user } = useAuth();
   const [tapped, setTapped] = useState(false);
   const [note, setNote] = useState<string | null>(null);
@@ -18,7 +18,7 @@ export function ZtripTextButton({ rides, message, phone, update = false, onMarke
   };
   const mark = async () => {
     setBusy(true);
-    const { error } = await supabase.from("ride_events").insert(rides.map((r) => ({ request_id: r.id, event_type: "ztrip_texted", note: signature(r), actor: user?.id })));
+    const { error } = await supabase.from("ride_events").insert(rides.map((r) => ({ request_id: r.id, event_type: eventType, note: eventType === "ztrip_texted" ? signature(r) : "Ride home sent to zTrip", actor: user?.id })));
     setBusy(false);
     if (error) return setNote("That did not save. Try again.");
     setTapped(false); setNote("Marked texted.");
