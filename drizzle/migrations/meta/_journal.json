@@ -281,6 +281,13 @@
       "when": 1792508312885,
       "tag": "0039_private_driver_location_sessions",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1792510208722,
+      "tag": "0040_ztrip_dispatch_email_settings_and_event_claims",
+      "breakpoints": true
     }
   ]
 }

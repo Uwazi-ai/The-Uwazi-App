@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import type { Settings } from './deskLib';
+import { ZtripDispatchSettings } from './ZtripDispatchSettings';
 export function EmailAlerts({ settings, onSettings }: { settings: Settings; onSettings: (s: Settings) => void }) {
   const [email, setEmail] = useState(settings.notify_emails.join(', '));
   const [busy, setBusy] = useState(false); const [message, setMessage] = useState('');
@@ -25,5 +26,6 @@ export function EmailAlerts({ settings, onSettings }: { settings: Settings; onSe
       <Button variant="outline" disabled={busy} onClick={async () => { setBusy(true); setMessage('Sending test email.'); try { const { data, error } = await supabase.functions.invoke('ride-request-alert', { body: { action: 'test' } }); setMessage(error ? 'Test email was not sent.' : `Test email ${data.status}. ${data.messageId ? `ID: ${data.messageId}` : ''}`); } catch { setMessage('Test email was not sent.'); } finally { setBusy(false); } }}><Send className="mr-2 h-4 w-4" />Send test email</Button>
       <p role="status" className="break-words text-sm">{message}</p>
     </div>
+    <ZtripDispatchSettings settings={settings} onSettings={onSettings} />
   </section>;
 }

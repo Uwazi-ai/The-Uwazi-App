@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { fmtDay, fmtHour, fmtPhone, telHref } from "@/components/rides/RidesUI";
 import { ZtripTextButton } from "./ZtripTextButton";
 import { EmailReminderAction } from "./EmailReminderAction";
+import { ZtripEmailed } from './ZtripEmailed';
 import { homeMessage, singleMessage, updateMessage, zState } from "./ztripText";
 import { NEED_LABELS, type Ride, type RideEvent, type Settings, stageLabel } from "./deskLib";
 
@@ -147,6 +148,7 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
         <p className="text-xs uppercase tracking-widest text-[hsl(var(--rides-ink)/0.6)]">{ride.ride_code}. {statusText[ride.status] ?? ride.status}</p>
         <h2 className="font-heading text-2xl">{ride.first_name_last_initial}</h2>
         <p className="text-lg">{fmtDay(ride.ride_day)}, {fmtHour(ride.pickup_time)} pickup</p>
+        <ZtripEmailed events={events} rideId={ride.id} />
       </div>
 
       <dl className="space-y-3 text-sm">

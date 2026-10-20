@@ -5,10 +5,11 @@ import { fmtDay, fmtHour, fmtPhone, telHref } from "@/components/rides/RidesUI";
 import type { Ride } from "./deskLib";
 import { ZtripTextButton } from "./ZtripTextButton";
 import { EmailReminderAction } from "./EmailReminderAction";
+import { ZtripEmailed } from './ZtripEmailed';
 import { batches, groupMessage, homeBatches, homeMessage, updateMessage, zState, type ZEvent } from "./ztripText";
 
 const ELECTION_DAY = "2026-11-03";
-const EVENT_TYPES = ["late_called", "no_show", "confirmed_by_call", "call_no_answer", "place_confirmed", "cancelled", "ztrip_texted", "ride_home_texted", "rider_ready_for_return", "trip_stage", "rider_email_sent"];
+const EVENT_TYPES = ["late_called", "no_show", "confirmed_by_call", "call_no_answer", "place_confirmed", "cancelled", "ztrip_texted", "ride_home_texted", "rider_ready_for_return", "trip_stage", "rider_email_sent", "ztrip_emailed"];
 type Ev = ZEvent;
 type Wait = { id: string; requested_date: string; reason: string | null; phone: string };
 type Item = { key: string; ride?: Ride; wait?: Wait; reason: string; script?: string; ztrip?: { rides: Ride[]; message: string; update: boolean; eventType?: string }; actions: [string, () => Promise<unknown> | void][] };
@@ -101,6 +102,7 @@ export function TodaysCalls({ rides, now, ztripPhone, onOpen, onChanged }: { rid
                   </div>
                   {phone && <a className="inline-flex min-h-[44px] items-center font-semibold underline" href={telHref(phone)}>{fmtPhone(phone)}</a>}
                   <p>{it.reason}</p>
+                  {title === 'Tell zTrip' && it.ztrip?.rides.map(r => <div key={r.id}><ZtripEmailed events={events} rideId={r.id} /></div>)}
                   {it.script && <p className="rounded-lg bg-[hsl(var(--rides-blue)/0.25)] p-2">Say: "{it.script}"</p>}
                   {it.ztrip && <ZtripTextButton rides={it.ztrip.rides} message={it.ztrip.message} phone={ztripPhone} update={it.ztrip.update} eventType={it.ztrip.eventType} onMarked={() => { load(); }} />}
                   {title === "Confirm tomorrow's rides" && it.ride && <EmailReminderAction
