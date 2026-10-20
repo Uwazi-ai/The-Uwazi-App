@@ -150,6 +150,7 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
 
       <dl className="space-y-3 text-sm">
         <Row k="Phone"><a className="underline" href={telHref(ride.phone)}>{fmtPhone(ride.phone)}</a>{ride.texts_ok ? ". Texts on" : ". No texts"}</Row>
+        {ride.email && <Row k="Email"><span className="break-all">{ride.email}</span></Row>}
         <Row k="Pickup">{ride.pickup_address}, {ride.zip}</Row>
         <Row k="Voting place">
           {ride.site && !ride.needs_destination ? (

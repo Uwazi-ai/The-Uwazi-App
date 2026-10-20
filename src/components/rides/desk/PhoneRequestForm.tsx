@@ -3,6 +3,7 @@ import { FunctionsHttpError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Chip, Toggle, fmtDay, fmtHour } from "@/components/rides/RidesUI";
 import { NEED_LABELS } from "./deskLib";
+import { riderEmailSchema } from '@/lib/riderEmail';
 
 type Day = { day: string; kind: "early" | "election_day" };
 type Hour = { hour: string; seats_left: number };
@@ -11,6 +12,7 @@ type Site = { id: string; name: string; address: string; open: string; close: st
 export function PhoneRequestForm({ onDone, smsLive = false }: { smsLive?: boolean; onDone: (code: string) => void }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [zip, setZip] = useState("");
   const [days, setDays] = useState<Day[]>([]);
@@ -78,10 +80,13 @@ export function PhoneRequestForm({ onDone, smsLive = false }: { smsLive?: boolea
   const ok = /^[A-Za-z][A-Za-z'\- ]{0,40} [A-Za-z]\.?$/.test(name.trim()) && phone.replace(/\D/g, "").length >= 10 && address.trim().length >= 5 && /^\d{5}$/.test(zip) && day && hour && area?.status !== "out_of_area" && area?.status !== "checking";
 
   const send = async () => {
+    const parsedEmail = riderEmailSchema.safeParse(email);
+    if (!parsedEmail.success) { setErr('Enter a valid email address.'); return; }
     setBusy(true);
     setErr(null);
     const body: Record<string, unknown> = {
       first_name_last_initial: name.trim(), phone, pickup_address: address.trim(), zip,
+      ...(parsedEmail.data ? {email:parsedEmail.data} : {}),
       ride_day: day, pickup_time: hour, round_trip: roundTrip, needs, texts_ok: smsLive && textsOk,
     };
     if (!isElection && siteId) body.destination_site_id = siteId;
@@ -107,6 +112,7 @@ export function PhoneRequestForm({ onDone, smsLive = false }: { smsLive?: boolea
       <p className="text-sm text-[hsl(var(--rides-ink)/0.7)]">Last minute pickups are fine here.</p>
       <div><span className={label}>First name and last initial</span><input className="rides-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Maria G." /></div>
       <div><span className={label}>Mobile number</span><input className="rides-input" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="816 555 0100" /></div>
+      <label className="block"><span className={label}>Email (optional)</span><input type="email" className="rides-input" maxLength={254} value={email} autoComplete="email" onChange={e=>setEmail(e.target.value)}/><span className="mt-2 block text-xs text-muted-foreground">Ask if they want ride details by email.</span></label>
       <div><span className={label}>Pickup street address</span><input className="rides-input" value={address} onChange={(e) => setAddress(e.target.value)} /></div>
       <div><span className={label}>ZIP</span><input className="rides-input" inputMode="numeric" maxLength={5} value={zip} onChange={(e) => setZip(e.target.value.replace(/\D/g, ""))} /></div>
       {area && <p role="status" className={`text-sm ${area.status === "eligible" ? "text-[hsl(var(--rides-green))]" : area.status === "checking" ? "" : "text-[hsl(var(--rides-amber))]"}`}>{area.msg}</p>}

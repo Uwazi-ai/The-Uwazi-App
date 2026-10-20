@@ -1,0 +1,1 @@
+CREATE OR REPLACE FUNCTION public.prevent_ride_event_change() RETURNS trigger LANGUAGE plpgsql SET search_path=public AS $$ BEGIN RAISE EXCEPTION 'ride_events is append-only'; END $$;

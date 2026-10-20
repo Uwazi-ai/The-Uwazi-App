@@ -253,6 +253,27 @@
       "when": 1792475227345,
       "tag": "0035_protect_coordinator_email_claim_events",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1792506608701,
+      "tag": "0036_optional_rider_email_and_atomic_limits",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1792507050572,
+      "tag": "0037_allow_exact_rider_email_test_cleanup",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1792507070525,
+      "tag": "0038_restore_strict_events_after_rider_email_cleanup",
+      "breakpoints": true
     }
   ]
 }
