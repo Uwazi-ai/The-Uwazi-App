@@ -4,13 +4,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { fmtDay, fmtHour, fmtPhone, telHref } from "@/components/rides/RidesUI";
 import type { Ride } from "./deskLib";
 import { ZtripTextButton } from "./ZtripTextButton";
-import { batches, groupMessage, updateMessage, zState, type ZEvent } from "./ztripText";
+import { batches, groupMessage, homeBatches, homeMessage, updateMessage, zState, type ZEvent } from "./ztripText";
 
 const ELECTION_DAY = "2026-11-03";
-const EVENT_TYPES = ["late_called", "no_show", "confirmed_by_call", "call_no_answer", "place_confirmed", "cancelled", "ztrip_texted"];
+const EVENT_TYPES = ["late_called", "no_show", "confirmed_by_call", "call_no_answer", "place_confirmed", "cancelled", "ztrip_texted", "ride_home_texted", "rider_ready_for_return", "trip_stage"];
 type Ev = ZEvent;
 type Wait = { id: string; requested_date: string; reason: string | null; phone: string };
-type Item = { key: string; ride?: Ride; wait?: Wait; reason: string; script?: string; ztrip?: { rides: Ride[]; message: string; update: boolean }; actions: [string, () => Promise<unknown> | void][] };
+type Item = { key: string; ride?: Ride; wait?: Wait; reason: string; script?: string; ztrip?: { rides: Ride[]; message: string; update: boolean; eventType?: string }; actions: [string, () => Promise<unknown> | void][] };
 
 function chicago(ms: number) {
   const d = (n: number) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(n));
@@ -34,6 +34,8 @@ export function TodaysCalls({ rides, now, ztripPhone, onOpen, onChanged }: { rid
     setWaits((w.data ?? []) as Wait[]);
   }, []);
   useEffect(() => { load(); }, [load, rides]);
+  // Refresh every 20 seconds without a page reload.
+  useEffect(() => { const t = setInterval(() => { load(); onChanged(); }, 20000); return () => clearInterval(t); }, [load, onChanged]);
 
   const log = async (ride: Ride, event_type: string, patch?: Partial<Ride>) => {
     if (patch) { const r = await supabase.from("ride_requests").update(patch).eq("id", ride.id); if (r.error) return; }
@@ -51,6 +53,7 @@ export function TodaysCalls({ rides, now, ztripPhone, onOpen, onChanged }: { rid
     const fresh = batches(rides.filter((r) => soon(r) && zState(r, events) === "new"));
     const changed = rides.filter((r) => r.ride_day >= c.today && zState(r, events) === "update");
     const groups: [string, Item[]][] = [
+      ["Ride home ready", homeBatches(rides, events).map((b) => ({ key: "home" + b.key, ride: b.rides.length === 1 ? b.rides[0] : undefined, reason: b.rides.length > 1 ? `${b.rides.length} riders ready at ${b.rides[0].site?.name ?? "the voting place"}: ${b.rides.map((r) => r.ride_code).join(", ")}.` : "Ready for the ride home now.", ztrip: { rides: b.rides, message: homeMessage(b.rides), update: false, eventType: "ride_home_texted" }, actions: [] as Item["actions"] }))],
       ["Tell zTrip", [
         ...changed.map((r) => ({ key: "zu" + r.id, ride: r, reason: r.status === "cancelled" ? "Cancelled after zTrip was told." : "Changed after zTrip was told.", ztrip: { rides: [r], message: updateMessage(r), update: true }, actions: [] as Item["actions"] })),
         ...fresh.map((b) => ({ key: "zn" + b.key, ride: b.rides.length === 1 ? b.rides[0] : undefined, reason: b.rides.length > 1 ? `Group trip. ${b.rides.length} riders: ${b.rides.map((r) => r.ride_code).join(", ")}.` : "New trip for zTrip to watch.", ztrip: { rides: b.rides, message: groupMessage(b.rides), update: false }, actions: [] as Item["actions"] })),
@@ -78,6 +81,7 @@ export function TodaysCalls({ rides, now, ztripPhone, onOpen, onChanged }: { rid
   }, [rides, events, waits, now]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const count = items.reduce((n, [, l]) => n + l.length, 0);
+  useEffect(() => { document.title = count ? `(${count}) Ride desk` : "Ride desk"; }, [count]);
   const btn = "min-h-[44px] rounded-xl px-3 text-sm font-semibold disabled:opacity-40";
   return (
     <section aria-labelledby="todays-calls" className="mb-6 rounded-2xl border border-[hsl(var(--rides-ink)/0.15)] p-4">
@@ -91,13 +95,13 @@ export function TodaysCalls({ rides, now, ztripPhone, onOpen, onChanged }: { rid
               return (
                 <li key={it.key} data-call-item={title} className="space-y-2 rounded-xl bg-[hsl(var(--rides-ink)/0.06)] p-3 text-sm">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <b>{it.ride?.first_name_last_initial ?? (it.ztrip ? "Group trip" : "Waitlist rider")}</b>
+                    <b>{it.ride?.first_name_last_initial ?? (it.key.startsWith("home") ? "Ride home group" : it.ztrip ? "Group trip" : "Waitlist rider")}</b>
                     {it.ride && <span className="font-mono text-xs">{it.ride.ride_code}</span>}
                   </div>
                   {phone && <a className="inline-flex min-h-[44px] items-center font-semibold underline" href={telHref(phone)}>{fmtPhone(phone)}</a>}
                   <p>{it.reason}</p>
                   {it.script && <p className="rounded-lg bg-[hsl(var(--rides-blue)/0.25)] p-2">Say: "{it.script}"</p>}
-                  {it.ztrip && <ZtripTextButton rides={it.ztrip.rides} message={it.ztrip.message} phone={ztripPhone} update={it.ztrip.update} onMarked={() => { load(); }} />}
+                  {it.ztrip && <ZtripTextButton rides={it.ztrip.rides} message={it.ztrip.message} phone={ztripPhone} update={it.ztrip.update} eventType={it.ztrip.eventType} onMarked={() => { load(); }} />}
                   <div className="flex flex-wrap gap-2">
                     {it.actions.map(([label, fn], i) => (
                       <button key={label} disabled={busy === it.key} className={`${btn} ${i === 0 ? "bg-[hsl(var(--rides-green))] text-[hsl(var(--rides-bg))]" : "border border-[hsl(var(--rides-ink)/0.25)]"}`} onClick={async () => { setBusy(it.key); try { await fn(); } finally { setBusy(null); } }}>{label}</button>

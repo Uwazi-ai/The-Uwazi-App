@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Car } from "lucide-react";
+import { ridesAreLive } from "@/lib/ridesLive";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { POLL_RIDES_LIVE, useJoinRideWaitlist, type VoterState } from "@/hooks/useVotingRights";
+import { useJoinRideWaitlist, type VoterState } from "@/hooks/useVotingRights";
 
 const TEAL = "#34d3b4";
 
@@ -12,6 +13,7 @@ const btn = "flex w-full min-h-[48px] items-center justify-center rounded-[10px]
 
 export function PollRideTeaser({ state, startWithPhone = false }: { state: VoterState; startWithPhone?: boolean }) {
   const { user } = useAuth();
+  const POLL_RIDES_LIVE = ridesAreLive();
   const { join, status } = useJoinRideWaitlist();
   const [smsLive, setSmsLive] = useState(false);
   useEffect(() => { supabase.functions.invoke("get-ride-availability", { body: {} }).then(({ data }) => setSmsLive(data?.sms_live === true)); }, []);
@@ -27,7 +29,7 @@ export function PollRideTeaser({ state, startWithPhone = false }: { state: Voter
     if (!user || POLL_RIDES_LIVE) return;
     supabase.from("poll_ride_waitlist").select("id").eq("user_id", user.id).limit(1)
       .then(({ data }) => { if (data && data.length) setOnList(true); });
-  }, [user]);
+  }, [user, POLL_RIDES_LIVE]);
 
   const finish = () => { setOnList(true); setShowPhone(false); toast.success(doneMessage); };
 
@@ -77,7 +79,10 @@ export function PollRideTeaser({ state, startWithPhone = false }: { state: Voter
       </ol>
 
       {POLL_RIDES_LIVE ? (
-        <Link to="/rides" className={btn} style={{ background: TEAL, color: "#0a0a0a" }}>Book a ride</Link>
+        <div className="flex flex-col gap-2">
+          <Link to="/rides" className={btn} style={{ background: TEAL, color: "#0a0a0a" }}>Book a ride</Link>
+          <p className="text-[13px] text-muted-foreground">Need a ride sooner? Call <a className="font-semibold text-foreground underline" href="tel:+18163796885">(816) 379-6885</a>.</p>
+        </div>
       ) : (
         <div className="flex flex-col gap-2">
           {onList ? (

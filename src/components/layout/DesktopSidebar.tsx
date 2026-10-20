@@ -1,5 +1,5 @@
 import { Car } from "lucide-react";
-import { POLL_RIDES_LIVE } from "@/hooks/useVotingRights";
+import { ridesAreLive } from "@/lib/ridesLive";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -29,7 +29,7 @@ const mainNav = [
   { to: "/app/vote", icon: VotingHubIcon, label: "Voting Hub" },
   { to: "/app/compass", icon: Compass, label: "Civic Compass" },
   { to: "/app/my-city", icon: Building2, label: "My City" },
-  { to: POLL_RIDES_LIVE ? "/rides" : "/rides/waitlist", icon: Car, label: "Free Rides" },
+  { get to() { return ridesAreLive() ? "/rides" : "/rides/waitlist"; }, icon: Car, get label() { return ridesAreLive() ? "Now booking" : "Free Rides"; } },
   { to: "/app/progress", icon: ProgressIcon, label: "Progress" },
 ];
 

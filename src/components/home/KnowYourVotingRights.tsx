@@ -1,4 +1,5 @@
 // Know Your Voting Rights home section. UI only; data comes from src/hooks/useVotingRights.ts.
+import { ridesAreLive } from "@/lib/ridesLive";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -9,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { PollRideTeaser } from "./PollRideTeaser";
 import {
-  ELECTION_DATE, POLL_RIDES_LIVE, STATE_NAMES, askUwaziFromCard,
+  ELECTION_DATE, STATE_NAMES, askUwaziFromCard,
   useEarlyVotingCountdown, useElectionRules, useRightsCards, useVoteReadyChecklist, useVoterState,
   type ChecklistKey, type RightsCard, type VoterState,
 } from "@/hooks/useVotingRights";
@@ -172,7 +173,7 @@ const CHECK_ACTIONS: Record<ChecklistKey, (state: VoterState) => { label: string
   idc: () => null,
   plan: () => null,
   ballot: () => ({ label: "Open", href: "/app/vote" }),
-  ride: () => (POLL_RIDES_LIVE ? { label: "Book", href: "/rides" } : null),
+  ride: () => (ridesAreLive() ? { label: "Book", href: "/rides" } : null),
   work: () => null,
   hot: () => ({ label: "Call", href: "tel:18666878683", tel: true }),
 };

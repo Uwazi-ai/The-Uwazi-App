@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { fmtDay, fmtHour, fmtPhone, telHref } from "@/components/rides/RidesUI";
 import { ZtripTextButton } from "./ZtripTextButton";
-import { singleMessage, updateMessage, zState } from "./ztripText";
+import { homeMessage, singleMessage, updateMessage, zState } from "./ztripText";
 import { NEED_LABELS, type Ride, type RideEvent, type Settings, stageLabel } from "./deskLib";
 
 type Option = { id: string; name: string; address: string; extra?: string };
@@ -162,6 +162,9 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
       </dl>
       {(() => { const st = zState(ride, events); return ["requested", "booked"].includes(ride.status) || st === "update"
         ? <ZtripTextButton rides={[ride]} message={st === "update" ? updateMessage(ride) : singleMessage(ride)} update={st === "update"} phone={settings.ztrip_text_phone} onMarked={loadEvents} /> : null; })()}
+      {ride.round_trip && ride.trip_stage === 5 && ride.status === "riding" && (
+        <div className="space-y-2"><p className="text-sm font-semibold">Ride home ready</p><ZtripTextButton rides={[ride]} message={homeMessage([ride])} eventType="ride_home_texted" phone={settings.ztrip_text_phone} onMarked={loadEvents} /></div>
+      )}
 
       {(ride.needs_destination || !ride.destination_site_id) && !["completed", "cancelled", "referred"].includes(ride.status) && (
         <section className="space-y-2 rounded-2xl border border-[hsl(var(--rides-amber)/0.5)] p-4">

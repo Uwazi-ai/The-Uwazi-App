@@ -51,3 +51,29 @@ export function zState(r: Ride, events: ZEvent[]): "new" | "update" | "done" {
   if (!last) return r.status === "requested" || r.status === "booked" ? "new" : "done";
   return last.note === signature(r) ? "done" : "update";
 }
+
+// Ride home heads-up. Ready = round trip at stage 5 with no ride_home_texted since it got there.
+const STAGE_EVENTS = ["rider_ready_for_return", "trip_stage"];
+export function readyForHome(r: Ride, events: ZEvent[]) {
+  if (!r.round_trip || r.trip_stage !== 5 || r.status !== "riding") return false;
+  const mine = events.filter((e) => e.request_id === r.id);
+  const reached = mine.filter((e) => STAGE_EVENTS.includes(e.event_type)).at(-1)?.created_at ?? "";
+  const texted = mine.filter((e) => e.event_type === "ride_home_texted").at(-1)?.created_at;
+  return !texted || texted < reached;
+}
+
+export function homeBatches(rides: Ride[], events: ZEvent[]) {
+  const m = new Map<string, Ride[]>();
+  for (const r of rides.filter((x) => readyForHome(x, events))) {
+    const k = `${r.ride_day}|${r.needs_destination ? "none:" + r.id : r.destination_site_id}`;
+    m.set(k, [...(m.get(k) ?? []), r]);
+  }
+  return [...m.entries()].map(([key, list]) => ({ key, rides: list }));
+}
+
+export function homeMessage(rides: Ride[]) {
+  const r0 = rides[0];
+  if (rides.length === 1) return `UWAZI ride home ${r0.ride_code}: ${r0.first_name_last_initial}, ${fmtPhone(r0.phone)}, is ready now at ${dest(r0)}. Take to ${r0.pickup_address}. Needs: ${needs(r0)}.`;
+  const list = rides.map((r, i) => `${i + 1}) ${r.first_name_last_initial}, ${fmtPhone(r.phone)}, take to ${r.pickup_address}, needs ${needs(r)}.`).join(" ");
+  return `UWAZI ride home, ready now at ${dest(r0)}. ${list}`;
+}
