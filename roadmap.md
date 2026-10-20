@@ -1,6 +1,6 @@
 ## zTrip dispatch emails
-- [ ] Add off-by-default admin settings and sample-only controls, single-recipient dispatch template, new/change/stage-five claims and display chips.
-- [ ] Verify mocks, rendered templates, sample recipient safety, failure isolation and 390/1280 desk layout without zTrip sends or existing-row changes; report preservation counts.
+- [x] Added off-by-default admin settings/confirmation and admin-derived sample control, one fixed dispatch template, isolated insert/change/stage-five triggers, service-only per-version claims and separate 30/hour cap. Added sent-time chips without changing manual texts or other emails.
+- [x] Rendered six privacy-checked variants. Signed-in Myke sample accepted and logged sent; no zTrip sends. 390/1280 panel screenshots show OFF and no overflow. Mock failure/dedupe/toggle/recipient regressions pass. Rides 1→1, events 1→1, waitlist 0→0; UZ-1001 fingerprint, sequence 1006 and limit hash unchanged. Strict append-only stayed on. No temporary rides created. Sample audit claim retained. Hosted event dispatch while enabled, inbox receipt and real zTrip receipt remain unverified. Nothing published.
 
 ## Private driver tracking
 - [x] Added service-only SHA-256 session tables, consent and five-second atomic ping limits, coordinator reads/revoke, immediate revoke purge and daily 48-hour point purge. Rider visibility defaults false.
