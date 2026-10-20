@@ -16,3 +16,11 @@ Deno.test('rider templates render private-data-free bodies',async()=>{
   await Deno.writeTextFile(`/tmp/browser/rider-emails/${kind}.txt`,text);
  }
 });
+
+Deno.test('today reminder subject and rendered body use today',async()=>{
+ const r={ride_code:'UZ-FIXTURE',ride_day:'2026-10-20',pickup_time:'11:00',status:'requested',card_token:'fixture'};
+ const props=riderEmailData('reminder',r,null,[],Date.parse('2026-10-20T15:00:00Z'));
+ if(props.subject!=='Reminder: your free ride is today, 11:00 AM')throw new Error('Incorrect reminder day');
+ const text=await renderAsync(React.createElement(reminder.component,props),{plainText:true});
+ if(!text.includes('Your ride to the polls is today.')||text.includes('tomorrow'))throw new Error('Incorrect reminder body day');
+});
