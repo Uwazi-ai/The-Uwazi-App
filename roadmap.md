@@ -1,7 +1,7 @@
 ## Autocab live launch
-- [ ] Enable autocab_live through the admin desk. Blocked: customer account is not selected.
-- [x] Publishing requested for the current app at https://uwaziapp.uwazi.ai. Deployment completion is unverified; three critical findings remain unresolved.
-- [ ] Send one identified real ride and verify booking status and tracking on the desk. Blocked: no real ride exists and passenger details are not supplied.
+- [ ] Enable autocab_live through the admin desk. Blocked: no selected customer, expected account 37765 absent from verified accounts, and verification older than 10 minutes.
+- [ ] Publish latest Autocab panel and ride cards at https://uwaziapp.uwazi.ai. Waiting on decision about three critical security findings from the fresh scan.
+- [ ] Send one identified real ride and verify booking status and tracking on the desk. Blocked: correct zTrip account unavailable and no ride confirmed as a real passenger request.
 
 ## Home and Plus
 - [x] Add Content-managed UWAZI Plus logos for dark and light surfaces with safe fallback across every Plus gate.
