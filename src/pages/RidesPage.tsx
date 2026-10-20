@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { RideRequestView } from "@/components/rides/RideRequestView";
 import { RidesAppShell } from "@/components/rides/RidesAppShell";
 import { useJoinRideWaitlist } from "@/hooks/useVotingRights";
+import { riderEmailSchema } from '@/lib/riderEmail';
 
 
 type Day = { day: string; dow: number; kind: "early" | "election_day"; open: boolean; status?: "open" | "full" | "no_driver" | "closed"; note?: string | null };
@@ -54,6 +55,7 @@ export default function RidesPage() {
   const [roundTrip, setRoundTrip] = useState(true);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [needs, setNeeds] = useState<string[]>([]);
   const [textsOk, setTextsOk] = useState(true);
   const [sending, setSending] = useState(false);
@@ -141,12 +143,15 @@ export default function RidesPage() {
     : true;
 
   const send = async () => {
+    const parsedEmail = riderEmailSchema.safeParse(email);
+    if (!parsedEmail.success) { setFormError('Enter a valid email address.'); return; }
     setSending(true);
     setErrors({});
     setFormError(null);
     const body: Record<string, unknown> = {
       first_name_last_initial: name.trim(),
       phone,
+      ...(parsedEmail.data ? {email: parsedEmail.data} : {}),
       pickup_address: address.trim(),
       zip,
       ride_day: day,
@@ -178,7 +183,7 @@ export default function RidesPage() {
 
   const data = avail as (Avail & { election_day_place?: { name:string;address:string }; precinct_key?:string }) | null;
   return <RidesAppShell><RideRequestView smsLive={avail?.sms_live === true} step={step} address={address} zip={zip} name={name} phone={phone} needs={needs} textsOk={textsOk} roundTrip={roundTrip} kind={kind} day={day} hour={hour} siteId={siteId} days={avail?.days??[]} sites={sites??[]} hours={hours} pollingPlace={data?.election_day_place} precinct={data?.precinct_key} eligible={areaEligible} checking={checking} sending={sending} error={areaError??formError??Object.values(errors)[0]} canNext={canNext}
-    onStep={setStep} onAddress={v=>{setAddress(v);setAreaEligible(false);setAreaError(null);}} onZip={v=>{setZip(v);setAreaEligible(false);setAreaError(null);}} onName={setName} onPhone={setPhone} onNeeds={setNeeds} onTexts={setTextsOk} onRoundTrip={setRoundTrip}
+    email={email} onEmail={setEmail} onStep={setStep} onAddress={v=>{setAddress(v);setAreaEligible(false);setAreaError(null);}} onZip={v=>{setZip(v);setAreaEligible(false);setAreaError(null);}} onName={setName} onPhone={setPhone} onNeeds={setNeeds} onTexts={setTextsOk} onRoundTrip={setRoundTrip}
     onKind={k=>{setKind(k);setListDay(null);setDay(k==='election_day'?avail?.election_day??null:null);setHour(null);}} onDay={d=>{setListMsg(null);setHour(null);if(d.open){setListDay(null);setDay(d.day);}else{setDay(null);setListDay(d);}}} onSite={id=>{setSiteId(id);setHour(null);}} onHour={setHour}
     onContinue={()=>{if(step===1&&!areaEligible){void checkArea();return;}setStep(step===2?4:step+1);}} onSend={()=>void send()} listDay={listDay} listPhone={listPhone} listMessage={listMsg} listDone={listDay?listDone.has(listDay.day):false} onListPhone={setListPhone} onJoinList={()=>void joinDay()}/></RidesAppShell>;
 }

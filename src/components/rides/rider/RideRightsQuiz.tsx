@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import type { RightsQuestion } from '@/lib/rideExperience';
 import { Check } from 'lucide-react';
-export function RideRightsQuiz({ questions, onFinish, done, savedScore, onText, onAsk, smsLive }: { smsLive?: boolean; questions: RightsQuestion[]; onFinish: (score: number) => Promise<string | void>; done?: boolean; savedScore?: number | null; onText: () => Promise<string>; onAsk?:()=>void }) {
+import { RightsEmailAction } from './RightsEmailAction';
+import { RIGHTS_LEGAL_NOTE } from '@/lib/riderEmail';
+export function RideRightsQuiz({ questions, onFinish, done, savedScore, onText, onAsk, smsLive, hasEmail, onEmail }: {hasEmail?:boolean;onEmail?:(attempt:string,email?:string)=>Promise<string>; smsLive?: boolean; questions: RightsQuestion[]; onFinish: (score: number) => Promise<string | void>; done?: boolean; savedScore?: number | null; onText: () => Promise<string>; onAsk?:()=>void }) {
  const [index, setIndex] = useState(0); const [picks, setPicks] = useState<Record<number, number>>({}); const [finished, setFinished] = useState(!!done); const [busy, setBusy] = useState(false); const [message, setMessage] = useState('');
  useEffect(() => { if (done) setFinished(true); }, [done]);
  const q = questions[index]; if (!q) return <p>The rights quiz is not available yet.</p>;

@@ -8,6 +8,7 @@ export type RideDay = { day:string; dow:number; kind:'early'|'election_day'; ope
 export type RideSite = { id:string; name:string; address:string; open:string; close:string; distance_mi:number|null };
 export type RideHour = { hour:string; seats_left:number; bookable:boolean; too_soon:boolean };
 export type RequestViewProps = {
+ email?:string; onEmail?:(v:string)=>void;
  smsLive?:boolean; step:number; address:string; zip:string; name:string; phone:string; needs:string[]; textsOk:boolean; roundTrip:boolean;
  kind:'early'|'election_day'|null; day:string|null; hour:string|null; siteId:string|null; days:RideDay[]; sites:RideSite[]; hours:RideHour[]|null;
  pollingPlace?:{name:string;address:string}|null; precinct?:string|null; eligible?:boolean; error?:string|null; checking?:boolean; sending?:boolean; canNext:boolean;
