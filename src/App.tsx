@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { RideDeskShell } from "@/components/rides/desk/RideDeskShell";
 import { RootRedirect } from "@/components/auth/RootRedirect";
 import HomePage from "./pages/HomePage";
 import AskUwaziPage from "./pages/AskUwaziPage";
