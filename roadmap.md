@@ -3,8 +3,8 @@
 - [x] Added confirmation, single-ride admin reminder test, approved rights-card templates/actions and service-only durable claims.
 - [ ] Daily scheduled email reminder blocked: managed sender prohibits batch recipient loops and lacks supported per-ride delayed delivery. Existing cron/SMS unchanged.
 - [x] Approved custom hashed-address 3/24-hour tradeoff. Two live confirmations and one reminder consumed cap; duplicate reminder refused, rights request returned address_limit.
-- [ ] Verify real sends, failure isolation, privacy, earlier regressions and responsive screens; clean up only task-created IDs.
-- [ ] Preserve existing rows, strict append-only events and ride sequence; report before/after counts. Do not publish or alter protected switches.
+- [x] Two real confirmations and one reminder sent; duplicate reminder blocked. 58 regression tests and rendered template privacy test passed. Provider failure/suppression and no-save one-off address verified in isolated tests. Phone form, desktop/mobile Review and rights controls checked. No live rights send possible within cap.
+- [x] Deleted only UZ-1005/UZ-1006 by recorded IDs with exact-ID event exception, then restored strict function and enabled append-only trigger. Rides 1→1, events 1→1, waitlist 0→0. UZ-1001 original-field fingerprint unchanged, email null. Sequence untouched; abuse-limit hashes retained. No publishing or protected switch changes.
 
 ## Coordinator email alerts
 - [x] Verified Lovable Emails fresh send and signed-in panel test to myke@uwazi.ai; From uwaziapp <noreply@notify.uwaziapp.uwazi.ai>. Bird rejected its test. Provider logs report sent, not confirmed inbox arrival.
