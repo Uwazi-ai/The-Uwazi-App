@@ -1,4 +1,5 @@
 # UWAZI rules
+- Driver tracking uses isolated public consent and coordinator desk modules with service-only session/point functions. Why: driver coordinates cannot reach rider pages or existing dispatch workflows.
 - Rider emails use fixed feature templates with service-only durable event claims and keyed hashes in existing abuse-control records; no queues or recipient loops. Why: optional private delivery cannot grant broad sending or disrupt ride intake.
 - Coordinator ride emails use a service-only atomic claim in existing ride audit records and the managed template sender, with no queue or recipient loop. Why: private operational alerts cannot block rides or dispatch duplicate emails.
 - Detailed backend rules live in supabase/AGENTS.md, frontend rules in src/AGENTS.md. Why: keeps this file small.

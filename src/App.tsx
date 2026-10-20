@@ -90,6 +90,7 @@ import ElectionDayMapPage from "./pages/ElectionDayMapPage";
 import CompassDemoPage from "./pages/CompassDemoPage";
 import CompassPersonaPage from "./pages/CompassPersonaPage";
 import HelpPage from "./pages/HelpPage";
+import DriverSharePage from "./pages/DriverSharePage";
 
 const queryClient = new QueryClient();
 
@@ -99,6 +100,7 @@ const App = () => (
       <TooltipProvider>
         <BrowserRouter>
           <Routes>
+            <Route path="/drive/:token" element={<DriverSharePage />} />
             <Route path="/compass/demo/:eventSlug" element={<CompassDemoPage />} />
             <Route path="/compass/persona/:personaKey" element={<CompassPersonaPage />} />
             <Route path="*" element={
