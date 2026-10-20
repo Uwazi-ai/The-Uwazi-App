@@ -1,3 +1,10 @@
+## Rider emails
+- [ ] Add optional validated email to real/demo Review and phone intake, visible only in the drawer.
+- [ ] Add private confirmation, day-before reminder and approved rights-card emails with durable claims.
+- [ ] Confirm custom hashed-address 3/24-hour limit tradeoff and testing within that cap.
+- [ ] Verify real sends, failure isolation, privacy, earlier regressions and responsive screens; clean up only task-created IDs.
+- [ ] Preserve existing rows, strict append-only events and ride sequence; report before/after counts. Do not publish or alter protected switches.
+
 ## Coordinator email alerts
 - [x] Verified Lovable Emails fresh send and signed-in panel test to myke@uwazi.ai; From uwaziapp <noreply@notify.uwaziapp.uwazi.ai>. Bird rejected its test. Provider logs report sent, not confirmed inbox arrival.
 - [x] User approved the custom 30/hour limit tradeoff and one-recipient managed sender limitation.
