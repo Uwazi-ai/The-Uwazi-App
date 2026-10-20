@@ -1,7 +1,9 @@
 // Pure, allowlisted outbound booking builder. Never serializes a ride row.
 export type BookingAddress = { coordinate: { latitude: number; longitude: number }; zone: Record<string, unknown> | number; [key: string]: unknown };
 export type DispatchRider = { id: string; ride_code: string; first_name_last_initial: string; phone: string; pickup_address: string; zip: string; ride_day: string; pickup_time: string; needs: string[]; destination_site_id: string | null; needs_destination: boolean; status: string; provider: string; autocab_booking_id?: string | null; autocab_operation_id?: string | null };
-export type DispatchSettings = { autocab_customer_id: number | null; autocab_company_id: number; autocab_driver_id: number | null; autocab_capability_map: Record<string, number>; autocab_live: boolean };
+export type DispatchSettings = { autocab_customer_id: number | null; autocab_company_id: number; autocab_driver_id: number | null; autocab_capability_map: Record<string, number>; autocab_live: boolean; autocab_base_capability_id?: number | null };
+// Only wheelchair must map to a capability. Other needs travel in the driver note.
+export const REQUIRED_CAPABILITY_NEEDS = ['wheelchair'];
 export function chicagoUtc(day: string, time: string): string {
   const wall = Date.parse(`${day}T${time.slice(0, 5)}:00Z`);
   if (!Number.isFinite(wall)) throw new Error('Invalid pickup time');
@@ -34,8 +36,10 @@ export function buildBooking(riders: DispatchRider[], pickups: BookingAddress[],
   const pickupDueTimeUtc = chicagoUtc(lead.ride_day, lead.pickup_time);
   const pickupDueTime = `${lead.ride_day}T${lead.pickup_time.slice(0, 5)}:00`;
   const needs = [...new Set(riders.flatMap(r => r.needs))].sort((a, b) => a === 'wheelchair' ? -1 : b === 'wheelchair' ? 1 : a.localeCompare(b));
-  const capabilities = [...new Set(needs.flatMap(n => settings.autocab_capability_map[n] ? [settings.autocab_capability_map[n]] : []))];
-  if (needs.some(n => !settings.autocab_capability_map[n])) throw new Error('Map every access need to a capability, or book by phone.');
+  const base = settings.autocab_base_capability_id;
+  if (base != null && (!Number.isInteger(base) || base < 1)) throw new Error('Dispatch capability id must be a positive whole number.');
+  if (needs.some(n => REQUIRED_CAPABILITY_NEEDS.includes(n) && !settings.autocab_capability_map[n])) throw new Error('Map wheelchair to a capability, or book by phone.');
+  const capabilities = [...new Set([...needs.flatMap(n => settings.autocab_capability_map[n] ? [settings.autocab_capability_map[n]] : []), ...(base ? [base] : [])])];
   return {
     name: lead.first_name_last_initial, telephoneNumber: e164(lead.phone),
     pickup: { address: pickups[0], note: note(lead), passengerDetailsIndex: null, type: 'Pickup' },
@@ -56,4 +60,16 @@ export function redactError(text: string, key?: string): string {
 export function safeTrackingLink(value: unknown): string | null {
   if (typeof value !== 'string') return null;
   try { const u = new URL(value); return u.protocol === 'https:' && !u.username && !u.password ? u.href : null; } catch { return null; }
+}
+
+const list = (v: any): any[] => Array.isArray(v) ? v : Array.isArray(v?.items) ? v.items : Array.isArray(v?.data) ? v.data : [];
+const int = (v: unknown) => typeof v === 'number' && Number.isInteger(v) ? v : typeof v === 'string' && /^\d+$/.test(v) ? Number(v) : null;
+const str = (v: unknown) => typeof v === 'string' ? v.slice(0, 120) : typeof v === 'number' ? String(v) : null;
+export function safeTestLists(raw: { capabilities: unknown; customerAccounts: unknown; drivers: unknown; companies: unknown }) {
+  return {
+    customerAccounts: list(raw.customerAccounts).map(x => ({ customerId: int(x?.customerId), displayName: str(x?.displayName), accountCode: str(x?.accountCode), accountType: str(x?.accountType), active: x?.active === true })).filter(x => x.customerId !== null) as { customerId: number; displayName: string | null; accountCode: string | null; accountType: string | null; active: boolean }[],
+    capabilities: list(raw.capabilities).map(x => ({ id: int(x?.id), name: str(x?.name), shortCode: str(x?.shortCode) })).filter(x => x.id !== null) as { id: number; name: string | null; shortCode: string | null }[],
+    drivers: list(raw.drivers).map(x => ({ id: int(x?.id), callsign: str(x?.callsign), companyId: int(x?.companyId), active: x?.active === true })).filter(x => x.id !== null) as { id: number; callsign: string | null; companyId: number | null; active: boolean }[],
+    companies: list(raw.companies).map(x => ({ id: int(x?.id), name: str(x?.name) })).filter(x => x.id !== null) as { id: number; name: string | null }[],
+  };
 }

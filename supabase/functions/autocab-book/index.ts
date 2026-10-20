@@ -1,7 +1,7 @@
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@3.23.8';
 import { context, json, failure, AutocabError, resolveAutocabAddress } from '../_shared/autocab.ts';
-import { buildBooking, validateGroup, type DispatchRider } from '../_shared/autocab-builder.ts';
+import { buildBooking, validateGroup, safeTestLists, type DispatchRider } from '../_shared/autocab-builder.ts';
 const Input = z.discriminatedUnion('action', [
   z.object({ action: z.literal('test') }).strict(),
   z.object({ action: z.literal('quote'), ride_ids: z.array(z.string().uuid()).min(1).max(3) }).strict(),
@@ -20,12 +20,14 @@ Deno.serve(async req => {
     const { db, api, settings, uid } = await context(req, b.action === 'test');
     if (b.action === 'test') {
       // No write endpoints, quotes, address uploads or bookings in this action.
-      const capabilities = await api('/capabilities');
-      const customerAccounts = await api('/customerAccounts');
-      const drivers = await api('/drivers');
-      const lists = (v: any) => Array.isArray(v) ? v : v.items ?? v.data ?? v.capabilities ?? v.customerAccounts ?? v.drivers ?? [];
-      const safe = (v: any) => lists(v).map((x: any) => ({ id: x.id ?? x.customerId ?? x.driverId ?? x.capabilityId, name: x.name ?? x.description ?? x.callsign ?? String(x.id) }));
-      return json({ capabilities: safe(capabilities), customerAccounts: safe(customerAccounts), drivers: safe(drivers) });
+      // Allowlist only. Driver records carry names, phones, addresses, licence and bank data: never return or log them.
+      const result = safeTestLists({ capabilities: await api('/capabilities'), customerAccounts: await api('/customerAccounts'), drivers: await api('/drivers'), companies: await api('/companies') });
+      const verified = Object.fromEntries(result.customerAccounts.map(a => [String(a.customerId), a.accountCode ?? '']));
+      const verifiedAt = new Date().toISOString();
+      const { error: ve } = await db.from('ride_settings').update({ autocab_verified_at: verifiedAt, autocab_verified_accounts: verified }).eq('id', true);
+      if (ve) throw new AutocabError('Test passed but verification did not save.', 500);
+      const expected = settings.autocab_expected_account_code;
+      return json({ ...result, verified_at: verifiedAt, expected_account_code: expected, expected_found: result.customerAccounts.some(a => a.accountCode === expected) });
     }
     if (b.action === 'cancel') {
       const { data: op } = await db.from('autocab_operations').select('*').eq('booking_id', b.booking_id).eq('state', 'booked').single();
@@ -50,7 +52,7 @@ Deno.serve(async req => {
     if (!site) throw new AutocabError('Assign a verified voting place first.');
     const mode = settings.autocab_live ? 'LIVE' : 'TEST';
     // Bind confirmation to both current ride details and current dispatch settings.
-    const fp = await fingerprint({ riders, site, settings: { base: settings.autocab_base_url, customer: settings.autocab_customer_id, company: settings.autocab_company_id, driver: settings.autocab_driver_id, map: settings.autocab_capability_map, mode } });
+    const fp = await fingerprint({ riders, site, settings: { base: settings.autocab_base_url, customer: settings.autocab_customer_id, company: settings.autocab_company_id, driver: settings.autocab_driver_id, map: settings.autocab_capability_map, baseCapability: settings.autocab_base_capability_id, mode } });
     let booking: any;
     if (b.action === 'quote') {
       const pickups = [];

@@ -4232,12 +4232,16 @@ export type Database = {
       }
       ride_settings: {
         Row: {
+          autocab_base_capability_id: number | null
           autocab_base_url: string
           autocab_capability_map: Json
           autocab_company_id: number
           autocab_customer_id: number | null
           autocab_driver_id: number | null
+          autocab_expected_account_code: string
           autocab_live: boolean
+          autocab_verified_accounts: Json
+          autocab_verified_at: string | null
           budget_cents: number
           driver_rate: number
           early_end: string
@@ -4252,12 +4256,16 @@ export type Database = {
           ztrip_text_phone: string
         }
         Insert: {
+          autocab_base_capability_id?: number | null
           autocab_base_url?: string
           autocab_capability_map?: Json
           autocab_company_id?: number
           autocab_customer_id?: number | null
           autocab_driver_id?: number | null
+          autocab_expected_account_code?: string
           autocab_live?: boolean
+          autocab_verified_accounts?: Json
+          autocab_verified_at?: string | null
           budget_cents?: number
           driver_rate?: number
           early_end?: string
@@ -4272,12 +4280,16 @@ export type Database = {
           ztrip_text_phone?: string
         }
         Update: {
+          autocab_base_capability_id?: number | null
           autocab_base_url?: string
           autocab_capability_map?: Json
           autocab_company_id?: number
           autocab_customer_id?: number | null
           autocab_driver_id?: number | null
+          autocab_expected_account_code?: string
           autocab_live?: boolean
+          autocab_verified_accounts?: Json
+          autocab_verified_at?: string | null
           budget_cents?: number
           driver_rate?: number
           early_end?: string

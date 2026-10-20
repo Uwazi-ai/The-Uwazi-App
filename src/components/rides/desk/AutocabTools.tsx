@@ -8,36 +8,50 @@ import { supabase } from '@/integrations/supabase/client';
 import { autocabCall, type AutocabStatus } from './autocabClient';
 import { NEED_LABELS, type Ride, type Settings } from './deskLib';
 import { Send, RefreshCw, XCircle, Plug } from 'lucide-react';
-type Option = { id: number; name: string };
+import { accountLabel, capabilityLabel, companyLabel, driverLabel, liveBlockReason, type AutocabLists } from './autocabLabels';
+type NumField = 'autocab_customer_id' | 'autocab_driver_id' | 'autocab_company_id' | 'autocab_base_capability_id';
 export function AutocabConnection({ settings, onSettings }: { settings: Settings; onSettings: (s: Settings) => void }) {
   const [form, setForm] = useState(settings);
   const [map, setMap] = useState<Record<string, number>>(() => settings.autocab_capability_map as Record<string, number>);
-  const [lists, setLists] = useState<{ capabilities: Option[]; customerAccounts: Option[]; drivers: Option[] } | null>(null);
+  const [lists, setLists] = useState<AutocabLists | null>(null);
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [message, setMessage] = useState('');
   const [confirmLive, setConfirmLive] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => { setForm(settings); setMap(settings.autocab_capability_map as Record<string, number>); }, [settings]);
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30000); return () => clearInterval(t); }, []);
+  const expected = settings.autocab_expected_account_code;
+  const verifiedAccounts = (lists ? Object.fromEntries(lists.customerAccounts.map(a => [String(a.customerId), a.accountCode ?? ''])) : settings.autocab_verified_accounts) as Record<string, unknown>;
+  const blockReason = liveBlockReason({ customerId: form.autocab_customer_id, expectedCode: expected, verifiedAt: lists?.verified_at ?? settings.autocab_verified_at, verifiedAccounts, now });
   const save = async (live = settings.autocab_live) => {
     setBusy(true); setError(null); setMessage('');
-    const { data, error: e } = await supabase.from('ride_settings').update({ autocab_base_url: form.autocab_base_url.trim(), autocab_customer_id: form.autocab_customer_id, autocab_company_id: form.autocab_company_id, autocab_driver_id: form.autocab_driver_id, autocab_capability_map: map, autocab_live: live }).eq('id',true).select('*').single();
+    const { data, error: e } = await supabase.from('ride_settings').update({ autocab_base_url: form.autocab_base_url.trim(), autocab_customer_id: form.autocab_customer_id, autocab_company_id: form.autocab_company_id, autocab_driver_id: form.autocab_driver_id, autocab_base_capability_id: form.autocab_base_capability_id, autocab_capability_map: map, autocab_live: live }).eq('id',true).select('*').single();
     setBusy(false);
     if (e || !data) setError(e?.message ?? 'Settings did not save.'); else { onSettings(data); setMessage('Connection settings saved.'); }
   };
-  const select = (field: 'autocab_customer_id' | 'autocab_driver_id', label: string, options: Option[]) => <label className="space-y-1 text-sm"><span>{label}</span><select className="rides-input w-full" value={form[field] ?? ''} onChange={e => setForm({ ...form, [field]: e.target.value ? Number(e.target.value) : null })}><option value="">Not set</option>{options.map(o => <option key={o.id} value={o.id}>{o.name} ({o.id})</option>)}</select></label>;
+  const pick = (field: NumField, label: string, options: { id: number; label: string }[], empty = 'Not set') => <label className="space-y-1 text-sm"><span>{label}</span><select aria-label={label} className="rides-input w-full" value={form[field] ?? ''} onChange={e => setForm({ ...form, [field]: e.target.value ? Number(e.target.value) : (field === 'autocab_company_id' ? form.autocab_company_id : null) })}>{field !== 'autocab_company_id' && <option value="">{empty}</option>}{options.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}</select></label>;
+  const num = (field: NumField, label: string) => <label className="space-y-1 text-sm">{label}<Input type="number" min={1} value={form[field] ?? ''} onChange={e => setForm({ ...form, [field]: e.target.value ? Number(e.target.value) : (field === 'autocab_company_id' ? form.autocab_company_id : null) })}/></label>;
+  const caps = lists?.capabilities.map(c => ({ id: c.id, label: capabilityLabel(c) })) ?? [];
   return <section className="mt-8 space-y-4 border-t border-border pt-5" aria-labelledby="autocab-connection">
     <h2 id="autocab-connection" className="font-heading text-2xl">zTrip connection</h2>
     <p className="text-sm text-muted-foreground">{settings.autocab_live ? 'LIVE. Confirmed API bookings can dispatch a car.' : 'TEST. API bookings are held. No car is dispatched.'}</p>
+    {lists && !lists.customerAccounts.some(a => a.accountCode === expected) && <p role="alert" className="rounded-md border border-destructive p-3 text-sm font-semibold text-destructive">Expected account {expected} not found in this system</p>}
     <div className="grid gap-3 md:grid-cols-2">
       <label className="space-y-1 text-sm">Booking API URL<Input value={form.autocab_base_url} onChange={e=>setForm({...form,autocab_base_url:e.target.value})}/></label>
-      <label className="space-y-1 text-sm">Company id<Input type="number" min={1} value={form.autocab_company_id} onChange={e=>setForm({...form,autocab_company_id:Number(e.target.value)})}/></label>
-      {lists ? <>{select('autocab_customer_id','Customer account',lists.customerAccounts)}{select('autocab_driver_id','Requested driver',lists.drivers)}</> : <>{(['autocab_customer_id','autocab_driver_id'] as const).map(f => <label key={f} className="space-y-1 text-sm">{f==='autocab_customer_id'?'Customer id':'Driver id (optional)'}<Input type="number" min={1} value={form[f]??''} onChange={e=>setForm({...form,[f]:e.target.value?Number(e.target.value):null})}/></label>)}</>}
-      {Object.entries(NEED_LABELS).map(([need,label])=><label key={need} className="space-y-1 text-sm">{label} capability{lists ? <select className="rides-input w-full" value={map[need]??''} onChange={e=>setMap({...map,[need]:Number(e.target.value)})}><option value="">Not mapped</option>{lists.capabilities.map(o=><option key={o.id} value={o.id}>{o.name} ({o.id})</option>)}</select> : <Input type="number" min={1} value={map[need]??''} onChange={e=>setMap({...map,[need]:Number(e.target.value)})}/>}</label>)}
+      {lists ? <>
+        {pick('autocab_company_id', 'Company', lists.companies.map(c => ({ id: c.id, label: companyLabel(c) })))}
+        {pick('autocab_customer_id', 'Customer account', lists.customerAccounts.map(a => ({ id: a.customerId, label: accountLabel(a) })))}
+        {pick('autocab_driver_id', 'Requested driver', lists.drivers.map(d => ({ id: d.id, label: driverLabel(d) })), 'Any driver')}
+        {pick('autocab_base_capability_id', 'Dispatch capability (every booking)', caps, 'None')}
+      </> : <>{num('autocab_company_id','Company id')}{num('autocab_customer_id','Customer id')}{num('autocab_driver_id','Driver id (optional)')}{num('autocab_base_capability_id','Dispatch capability id (optional)')}</>}
+      {Object.entries(NEED_LABELS).map(([need,label])=><label key={need} className="space-y-1 text-sm">{label} capability{need!=='wheelchair'&&<span className="text-muted-foreground"> (optional, else driver note)</span>}{lists ? <select className="rides-input w-full" value={map[need]??''} onChange={e=>setMap({...map,[need]:Number(e.target.value)})}><option value="">Not mapped</option>{caps.map(o=><option key={o.id} value={o.id}>{o.label}</option>)}</select> : <Input type="number" min={1} value={map[need]??''} onChange={e=>setMap({...map,[need]:Number(e.target.value)})}/>}</label>)}
     </div>
     <div className="flex flex-wrap gap-3">
       <Button disabled={busy} variant="outline" onClick={()=>save()} className="min-h-12">Save connection</Button>
-      <Button disabled={busy} variant="outline" className="min-h-12" onClick={async()=>{setBusy(true);setError(null);try{setLists(await autocabCall({action:'test'}));setMessage('Read-only connection test passed.');}catch(e){setError(e instanceof Error?e.message:'Connection failed.');}finally{setBusy(false);}}}><Plug/>Test connection</Button>
-      <label className="flex min-h-12 items-center gap-3"><Switch disabled={busy} checked={settings.autocab_live} onCheckedChange={live=>live?setConfirmLive(true):save(false)} aria-label="Live dispatch"/>Live dispatch</label>
+      <Button disabled={busy} variant="outline" className="min-h-12" onClick={async()=>{setBusy(true);setError(null);try{setLists(await autocabCall({action:'test'}));setNow(Date.now());setMessage('Read-only connection test passed.');}catch(e){setError(e instanceof Error?e.message:'Connection failed.');}finally{setBusy(false);}}}><Plug/>Test connection</Button>
+      <label className="flex min-h-12 items-center gap-3"><Switch disabled={busy || (!settings.autocab_live && blockReason !== null)} checked={settings.autocab_live} onCheckedChange={live=>{ if (!live) return save(false); if (blockReason) { setError(blockReason); return; } setConfirmLive(true); }} aria-label="Live dispatch"/>Live dispatch</label>
     </div>
-    {lists && <div className="grid gap-3 md:grid-cols-3">{(['capabilities','customerAccounts','drivers'] as const).map(k=><div key={k}><h3 className="text-sm font-semibold">{k==='customerAccounts'?'Customer accounts':k==='drivers'?'Drivers':'Capabilities'}</h3><ul className="max-h-48 overflow-auto text-sm">{lists[k].length?lists[k].map(o=><li key={o.id}>{o.id}: {o.name}</li>):<li>No entries returned.</li>}</ul></div>)}</div>}
+    {!settings.autocab_live && blockReason && <p className="text-sm text-muted-foreground" data-testid="live-block">LIVE is locked. {blockReason}</p>}
+    {lists && <div className="grid gap-3 md:grid-cols-2">{([['Companies', lists.companies.map(companyLabel)], ['Customer accounts', lists.customerAccounts.map(accountLabel)], ['Capabilities', lists.capabilities.map(capabilityLabel)], ['Drivers', lists.drivers.map(driverLabel)]] as const).map(([title, items])=><div key={title}><h3 className="text-sm font-semibold">{title}</h3><ul className="max-h-48 overflow-auto text-sm">{items.length?items.map(t=><li key={t}>{t}</li>):<li>No entries returned.</li>}</ul></div>)}</div>}
     {error&&<p role="alert" className="break-words text-sm text-destructive">{error}</p>}{message&&<p role="status" className="text-sm">{message}</p>}
     <AlertDialog open={confirmLive} onOpenChange={setConfirmLive}><AlertDialogContent><AlertDialogTitle>Turn on live dispatch?</AlertDialogTitle><AlertDialogDescription>Confirmed API bookings will no longer be held. zTrip may dispatch a car. Manual texting stays available.</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>Keep TEST</AlertDialogCancel><AlertDialogAction onClick={()=>save(true)}>Turn on LIVE</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
   </section>;
