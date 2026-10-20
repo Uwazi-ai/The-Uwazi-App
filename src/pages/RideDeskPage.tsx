@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import uwaziLogo from "@/assets/uwazi-app-wordmark.png";
 import { fmtDay, fmtHour, fmtPhone, telHref } from "@/components/rides/RidesUI";
 import { RideDrawer } from "@/components/rides/desk/RideDrawer";
 import { PhoneRequestForm } from "@/components/rides/desk/PhoneRequestForm";
@@ -74,12 +73,11 @@ function AdminTools({ settings, onSettings }: { settings: Settings; onSettings: 
 
 function Frame({ children }: { children: React.ReactNode }) {
   return (
-    <main className="min-h-[100dvh] overflow-x-hidden bg-[hsl(var(--rides-bg))] text-[hsl(var(--rides-ink))]">
-      <div className="mx-auto max-w-[1400px] px-4 pb-16 pt-[calc(var(--sat)+1rem)] md:px-6">
-        <img src={uwaziLogo} alt="UWAZI.APP" className="mb-6 h-9 w-auto" />
+    <section className="min-w-0 overflow-x-hidden bg-[hsl(var(--rides-bg))] text-[hsl(var(--rides-ink))]">
+      <div className="mx-auto max-w-[1400px] px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-6 md:px-6 md:pb-16">
         {children}
       </div>
-    </main>
+    </section>
   );
 }
 
@@ -168,7 +166,7 @@ function Desk() {
   };
 
   const sheetSide = isMobile ? "bottom" : "right";
-  const sheetCls = `border-[hsl(var(--rides-ink)/0.15)] bg-[hsl(var(--rides-bg))] text-[hsl(var(--rides-ink))] overflow-y-auto ${isMobile ? "max-h-[90dvh] rounded-t-3xl" : "w-full sm:max-w-md"}`;
+  const sheetCls = `z-[60] border-[hsl(var(--rides-ink)/0.15)] bg-[hsl(var(--rides-bg))] text-[hsl(var(--rides-ink))] overflow-x-hidden overflow-y-auto pb-[calc(1.5rem+env(safe-area-inset-bottom))] ${isMobile ? "bottom-[calc(4rem+max(8px,env(safe-area-inset-bottom)))] max-h-[calc(100dvh-10rem-env(safe-area-inset-bottom))] rounded-t-3xl" : "w-full sm:max-w-md"}`;
 
   return (
     <Frame>

@@ -4,10 +4,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { fmtDay, fmtHour, fmtPhone, telHref } from "@/components/rides/RidesUI";
 import type { Ride } from "./deskLib";
 import { ZtripTextButton } from "./ZtripTextButton";
+import { EmailReminderAction } from "./EmailReminderAction";
 import { batches, groupMessage, homeBatches, homeMessage, updateMessage, zState, type ZEvent } from "./ztripText";
 
 const ELECTION_DAY = "2026-11-03";
-const EVENT_TYPES = ["late_called", "no_show", "confirmed_by_call", "call_no_answer", "place_confirmed", "cancelled", "ztrip_texted", "ride_home_texted", "rider_ready_for_return", "trip_stage"];
+const EVENT_TYPES = ["late_called", "no_show", "confirmed_by_call", "call_no_answer", "place_confirmed", "cancelled", "ztrip_texted", "ride_home_texted", "rider_ready_for_return", "trip_stage", "rider_email_sent"];
 type Ev = ZEvent;
 type Wait = { id: string; requested_date: string; reason: string | null; phone: string };
 type Item = { key: string; ride?: Ride; wait?: Wait; reason: string; script?: string; ztrip?: { rides: Ride[]; message: string; update: boolean; eventType?: string }; actions: [string, () => Promise<unknown> | void][] };
@@ -102,6 +103,10 @@ export function TodaysCalls({ rides, now, ztripPhone, onOpen, onChanged }: { rid
                   <p>{it.reason}</p>
                   {it.script && <p className="rounded-lg bg-[hsl(var(--rides-blue)/0.25)] p-2">Say: "{it.script}"</p>}
                   {it.ztrip && <ZtripTextButton rides={it.ztrip.rides} message={it.ztrip.message} phone={ztripPhone} update={it.ztrip.update} eventType={it.ztrip.eventType} onMarked={() => { load(); }} />}
+                  {title === "Confirm tomorrow's rides" && it.ride && <EmailReminderAction
+                    ride={{ id: it.ride.id, ride_day: it.ride.ride_day, status: it.ride.status, hasEmail: Boolean(it.ride.email) }}
+                    now={now} sent={events.some(e => e.request_id === it.ride?.id && e.event_type === 'rider_email_sent' && e.note === 'reminder')}
+                    onChanged={() => { load(); onChanged(); }} />}
                   <div className="flex flex-wrap gap-2">
                     {it.actions.map(([label, fn], i) => (
                       <button key={label} disabled={busy === it.key} className={`${btn} ${i === 0 ? "bg-[hsl(var(--rides-green))] text-[hsl(var(--rides-bg))]" : "border border-[hsl(var(--rides-ink)/0.25)]"}`} onClick={async () => { setBusy(it.key); try { await fn(); } finally { setBusy(null); } }}>{label}</button>

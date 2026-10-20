@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { fmtDay, fmtHour, fmtPhone, telHref } from "@/components/rides/RidesUI";
 import { ZtripTextButton } from "./ZtripTextButton";
+import { EmailReminderAction } from "./EmailReminderAction";
 import { homeMessage, singleMessage, updateMessage, zState } from "./ztripText";
 import { NEED_LABELS, type Ride, type RideEvent, type Settings, stageLabel } from "./deskLib";
 
@@ -161,6 +162,8 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
         {ride.needs.length > 0 && <Row k="Needs">{ride.needs.map((n) => NEED_LABELS[n] ?? n).join(", ")}</Row>}
         {ride.ztrip_confirmation && <Row k="zTrip number">{ride.ztrip_confirmation}</Row>}
       </dl>
+      <EmailReminderAction ride={{ id: ride.id, ride_day: ride.ride_day, status: ride.status, hasEmail: Boolean(ride.email) }}
+        sent={events.some(e => e.event_type === 'rider_email_sent' && e.note === 'reminder')} onChanged={loadEvents} />
       {(() => { const st = zState(ride, events); return ["requested", "booked"].includes(ride.status) || st === "update"
         ? <ZtripTextButton rides={[ride]} message={st === "update" ? updateMessage(ride) : singleMessage(ride)} update={st === "update"} phone={settings.ztrip_text_phone} onMarked={loadEvents} /> : null; })()}
       {ride.round_trip && ride.trip_stage === 5 && ride.status === "riding" && (

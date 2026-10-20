@@ -76,8 +76,8 @@ export default function RideRightsReviewPage() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="min-h-[100dvh] overflow-x-hidden bg-[hsl(var(--rides-bg))] text-[hsl(var(--rides-ink))]">
-      <div className="mx-auto max-w-[1100px] px-4 pb-16 pt-[calc(var(--sat)+1rem)] md:px-6">{children}</div>
-    </main>
+    <section className="min-w-0 overflow-x-hidden bg-[hsl(var(--rides-bg))] text-[hsl(var(--rides-ink))]">
+      <div className="mx-auto max-w-[1100px] px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-6 md:px-6 md:pb-16">{children}</div>
+    </section>
   );
 }
