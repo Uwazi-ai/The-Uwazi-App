@@ -13,6 +13,7 @@ import { useNativePush } from "@/hooks/useNativePush";
 import { MyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
 import { BadgeWatcher } from "@/components/games/BadgeEarned";
 import { PaywallHost } from "@/components/plus/Paywall";
+import { AppTour } from "./AppTour";
 
 export function AppLayout() {
   const location = useLocation();
@@ -48,6 +49,7 @@ export function AppLayout() {
         <MyCityUnlockModal />
         <BadgeWatcher />
         <PaywallHost />
+        <AppTour />
       </div>
     </ProfileProvider>
   );
