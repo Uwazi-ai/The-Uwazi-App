@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useMyJourney } from "@/hooks/useJourney";
 import { useMyChallenge } from "@/hooks/useChallenge";
-import { usePersonas, shortName, PERSONA_TOPIC } from "@/lib/personas";
+import { usePersonas, PERSONA_TOPIC } from "@/lib/personas";
 import { stepInfo } from "@/lib/journeyStep";
 import { useMyDistricts } from "@/hooks/useMyOffices";
 import { useNextElection } from "@/hooks/useNextElection";
