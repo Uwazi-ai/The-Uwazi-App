@@ -14,6 +14,8 @@ import { PrecinctMapRefresh } from "@/components/rides/desk/PrecinctMapRefresh";
 import { TodaysCalls } from "@/components/rides/desk/TodaysCalls";
 import { ZtripTextButton } from "@/components/rides/desk/ZtripTextButton";
 import { batches, groupMessage } from "@/components/rides/desk/ztripText";
+import { AutocabConnection, AutocabBooking, AutocabDetails } from "@/components/rides/desk/AutocabTools";
+import { useAutocabPoll } from "@/hooks/useAutocabPoll";
 import { Link } from "react-router-dom";
 import {
   FUNDED, NEED_LABELS, avgWait, budgetStats, dollars, fmtWait, reportCsv, tripGroups, weekCompare, ztrip,
@@ -63,6 +65,7 @@ function AdminTools({ settings, onSettings }: { settings: Settings; onSettings: 
       <Button role="switch" aria-checked={settings.sms_live} variant="outline" className="mt-4" onClick={async () => { const { data, error } = await supabase.from("ride_settings").update({ sms_live: !settings.sms_live }).eq("id", true).select("*").single(); if (!error && data) onSettings(data); }}>Texting {settings.sms_live ? "on" : "off"}</Button>
       <CoordinatorsPanel />
       <PrecinctMapRefresh />
+      <AutocabConnection settings={settings} onSettings={onSettings} />
     </>
   );
 }
@@ -89,6 +92,7 @@ function Desk() {
   const [showClosed, setShowClosed] = useState(false);
   const [seen, setSeen] = useState<Set<string>>(() => new Set(JSON.parse(localStorage.getItem(SEEN_KEY) ?? "[]")));
   const [now, setNow] = useState(Date.now());
+  const { statuses: autocabStatuses, error: autocabError } = useAutocabPoll(rides.some(r => Boolean(r.autocab_booking_id)));
 
   const [paused, setPaused] = useState<Set<string>>(new Set());
   const load = useCallback(async () => {
@@ -178,6 +182,8 @@ function Desk() {
       </div>
 
       {!settings.sms_live && <p role="status" className="mt-4 text-primary">Texting is off. Call riders to confirm.</p>}
+      <p role="status" className="mt-4 border-y border-border py-3 font-semibold">zTrip API: {settings.autocab_live ? "LIVE. Confirmed bookings can dispatch a car." : "TEST. API bookings are held. No car is dispatched."}</p>
+      {autocabError && <p role="alert" className="mt-2 text-sm text-destructive">{autocabError}</p>}
       <div className="mt-6"><TodaysCalls rides={rides} now={now} ztripPhone={settings.ztrip_text_phone} onOpen={open} onChanged={load} /></div>
       <section className="mt-6 grid gap-4 rounded-3xl bg-[hsl(var(--rides-ink)/0.05)] p-5 md:grid-cols-[2fr_1fr_1fr_1fr]">
         <div>
@@ -198,7 +204,7 @@ function Desk() {
           return (
             <div key={status} className="w-[82vw] shrink-0 snap-start space-y-3 md:w-auto">
               <h2 className="flex justify-between font-semibold"><span>{title}</span><span className="text-[hsl(var(--rides-ink)/0.6)]">{list.length}</span></h2>
-              {list.map((r) => <div key={r.id}><Card r={r}/><a className="inline-flex min-h-11 items-center text-sm text-primary underline" href={telHref(r.phone)}>{fmtPhone(r.phone)}</a></div>)}
+              {list.map((r) => <div key={r.id}><Card r={r}/><AutocabDetails ride={r} status={autocabStatuses[r.autocab_booking_id ?? ""]} compact /><a className="inline-flex min-h-11 items-center text-sm text-primary underline" href={telHref(r.phone)}>{fmtPhone(r.phone)}</a></div>)}
               {list.length === 0 && <p className="rounded-2xl border border-dashed border-[hsl(var(--rides-ink)/0.15)] p-4 text-sm text-[hsl(var(--rides-ink)/0.5)]">None right now.</p>}
             </div>
           );
@@ -230,6 +236,7 @@ function Desk() {
               <p className="text-sm">{g.rides.length} of {settings.seats_per_slot} riders. {g.rides.length > 1 ? "One multi pickup trip" : "Single pickup"}</p>
               <p className="text-sm text-[hsl(var(--rides-ink)/0.75)]">{g.rides.map((r) => r.first_name_last_initial).join(", ")}</p>
               {batches(g.rides).map((b) => <ZtripTextButton key={b.key} rides={b.rides} message={groupMessage(b.rides)} phone={settings.ztrip_text_phone} onMarked={load} />)}
+              {batches(g.rides).map((b) => <AutocabBooking key={`api-${b.key}`} rides={b.rides} live={settings.autocab_live} onChanged={load} />)}
               {g.conflict && (
                 <p className="rounded-xl bg-[hsl(var(--rides-amber)/0.15)] p-2 text-xs text-[hsl(var(--rides-amber))]">
                   Another trip leaves this same hour. With one driver, move a group or add a second driver at the full $40/hr.
@@ -248,7 +255,7 @@ function Desk() {
               Texts paused. This rider replied STOP. Call them instead. They can reply START to get texts again.
             </p>
           )}
-          {current && <RideDrawer key={current.id + current.status + current.trip_stage + String(current.destination_site_id)} ride={current} settings={settings} fundedBooked={budget.seatsBooked} onClose={() => setOpenId(null)} />}
+          {current && <><AutocabDetails ride={current} status={autocabStatuses[current.autocab_booking_id ?? ""]} /><AutocabBooking rides={rides.filter(r => current.autocab_booking_id ? r.autocab_booking_id === current.autocab_booking_id : r.ride_day === current.ride_day && r.pickup_time === current.pickup_time && r.destination_site_id === current.destination_site_id && ["requested", "booked"].includes(r.status))} live={settings.autocab_live} onChanged={load} /><RideDrawer key={current.id + current.status + current.trip_stage + String(current.destination_site_id)} ride={current} settings={settings} fundedBooked={budget.seatsBooked} onClose={() => setOpenId(null)} /></>}
         </SheetContent>
       </Sheet>
 

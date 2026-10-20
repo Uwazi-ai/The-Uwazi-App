@@ -196,7 +196,6 @@ export function RideDrawer({ ride, settings, fundedBooked, onClose }: { ride: Ri
             <>
               <input className="rides-input" placeholder="zTrip number, optional" value={ztrip} onChange={(e) => setZtrip(e.target.value)} maxLength={40} />
               <button className={green} disabled={busy} onClick={markBooked}>Mark booked</button>
-              <p className="text-xs text-[hsl(var(--rides-ink)/0.55)]">zTrip API booking comes in Sprint 2B.</p>
             </>
           )
         )}
