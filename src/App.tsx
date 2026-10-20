@@ -88,6 +88,7 @@ import RideDemoPage from "./pages/RideDemoPage";
 import ElectionDayMapPage from "./pages/ElectionDayMapPage";
 import CompassDemoPage from "./pages/CompassDemoPage";
 import CompassPersonaPage from "./pages/CompassPersonaPage";
+import HelpPage from "./pages/HelpPage";
 
 const queryClient = new QueryClient();
 
@@ -154,6 +155,7 @@ const App = () => (
                 <Route path="/app/vote/candidates/:id" element={<CandidateDetailPage />} />
                 <Route path="/app/news" element={<NewsPage />} />
                 <Route path="/app/saved" element={<SavedPage />} />
+                <Route path="/app/help" element={<HelpPage />} />
                 <Route path="/app/learn" element={<LearnPage />} />
                 <Route path="/app/watch" element={<EpisodesFeedPage />} />
                 <Route path="/app/episodes" element={<EpisodesFeedPage />} />

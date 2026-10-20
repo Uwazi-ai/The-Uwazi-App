@@ -19,7 +19,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useCitiesWaiting } from "@/components/admin/CitiesSection";
 import { openMyCityUnlockModal } from "@/components/my-city/MyCityUnlockModal";
 
-import { Building2, Compass, LogIn, Ticket, ShieldCheck, Trophy } from "lucide-react";
+import { Building2, Compass, HelpCircle, LogIn, Ticket, ShieldCheck, Trophy } from "lucide-react";
 
 const mainNav = [
   { to: "/app", icon: HomeIcon, label: "Home" },
@@ -31,6 +31,7 @@ const mainNav = [
   { to: "/app/my-city", icon: Building2, label: "My City" },
   { get to() { return ridesAreLive() ? "/rides" : "/rides/waitlist"; }, icon: Car, get label() { return ridesAreLive() ? "Now booking" : "Free Rides"; } },
   { to: "/app/progress", icon: ProgressIcon, label: "Progress" },
+  { to: "/app/help", icon: HelpCircle, label: "Help" },
 ];
 
 type AdminNavItem = { to: string; icon: any; label: string; programAdmin?: boolean; reviewer?: boolean };

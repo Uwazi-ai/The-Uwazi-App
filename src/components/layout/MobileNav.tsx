@@ -4,7 +4,7 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Building2, ChevronRight, Compass, LogIn, Menu, User } from "lucide-react";
+import { Building2, ChevronRight, Compass, HelpCircle, LogIn, Menu, User } from "lucide-react";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -31,6 +31,7 @@ const drawerItems = [
   { to: "/app/settings", icon: User, label: "You" },
   { to: "/app/saved", icon: SavedIcon, label: "Saved" },
   { to: "/app/settings", icon: SettingsIcon, label: "Settings" },
+  { to: "/app/help", icon: HelpCircle, label: "Help" },
 ];
 
 export function MobileNav() {
