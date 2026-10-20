@@ -9,12 +9,14 @@ import { miles, openSites } from "../_shared/ride-sites.ts";
 import { pollingPlaceFor } from "../_shared/kceb-precincts.ts";
 import { checkEligibility, LOOKUP_FAILED_MSG, OUT_OF_AREA_MSG } from "../_shared/ride-eligibility.ts";
 import { startRideAlert } from "../_shared/ride-alerts.ts";
+import { startRiderConfirmation } from "../_shared/rider-emails.ts";
 
 const NEEDS = ["wheelchair", "walker", "service_animal", "child_seat", "extra_time", "language_help", "other"] as const;
 
 const Body = z.object({
   first_name_last_initial: z.string().trim().regex(/^[A-Za-z][A-Za-z'\- ]{0,40} [A-Za-z]\.?$/),
   phone: z.string().trim().max(20),
+  email: z.string().trim().toLowerCase().max(254).regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/).optional(),
   pickup_address: z.string().trim().min(5).max(200),
   zip: z.string().trim().regex(/^\d{5}$/),
   ride_day: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -134,6 +136,7 @@ Deno.serve(async (req) => {
   const { data: row, error } = await db.from("ride_requests").insert({
     first_name_last_initial: b.first_name_last_initial,
     phone: digits,
+    email: b.email ?? null,
     pickup_address: b.pickup_address,
     zip: b.zip,
     destination_site_id: site?.id ?? null,
@@ -149,7 +152,7 @@ Deno.serve(async (req) => {
   if (error?.message?.includes("wave_full")) return await turnAway();
   if (error?.message?.includes("wave_site")) return json({ error: WAVE_SITE_MSG, code: "wave_site" }, 409);
   if (error || !row) {
-    console.error("ride insert failed", error);
+    console.error("ride insert failed");
     return json({ error: "We could not save your ride. Please call the ride line." }, 500);
   }
   await db.from("ride_events").insert({
@@ -160,6 +163,7 @@ Deno.serve(async (req) => {
   });
 
   if (b.source === "web") startRideAlert(db, "ride", row.id);
+  if (b.email) startRiderConfirmation(db, row.id);
 
   await sendRideSms(db, referred ? "referred" : "request_received", {
     id: row.id, ride_code: row.ride_code, card_token: row.card_token, phone: digits, texts_ok: settings.sms_live === true && b.texts_ok,
