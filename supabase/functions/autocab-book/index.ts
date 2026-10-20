@@ -59,11 +59,12 @@ Deno.serve(async req => {
       const destination = await resolveAutocabAddress(api, /\bMO\b|Missouri/i.test(site.address) ? site.address : `${site.address}, Kansas City, MO`, geo);
       booking = buildBooking(riders, pickups, destination, settings);
       const quote = await api('/quote', 'POST', booking);
-      // Store resolved request only in a private operation, not a log or public response.
-      const { data: op, error: oe } = await db.from('autocab_operations').insert({ actor: uid, ride_ids: b.ride_ids, fingerprint: fp, mode, quote: { request: booking, result: quote } }).select('id,expires_at').single();
-      if (oe || !op) throw new AutocabError('Quote could not be saved.', 500);
       const price = quote.price ?? quote.totalPrice ?? quote.amount ?? quote.estimatedPrice;
-      if (price == null) throw new AutocabError('Autocab returned no quoted price. Book by phone.');
+      if (price == null || (typeof price !== 'number' && typeof price !== 'string')) throw new AutocabError('Autocab returned no quoted price. Book by phone.');
+      // Store resolved request only in a private operation, not a log or public response.
+      await db.from('autocab_operations').delete().eq('state','quoted').lt('expires_at',new Date().toISOString());
+      const { data: op, error: oe } = await db.from('autocab_operations').insert({ actor: uid, ride_ids: b.ride_ids, fingerprint: fp, mode, quote: { request: booking, price } }).select('id,expires_at').single();
+      if (oe || !op) throw new AutocabError('Quote could not be saved.', 500);
       return json({ quote_id: op.id, expires_at: op.expires_at, price, mode });
     }
     const { data: op } = await db.from('autocab_operations').select('quote').eq('id', b.quote_id).single();
@@ -86,6 +87,7 @@ Deno.serve(async req => {
     if (typeof id !== 'string' && typeof id !== 'number') throw new AutocabError('Autocab accepted the request but returned no booking id. Ask zTrip before retrying.', 502);
     const done = await db.rpc('autocab_finish_operation', { _id: b.quote_id, _booking_id: String(id) });
     if (done.error) throw new AutocabError(`Autocab booking ${id} needs admin review. Do not resend.`, 502);
+    await db.from('autocab_operations').update({quote:null}).eq('id',b.quote_id);
     return json({ booking_id: String(id), mode, hold: booking.hold });
   } catch (e) {
     if (e instanceof Error) for (const value of sensitive) if (value) e.message = e.message.split(value).join('[rider data removed]');

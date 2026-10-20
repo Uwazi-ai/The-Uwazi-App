@@ -53,7 +53,7 @@ export function AutocabBooking({ rides, live, onChanged }: { rides: Ride[]; live
   return <div className="space-y-2 border-t border-border pt-3">
     {booked?<><Badge variant="outline">Booked in Autocab {booked.autocab_booking_id}</Badge><Button className="min-h-12 w-full" variant="outline" disabled={busy} onClick={()=>setConfirm('cancel')}><XCircle/>Cancel booking</Button></>:blocked?<p role="status" className="text-sm text-destructive">Send pending. Ask zTrip before retrying.</p>:<>
       <Button variant="outline" className="min-h-12 w-full" disabled={busy||!valid} onClick={()=>run('quote')}><RefreshCw/>{busy?'Connecting':'Get zTrip quote'}</Button>
-      {quote&&<p className="text-sm">Quote: {typeof quote.price==='object'?JSON.stringify(quote.price):String(quote.price)} <Badge variant="outline">{quote.mode}</Badge></p>}
+      {quote&&<div className="flex flex-wrap items-center gap-2 text-sm"><span>Quote: {typeof quote.price==='object'?JSON.stringify(quote.price):String(quote.price)}</span><Badge variant="outline">{quote.mode}</Badge></div>}
       <Button className="min-h-12 w-full" disabled={busy||!quote||!valid||Date.parse(quote.expires_at)<Date.now()} onClick={()=>setConfirm('book')}><Send/>Send to zTrip (API)</Button>
     </>}
     {error&&<p role="alert" className="break-words text-sm text-destructive">{error} Manual Text zTrip is still available.</p>}

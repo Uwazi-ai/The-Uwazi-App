@@ -47,7 +47,12 @@ export async function resolveAutocabAddress(api: (path: string) => Promise<any>,
       const result = await api(`/addressFromText?${param}=${encodeURIComponent(text)}`);
       const a = result.address ?? result.addresses?.[0] ?? result[0] ?? result;
       const c = a.coordinate;
-      if (Number.isFinite(c?.latitude) && Number.isFinite(c?.longitude) && a.zone != null) return a;
+      const zone = a.zone;
+      if (Number.isFinite(c?.latitude) && Number.isFinite(c?.longitude) && (typeof zone === 'number' ? zone > 0 : Number.isFinite(zone?.id) && zone.id > 0)) {
+        // Keep provider address fields only. Do not copy a whole response wrapper.
+        const fields = ['text','street','house','town','postcode','building','fullAddress','place','addressId'];
+        return { ...Object.fromEntries(fields.flatMap(k => typeof a[k] === 'string' || typeof a[k] === 'number' ? [[k,a[k]]] : [])), coordinate: { latitude: c.latitude, longitude: c.longitude }, zone };
+      }
     } catch (e) { if (e instanceof AutocabError && e.status === 429) throw e; }
   }
   let point = stored;
