@@ -233,6 +233,69 @@ export type Database = {
         }
         Relationships: []
       }
+      autocab_operations: {
+        Row: {
+          actor: string
+          booking_id: string | null
+          created_at: string
+          expires_at: string
+          fingerprint: string
+          id: string
+          mode: string
+          quote: Json | null
+          ride_ids: string[]
+          state: string
+        }
+        Insert: {
+          actor: string
+          booking_id?: string | null
+          created_at?: string
+          expires_at?: string
+          fingerprint: string
+          id?: string
+          mode: string
+          quote?: Json | null
+          ride_ids: string[]
+          state?: string
+        }
+        Update: {
+          actor?: string
+          booking_id?: string | null
+          created_at?: string
+          expires_at?: string
+          fingerprint?: string
+          id?: string
+          mode?: string
+          quote?: Json | null
+          ride_ids?: string[]
+          state?: string
+        }
+        Relationships: []
+      }
+      autocab_poll_cache: {
+        Row: {
+          booking_id: string
+          data: Json
+          failures: number
+          next_poll_at: string
+          updated_at: string | null
+        }
+        Insert: {
+          booking_id: string
+          data?: Json
+          failures?: number
+          next_poll_at?: string
+          updated_at?: string | null
+        }
+        Update: {
+          booking_id?: string
+          data?: Json
+          failures?: number
+          next_poll_at?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       backup_runs: {
         Row: {
           error: string | null
@@ -4024,6 +4087,8 @@ export type Database = {
       ride_requests: {
         Row: {
           autocab_booking_id: string | null
+          autocab_operation_id: string | null
+          autocab_status: string | null
           booked_at: string | null
           card_token: string
           completed_at: string | null
@@ -4057,6 +4122,8 @@ export type Database = {
         }
         Insert: {
           autocab_booking_id?: string | null
+          autocab_operation_id?: string | null
+          autocab_status?: string | null
           booked_at?: string | null
           card_token?: string
           completed_at?: string | null
@@ -4090,6 +4157,8 @@ export type Database = {
         }
         Update: {
           autocab_booking_id?: string | null
+          autocab_operation_id?: string | null
+          autocab_status?: string | null
           booked_at?: string | null
           card_token?: string
           completed_at?: string | null
@@ -4163,6 +4232,12 @@ export type Database = {
       }
       ride_settings: {
         Row: {
+          autocab_base_url: string
+          autocab_capability_map: Json
+          autocab_company_id: number
+          autocab_customer_id: number | null
+          autocab_driver_id: number | null
+          autocab_live: boolean
           budget_cents: number
           driver_rate: number
           early_end: string
@@ -4177,6 +4252,12 @@ export type Database = {
           ztrip_text_phone: string
         }
         Insert: {
+          autocab_base_url?: string
+          autocab_capability_map?: Json
+          autocab_company_id?: number
+          autocab_customer_id?: number | null
+          autocab_driver_id?: number | null
+          autocab_live?: boolean
           budget_cents?: number
           driver_rate?: number
           early_end?: string
@@ -4191,6 +4272,12 @@ export type Database = {
           ztrip_text_phone?: string
         }
         Update: {
+          autocab_base_url?: string
+          autocab_capability_map?: Json
+          autocab_company_id?: number
+          autocab_customer_id?: number | null
+          autocab_driver_id?: number | null
+          autocab_live?: boolean
           budget_cents?: number
           driver_rate?: number
           early_end?: string
@@ -6166,6 +6253,23 @@ export type Database = {
           count: number
           zip_code: string
         }[]
+      }
+      autocab_claim_operation: {
+        Args: {
+          _actor: string
+          _fingerprint: string
+          _id: string
+          _mode: string
+        }
+        Returns: boolean
+      }
+      autocab_finish_cancel: {
+        Args: { _actor: string; _id: string }
+        Returns: undefined
+      }
+      autocab_finish_operation: {
+        Args: { _booking_id: string; _id: string }
+        Returns: undefined
       }
       award_lesson_badges: { Args: { _uid: string }; Returns: undefined }
       award_lesson_completion: {

@@ -92,3 +92,9 @@
 - [x] Bundle public quiz/persona content and demo-only persona rules with event expiry checks.
 - [x] Add guarded production offline caching for demo/persona screens without caching private requests.
 - [x] Verify Wi-Fi-loss quiz completion, public persona fallback/reload, clean student resets and preview worker safety. Published full-offline cold reload awaits a deployed release; publishing is prohibited in this sprint.
+
+## Sprint 2B Autocab
+- [x] Add protected settings, held-by-default booking, quotes, cancellation and desk-only bounded status polling.
+- [x] Add admin connection panel and coordinator trip controls without changing manual texts or rider screens.
+- [x] Run 21 focused tests and a mocked browser quote, held group booking, status and cancellation flow. Verify authorized desktop/phone desk and zero saved test rows.
+- [ ] Verify provider response shapes and one held booking/cancellation. Blocked: AUTOCAB_KEY and account/capability selections; the public API definition requires portal sign-in.
