@@ -1,7 +1,8 @@
 ## Rider emails
-- [ ] Add optional validated email to real/demo Review and phone intake, visible only in the drawer.
-- [ ] Add private confirmation, day-before reminder and approved rights-card emails with durable claims.
-- [ ] Confirm custom hashed-address 3/24-hour limit tradeoff and testing within that cap.
+- [x] Added optional validated email to real/demo Review and phone intake, visible only in the drawer; helpers do not promise the unavailable daily reminder.
+- [x] Added confirmation, single-ride admin reminder test, approved rights-card templates/actions and service-only durable claims.
+- [ ] Daily scheduled email reminder blocked: managed sender prohibits batch recipient loops and lacks supported per-ride delayed delivery. Existing cron/SMS unchanged.
+- [x] Approved custom hashed-address 3/24-hour tradeoff. Two live confirmations and one reminder consumed cap; duplicate reminder refused, rights request returned address_limit.
 - [ ] Verify real sends, failure isolation, privacy, earlier regressions and responsive screens; clean up only task-created IDs.
 - [ ] Preserve existing rows, strict append-only events and ride sequence; report before/after counts. Do not publish or alter protected switches.
 
