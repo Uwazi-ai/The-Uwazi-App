@@ -225,6 +225,13 @@
       "when": 1792473608013,
       "tag": "0031_restrict_public_persona_and_media_access",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1792474865911,
+      "tag": "0032_ride_coordinator_alert_settings_and_claims",
+      "breakpoints": true
     }
   ]
 }

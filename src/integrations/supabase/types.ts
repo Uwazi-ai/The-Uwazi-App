@@ -4252,6 +4252,10 @@ export type Database = {
           election_day: string
           funded_cap: number
           id: boolean
+          notify_emails: string[]
+          notify_include_contact: boolean
+          notify_new_requests: boolean
+          notify_waitlist: boolean
           ride_line_phone: string | null
           seats_per_slot: number
           sms_live: boolean
@@ -4276,6 +4280,10 @@ export type Database = {
           election_day?: string
           funded_cap?: number
           id?: boolean
+          notify_emails?: string[]
+          notify_include_contact?: boolean
+          notify_new_requests?: boolean
+          notify_waitlist?: boolean
           ride_line_phone?: string | null
           seats_per_slot?: number
           sms_live?: boolean
@@ -4300,6 +4308,10 @@ export type Database = {
           election_day?: string
           funded_cap?: number
           id?: boolean
+          notify_emails?: string[]
+          notify_include_contact?: boolean
+          notify_new_requests?: boolean
+          notify_waitlist?: boolean
           ride_line_phone?: string | null
           seats_per_slot?: number
           sms_live?: boolean
@@ -6371,6 +6383,10 @@ export type Database = {
       claim_promo_code: {
         Args: { _code: string; _user_id: string }
         Returns: Json
+      }
+      claim_ride_email_alert: {
+        Args: { _actor?: string; _id: string; _kind: string }
+        Returns: string
       }
       code_redemption_stats: {
         Args: never
