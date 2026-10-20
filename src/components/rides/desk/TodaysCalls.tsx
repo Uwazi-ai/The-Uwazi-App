@@ -3,12 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { fmtDay, fmtHour, fmtPhone, telHref } from "@/components/rides/RidesUI";
 import type { Ride } from "./deskLib";
+import { ZtripTextButton } from "./ZtripTextButton";
+import { batches, groupMessage, updateMessage, zState, type ZEvent } from "./ztripText";
 
 const ELECTION_DAY = "2026-11-03";
-const EVENT_TYPES = ["late_called", "no_show", "confirmed_by_call", "call_no_answer", "place_confirmed", "cancelled"];
-type Ev = { request_id: string; event_type: string; created_at: string };
+const EVENT_TYPES = ["late_called", "no_show", "confirmed_by_call", "call_no_answer", "place_confirmed", "cancelled", "ztrip_texted"];
+type Ev = ZEvent;
 type Wait = { id: string; requested_date: string; reason: string | null; phone: string };
-type Item = { key: string; ride?: Ride; wait?: Wait; reason: string; script?: string; actions: [string, () => Promise<unknown> | void][] };
+type Item = { key: string; ride?: Ride; wait?: Wait; reason: string; script?: string; ztrip?: { rides: Ride[]; message: string; update: boolean }; actions: [string, () => Promise<unknown> | void][] };
 
 function chicago(ms: number) {
   const d = (n: number) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(n));
@@ -17,7 +19,7 @@ function chicago(ms: number) {
 }
 
 // Coordinator call list built from existing ride data. Every action writes a ride_events row.
-export function TodaysCalls({ rides, now, onOpen, onChanged }: { rides: Ride[]; now: number; onOpen: (id: string) => void; onChanged: () => void }) {
+export function TodaysCalls({ rides, now, ztripPhone, onOpen, onChanged }: { rides: Ride[]; now: number; ztripPhone: string; onOpen: (id: string) => void; onChanged: () => void }) {
   const { user } = useAuth();
   const [events, setEvents] = useState<Ev[]>([]);
   const [waits, setWaits] = useState<Wait[]>([]);
@@ -25,7 +27,7 @@ export function TodaysCalls({ rides, now, onOpen, onChanged }: { rides: Ride[]; 
 
   const load = useCallback(async () => {
     const [e, w] = await Promise.all([
-      supabase.from("ride_events").select("request_id,event_type,created_at").in("event_type", EVENT_TYPES).order("created_at"),
+      supabase.from("ride_events").select("request_id,event_type,note,created_at").in("event_type", EVENT_TYPES).order("created_at"),
       supabase.rpc("ride_waitlist_calls_due"),
     ]);
     setEvents((e.data ?? []) as Ev[]);
@@ -45,7 +47,14 @@ export function TodaysCalls({ rides, now, onOpen, onChanged }: { rides: Ride[]; 
     const last = (id: string, t: string) => events.filter((e) => e.request_id === id && e.event_type === t).at(-1);
     const live = rides.filter((r) => !["cancelled", "referred", "completed"].includes(r.status));
     const place = (r: Ride) => r.site && !r.needs_destination ? r.site.name : "your voting place";
+    const soon = (r: Ride) => r.ride_day === c.today || r.ride_day === c.tomorrow;
+    const fresh = batches(rides.filter((r) => soon(r) && zState(r, events) === "new"));
+    const changed = rides.filter((r) => r.ride_day >= c.today && zState(r, events) === "update");
     const groups: [string, Item[]][] = [
+      ["Tell zTrip", [
+        ...changed.map((r) => ({ key: "zu" + r.id, ride: r, reason: r.status === "cancelled" ? "Cancelled after zTrip was told." : "Changed after zTrip was told.", ztrip: { rides: [r], message: updateMessage(r), update: true }, actions: [] as Item["actions"] })),
+        ...fresh.map((b) => ({ key: "zn" + b.key, ride: b.rides.length === 1 ? b.rides[0] : undefined, group: b.rides, reason: b.rides.length > 1 ? `Group trip. ${b.rides.length} riders: ${b.rides.map((r) => r.ride_code).join(", ")}.` : "New trip for zTrip to watch.", ztrip: { rides: b.rides, message: groupMessage(b.rides), update: false }, actions: [] as Item["actions"] })),
+      ]],
       ["Late or no-show watch", live.filter((r) => {
         if (r.ride_day !== c.today || r.picked_up_at || (r.trip_stage ?? 0) >= 3 || !r.pickup_time) return false;
         const [h, m] = r.pickup_time.split(":").map(Number);
@@ -66,7 +75,7 @@ export function TodaysCalls({ rides, now, onOpen, onChanged }: { rides: Ride[]; 
       ["Waitlist", waits.map((w) => ({ key: "wl" + w.id, wait: w, reason: `A seat opened on ${fmtDay(w.requested_date)}.`, actions: [["Called", async () => { await supabase.from("ride_waitlist_calls").insert({ waitlist_id: w.id, actor: user!.id }); await load(); }]] }))],
     ];
     return groups.filter(([, list]) => list.length);
-  }, [rides, events, waits, now]);
+  }, [rides, events, waits, now]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const count = items.reduce((n, [, l]) => n + l.length, 0);
   const btn = "min-h-[44px] rounded-xl px-3 text-sm font-semibold disabled:opacity-40";
@@ -82,12 +91,13 @@ export function TodaysCalls({ rides, now, onOpen, onChanged }: { rides: Ride[]; 
               return (
                 <li key={it.key} data-call-item={title} className="space-y-2 rounded-xl bg-[hsl(var(--rides-ink)/0.06)] p-3 text-sm">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <b>{it.ride?.first_name_last_initial ?? "Waitlist rider"}</b>
+                    <b>{it.ride?.first_name_last_initial ?? (it.ztrip ? "Group trip" : "Waitlist rider")}</b>
                     {it.ride && <span className="font-mono text-xs">{it.ride.ride_code}</span>}
                   </div>
                   {phone && <a className="inline-flex min-h-[44px] items-center font-semibold underline" href={telHref(phone)}>{fmtPhone(phone)}</a>}
                   <p>{it.reason}</p>
                   {it.script && <p className="rounded-lg bg-[hsl(var(--rides-blue)/0.25)] p-2">Say: "{it.script}"</p>}
+                  {it.ztrip && <ZtripTextButton rides={it.ztrip.rides} message={it.ztrip.message} phone={ztripPhone} update={it.ztrip.update} onMarked={() => { load(); }} />}
                   <div className="flex flex-wrap gap-2">
                     {it.actions.map(([label, fn], i) => (
                       <button key={label} disabled={busy === it.key} className={`${btn} ${i === 0 ? "bg-[hsl(var(--rides-green))] text-[hsl(var(--rides-bg))]" : "border border-[hsl(var(--rides-ink)/0.25)]"}`} onClick={async () => { setBusy(it.key); try { await fn(); } finally { setBusy(null); } }}>{label}</button>
