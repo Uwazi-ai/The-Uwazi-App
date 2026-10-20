@@ -18,7 +18,7 @@ import {
 const navItems = [
   { to: "/app", icon: HomeIcon, label: "Home" },
   { to: "/app/vote", icon: VotingHubIcon, label: "Voting hub" },
-  { get to() { return ridesAreLive() ? "/rides" : "/rides/waitlist"; }, icon: Car, get label() { return ridesAreLive() ? "Now booking" : "Free Rides"; } },
+  { get to() { return ridesAreLive() ? "/rides" : "/rides/waitlist"; }, icon: Car, label: "Free Rides" },
   { to: "/app/ask", icon: AskUwaziIcon, label: "Ask Uwazi" },
   { to: "/app/compass", icon: Compass, label: "Compass" },
   { to: "/app/progress", icon: ProgressIcon, label: "Progress" },
