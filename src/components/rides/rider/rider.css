@@ -7,9 +7,9 @@
 .rider-rights-download { position:absolute; left:-10000px; top:0; width:390px; padding:28px; }
 .rider-rights-download p { margin-top:20px; line-height:1.5; }
 .rider-experience .font-heading { font-family:Axis,sans-serif; text-transform:uppercase; letter-spacing:0; color:hsl(var(--rider-heading)); font-weight:800; line-height:1.1; }
-.rider-header { position:fixed; top:0; left:0; right:0; height:64px; z-index:100; background:hsl(var(--rider-bg)); border-bottom:1px solid hsl(var(--rider-border)/.08); display:flex; align-items:center; justify-content:space-between; padding:0 24px; }
+.rider-header { position:sticky; top:0; height:64px; z-index:100; background:hsl(var(--rider-bg)); border-bottom:1px solid hsl(var(--rider-border)/.08); display:flex; align-items:center; justify-content:space-between; padding:0 24px; }
 .rider-header img { height:24px; width:auto; }
-.rider-experience .rider-content { max-width:1200px; margin:auto; padding:92px 24px 40px; }
+.rider-experience .rider-content { max-width:1200px; margin:auto; padding:28px 24px 96px; }
 .rider-experience .rider-narrow { max-width:560px; margin:auto; }
 .rider-experience .rider-eyebrow { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:hsl(var(--rider-green)); }
 .rider-experience .rider-heading { font-size:36px; margin:12px 0 22px; }
@@ -76,7 +76,7 @@
 .rider-experience .rider-calendar small { font-size:7px; line-height:1; color:hsl(var(--rider-muted)); }
 .rider-experience .rider-request-grid,.rider-experience .rider-booked-grid { display:grid; gap:28px; }
 .rider-experience .rider-summary-aside { display:none; }
-@media(min-width:640px) { .rider-experience .rider-content { padding:104px 32px 48px; }.rider-sheet { bottom:auto; top:calc(50% + 32px); transform:translate(-50%,-50%)!important; max-width:520px; border-radius:28px; }.rider-sheet::before { display:none; }.rider-experience .rider-booked-grid { grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:start; }.rider-experience .rider-heading { font-size:40px; } }
+@media(min-width:640px) { .rider-experience .rider-content { padding:36px 32px 48px; }.rider-sheet { bottom:auto; top:calc(50% + 32px); transform:translate(-50%,-50%)!important; max-width:520px; border-radius:28px; }.rider-sheet::before { display:none; }.rider-experience .rider-booked-grid { grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:start; }.rider-experience .rider-heading { font-size:40px; } }
 @media(min-width:1024px) { .rider-experience .rider-request-grid { grid-template-columns:minmax(0,560px) minmax(0,420px); justify-content:space-between; }.rider-experience .rider-request-grid .rider-experience .rider-narrow { width:100%; }.rider-experience .rider-summary-aside { display:block; position:sticky; top:96px; align-self:start; }.rider-experience .rider-booked-grid { grid-template-columns:minmax(0,1fr) 420px; gap:48px; }.rider-experience .rider-map { aspect-ratio:1.15; }.rider-header { padding:0 max(32px,calc((100% - 1200px)/2)); } }
 @media(prefers-reduced-motion:reduce) { .rider-experience *,.rider-sheet,.rider-sheet-overlay { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
 .rider-experience .rider-takeover-button { background:hsl(var(--rider-bg))!important; color:hsl(var(--rider-green))!important; }
