@@ -60,7 +60,35 @@ export function AutocabBooking({ rides, live, onChanged }: { rides: Ride[]; live
     <AlertDialog open={confirm!==null} onOpenChange={o=>!o&&setConfirm(null)}><AlertDialogContent><AlertDialogTitle>{confirm==='cancel'?'Cancel Autocab booking?':`Send ${live?'LIVE':'TEST'} booking?`}</AlertDialogTitle><AlertDialogDescription>{confirm==='cancel'?'This cancels the whole Autocab group. Rider status stays unchanged. Cancel and rebook to change a group.':live?'zTrip may dispatch a car. This sends names, phones and pickup addresses.':'This sends a held TEST booking. No car is dispatched.'}</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>Back</AlertDialogCancel><AlertDialogAction onClick={()=>{if(confirm)run(confirm);}}>{confirm==='cancel'?'Cancel booking':'Confirm send'}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
   </div>;
 }
+const STATUS_LABELS: Record<string,string> = { Unassigned:'Waiting for a driver', Assigned:'Driver assigned', Dispatched:'Driver on the way', EnRoute:'Driver on the way', Arrived:'Driver has arrived', PickedUp:'Rider in the car', OnBoard:'Rider in the car', Completed:'Trip complete', Cancelled:'Cancelled', NoShow:'No-show', Held:'Held (test booking)' };
+export function friendlyAutocabStatus(raw?: string | null) {
+  if (!raw) return 'Awaiting status';
+  const key = raw.replace(/[\s_-]/g,'');
+  const hit = Object.keys(STATUS_LABELS).find(k => k.toLowerCase() === key.toLowerCase());
+  return hit ? STATUS_LABELS[hit] : raw;
+}
+export function formatPickupTime(value?: string | null) {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Chicago' });
+}
 export function AutocabDetails({ride,status,compact=false}:{ride:Ride;status?:AutocabStatus;compact?:boolean}) {
   if(!ride.autocab_booking_id)return null;
-  return <div className="space-y-1 text-sm"><Badge variant="outline">Booked in Autocab</Badge><p>{status?.status??ride.autocab_status??'Awaiting status'}</p>{status?.estimatedPickup&&<p>Estimated pickup: {status.estimatedPickup}</p>}{status?.driver&&<p>Driver: {status.driver}</p>}{status?.vehicle&&<p>Vehicle: {status.vehicle}</p>}{!compact&&status?.position&&<p>Car position: {status.position.lat}, {status.position.lon}</p>}{status?.trackingLink&&<a className="inline-flex min-h-12 items-center text-primary underline" href={status.trackingLink} target="_blank" rel="noopener noreferrer">Track on map</a>}{status?.error&&<p role="status" className="text-destructive">{status.error}</p>}</div>;
+  const eta = formatPickupTime(status?.estimatedPickup);
+  const mins = status?.estimatedPickup ? Math.round((Date.parse(status.estimatedPickup) - Date.now()) / 60000) : NaN;
+  const updated = formatPickupTime(status?.updatedAt);
+  const row = (label: string, value: string | null | undefined, empty: string) => <div className="flex justify-between gap-3"><dt className="text-muted-foreground">{label}</dt><dd className="text-right font-medium">{value || <span className="font-normal text-muted-foreground">{empty}</span>}</dd></div>;
+  return <div className="my-2 space-y-2 rounded-lg border border-border p-3 text-sm">
+    <div className="flex flex-wrap items-center justify-between gap-2"><Badge variant="outline">zTrip</Badge><span className="font-semibold">{friendlyAutocabStatus(status?.status ?? ride.autocab_status)}</span></div>
+    <dl className="space-y-1">
+      {row('Driver', status?.driver, 'Not assigned yet')}
+      {row('Vehicle', status?.vehicle, 'Not assigned yet')}
+      {row('Est. pickup', eta ? `${eta}${Number.isFinite(mins) && mins >= 0 && mins <= 180 ? ` (in ${mins} min)` : ''}` : null, 'Not available yet')}
+    </dl>
+    {!compact&&status?.position&&<p className="text-muted-foreground">Car position: {status.position.lat.toFixed(4)}, {status.position.lon.toFixed(4)}</p>}
+    {status?.trackingLink&&<a className="inline-flex min-h-11 items-center text-primary underline" href={status.trackingLink} target="_blank" rel="noopener noreferrer">Track on map</a>}
+    {updated&&<p className="text-xs text-muted-foreground">Updated {updated}. Checks every minute.</p>}
+    {status?.error&&<p role="status" className="text-destructive">{status.error}</p>}
+  </div>;
 }
