@@ -53,7 +53,7 @@ export function TodaysCalls({ rides, now, ztripPhone, onOpen, onChanged }: { rid
     const groups: [string, Item[]][] = [
       ["Tell zTrip", [
         ...changed.map((r) => ({ key: "zu" + r.id, ride: r, reason: r.status === "cancelled" ? "Cancelled after zTrip was told." : "Changed after zTrip was told.", ztrip: { rides: [r], message: updateMessage(r), update: true }, actions: [] as Item["actions"] })),
-        ...fresh.map((b) => ({ key: "zn" + b.key, ride: b.rides.length === 1 ? b.rides[0] : undefined, group: b.rides, reason: b.rides.length > 1 ? `Group trip. ${b.rides.length} riders: ${b.rides.map((r) => r.ride_code).join(", ")}.` : "New trip for zTrip to watch.", ztrip: { rides: b.rides, message: groupMessage(b.rides), update: false }, actions: [] as Item["actions"] })),
+        ...fresh.map((b) => ({ key: "zn" + b.key, ride: b.rides.length === 1 ? b.rides[0] : undefined, reason: b.rides.length > 1 ? `Group trip. ${b.rides.length} riders: ${b.rides.map((r) => r.ride_code).join(", ")}.` : "New trip for zTrip to watch.", ztrip: { rides: b.rides, message: groupMessage(b.rides), update: false }, actions: [] as Item["actions"] })),
       ]],
       ["Late or no-show watch", live.filter((r) => {
         if (r.ride_day !== c.today || r.picked_up_at || (r.trip_stage ?? 0) >= 3 || !r.pickup_time) return false;
