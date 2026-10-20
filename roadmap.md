@@ -4,6 +4,7 @@
 - [x] Added admin-only settings/panel, website/waitlist alerts, needs-place transition trigger, service-only atomic claims, privacy-safe template and bounded five-second notification wait.
 - [x] Three real temporary website rides (UZ-1002, UZ-1003, UZ-1004) and one no-driver waitlist produced four sent events. Deleted only their recorded IDs and own audit records. Counts 1→1 rides, 1→1 events, 0→0 waitlist. Original UZ-1001 fingerprint unchanged. Sequence never reset. No publishing.
 - [x] Isolated provider-failure, privacy, phone exclusion, dedupe and five-second tests pass. Needs-place template tested in isolation because Oct 22 early rides always resolve an open verified place. No production provider-failure switch added. Rate cap is atomic but not live-volume tested.
+- [x] Real React Email render privacy test passed using explicit function config. Hosted test runner cannot resolve the pinned email dependencies; direct Deno test passed. SDK requests cannot be aborted, so five seconds bounds local notification waiting, not provider execution. Three task-created intake rate-limit records are retained to preserve abuse-control history.
 
 ## Autocab live launch
 - [ ] Enable autocab_live through the admin desk. Blocked: no selected customer, expected account 37765 absent from verified accounts, and verification older than 10 minutes.
