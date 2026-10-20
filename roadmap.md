@@ -1,3 +1,8 @@
+## Autocab live launch
+- [ ] Enable autocab_live through the admin desk. Blocked: customer account is not selected.
+- [ ] Publish current app. Awaiting owner's decision on critical security findings.
+- [ ] Send one identified real ride and verify booking status and tracking on the desk. Blocked: no real ride exists and passenger details are not supplied.
+
 ## Home and Plus
 - [x] Add Content-managed UWAZI Plus logos for dark and light surfaces with safe fallback across every Plus gate.
 - [x] Build one private video library, super admin Content manager, Watch catalog, and Home playback.
