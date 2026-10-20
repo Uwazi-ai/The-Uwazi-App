@@ -16,7 +16,7 @@ const SENDER_DOMAIN = "notify.uwaziapp.uwazi.ai"
 const FROM_DOMAIN = "notify.uwaziapp.uwazi.ai"
 
 export type SendTemplateEmailResult =
-  | { sent: true }
+  | { sent: true; messageId?: string; status?: string }
   | { sent: false; reason: 'recipient_suppressed' }
 
 export interface SendTemplateEmailOptions {
@@ -67,7 +67,7 @@ export async function sendTemplateEmail(
       : template.subject
 
   try {
-    await sendLovableEmail(
+    const response = await sendLovableEmail(
       {
         to: recipient,
         from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
@@ -82,6 +82,7 @@ export async function sendTemplateEmail(
       },
       { apiKey, sendUrl: Deno.env.get('LOVABLE_SEND_URL') }
     )
+    return { sent: true, messageId: response.message_id, status: response.status }
   } catch (error) {
     if (error instanceof EmailAPIError && error.code === 'recipient_suppressed') {
       return { sent: false, reason: 'recipient_suppressed' }
@@ -89,5 +90,4 @@ export async function sendTemplateEmail(
     throw error
   }
 
-  return { sent: true }
 }

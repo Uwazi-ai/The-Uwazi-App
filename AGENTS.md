@@ -1,4 +1,5 @@
 # UWAZI rules
+- Coordinator ride emails use a service-only atomic claim in existing ride audit records and the managed template sender, with no queue or recipient loop. Why: private operational alerts cannot block rides or dispatch duplicate emails.
 - Detailed backend rules live in supabase/AGENTS.md, frontend rules in src/AGENTS.md. Why: keeps this file small.
 - Compass offline support uses generated Workbox caching for demo/persona navigations and public built assets only, with one production-only registration wrapper and no API caching. Why: expo Wi-Fi failures must not cache private app data or intercept editor previews.
 - Anything that grants trust (office, candidate, boundary, city changes, points, consent, Plus plan, question counts) is written only by reviewed server functions. Why: the client is never trusted.

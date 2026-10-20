@@ -4,6 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.23.8";
 import { checkEligibility, LOOKUP_FAILED_MSG, OUT_OF_AREA_MSG } from "../_shared/ride-eligibility.ts";
+import { startRideAlert } from "../_shared/ride-alerts.ts";
 
 const Body = z.object({
   phone: z.string().trim().max(20).optional(),
@@ -42,10 +43,11 @@ Deno.serve(async (req) => {
     const { data: s } = await db.from("ride_settings").select("early_start,election_day").eq("id", true).single();
     if (!s || p.data.requested_date < s.early_start || p.data.requested_date > s.election_day) return json({ error: "Pick a day during early voting or Election Day." }, 400);
   }
-  const { error } = await db.from("poll_ride_waitlist").insert({
+  const { data: row, error } = await db.from("poll_ride_waitlist").insert({
     user_id: uid, phone: digits || null, state_code: "MO",
     requested_date: p.data.requested_date ?? null, reason: p.data.reason ?? null,
-  });
+  }).select("id").single();
   if (error) { console.error("waitlist insert failed", error); return json({ error: "Something went wrong. Try again." }, 500); }
+  if (row && p.data.requested_date && p.data.reason) startRideAlert(db, "waitlist", row.id);
   return json({ ok: true });
 });

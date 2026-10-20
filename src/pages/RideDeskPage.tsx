@@ -16,6 +16,7 @@ import { ZtripTextButton } from "@/components/rides/desk/ZtripTextButton";
 import { batches, groupMessage } from "@/components/rides/desk/ztripText";
 import { AutocabConnection, AutocabBooking, AutocabDetails } from "@/components/rides/desk/AutocabTools";
 import { useAutocabPoll } from "@/hooks/useAutocabPoll";
+import { EmailAlerts } from "@/components/rides/desk/EmailAlerts";
 import { Link } from "react-router-dom";
 import {
   FUNDED, NEED_LABELS, avgWait, budgetStats, dollars, fmtWait, reportCsv, tripGroups, weekCompare, ztrip,
@@ -66,6 +67,7 @@ function AdminTools({ settings, onSettings }: { settings: Settings; onSettings: 
       <CoordinatorsPanel />
       <PrecinctMapRefresh />
       <AutocabConnection settings={settings} onSettings={onSettings} />
+      <EmailAlerts settings={settings} onSettings={onSettings} />
     </>
   );
 }
