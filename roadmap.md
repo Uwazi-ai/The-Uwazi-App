@@ -1,6 +1,6 @@
 ## Autocab live launch
 - [ ] Enable autocab_live through the admin desk. Blocked: no selected customer, expected account 37765 absent from verified accounts, and verification older than 10 minutes.
-- [ ] Publish latest Autocab panel and ride cards at https://uwaziapp.uwazi.ai. Waiting on approval to dismiss three reviewed public-catalog/artwork/media findings; anonymous signing of all 10 paid episode originals was denied and no paid originals overlap active public clips.
+- [x] Request publishing latest Autocab panel and ride cards at https://uwaziapp.uwazi.ai after tightening public persona and media rules. Fresh scan reports zero critical findings; 24 tests and public persona/signed-in desk checks passed. Deployment completion remains unverified.
 - [ ] Send one identified real ride and verify booking status and tracking on the desk. Blocked: correct zTrip account unavailable and no ride confirmed as a real passenger request.
 
 ## Home and Plus
