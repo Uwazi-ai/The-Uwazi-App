@@ -1,7 +1,7 @@
 ## Desk navigation and manual rider reminders
-- [ ] Add normal navigation on every desk route with safe phone action spacing; leave rider/demo screens unchanged.
-- [ ] Add one-ride coordinator reminder action in tomorrow calls and drawer, date/status guards and existing claim/limit reuse.
-- [ ] Test only with mocks; capture 390/1280 layouts and states; confirm unchanged counts, protected ride, settings and limit records. No publish or live sends.
+- [x] Added shared desk-route app navigation and phone safe-area spacing. Sheets end above bottom tabs; drawer bottom Close action is unobscured. Rider/demo screens unchanged.
+- [x] Added coordinator-only one-ride reminder function and shared tomorrow-call/drawer button. Today/tomorrow Central and requested/booked guards run before claims; existing reminder claims, data-free sent notes and 3/24-hour address limit reused.
+- [x] 83 mock/unit regressions passed. Signed-in 390/1280 screenshots verify desk/rights navigation, ready/sent/limit states, phone sheet and drawer actions, no root horizontal overflow. New function deployed without invoking it. Rides 1→1, events 1→1, waitlist 0→0; original ride/event/waitlist/settings/limit hashes and sequence unchanged. Strict append-only function never relaxed. No publish or live sends.
 
 ## Rider emails
 - [x] Added optional validated email to real/demo Review and phone intake, visible only in the drawer; helpers do not promise the unavailable daily reminder.
