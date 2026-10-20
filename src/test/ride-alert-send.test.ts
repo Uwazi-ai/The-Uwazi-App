@@ -1,7 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 const sender = vi.hoisted(() => vi.fn());
 vi.mock('../../supabase/functions/_shared/transactional-email-templates/send-email.ts', () => ({ sendTemplateEmail: sender }));
-import { sendRideAlert } from '../../supabase/functions/_shared/ride-alerts';
+// Load the Deno boundary without adding its npm: modules to the browser TS graph.
+const boundary = '../../supabase/functions/_shared/ride-alerts.ts';
+const { sendRideAlert } = await import(/* @vite-ignore */ boundary);
 
 function database(source = 'web', claim: string | null = 'claim-id') {
   const events: unknown[] = [];
