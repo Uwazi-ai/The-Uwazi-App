@@ -1,3 +1,8 @@
+## Desk navigation and manual rider reminders
+- [ ] Add normal navigation on every desk route with safe phone action spacing; leave rider/demo screens unchanged.
+- [ ] Add one-ride coordinator reminder action in tomorrow calls and drawer, date/status guards and existing claim/limit reuse.
+- [ ] Test only with mocks; capture 390/1280 layouts and states; confirm unchanged counts, protected ride, settings and limit records. No publish or live sends.
+
 ## Rider emails
 - [x] Added optional validated email to real/demo Review and phone intake, visible only in the drawer; helpers do not promise the unavailable daily reminder.
 - [x] Added confirmation, single-ride admin reminder test, approved rights-card templates/actions and service-only durable claims.
