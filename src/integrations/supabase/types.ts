@@ -2040,6 +2040,7 @@ export type Database = {
           color: string
           created_at: string
           icon_key: string
+          is_public: boolean
           name: string
           next_step_lean: string
           one_line: string
@@ -2057,6 +2058,7 @@ export type Database = {
           color: string
           created_at?: string
           icon_key: string
+          is_public?: boolean
           name: string
           next_step_lean?: string
           one_line: string
@@ -2074,6 +2076,7 @@ export type Database = {
           color?: string
           created_at?: string
           icon_key?: string
+          is_public?: boolean
           name?: string
           next_step_lean?: string
           one_line?: string
@@ -6556,6 +6559,8 @@ export type Database = {
       is_org_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_plus: { Args: { _user_id: string }; Returns: boolean }
       is_program_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_public_clip_media: { Args: { _name: string }; Returns: boolean }
+      is_public_episode_poster: { Args: { _name: string }; Returns: boolean }
       is_ride_coordinator: { Args: { _user_id: string }; Returns: boolean }
       is_verified_student: { Args: { _user_id: string }; Returns: boolean }
       journey_research_stats: { Args: never; Returns: Json }
