@@ -1,3 +1,9 @@
+## Private driver tracking
+- [ ] Add service-only token-hashed sessions, validated atomic pings, coordinator reads/revoke and daily coordinate purge.
+- [ ] Add public consent-based driver page and desk-only Leaflet panel/drawer map with cached Autocab positions.
+- [ ] Correct single-ride reminders for today without changing claims or sending emails.
+- [ ] Verify temporary driver sessions end to end, permissions, rejection states, 390/1280 screenshots and regressions. Delete only own sessions by id and confirm existing rows, rate limits and sequence unchanged. No publish or live Autocab.
+
 ## Desk navigation and manual rider reminders
 - [x] Added shared desk-route app navigation and phone safe-area spacing. Sheets end above bottom tabs; drawer bottom Close action is unobscured. Rider/demo screens unchanged.
 - [x] Added coordinator-only one-ride reminder function and shared tomorrow-call/drawer button. Today/tomorrow Central and requested/booked guards run before claims; existing reminder claims, data-free sent notes and 3/24-hour address limit reused.
