@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { RideDeskShell } from "@/components/rides/desk/RideDeskShell";
 import { RootRedirect } from "@/components/auth/RootRedirect";
 import HomePage from "./pages/HomePage";
 import AskUwaziPage from "./pages/AskUwaziPage";
@@ -132,8 +133,10 @@ const App = () => (
               <Route path="/rides/waitlist" element={<RideWaitlistPage />} />
               <Route path="/rides/card/:code" element={<RideCardPage />} />
               <Route path="/rides/track/:code" element={<RideTrackPage />} />
-              <Route path="/rides/desk" element={<RideDeskPage />} />
-              <Route path="/rides/desk/rights" element={<RideRightsReviewPage />} />
+              <Route path="/rides/desk" element={<RideDeskShell />}>
+                <Route index element={<RideDeskPage />} />
+                <Route path="rights" element={<RideRightsReviewPage />} />
+              </Route>
               <Route path="/.lovable/oauth/consent" element={<OAuthConsentPage />} />
 
               <Route path="/vote" element={<Navigate to="/app/vote" replace />} />
