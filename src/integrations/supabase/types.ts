@@ -2300,6 +2300,92 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_location_points: {
+        Row: {
+          accuracy_m: number
+          heading: number | null
+          id: string
+          lat: number
+          lng: number
+          received_at: string
+          recorded_at: string
+          session_id: string
+          speed_mps: number | null
+        }
+        Insert: {
+          accuracy_m: number
+          heading?: number | null
+          id?: string
+          lat: number
+          lng: number
+          received_at?: string
+          recorded_at: string
+          session_id: string
+          speed_mps?: number | null
+        }
+        Update: {
+          accuracy_m?: number
+          heading?: number | null
+          id?: string
+          lat?: number
+          lng?: number
+          received_at?: string
+          recorded_at?: string
+          session_id?: string
+          speed_mps?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_location_points_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "driver_location_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_location_sessions: {
+        Row: {
+          consented_at: string | null
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          label: string
+          last_seen_at: string | null
+          revoked_at: string | null
+          service_date: string
+          stopped_at: string | null
+          token_hash: string
+        }
+        Insert: {
+          consented_at?: string | null
+          created_at?: string
+          created_by: string
+          expires_at: string
+          id?: string
+          label?: string
+          last_seen_at?: string | null
+          revoked_at?: string | null
+          service_date: string
+          stopped_at?: string | null
+          token_hash: string
+        }
+        Update: {
+          consented_at?: string | null
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          label?: string
+          last_seen_at?: string | null
+          revoked_at?: string | null
+          service_date?: string
+          stopped_at?: string | null
+          token_hash?: string
+        }
+        Relationships: []
+      }
       election_authorities: {
         Row: {
           county_name: string | null
@@ -4264,6 +4350,7 @@ export type Database = {
           notify_waitlist: boolean
           ride_line_phone: string | null
           seats_per_slot: number
+          show_driver_to_riders: boolean
           sms_live: boolean
           updated_at: string
           ztrip_text_phone: string
@@ -4292,6 +4379,7 @@ export type Database = {
           notify_waitlist?: boolean
           ride_line_phone?: string | null
           seats_per_slot?: number
+          show_driver_to_riders?: boolean
           sms_live?: boolean
           updated_at?: string
           ztrip_text_phone?: string
@@ -4320,6 +4408,7 @@ export type Database = {
           notify_waitlist?: boolean
           ride_line_phone?: string | null
           seats_per_slot?: number
+          show_driver_to_riders?: boolean
           sms_live?: boolean
           updated_at?: string
           ztrip_text_phone?: string
@@ -6435,6 +6524,10 @@ export type Database = {
         }
         Returns: Json
       }
+      create_driver_location_session: {
+        Args: { _actor: string; _hash: string; _label: string }
+        Returns: Json
+      }
       delete_my_compass_data: { Args: never; Returns: Json }
       dimension_lesson: {
         Args: { _ascending: boolean; _exclude?: string[]; _uid: string }
@@ -6457,6 +6550,10 @@ export type Database = {
           names: string[]
           source_url: string
         }[]
+      }
+      driver_location_ping: {
+        Args: { _consent: boolean; _hash: string; _point?: Json }
+        Returns: Json
       }
       end_challenge: {
         Args: { _challenge: string; _zip: string }
@@ -6707,6 +6804,7 @@ export type Database = {
         }
         Returns: string
       }
+      purge_driver_location_points: { Args: never; Returns: number }
       queue_daily_notifications: { Args: { _day?: string }; Returns: number }
       recompute_next_step: { Args: { _uid: string }; Returns: undefined }
       redeem_code: { Args: { p_code: string }; Returns: Json }
@@ -6743,6 +6841,10 @@ export type Database = {
       review_office_change: {
         Args: { _approve: boolean; _change_id: string }
         Returns: string
+      }
+      revoke_driver_location_session: {
+        Args: { _actor: string; _id: string }
+        Returns: boolean
       }
       ride_paused_ids: { Args: never; Returns: string[] }
       ride_unmet_demand: {
@@ -6819,6 +6921,7 @@ export type Database = {
         }[]
       }
       stage_name_for: { Args: { _points: number }; Returns: string }
+      stop_driver_location_session: { Args: { _hash: string }; Returns: Json }
       submit_research_survey: {
         Args: { _answers: Json; _survey_id: string }
         Returns: number
