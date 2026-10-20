@@ -8,6 +8,7 @@ import { sendRideSms } from "../_shared/ride-sms.ts";
 import { miles, openSites } from "../_shared/ride-sites.ts";
 import { pollingPlaceFor } from "../_shared/kceb-precincts.ts";
 import { checkEligibility, LOOKUP_FAILED_MSG, OUT_OF_AREA_MSG } from "../_shared/ride-eligibility.ts";
+import { startRideAlert } from "../_shared/ride-alerts.ts";
 
 const NEEDS = ["wheelchair", "walker", "service_animal", "child_seat", "extra_time", "language_help", "other"] as const;
 
@@ -157,6 +158,8 @@ Deno.serve(async (req) => {
     to_status: referred ? "referred" : "requested",
     note: site ? null : "needs destination",
   });
+
+  if (b.source === "web") startRideAlert(db, "ride", row.id);
 
   await sendRideSms(db, referred ? "referred" : "request_received", {
     id: row.id, ride_code: row.ride_code, card_token: row.card_token, phone: digits, texts_ok: settings.sms_live === true && b.texts_ok,

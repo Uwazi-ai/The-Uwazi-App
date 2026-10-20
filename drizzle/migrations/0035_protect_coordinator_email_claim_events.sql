@@ -1,0 +1,2 @@
+CREATE OR REPLACE FUNCTION public.guard_ride_email_event() RETURNS trigger LANGUAGE plpgsql SET search_path=public AS $$ BEGIN IF NEW.event_type='notify_claimed' AND coalesce(auth.role(),'')<>'service_role' THEN RAISE EXCEPTION 'Email claims are server managed'; END IF; RETURN NEW; END $$;
+CREATE TRIGGER guard_ride_email_event BEFORE INSERT ON public.ride_events FOR EACH ROW EXECUTE FUNCTION public.guard_ride_email_event();

@@ -225,6 +225,34 @@
       "when": 1792473608013,
       "tag": "0031_restrict_public_persona_and_media_access",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1792474865911,
+      "tag": "0032_ride_coordinator_alert_settings_and_claims",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1792475168511,
+      "tag": "0033_allow_exact_email_test_event_cleanup",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1792475191146,
+      "tag": "0034_restore_strict_ride_event_append_only",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1792475227345,
+      "tag": "0035_protect_coordinator_email_claim_events",
+      "breakpoints": true
     }
   ]
 }

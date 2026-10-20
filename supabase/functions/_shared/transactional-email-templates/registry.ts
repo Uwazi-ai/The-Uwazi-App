@@ -4,6 +4,7 @@ import { template as securityIncident } from './security-incident.tsx'
 import { template as cityOnboarding } from './city-onboarding.tsx'
 import { template as platformHealthAlert } from './platform-health-alert.tsx'
 import { template as studentVerify } from './student-verify.tsx'
+import { template as rideCoordinatorAlert } from './ride-coordinator-alert.tsx'
 
 export interface TemplateEntry {
   displayName?: string
@@ -15,6 +16,7 @@ export interface TemplateEntry {
 }
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
+  'ride-coordinator-alert': rideCoordinatorAlert,
   'security-incident': securityIncident,
   'city-onboarding': cityOnboarding,
   'platform-health-alert': platformHealthAlert,
