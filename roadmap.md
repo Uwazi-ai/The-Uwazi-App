@@ -1,4 +1,10 @@
 ## Autocab live launch
+## Coordinator email alerts
+- [ ] Verify an existing sender to myke@uwazi.ai and report provider and From address.
+- [ ] Add admin-only alert settings and desk panel, private event alerts and duplicate protection after sender readiness.
+- [ ] Verify real email, temporary ride/waitlist cases and safe failure; delete only task-created IDs, preserve existing rows and sequence, report before/after counts. No publishing.
+
+## Autocab live launch
 - [ ] Enable autocab_live through the admin desk. Blocked: no selected customer, expected account 37765 absent from verified accounts, and verification older than 10 minutes.
 - [x] Request publishing latest Autocab panel and ride cards at https://uwaziapp.uwazi.ai after tightening public persona and media rules. Fresh scan reports zero critical findings; 24 tests and public persona/signed-in desk checks passed. Deployment completion remains unverified.
 - [ ] Send one identified real ride and verify booking status and tracking on the desk. Blocked: correct zTrip account unavailable and no ride confirmed as a real passenger request.
