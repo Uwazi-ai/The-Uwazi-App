@@ -6,7 +6,7 @@ Deno.test('rider templates render private-data-free bodies',async()=>{
  const r={ride_code:'UZ-1005',ride_day:'2026-10-22',pickup_time:'11:00',status:'requested',card_token:'REDACTED-DEMO-TOKEN',quiz_score:7};
  const place={name:'Garrison Community Center',address:'1124 E. 5th St, Kansas City, MO 64106'};
  for(const [kind,template] of [['confirmation',confirmation],['reminder',reminder],['rights',rights]] as const){
-  const props=riderEmailData(kind,r,place,['Bring your photo ID.']);
+  const props=riderEmailData(kind,r,place,['Bring a photo ID','No ID? Ask for a provisional ballot','Not on the list? Check again, then ask for a provisional ballot','In line at closing? Stay in line','You can bring a helper','Made a mistake? Get a new ballot','Leave campaign gear at home','Problems? Call 866-OUR-VOTE']);
   const element=React.createElement(template.component,props);
   const text=await renderAsync(element,{plainText:true});
   const html=await renderAsync(element);
