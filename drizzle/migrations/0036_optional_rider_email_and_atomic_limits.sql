@@ -1,0 +1,24 @@
+ALTER TABLE public.ride_requests ADD COLUMN email text;
+ALTER TABLE public.ride_requests ADD CONSTRAINT ride_email_format CHECK(email IS NULL OR (length(email)<=254 AND email=lower(btrim(email)) AND email ~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$'));
+ALTER TABLE public.ride_rate_limits ADD COLUMN rider_email_hash text;
+CREATE INDEX ride_email_limit_window ON public.ride_rate_limits(rider_email_hash,created_at) WHERE rider_email_hash IS NOT NULL;
+CREATE UNIQUE INDEX rider_email_single_event ON public.ride_events(request_id,event_type) WHERE event_type IN ('rider_email_confirmation_claim','rider_email_reminder_claim');
+CREATE UNIQUE INDEX rider_email_rights_attempt ON public.ride_events(request_id,note) WHERE event_type='rider_email_rights_claim';
+CREATE OR REPLACE FUNCTION public.guard_ride_email_event() RETURNS trigger LANGUAGE plpgsql SET search_path=public AS $$ BEGIN IF (NEW.event_type='notify_claimed' OR NEW.event_type LIKE 'rider_email_%') AND coalesce(auth.role(),'')<>'service_role' THEN RAISE EXCEPTION 'Email claims are server managed'; END IF; RETURN NEW; END $$;
+CREATE FUNCTION public.claim_rider_email(_ride uuid,_kind text,_hash text,_attempt uuid) RETURNS text LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$ DECLARE n integer; BEGIN
+ IF auth.role()<>'service_role' THEN RAISE EXCEPTION 'Not allowed'; END IF;
+ IF _kind NOT IN ('confirmation','reminder','rights') OR _hash !~ '^[a-f0-9]{64}$' THEN RAISE EXCEPTION 'Invalid claim'; END IF;
+ PERFORM pg_advisory_xact_lock(hashtextextended('rider-email-address:'||_hash,0));
+ PERFORM 1 FROM public.ride_requests WHERE id=_ride FOR UPDATE;
+ IF NOT FOUND THEN RETURN 'not_found'; END IF;
+ IF EXISTS(SELECT 1 FROM public.ride_events WHERE request_id=_ride AND event_type='rider_email_'||_kind||'_claim' AND (_kind<>'rights' OR note=_attempt::text)) THEN RETURN 'duplicate'; END IF;
+ IF _kind='rights' AND (SELECT count(*) FROM public.ride_events WHERE request_id=_ride AND event_type='rider_email_rights_claim')>=2 THEN RETURN 'rights_limit'; END IF;
+ SELECT count(*) INTO n FROM public.ride_rate_limits WHERE rider_email_hash=_hash AND created_at>now()-interval '24 hours';
+ IF n>=3 THEN RETURN 'address_limit'; END IF;
+ INSERT INTO public.ride_rate_limits(rider_email_hash) VALUES(_hash);
+ INSERT INTO public.ride_events(request_id,event_type,note) VALUES(_ride,'rider_email_'||_kind||'_claim',CASE WHEN _kind='rights' THEN _attempt::text ELSE NULL END);
+ RETURN 'claimed'; END $$;
+REVOKE ALL ON FUNCTION public.claim_rider_email(uuid,text,text,uuid) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.claim_rider_email(uuid,text,text,uuid) TO service_role;
+COMMENT ON COLUMN public.ride_requests.email IS 'Optional normalized rider email. Ride-only use. Purge with rider contact data. Never dispatch or export.';
+COMMENT ON COLUMN public.ride_rate_limits.rider_email_hash IS 'Keyed one-way address hash for rolling rider email abuse protection. No raw email.';

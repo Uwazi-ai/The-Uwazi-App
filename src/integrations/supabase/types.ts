@@ -4072,18 +4072,21 @@ export type Database = {
           id: string
           ip_hash: string | null
           phone_hash: string | null
+          rider_email_hash: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           ip_hash?: string | null
           phone_hash?: string | null
+          rider_email_hash?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           ip_hash?: string | null
           phone_hash?: string | null
+          rider_email_hash?: string | null
         }
         Relationships: []
       }
@@ -4099,6 +4102,7 @@ export type Database = {
           destination_site_id: string | null
           driver_name: string | null
           driver_on_way_sms_claimed_at: string | null
+          email: string | null
           first_name_last_initial: string
           id: string
           needs: string[]
@@ -4134,6 +4138,7 @@ export type Database = {
           destination_site_id?: string | null
           driver_name?: string | null
           driver_on_way_sms_claimed_at?: string | null
+          email?: string | null
           first_name_last_initial: string
           id?: string
           needs?: string[]
@@ -4169,6 +4174,7 @@ export type Database = {
           destination_site_id?: string | null
           driver_name?: string | null
           driver_on_way_sms_claimed_at?: string | null
+          email?: string | null
           first_name_last_initial?: string
           id?: string
           needs?: string[]
@@ -6386,6 +6392,10 @@ export type Database = {
       }
       claim_ride_email_alert: {
         Args: { _actor?: string; _id: string; _kind: string }
+        Returns: string
+      }
+      claim_rider_email: {
+        Args: { _attempt: string; _hash: string; _kind: string; _ride: string }
         Returns: string
       }
       code_redemption_stats: {
