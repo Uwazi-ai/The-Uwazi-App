@@ -15,7 +15,7 @@ export function RidesAppShell({ children }: { children: ReactNode }) {
     <ProfileProvider>
       <div className="min-h-dvh flex w-full bg-background overflow-x-hidden">
         <DesktopSidebar />
-        <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+        <div className="flex-1 flex flex-col h-dvh min-w-0 overflow-x-hidden overflow-y-auto">
           <RidesTopBar />
           <main className="flex-1 min-w-0">{children}</main>
           <footer className="py-4 px-4 text-center text-xs text-muted-foreground border-t border-border mb-20 md:mb-0">
