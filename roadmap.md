@@ -94,6 +94,7 @@
 - [x] Verify Wi-Fi-loss quiz completion, public persona fallback/reload, clean student resets and preview worker safety. Published full-offline cold reload awaits a deployed release; publishing is prohibited in this sprint.
 
 ## Sprint 2B Autocab
-- [ ] Add protected settings, held-by-default booking, quotes, cancellation and desk-only bounded status polling.
-- [ ] Add admin connection panel and coordinator trip controls without changing manual texts or rider screens.
-- [ ] Run mocked builder and integration tests and verify the authorized desk. Provider verification waits for AUTOCAB_KEY.
+- [x] Add protected settings, held-by-default booking, quotes, cancellation and desk-only bounded status polling.
+- [x] Add admin connection panel and coordinator trip controls without changing manual texts or rider screens.
+- [x] Run 21 focused tests and a mocked browser quote, held group booking, status and cancellation flow. Verify authorized desktop/phone desk and zero saved test rows.
+- [ ] Verify provider response shapes and one held booking/cancellation. Blocked: AUTOCAB_KEY and account/capability selections; the public API definition requires portal sign-in.

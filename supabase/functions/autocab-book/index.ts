@@ -80,6 +80,7 @@ Deno.serve(async req => {
       if (e instanceof AutocabError && !e.ambiguous) {
         await db.from('ride_requests').update({ autocab_operation_id: null }).eq('autocab_operation_id', b.quote_id);
         await db.from('autocab_operations').update({ state: 'rejected' }).eq('id', b.quote_id);
+        await db.from('autocab_operations').update({ quote: null }).eq('id', b.quote_id);
       }
       throw e;
     }
