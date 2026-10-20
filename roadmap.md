@@ -1,6 +1,6 @@
-## Autocab live launch
 ## Coordinator email alerts
-- [ ] Verify an existing sender to myke@uwazi.ai and report provider and From address.
+- [ ] Verify an existing sender to myke@uwazi.ai and report provider and From address. Bird test failed (HTTP 502). Lovable Emails has a verified domain and recent accepted sends. New delivery test pending.
+- [ ] Confirm the custom 30/hour limit tradeoff. The backend has no standard rate-limit control.
 - [ ] Add admin-only alert settings and desk panel, private event alerts and duplicate protection after sender readiness.
 - [ ] Verify real email, temporary ride/waitlist cases and safe failure; delete only task-created IDs, preserve existing rows and sequence, report before/after counts. No publishing.
 
