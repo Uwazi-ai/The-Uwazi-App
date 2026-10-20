@@ -1,0 +1,5 @@
+.driver-map { isolation: isolate; z-index: 0; background: hsl(var(--muted)); }
+.driver-map .leaflet-control a { min-width: 44px; min-height: 44px; line-height: 44px; }
+.driver-map .leaflet-tooltip.driver-map-label { background: hsl(var(--background)); color: hsl(var(--foreground)); border-color: hsl(var(--border)); box-shadow: none; border-radius: 6px; font-family: var(--font-sans); }
+.driver-map .leaflet-control-attribution { background: hsl(var(--background)); color: hsl(var(--muted-foreground)); }
+.driver-map .leaflet-control-attribution a { color: hsl(var(--primary)); }

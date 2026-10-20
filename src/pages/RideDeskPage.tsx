@@ -16,6 +16,7 @@ import { batches, groupMessage } from "@/components/rides/desk/ztripText";
 import { AutocabConnection, AutocabBooking, AutocabDetails } from "@/components/rides/desk/AutocabTools";
 import { useAutocabPoll } from "@/hooks/useAutocabPoll";
 import { EmailAlerts } from "@/components/rides/desk/EmailAlerts";
+import { DriverTrackingPanel } from "@/components/rides/desk/tracking/DriverTrackingPanel";
 import { Link } from "react-router-dom";
 import {
   FUNDED, NEED_LABELS, avgWait, budgetStats, dollars, fmtWait, reportCsv, tripGroups, weekCompare, ztrip,
@@ -184,6 +185,7 @@ function Desk() {
       {!settings.sms_live && <p role="status" className="mt-4 text-primary">Texting is off. Call riders to confirm.</p>}
       <p role="status" className="mt-4 border-y border-border py-3 font-semibold">zTrip API: {settings.autocab_live ? "LIVE. Confirmed bookings can dispatch a car." : "TEST. API bookings are held. No car is dispatched."}</p>
       {autocabError && <p role="alert" className="mt-2 text-sm text-destructive">{autocabError}</p>}
+      <DriverTrackingPanel phone={settings.ztrip_text_phone} autocab={autocabStatuses} />
       <div className="mt-6"><TodaysCalls rides={rides} now={now} ztripPhone={settings.ztrip_text_phone} onOpen={open} onChanged={load} /></div>
       <section className="mt-6 grid gap-4 rounded-3xl bg-[hsl(var(--rides-ink)/0.05)] p-5 md:grid-cols-[2fr_1fr_1fr_1fr]">
         <div>
@@ -250,6 +252,7 @@ function Desk() {
       <Sheet open={!!current} onOpenChange={(o) => !o && setOpenId(null)}>
         <SheetContent side={sheetSide} className={sheetCls}>
           <SheetTitle className="sr-only">Ride details</SheetTitle>
+          {current && <DriverTrackingPanel rideId={current.id} autocab={current.autocab_booking_id && autocabStatuses[current.autocab_booking_id] ? { [current.autocab_booking_id]: autocabStatuses[current.autocab_booking_id] } : {}} />}
           {current && paused.has(current.id) && (
             <p className="mb-3 mt-6 rounded-xl bg-[hsl(var(--rides-amber)/0.15)] p-3 text-sm text-[hsl(var(--rides-amber))]">
               Texts paused. This rider replied STOP. Call them instead. They can reply START to get texts again.

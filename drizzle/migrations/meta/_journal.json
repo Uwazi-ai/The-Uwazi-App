@@ -274,6 +274,13 @@
       "when": 1792507070525,
       "tag": "0038_restore_strict_events_after_rider_email_cleanup",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1792508312885,
+      "tag": "0039_private_driver_location_sessions",
+      "breakpoints": true
     }
   ]
 }

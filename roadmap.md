@@ -1,3 +1,9 @@
+## Private driver tracking
+- [x] Added service-only SHA-256 session tables, consent and five-second atomic ping limits, coordinator reads/revoke, immediate revoke purge and daily 48-hour point purge. Rider visibility defaults false.
+- [x] Added isolated Start/Stop driver page, optional screen wake lock, offline warnings and private desk/drawer Leaflet maps. Existing cached Autocab positions are display-only. Coordinates are transiently resolved for drawer pickup pins and never sent in tile requests.
+- [x] Corrected today reminder subject and body using Central dates; claims and limits unchanged. Two rendered email tests pass with Deno runtime rendering; pinned React type versions require --no-check.
+- [x] Real temporary sessions saved two points and a trail; Stop/revoke/expiry, out-of-area, consent, 501m accuracy and too-fast pings verified. Anonymous/authenticated table reads denied. Signed-in 390/1280 screenshots verify private maps, stale/Autocab mocked markers, drawer pins, one-time link clearing and tile fallback. 96 unit/regression tests passed. Purge removed one old QA point and kept its session. All three own sessions deleted by exact id. No publish, email sending or live Autocab calls. Physical locked-screen/wake-lock behavior and real vehicle positions remain unverified.
+
 ## Desk navigation and manual rider reminders
 - [x] Added shared desk-route app navigation and phone safe-area spacing. Sheets end above bottom tabs; drawer bottom Close action is unobscured. Rider/demo screens unchanged.
 - [x] Added coordinator-only one-ride reminder function and shared tomorrow-call/drawer button. Today/tomorrow Central and requested/booked guards run before claims; existing reminder claims, data-free sent notes and 3/24-hour address limit reused.
