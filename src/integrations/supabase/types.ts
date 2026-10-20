@@ -4174,6 +4174,7 @@ export type Database = {
           seats_per_slot: number
           sms_live: boolean
           updated_at: string
+          ztrip_text_phone: string
         }
         Insert: {
           budget_cents?: number
@@ -4187,6 +4188,7 @@ export type Database = {
           seats_per_slot?: number
           sms_live?: boolean
           updated_at?: string
+          ztrip_text_phone?: string
         }
         Update: {
           budget_cents?: number
@@ -4200,6 +4202,7 @@ export type Database = {
           seats_per_slot?: number
           sms_live?: boolean
           updated_at?: string
+          ztrip_text_phone?: string
         }
         Relationships: []
       }

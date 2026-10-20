@@ -1,0 +1,1 @@
+ALTER TABLE public.ride_settings ADD COLUMN IF NOT EXISTS ztrip_text_phone text NOT NULL DEFAULT '8169184852';
