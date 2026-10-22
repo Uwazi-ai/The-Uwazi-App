@@ -73,7 +73,7 @@ export function siteFitsWave(site: { open: string; close: string }, wave: string
 }
 
 export function waveTooSoon(day: string, wave: string) {
-  return new Date(`${day}T${wave}:00`).getTime() - centralNow().getTime() < 24 * 36e5;
+  return new Date(`${day}T${wave}:00`).getTime() - centralNow().getTime() < BOOKING_NOTICE_MS;
 }
 
 export type WaveLoad = { count: number; site_id: string | null };
