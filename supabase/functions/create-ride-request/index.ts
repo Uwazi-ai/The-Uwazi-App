@@ -3,7 +3,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.23.8";
-import { loadServiceDays, siteFitsWave, waveLoads, WAVE_FULL_MSG, WAVE_SITE_MSG } from "../_shared/rides.ts";
+import { BOOKING_NOTICE_MS, BOOKING_NOTICE_MSG, loadServiceDays, siteFitsWave, waveLoads, WAVE_FULL_MSG, WAVE_SITE_MSG } from "../_shared/rides.ts";
 import { sendRideSms } from "../_shared/ride-sms.ts";
 import { miles, openSites } from "../_shared/ride-sites.ts";
 import { pollingPlaceFor } from "../_shared/kceb-precincts.ts";
@@ -81,8 +81,8 @@ Deno.serve(async (req) => {
   if (!svc || !svc.waves.includes(b.pickup_time)) return json({ error: "That pickup time is not available. Pick another time." }, 400);
 
   const pickup = new Date(`${b.ride_day}T${b.pickup_time}:00`);
-  if (pickup.getTime() - centralNow().getTime() < 24 * 36e5) {
-    return json({ error: "Rides must be booked at least 24 hours ahead." }, 400);
+  if (pickup.getTime() - centralNow().getTime() < BOOKING_NOTICE_MS) {
+    return json({ error: BOOKING_NOTICE_MSG }, 400);
   }
 
   const wave = (await waveLoads(db, b.ride_day)).get(`${b.ride_day} ${b.pickup_time}`) ?? { count: 0, site_id: null };
