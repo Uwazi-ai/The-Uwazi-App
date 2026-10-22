@@ -30,9 +30,13 @@ export function inBlocks(day: string, hour: number, blocks: any[]) {
   return blocks.some((b) => b.day_of_week === dow && b.active !== false && t >= b.start_time && t < b.end_time);
 }
 
+// Minimum notice for online rider bookings. Phone rides have no minimum.
+export const BOOKING_NOTICE_MS = 2 * 36e5;
+export const BOOKING_NOTICE_MSG = "Rides must be booked at least 2 hours ahead.";
+
 export function tooSoon(day: string, hour: number) {
   const pickup = new Date(`${day}T${String(hour).padStart(2, "0")}:00:00`);
-  return pickup.getTime() - centralNow().getTime() < 24 * 36e5;
+  return pickup.getTime() - centralNow().getTime() < BOOKING_NOTICE_MS;
 }
 
 export function allDays(settings: any): string[] {
