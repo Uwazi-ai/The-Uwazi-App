@@ -96,4 +96,4 @@
 .rider-experience .rider-answer { color:hsl(var(--rider-heading)); }
 @media(min-width:640px) { .rider-sheet { bottom:auto!important; height:auto!important; } }
 @media(max-width:639px) { .rider-takeover { padding-top:20px; } .rider-takeover .font-heading { margin:18px 0; } }
-.rider-experience .rider-banner { background:hsl(var(--rider-green)); color:hsl(var(--rider-bg, 0 0% 3%)); border-radius:14px; padding:14px 16px; font-weight:700; line-height:1.4; }
+.rider-experience .rider-banner { background:hsl(var(--rider-green)); color:hsl(var(--rider-bg)); border-radius:14px; padding:14px 16px; font-weight:700; line-height:1.4; }
