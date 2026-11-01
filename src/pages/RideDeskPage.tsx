@@ -19,6 +19,8 @@ import { useAutocabPoll } from "@/hooks/useAutocabPoll";
 import { EmailAlerts } from "@/components/rides/desk/EmailAlerts";
 import { DriverTrackingPanel } from "@/components/rides/desk/tracking/DriverTrackingPanel";
 import { Link } from "react-router-dom";
+import { EdayPanel } from "@/components/rides/desk/eday/EdayPanel";
+import { EDAY_FLAG, showPanel, todayCentral } from "@/components/rides/desk/eday/edayLib";
 import {
   FUNDED, NEED_LABELS, avgWait, budgetStats, dollars, fmtWait, reportCsv, tripGroups, weekCompare, ztrip,
   type Ride, type ServiceDay, type Settings, type Unmet,
@@ -98,12 +100,19 @@ function Desk() {
   const { statuses: autocabStatuses, error: autocabError } = useAutocabPoll(rides.some(r => Boolean(r.autocab_booking_id)));
 
   const [paused, setPaused] = useState<Set<string>>(new Set());
+  const [loaded, setLoaded] = useState(false);
+  // ?eday=1 turns on the Election Day panel for this browser session only.
+  const [rehearsal] = useState(() => {
+    if (new URLSearchParams(window.location.search).get("eday") === "1") sessionStorage.setItem(EDAY_FLAG, "1");
+    return sessionStorage.getItem(EDAY_FLAG) === "1";
+  });
   const load = useCallback(async () => {
     const { data } = await supabase
       .from("ride_requests")
       .select("*, site:voter_guide_sites(id,name,address,hours,precinct_key)")
       .order("ride_day").order("pickup_time").order("created_at");
     setRides((data ?? []) as unknown as Ride[]);
+    setLoaded(true);
     const { data: p } = await supabase.rpc("ride_paused_ids");
     setPaused(new Set(((p ?? []) as unknown as string[]).map(String)));
   }, []);
@@ -184,6 +193,9 @@ function Desk() {
         </div>
       </div>
 
+      {showPanel(todayCentral(now), settings.same_day_dates, rehearsal) && (
+        <div className="mt-4"><EdayPanel rides={rides} loaded={loaded} settings={settings} onSettings={setSettings} svcDays={svcDays} onOpen={open} onChanged={load} /></div>
+      )}
       {!settings.sms_live && <p role="status" className="mt-4 text-primary">Texting is off. Call riders to confirm.</p>}
       <p role="status" className="mt-4 border-y border-border py-3 font-semibold">zTrip API: {settings.autocab_live ? "LIVE. Confirmed bookings can dispatch a car." : "TEST. API bookings are held. No car is dispatched."}</p>
       {autocabError && <p role="alert" className="mt-2 text-sm text-destructive">{autocabError}</p>}
