@@ -1,3 +1,4 @@
+import { ElectionDaySettings } from "@/components/rides/desk/ElectionDaySettings";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Navigate } from "react-router-dom";
@@ -67,6 +68,7 @@ function AdminTools({ settings, onSettings }: { settings: Settings; onSettings: 
       <CoordinatorsPanel />
       <PrecinctMapRefresh />
       <AutocabConnection settings={settings} onSettings={onSettings} />
+      <ElectionDaySettings settings={settings} onSettings={onSettings} />
       <EmailAlerts settings={settings} onSettings={onSettings} />
     </>
   );

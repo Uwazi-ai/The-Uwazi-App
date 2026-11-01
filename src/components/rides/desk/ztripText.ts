@@ -1,5 +1,9 @@
 import { fmtDay, fmtHour, fmtPhone } from "@/components/rides/RidesUI";
 import { NEED_LABELS, type Ride } from "./deskLib";
+import { lateNote, todayPrefix } from "../../../../supabase/functions/_shared/ride-cutoff";
+
+const today = (r: Ride) => todayPrefix(r.created_at, r.ride_day, r.pickup_time.slice(0, 5));
+const late = (r: Ride) => { const n = lateNote(r.created_at, r.ride_day, r.pickup_time.slice(0, 5)); return n ? ` ${n}` : ""; };
 
 // Coordinator-to-zTrip texts. Never include card_token or the private ride link.
 export type ZEvent = { request_id: string; event_type: string; note: string | null; created_at: string };
@@ -16,6 +20,10 @@ const needs = (r: Ride) => (r.needs.length ? r.needs.map((n) => NEED_LABELS[n] ?
 export const signature = (r: Ride) => [r.status === "cancelled" ? "cancelled" : "active", r.ride_day, r.pickup_time.slice(0, 5), r.needs_destination ? "" : r.destination_site_id ?? ""].join("|");
 
 export function singleMessage(r: Ride) {
+  return `${today(r)}${baseMessage(r)}${late(r)}`;
+}
+
+function baseMessage(r: Ride) {
   return `UWAZI ride ${r.ride_code}: ${fmtDay(r.ride_day)}, pickup ${fmtHour(r.pickup_time)}. Rider ${r.first_name_last_initial}, ${fmtPhone(r.phone)}. From ${r.pickup_address}. To ${dest(r)}. ${r.round_trip ? "Round trip" : "One way"}. Needs: ${needs(r)}.`;
 }
 
@@ -23,12 +31,13 @@ export function groupMessage(rides: Ride[]) {
   if (rides.length === 1) return singleMessage(rides[0]);
   const r0 = rides[0];
   const list = rides.map((r, i) => `${i + 1}) ${r.first_name_last_initial}, ${fmtPhone(r.phone)}, ${r.pickup_address}, needs ${needs(r)}.`).join(" ");
-  return `UWAZI group trip ${fmtDay(r0.ride_day)} ${fmtHour(r0.pickup_time)} to ${dest(r0)}. ${list}`;
+  const t = rides.find((r) => today(r));
+  return `${t ? "TODAY: " : ""}UWAZI group trip ${fmtDay(r0.ride_day)} ${fmtHour(r0.pickup_time)} to ${dest(r0)}. ${list}${t ? late(rides.reduce((a, b) => (a.created_at > b.created_at ? a : b))) : ""}`;
 }
 
 export function updateMessage(r: Ride) {
-  if (r.status === "cancelled") return `CANCELLED UWAZI ride ${r.ride_code}. Please do not pick up.`;
-  return `CHANGED ${singleMessage(r)}`;
+  if (r.status === "cancelled") return `${today(r)}CANCELLED UWAZI ride ${r.ride_code}. Please do not pick up.`;
+  return `${today(r)}CHANGED ${baseMessage(r)}${late(r)}`;
 }
 
 // Same day, pickup time and destination ride in one message.
