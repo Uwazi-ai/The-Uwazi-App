@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  centralDate, centralToUtcMs, isPaused, isTooSoon, lateNote, leadMinutesFor, pauseMessage, todayPrefix, TOO_SOON_MSG,
+  centralDate, centralToUtcMs, isPaused, isTooSoon, lateNote, leadMinutesFor, pauseMessage, todayPrefix, TOO_SOON_MSG, tooSoonMessageFor, normalTooSoonMsg,
 } from "../../supabase/functions/_shared/ride-cutoff";
 
 const S = { same_day_dates: ["2026-11-03"], same_day_lead_minutes: 60 };
@@ -16,17 +16,32 @@ describe("Central time conversion across the Nov 1 2026 time change", () => {
     expect(centralDate(at("2026-11-03T05:30:00Z"))).toBe("2026-11-02");
     expect(centralDate(at("2026-11-03T06:00:00Z"))).toBe("2026-11-03");
   });
-  it("counts real hours across the change: Oct 31 11:30 AM CDT is 24.5 hours before Nov 1 11 AM CST", () => {
-    expect(isTooSoon("2026-11-01", "11:00", S, at("2026-10-31T16:30:00Z"))).toBe(false);
-    expect(isTooSoon("2026-11-01", "11:00", S, at("2026-10-31T17:01:00Z"))).toBe(true);
+  it("counts real minutes across the change: Nov 1 11 AM CST pickup needs 2 hours", () => {
+    // 11:00 CST = 17:00Z. 9:00 AM CST = 15:00Z.
+    expect(isTooSoon("2026-11-01", "11:00", S, at("2026-11-01T15:00:00Z"))).toBe(false);
+    expect(isTooSoon("2026-11-01", "11:00", S, at("2026-11-01T15:01:00Z"))).toBe(true);
+    // 1:30 AM pickup before the change is still CDT (06:30Z).
+    expect(isTooSoon("2026-11-01", "03:00", S, at("2026-11-01T07:00:00Z"))).toBe(false);
+    expect(isTooSoon("2026-11-01", "03:00", S, at("2026-11-01T07:01:00Z"))).toBe(true);
   });
 });
 
-describe("Nov 2 keeps the 24 hour rule", () => {
-  it("needs 24 hours", () => {
-    expect(leadMinutesFor("2026-11-02", S)).toBe(1440);
-    expect(isTooSoon("2026-11-02", "11:00", S, at("2026-11-01T17:00:00Z"))).toBe(false);
-    expect(isTooSoon("2026-11-02", "11:00", S, at("2026-11-01T17:01:00Z"))).toBe(true);
+describe("Nov 2 uses the 2 hour normal notice", () => {
+  it("needs 120 minutes by default", () => {
+    expect(leadMinutesFor("2026-11-02", S)).toBe(120);
+    expect(isTooSoon("2026-11-02", "11:00", S, at("2026-11-02T15:00:00Z"))).toBe(false);
+    expect(isTooSoon("2026-11-02", "11:00", S, at("2026-11-02T15:01:00Z"))).toBe(true);
+    expect(isTooSoon("2026-11-02", "11:00", S, at("2026-11-01T23:48:00Z"))).toBe(false);
+  });
+  it("uses default_lead_minutes and clamps to 30 to 1440", () => {
+    expect(leadMinutesFor("2026-11-02", { ...S, default_lead_minutes: 1440 })).toBe(1440);
+    expect(leadMinutesFor("2026-11-02", { ...S, default_lead_minutes: 5 })).toBe(30);
+    expect(leadMinutesFor("2026-11-02", { ...S, default_lead_minutes: 5000 })).toBe(1440);
+  });
+  it("normal day copy", () => {
+    expect(tooSoonMessageFor("2026-11-02", S)).toBe("Rides must be booked at least 2 hours ahead. Call (816) 379-6885 for a ride sooner.");
+    expect(normalTooSoonMsg(90)).toBe("Rides must be booked at least 90 minutes ahead. Call (816) 379-6885 for a ride sooner.");
+    expect(tooSoonMessageFor("2026-11-03", S)).toBe(TOO_SOON_MSG);
   });
 });
 
@@ -48,8 +63,8 @@ describe("Nov 3 same day cutoff", () => {
     expect(isTooSoon("2026-11-03", "15:30", { ...S, same_day_lead_minutes: 240 }, at("2026-11-03T17:29:00Z"))).toBe(false);
     expect(isTooSoon("2026-11-03", "15:30", { ...S, same_day_lead_minutes: 240 }, at("2026-11-03T17:31:00Z"))).toBe(true);
   });
-  it("a day not in same_day_dates uses 24 hours", () => {
-    expect(leadMinutesFor("2026-11-03", { same_day_dates: [] })).toBe(1440);
+  it("a day not in same_day_dates uses the normal notice", () => {
+    expect(leadMinutesFor("2026-11-03", { same_day_dates: [] })).toBe(120);
   });
 });
 

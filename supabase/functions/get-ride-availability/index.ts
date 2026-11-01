@@ -7,7 +7,7 @@ import { z } from "npm:zod@3.23.8";
 import { allDays, dayOfWeek, loadServiceDays, siteFitsWave, waveLoads, waveTooSoon } from "../_shared/rides.ts";
 import { miles, openSites, type OpenSite } from "../_shared/ride-sites.ts";
 import { pollingPlaceFor } from "../_shared/kceb-precincts.ts";
-import { clampLead, isPaused, isSameDayDate, leadMinutesFor, pauseMessage, TOO_SOON_MSG } from "../_shared/ride-cutoff.ts";
+import { clampDefaultLead, clampLead, isPaused, isSameDayDate, leadMinutesFor, normalTooSoonMsg, pauseMessage, tooSoonMessageFor, TOO_SOON_MSG } from "../_shared/ride-cutoff.ts";
 import { checkEligibility, LOOKUP_FAILED_MSG, OUT_OF_AREA_MSG, type Eligibility } from "../_shared/ride-eligibility.ts";
 
 const Body = z.object({

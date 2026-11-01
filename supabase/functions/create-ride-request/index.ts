@@ -7,7 +7,7 @@ import { loadServiceDays, siteFitsWave, waveLoads, WAVE_FULL_MSG, WAVE_SITE_MSG 
 import { sendRideSms } from "../_shared/ride-sms.ts";
 import { miles, openSites } from "../_shared/ride-sites.ts";
 import { pollingPlaceFor } from "../_shared/kceb-precincts.ts";
-import { isPaused, isTooSoon, pauseMessage, TOO_SOON_MSG } from "../_shared/ride-cutoff.ts";
+import { isPaused, isTooSoon, pauseMessage, tooSoonMessageFor } from "../_shared/ride-cutoff.ts";
 import { checkEligibility, LOOKUP_FAILED_MSG, OUT_OF_AREA_MSG } from "../_shared/ride-eligibility.ts";
 import { startRideAlert } from "../_shared/ride-alerts.ts";
 import { startRiderConfirmation } from "../_shared/rider-emails.ts";
