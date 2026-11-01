@@ -3500,34 +3500,40 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          name_initial: string | null
           phone: string | null
           reason: string | null
           requested_date: string | null
           state_code: string | null
           texted_at: string | null
           texted_count: number
+          time_window: string | null
           user_id: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
+          name_initial?: string | null
           phone?: string | null
           reason?: string | null
           requested_date?: string | null
           state_code?: string | null
           texted_at?: string | null
           texted_count?: number
+          time_window?: string | null
           user_id?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
+          name_initial?: string | null
           phone?: string | null
           reason?: string | null
           requested_date?: string | null
           state_code?: string | null
           texted_at?: string | null
           texted_count?: number
+          time_window?: string | null
           user_id?: string | null
         }
         Relationships: []
@@ -4348,7 +4354,11 @@ export type Database = {
           notify_include_contact: boolean
           notify_new_requests: boolean
           notify_waitlist: boolean
+          pause_message: string
+          requests_paused: boolean
           ride_line_phone: string | null
+          same_day_dates: string[]
+          same_day_lead_minutes: number
           seats_per_slot: number
           show_driver_to_riders: boolean
           sms_live: boolean
@@ -4381,7 +4391,11 @@ export type Database = {
           notify_include_contact?: boolean
           notify_new_requests?: boolean
           notify_waitlist?: boolean
+          pause_message?: string
+          requests_paused?: boolean
           ride_line_phone?: string | null
+          same_day_dates?: string[]
+          same_day_lead_minutes?: number
           seats_per_slot?: number
           show_driver_to_riders?: boolean
           sms_live?: boolean
@@ -4414,7 +4428,11 @@ export type Database = {
           notify_include_contact?: boolean
           notify_new_requests?: boolean
           notify_waitlist?: boolean
+          pause_message?: string
+          requests_paused?: boolean
           ride_line_phone?: string | null
+          same_day_dates?: string[]
+          same_day_lead_minutes?: number
           seats_per_slot?: number
           show_driver_to_riders?: boolean
           sms_live?: boolean

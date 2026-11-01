@@ -30,14 +30,9 @@ export function inBlocks(day: string, hour: number, blocks: any[]) {
   return blocks.some((b) => b.day_of_week === dow && b.active !== false && t >= b.start_time && t < b.end_time);
 }
 
-// Minimum notice for online rider bookings. Phone rides have no minimum.
-export const BOOKING_NOTICE_MS = 2 * 36e5;
-export const BOOKING_NOTICE_MSG = "Rides must be booked at least 2 hours ahead.";
-
-export function tooSoon(day: string, hour: number) {
-  const pickup = new Date(`${day}T${String(hour).padStart(2, "0")}:00:00`);
-  return pickup.getTime() - centralNow().getTime() < BOOKING_NOTICE_MS;
-}
+// Minimum notice for online rider bookings lives in ride-cutoff.ts. Phone rides have no minimum.
+import { isTooSoon, TOO_SOON_MSG, type CutoffSettings } from "./ride-cutoff.ts";
+export const BOOKING_NOTICE_MSG = TOO_SOON_MSG;
 
 export function allDays(settings: any): string[] {
   const out: string[] = [];
@@ -72,8 +67,8 @@ export function siteFitsWave(site: { open: string; close: string }, wave: string
   return toMin(site.open) <= toMin(wave) && toMin(site.close) >= toMin(wave) + 60;
 }
 
-export function waveTooSoon(day: string, wave: string) {
-  return new Date(`${day}T${wave}:00`).getTime() - centralNow().getTime() < BOOKING_NOTICE_MS;
+export function waveTooSoon(day: string, wave: string, settings: CutoffSettings | null, now: Date = new Date()) {
+  return isTooSoon(day, wave, settings, now);
 }
 
 export type WaveLoad = { count: number; site_id: string | null };

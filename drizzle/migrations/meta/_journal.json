@@ -288,6 +288,20 @@
       "when": 1792510208722,
       "tag": "0040_ztrip_dispatch_email_settings_and_event_claims",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1793574346219,
+      "tag": "0041_election_day_same_day_requests",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1793574431509,
+      "tag": "0042_standby_alert_claim",
+      "breakpoints": true
     }
   ]
 }

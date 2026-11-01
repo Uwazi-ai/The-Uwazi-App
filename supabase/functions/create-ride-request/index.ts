@@ -3,10 +3,11 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.23.8";
-import { BOOKING_NOTICE_MS, BOOKING_NOTICE_MSG, loadServiceDays, siteFitsWave, waveLoads, WAVE_FULL_MSG, WAVE_SITE_MSG } from "../_shared/rides.ts";
+import { loadServiceDays, siteFitsWave, waveLoads, WAVE_FULL_MSG, WAVE_SITE_MSG } from "../_shared/rides.ts";
 import { sendRideSms } from "../_shared/ride-sms.ts";
 import { miles, openSites } from "../_shared/ride-sites.ts";
 import { pollingPlaceFor } from "../_shared/kceb-precincts.ts";
+import { isPaused, isTooSoon, pauseMessage, TOO_SOON_MSG } from "../_shared/ride-cutoff.ts";
 import { checkEligibility, LOOKUP_FAILED_MSG, OUT_OF_AREA_MSG } from "../_shared/ride-eligibility.ts";
 import { startRideAlert } from "../_shared/ride-alerts.ts";
 import { startRiderConfirmation } from "../_shared/rider-emails.ts";
@@ -71,6 +72,8 @@ Deno.serve(async (req) => {
 
   const { data: settings } = await db.from("ride_settings").select("*").eq("id", true).single();
   if (!settings) return json({ error: "Rides are not open yet." }, 503);
+  // Paused stops online requests only. Coordinator phone rides use create-phone-ride.
+  if (isPaused(settings)) return json({ error: pauseMessage(settings), code: "paused", standby: true }, 409);
 
   const isElectionDay = b.ride_day === settings.election_day;
   const isEarly = b.ride_day >= settings.early_start && b.ride_day <= settings.early_end;
@@ -80,15 +83,15 @@ Deno.serve(async (req) => {
   const svc = (await loadServiceDays(db)).get(b.ride_day);
   if (!svc || !svc.waves.includes(b.pickup_time)) return json({ error: "That pickup time is not available. Pick another time." }, 400);
 
-  const pickup = new Date(`${b.ride_day}T${b.pickup_time}:00`);
-  if (pickup.getTime() - centralNow().getTime() < BOOKING_NOTICE_MS) {
-    return json({ error: BOOKING_NOTICE_MSG }, 400);
+  // Same day dates use the shorter lead time; every other day needs 24 hours.
+  if (isTooSoon(b.ride_day, b.pickup_time, settings)) {
+    return json({ error: TOO_SOON_MSG, code: "too_soon", standby: true }, 400);
   }
 
   const wave = (await waveLoads(db, b.ride_day)).get(`${b.ride_day} ${b.pickup_time}`) ?? { count: 0, site_id: null };
   const turnAway = async () => {
     await db.from("ride_turnaways").insert({ ride_day: b.ride_day, pickup_time: b.pickup_time, source: "web" });
-    return json({ error: WAVE_FULL_MSG, code: "full" }, 409);
+    return json({ error: WAVE_FULL_MSG, code: "full", standby: true }, 409);
   };
   if (wave.count >= settings.seats_per_slot) return await turnAway();
   // The budget covers scheduled driver blocks, so no ride is referred for cost.

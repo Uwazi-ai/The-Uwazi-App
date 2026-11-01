@@ -6,10 +6,12 @@ import { RideRequestView } from "@/components/rides/RideRequestView";
 import { RidesAppShell } from "@/components/rides/RidesAppShell";
 import { useJoinRideWaitlist } from "@/hooks/useVotingRights";
 import { riderEmailSchema } from '@/lib/riderEmail';
+import type { StandbyWindow } from "@/components/rides/RideRequestView";
+import { centralDate } from "../../supabase/functions/_shared/ride-cutoff";
 
 
 type Day = { day: string; dow: number; kind: "early" | "election_day"; open: boolean; status?: "open" | "full" | "no_driver" | "closed"; note?: string | null };
-type Hour = { hour: string; seats_left: number; too_soon: boolean; bookable: boolean };
+type Hour = { hour: string; seats_left: number; too_soon: boolean; bookable: boolean; paused?: boolean };
 type Site = { id: string; name: string; address: string; open: string; close: string; distance_mi: number | null };
 type Avail = {
   sms_live: boolean;
@@ -22,6 +24,10 @@ type Avail = {
   early_start: string;
   early_end: string;
   election_day: string;
+  paused?: boolean;
+  pause_message?: string | null;
+  same_day_dates?: string[];
+  same_day_lead_minutes?: number;
 };
 
 const FIELD_LABELS: Record<string, string> = {
@@ -115,6 +121,46 @@ export default function RidesPage() {
 
 
 
+  // Election Day same day requests. The server enforces every cutoff again.
+  const today = centralDate();
+  const sameDay = avail?.same_day_dates?.includes(today) ? avail.same_day_lead_minutes ?? 60 : null;
+  const pausedMessage = avail?.paused ? avail.pause_message ?? "We are full right now. Call (816) 379-6885 and we will do our best to help." : null;
+  const [pendingHour, setPendingHour] = useState<string | null>(null);
+  const [rideNowEmpty, setRideNowEmpty] = useState(false);
+  useEffect(() => {
+    if (!pendingHour || !hours) return;
+    if (hours.some((h) => h.hour === pendingHour && h.bookable)) setHour(pendingHour);
+    setPendingHour(null);
+  }, [hours, pendingHour]);
+  const rideNow = async () => {
+    setRideNowEmpty(false);
+    const a = await availability(zip, today, address).catch(() => null);
+    const first = a?.hours?.find((h) => h.bookable);
+    if (!a || !first) { setRideNowEmpty(true); setSbOpen(false); return; }
+    setListDay(null);
+    setKind(today === avail?.election_day ? "election_day" : "early");
+    if (day === today) { setHour(first.hour); return; }
+    setHour(null);
+    setDay(today);
+    setPendingHour(first.hour);
+  };
+  const [sbOpen, setSbOpen] = useState(false);
+  const [sbForced, setSbForced] = useState(false);
+  const [sbName, setSbName] = useState("");
+  const [sbPhone, setSbPhone] = useState("");
+  const [sbWindow, setSbWindow] = useState<StandbyWindow | "">("");
+  const [sbMsg, setSbMsg] = useState<string | null>(null);
+  const [sbDone, setSbDone] = useState(false);
+  const [sbSending, setSbSending] = useState(false);
+  const joinStandby = async () => {
+    setSbSending(true); setSbMsg(null);
+    const res = await join({ phone: sbPhone, state: "MO", address: address.trim(), zip, requested_date: day ?? today, reason: "standby", name: sbName.trim(), time_window: sbWindow || undefined });
+    setSbSending(false);
+    if (!res.ok) return setSbMsg(res.error ?? "Something went wrong. Try again.");
+    setSbDone(true);
+    setSbMsg("You are on standby. This does not book a ride. We will call you if a seat opens.");
+  };
+
   // Area check runs on the server before any day is shown.
   const [areaError, setAreaError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
@@ -174,6 +220,7 @@ export default function RidesPage() {
           setErrors(e);
         }
         if (j?.error) msg = j.error;
+        if (j?.standby) { setSbForced(true); setSbOpen(true); }
       }
       setFormError(msg);
       return;
@@ -185,5 +232,7 @@ export default function RidesPage() {
   return <RidesAppShell><RideRequestView smsLive={avail?.sms_live === true} step={step} address={address} zip={zip} name={name} phone={phone} needs={needs} textsOk={textsOk} roundTrip={roundTrip} kind={kind} day={day} hour={hour} siteId={siteId} days={avail?.days??[]} sites={sites??[]} hours={hours} pollingPlace={data?.election_day_place} precinct={data?.precinct_key} eligible={areaEligible} checking={checking} sending={sending} error={areaError??formError??Object.values(errors)[0]} canNext={canNext}
     email={email} onEmail={setEmail} onStep={setStep} onAddress={v=>{setAddress(v);setAreaEligible(false);setAreaError(null);}} onZip={v=>{setZip(v);setAreaEligible(false);setAreaError(null);}} onName={setName} onPhone={setPhone} onNeeds={setNeeds} onTexts={setTextsOk} onRoundTrip={setRoundTrip}
     onKind={k=>{setKind(k);setListDay(null);setDay(k==='election_day'?avail?.election_day??null:null);setHour(null);}} onDay={d=>{setListMsg(null);setHour(null);if(d.open){setListDay(null);setDay(d.day);}else{setDay(null);setListDay(d);}}} onSite={id=>{setSiteId(id);setHour(null);}} onHour={setHour}
-    onContinue={()=>{if(step===1&&!areaEligible){void checkArea();return;}setStep(step===2?4:step+1);}} onSend={()=>void send()} listDay={listDay} listPhone={listPhone} listMessage={listMsg} listDone={listDay?listDone.has(listDay.day):false} onListPhone={setListPhone} onJoinList={()=>void joinDay()}/></RidesAppShell>;
+    onContinue={()=>{if(step===1&&!areaEligible){void checkArea();return;}setStep(step===2?4:step+1);}} onSend={()=>void send()} listDay={listDay} listPhone={listPhone} listMessage={listMsg} listDone={listDay?listDone.has(listDay.day):false} onListPhone={setListPhone} onJoinList={()=>void joinDay()}
+    sameDayMinutes={sameDay} pausedMessage={pausedMessage} onRideNow={sameDay?()=>void rideNow():undefined} rideNowEmpty={rideNowEmpty}
+    standby={{open:sbOpen,onOpen:()=>setSbOpen(true),name:sbName,phone:sbPhone,window:sbWindow,onName:setSbName,onPhone:setSbPhone,onWindow:setSbWindow,onJoin:()=>void joinStandby(),message:sbMsg,done:sbDone,sending:sbSending,forced:sbForced}}/></RidesAppShell>;
 }

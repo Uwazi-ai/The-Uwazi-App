@@ -2,13 +2,15 @@ import * as React from 'npm:react@18.3.1';
 import { Body, Button, Container, Head, Heading, Html, Preview, Text } from 'npm:@react-email/components@0.0.22';
 import type { TemplateEntry } from './registry.ts';
 import { DESK_URL } from '../ride-alert-content.ts';
-interface Props { subject?: string; title?: string; rideCode?: string; day?: string; time?: string; place?: string; seats?: string; accessNeeds?: string; trip?: string; reason?: string; contactName?: string; contactPhone?: string; }
+interface Props { subject?: string; title?: string; rideCode?: string; day?: string; time?: string; place?: string; seats?: string; accessNeeds?: string; trip?: string; reason?: string; contactName?: string; contactPhone?: string; late?: string; }
 const Alert = (p: Props) => <Html lang="en"><Head /><Preview>{p.subject || 'UWAZI coordinator email test'}</Preview><Body style={body}><Container style={container}>
   <Text style={brand}>UWAZI</Text><Heading>{p.title || 'Coordinator email test'}</Heading>
   {p.rideCode && <Text>Ride code: {p.rideCode}</Text>}
   {p.day && <Text>Day: {p.day}</Text>}{p.time && <Text>Pickup: {p.time}</Text>}
   {p.place && <Text>Voting place: {p.place}</Text>}{p.seats && <Text>Pickup seats: {p.seats}</Text>}
   {p.accessNeeds && <Text>Access needs: {p.accessNeeds}</Text>}{p.trip && <Text>Trip: {p.trip}</Text>}
+  {p.late && <Text>{p.late}</Text>}
+  {p.reason === 'standby' && <Text>Standby only. This is not a booked ride.</Text>}
   {p.reason && <Text>Waitlist reason: {p.reason}</Text>}
   {p.contactName && <Text>Contact: {p.contactName}</Text>}{p.contactPhone && <Text>Phone: {p.contactPhone}</Text>}
   {!p.day && <Text>This test contains no rider information.</Text>}

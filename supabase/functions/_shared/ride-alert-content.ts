@@ -1,10 +1,11 @@
+import { lateNote, todayPrefix } from './ride-cutoff.ts';
 export const ALERT_LIMIT = 30;
 export const ALERT_TIMEOUT_MS = 5000;
 export const DESK_URL = 'https://uwaziapp.uwazi.ai/rides/desk';
 const labels: Record<string, string> = { wheelchair: 'Wheelchair', walker: 'Walker', service_animal: 'Service animal', child_seat: 'Child seat', extra_time: 'Extra time', language_help: 'Language help', other: 'Other need' };
 export interface AlertRide {
   ride_code: string; ride_day: string; pickup_time: string; needs_destination: boolean;
-  needs: string[]; round_trip: boolean; first_name_last_initial?: string; phone?: string;
+  needs: string[]; round_trip: boolean; first_name_last_initial?: string; phone?: string; created_at?: string | null;
 }
 export function dayLabel(day: string) {
   return new Date(`${day}T12:00:00Z`).toLocaleDateString('en-US', { timeZone: 'America/Chicago', weekday: 'short', month: 'short', day: 'numeric' });
@@ -18,16 +19,19 @@ export function rideAlertData(ride: AlertRide, place: string | null, seats: numb
   const votingPlace = needsPlace ? 'Needs voting place' : place;
   const prefix = `${needsPlace ? 'NEEDS VOTING PLACE: ' : ''}${ride.needs.includes('wheelchair') ? 'WHEELCHAIR: ' : ''}`;
   return {
-    subject: `${prefix}UWAZI ride ${ride.ride_code}: ${dayLabel(ride.ride_day)}, ${timeLabel(ride.pickup_time)}, ${votingPlace}`,
+    subject: `${todayPrefix(ride.created_at, ride.ride_day, ride.pickup_time)}${prefix}UWAZI ride ${ride.ride_code}: ${dayLabel(ride.ride_day)}, ${timeLabel(ride.pickup_time)}, ${votingPlace}`,
     title: needsPlace ? 'Needs voting place' : 'New website ride request',
     rideCode: ride.ride_code, day: dayLabel(ride.ride_day), time: `${timeLabel(ride.pickup_time)} Central`,
     place: votingPlace, seats: `${seats} of ${capacity} seats`,
     accessNeeds: ride.needs.map(n => labels[n]).filter(Boolean).join(', ') || 'None listed',
     trip: ride.round_trip ? 'Round trip' : 'One way',
+    ...(lateNote(ride.created_at, ride.ride_day, ride.pickup_time) ? { late: lateNote(ride.created_at, ride.ride_day, ride.pickup_time) } : {}),
     ...(includeContact ? { contactName: ride.first_name_last_initial, contactPhone: ride.phone } : {}),
   };
 }
-export function waitlistAlertData(day: string, reason: 'no_driver' | 'full', phone?: string) {
+export function waitlistAlertData(day: string, reason: 'no_driver' | 'full' | 'standby', phone?: string) {
+  // Standby alerts never carry personal data.
+  if (reason === 'standby') return { subject: `UWAZI standby: ${dayLabel(day)}`, title: 'New standby signup', day: dayLabel(day), reason: 'standby' };
   const reasonLabel = reason === 'no_driver' ? 'no driver' : 'full day';
   return { subject: `UWAZI waitlist: ${dayLabel(day)}, ${reasonLabel}`, title: 'New waitlist signup', day: dayLabel(day), reason: reasonLabel, ...(phone ? { contactPhone: phone } : {}) };
 }

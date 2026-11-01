@@ -11,8 +11,12 @@ const Body = z.object({
   address: z.string().trim().min(5).max(200),
   zip: z.string().trim().regex(/^\d{5}$/),
   requested_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  reason: z.enum(["no_driver", "full"]).optional(),
-}).strict().refine((v) => !v.requested_date === !v.reason);
+  reason: z.enum(["no_driver", "full", "standby"]).optional(),
+  name: z.string().trim().regex(/^[A-Za-z][A-Za-z'\- ]{0,40} [A-Za-z]\.?$/).optional(),
+  time_window: z.enum(["asap", "morning", "midday", "afternoon", "evening"]).optional(),
+}).strict().refine((v) => !v.requested_date === !v.reason)
+  // Standby needs a name, a mobile number and a time window.
+  .refine((v) => v.reason !== "standby" || (!!v.name && !!v.phone && !!v.time_window));
 
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -30,9 +34,18 @@ Deno.serve(async (req) => {
     const { data } = await uc.auth.getClaims(auth.slice(7));
     uid = (data?.claims?.sub as string) ?? null;
   }
+  const standby = p.data.reason === "standby";
+  // Standby numbers must be E.164 (+1 and 10 digits). Stored as 10 digits like other entries.
+  if (standby && !/^\+1[2-9]\d{9}$/.test((p.data.phone ?? "").replace(/[\s().-]/g, ""))) return json({ error: "Enter a mobile number like +18165551234." }, 400);
   const digits = (p.data.phone ?? "").replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
   if (!uid && !/^[2-9]\d{9}$/.test(digits)) return json({ error: "Enter a 10-digit mobile number." }, 400);
 
+  const db0 = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  // Abuse limit: 3 standby or waitlist entries per number per day.
+  if (digits) {
+    const { count } = await db0.from("poll_ride_waitlist").select("id", { count: "exact", head: true }).eq("phone", digits).gte("created_at", new Date(Date.now() - 864e5).toISOString());
+    if ((count ?? 0) >= 3) return json({ error: "Too many requests. Please call the ride line." }, 429);
+  }
   const e = await checkEligibility(p.data.address, p.data.zip);
   if (e.status === "out_of_area") return json({ error: OUT_OF_AREA_MSG, code: "out_of_area" }, 400);
   if (e.status === "lookup_failed") return json({ error: LOOKUP_FAILED_MSG, code: "lookup_failed" }, 400);
@@ -46,8 +59,9 @@ Deno.serve(async (req) => {
   const { data: row, error } = await db.from("poll_ride_waitlist").insert({
     user_id: uid, phone: digits || null, state_code: "MO",
     requested_date: p.data.requested_date ?? null, reason: p.data.reason ?? null,
+    name_initial: standby ? p.data.name : null, time_window: standby ? p.data.time_window : null,
   }).select("id").single();
-  if (error) { console.error("waitlist insert failed", error); return json({ error: "Something went wrong. Try again." }, 500); }
+  if (error) { console.error("waitlist insert failed"); return json({ error: "Something went wrong. Try again." }, 500); }
   if (row && p.data.requested_date && p.data.reason) startRideAlert(db, "waitlist", row.id);
   return json({ ok: true });
 });

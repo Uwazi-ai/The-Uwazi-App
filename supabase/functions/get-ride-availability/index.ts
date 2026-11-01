@@ -7,6 +7,7 @@ import { z } from "npm:zod@3.23.8";
 import { allDays, dayOfWeek, loadServiceDays, siteFitsWave, waveLoads, waveTooSoon } from "../_shared/rides.ts";
 import { miles, openSites, type OpenSite } from "../_shared/ride-sites.ts";
 import { pollingPlaceFor } from "../_shared/kceb-precincts.ts";
+import { clampLead, isPaused, isSameDayDate, leadMinutesFor, pauseMessage, TOO_SOON_MSG } from "../_shared/ride-cutoff.ts";
 import { checkEligibility, LOOKUP_FAILED_MSG, OUT_OF_AREA_MSG, type Eligibility } from "../_shared/ride-eligibility.ts";
 
 const Body = z.object({
@@ -38,6 +39,8 @@ Deno.serve(async (req) => {
   if (elig?.status === "out_of_area") return json({ error: OUT_OF_AREA_MSG, code: "out_of_area" }, 400);
   const geo = elig?.status === "eligible" ? elig : null;
   const seats = s.seats_per_slot;
+  const paused = isPaused(s);
+  const now = new Date();
 
   const days = allDays(s);
   const sitesByDay = new Map<string, OpenSite[]>();
@@ -61,8 +64,8 @@ Deno.serve(async (req) => {
       })
       .map((w) => {
         const seats_left = Math.max(0, seats - (loads.get(`${day} ${w}`)?.count ?? 0));
-        const soon = waveTooSoon(day, w);
-        return { hour: w, seats_left, too_soon: soon, bookable: !soon && seats_left > 0 };
+        const soon = waveTooSoon(day, w, s, now);
+        return { hour: w, seats_left, too_soon: soon, paused, bookable: !paused && !soon && seats_left > 0 };
       });
   };
 
@@ -73,7 +76,7 @@ Deno.serve(async (req) => {
     const kind = day === s.election_day ? "election_day" : "early";
     const sd = svc.get(day);
     const sitesOpen = kind === "election_day" || (sitesByDay.get(day) ?? []).length > 0;
-    let status: "open" | "full" | "no_driver" | "closed" = "closed";
+    let status: "open" | "full" | "no_driver" | "closed" | "paused" = "closed";
     if (sd) {
       seatsTotal += sd.waves.length * seats;
       const taken = sd.waves.map((w) => loads.get(`${day} ${w}`)?.count ?? 0);
@@ -81,9 +84,10 @@ Deno.serve(async (req) => {
       const first = wavesFor(day).find((h) => h.bookable);
       if (first && !earliest) earliest = { day, hour: first.hour };
       if (first) status = "open";
+      else if (paused) status = "paused";
       else if (taken.every((n) => n >= seats)) status = "full";
     } else if (sitesOpen) status = "no_driver";
-    return { day, dow: dayOfWeek(day), kind, open: status === "open", status, note: sd?.note ?? null };
+    return { day, dow: dayOfWeek(day), kind, open: status === "open", status, note: sd?.note ?? null, same_day: isSameDayDate(day, s), lead_minutes: leadMinutesFor(day, s) };
   });
 
   let sites: unknown = undefined;
@@ -106,6 +110,12 @@ Deno.serve(async (req) => {
 
   return json({
     sms_live: s.sms_live === true,
+    paused,
+    pause_message: paused ? pauseMessage(s) : null,
+    too_soon_message: TOO_SOON_MSG,
+    same_day_dates: (s.same_day_dates ?? []).map((d: string) => String(d).slice(0, 10)),
+    same_day_lead_minutes: clampLead(s.same_day_lead_minutes),
+    server_now: now.toISOString(),
     precinct_key,
     election_day_place: place ? { name: place.name, address: place.address } : null,
     days: dayList,

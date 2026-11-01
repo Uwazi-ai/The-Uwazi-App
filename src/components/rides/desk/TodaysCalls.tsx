@@ -1,3 +1,4 @@
+import { lateNote, todayPrefix } from "../../../../supabase/functions/_shared/ride-cutoff";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -97,11 +98,11 @@ export function TodaysCalls({ rides, now, ztripPhone, onOpen, onChanged }: { rid
               return (
                 <li key={it.key} data-call-item={title} className="space-y-2 rounded-xl bg-[hsl(var(--rides-ink)/0.06)] p-3 text-sm">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <b>{it.ride?.first_name_last_initial ?? (it.key.startsWith("home") ? "Ride home group" : it.ztrip ? "Group trip" : "Waitlist rider")}</b>
+                    <b>{(it.ride ? todayPrefix(it.ride.created_at, it.ride.ride_day, it.ride.pickup_time.slice(0, 5)) : it.ztrip?.rides.some((r) => todayPrefix(r.created_at, r.ride_day, r.pickup_time.slice(0, 5))) ? "TODAY: " : "")}{it.ride?.first_name_last_initial ?? (it.key.startsWith("home") ? "Ride home group" : it.ztrip ? "Group trip" : "Waitlist rider")}</b>
                     {it.ride && <span className="font-mono text-xs">{it.ride.ride_code}</span>}
                   </div>
                   {phone && <a className="inline-flex min-h-[44px] items-center font-semibold underline" href={telHref(phone)}>{fmtPhone(phone)}</a>}
-                  <p>{it.reason}</p>
+                  <p>{it.reason}{it.ride && lateNote(it.ride.created_at, it.ride.ride_day, it.ride.pickup_time.slice(0, 5)) ? ` ${lateNote(it.ride.created_at, it.ride.ride_day, it.ride.pickup_time.slice(0, 5))}` : ""}</p>
                   {title === 'Tell zTrip' && it.ztrip?.rides.map(r => <div key={r.id}><ZtripEmailed events={events} rideId={r.id} /></div>)}
                   {it.script && <p className="rounded-lg bg-[hsl(var(--rides-blue)/0.25)] p-2">Say: "{it.script}"</p>}
                   {it.ztrip && <ZtripTextButton rides={it.ztrip.rides} message={it.ztrip.message} phone={ztripPhone} update={it.ztrip.update} eventType={it.ztrip.eventType} onMarked={() => { load(); }} />}
