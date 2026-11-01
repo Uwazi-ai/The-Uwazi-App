@@ -3,7 +3,11 @@
 // Pure and clock injectable. All wall times are America/Chicago.
 
 export const TZ = "America/Chicago";
-export const DEFAULT_LEAD_MINUTES = 24 * 60;
+// Normal days: default_lead_minutes (default 120). The TODAY label keeps its own 24 hour rule.
+export const DEFAULT_LEAD_MINUTES = 120;
+export const DEFAULT_LEAD_MIN = 30;
+export const DEFAULT_LEAD_MAX = 1440;
+export const TODAY_LABEL_MINUTES = 24 * 60;
 export const SAME_DAY_MIN = 30;
 export const SAME_DAY_MAX = 240;
 export const SAME_DAY_DEFAULT = 60;
@@ -13,6 +17,7 @@ export const DEFAULT_PAUSE_MSG = "We are full right now. Call (816) 379-6885 and
 export type CutoffSettings = {
   same_day_dates?: string[] | null;
   same_day_lead_minutes?: number | null;
+  default_lead_minutes?: number | null;
   requests_paused?: boolean | null;
   pause_message?: string | null;
 };
@@ -54,7 +59,28 @@ export function isSameDayDate(day: string, s: CutoffSettings | null | undefined)
 
 // Minutes of notice an online request needs for this service day.
 export function leadMinutesFor(day: string, s: CutoffSettings | null | undefined): number {
-  return isSameDayDate(day, s) ? clampLead(s?.same_day_lead_minutes ?? SAME_DAY_DEFAULT) : DEFAULT_LEAD_MINUTES;
+  return isSameDayDate(day, s) ? clampLead(s?.same_day_lead_minutes ?? SAME_DAY_DEFAULT) : clampDefaultLead(s?.default_lead_minutes);
+}
+
+export function clampDefaultLead(n: unknown): number {
+  const v = Math.round(Number(n ?? DEFAULT_LEAD_MINUTES));
+  if (!Number.isFinite(v)) return DEFAULT_LEAD_MINUTES;
+  return Math.min(DEFAULT_LEAD_MAX, Math.max(DEFAULT_LEAD_MIN, v));
+}
+
+// "2 hours", "90 minutes", "1 hour".
+export function noticeText(minutes: number): string {
+  if (minutes % 60 === 0) { const h = minutes / 60; return `${h} hour${h === 1 ? "" : "s"}`; }
+  return `${minutes} minutes`;
+}
+
+export function normalTooSoonMsg(minutes: number): string {
+  return `Rides must be booked at least ${noticeText(minutes)} ahead. Call (816) 379-6885 for a ride sooner.`;
+}
+
+// The too soon message for a service day.
+export function tooSoonMessageFor(day: string, s: CutoffSettings | null | undefined): string {
+  return isSameDayDate(day, s) ? TOO_SOON_MSG : normalTooSoonMsg(clampDefaultLead(s?.default_lead_minutes));
 }
 
 export function minutesUntil(day: string, time: string, now: Date = new Date()): number {
@@ -83,7 +109,7 @@ export function requestedMinutesBefore(createdAt: string, day: string, time: str
 // Rides requested under 24 hours ahead get a TODAY label for dispatch.
 export function isLateRequest(createdAt: string | null | undefined, day: string, time: string): boolean {
   if (!createdAt) return false;
-  return requestedMinutesBefore(createdAt, day, time) < DEFAULT_LEAD_MINUTES;
+  return requestedMinutesBefore(createdAt, day, time) < TODAY_LABEL_MINUTES;
 }
 
 export function todayPrefix(createdAt: string | null | undefined, day: string, time: string): string {

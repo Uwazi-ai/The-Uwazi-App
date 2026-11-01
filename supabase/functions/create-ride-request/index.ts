@@ -83,9 +83,9 @@ Deno.serve(async (req) => {
   const svc = (await loadServiceDays(db)).get(b.ride_day);
   if (!svc || !svc.waves.includes(b.pickup_time)) return json({ error: "That pickup time is not available. Pick another time." }, 400);
 
-  // Same day dates use the shorter lead time; every other day needs 24 hours.
+  // Same day dates use same_day_lead_minutes; other days use default_lead_minutes.
   if (isTooSoon(b.ride_day, b.pickup_time, settings)) {
-    return json({ error: TOO_SOON_MSG, code: "too_soon", standby: true }, 400);
+    return json({ error: tooSoonMessageFor(b.ride_day, settings), code: "too_soon", standby: true }, 400);
   }
 
   const wave = (await waveLoads(db, b.ride_day)).get(`${b.ride_day} ${b.pickup_time}`) ?? { count: 0, site_id: null };
