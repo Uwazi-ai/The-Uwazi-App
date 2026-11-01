@@ -3,14 +3,11 @@ import { CalendarClock, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { DEFAULT_LEAD_MAX, DEFAULT_LEAD_MIN, SAME_DAY_MAX, SAME_DAY_MIN } from "../../../../supabase/functions/_shared/ride-cutoff";
 import type { Settings } from "./deskLib";
+import { PauseSwitch } from "./PauseSwitch";
 
 // Admin only. The database validates every value again.
 export function ElectionDaySettings({ settings, onSettings }: { settings: Settings; onSettings: (s: Settings) => void }) {
@@ -20,8 +17,6 @@ export function ElectionDaySettings({ settings, onSettings }: { settings: Settin
   const [msg, setMsg] = useState(settings.pause_message ?? "");
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
-  const [confirm, setConfirm] = useState(false);
-  const paused = settings.requests_paused === true;
 
   const save = async (patch: Partial<Settings>) => {
     setBusy(true); setNote("");
@@ -43,22 +38,9 @@ export function ElectionDaySettings({ settings, onSettings }: { settings: Settin
 
   return (
     <section aria-labelledby="election-day-heading" className="mt-6 border-y border-border py-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="election-day-heading" className="flex items-center gap-2 font-heading text-xl"><CalendarClock className="h-5 w-5 text-primary" />Election Day</h2>
-        <span role="status" aria-label={`New requests ${paused ? "paused" : "open"}`}
-          className={`rounded-full px-3 py-1 text-sm font-bold ${paused ? "bg-destructive text-destructive-foreground" : "bg-primary text-primary-foreground"}`}>
-          {paused ? "PAUSED" : "OPEN"}
-        </span>
-      </div>
+      <h2 id="election-day-heading" className="flex items-center gap-2 font-heading text-xl"><CalendarClock className="h-5 w-5 text-primary" />Election Day</h2>
       <div className="mt-4 max-w-xl space-y-4">
-        <div className="flex min-h-11 items-center justify-between gap-4 rounded-xl border border-border p-3">
-          <div>
-            <Label htmlFor="requests-paused" className="text-base font-semibold">Pause new requests</Label>
-            <p className="text-sm text-muted-foreground">Stops online requests. Phone requests you log still work.</p>
-          </div>
-          <Switch id="requests-paused" checked={paused} disabled={busy}
-            onCheckedChange={(v) => (v ? setConfirm(true) : save({ requests_paused: false }))} />
-        </div>
+        <PauseSwitch settings={settings} onSettings={onSettings} />
         <div>
           <Label htmlFor="same-day-dates">Same day dates</Label>
           <Input id="same-day-dates" className="mt-1 min-h-11" value={dates} onChange={(e) => setDates(e.target.value)} placeholder="2026-11-03" />
@@ -79,18 +61,6 @@ export function ElectionDaySettings({ settings, onSettings }: { settings: Settin
         <Button variant="outline" disabled={busy} onClick={saveFields}><Save className="mr-2 h-4 w-4" />Save Election Day settings</Button>
         <p role="status" className="text-sm">{note}</p>
       </div>
-      <AlertDialog open={confirm} onOpenChange={setConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Pause new requests?</AlertDialogTitle>
-            <AlertDialogDescription>Riders will not be able to request online. They will see the pause message and the ride line. Phone requests still work.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Keep open</AlertDialogCancel>
-            <AlertDialogAction onClick={() => save({ requests_paused: true })}>Pause requests</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </section>
   );
 }
