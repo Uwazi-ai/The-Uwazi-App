@@ -3,7 +3,7 @@ import { Check, Car, ShieldCheck, MessageCircle, Phone, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RidesShell, fmtDay, fmtHour, telHref } from '@/components/rides/RidesUI';
 import logo from '@/assets/uwazi-ride-wordmark.png';
-import { canShowStage, driverLabel, rideStage, stageTitles, type RiderCard, type RiderAction, type RightsQuestion } from '@/lib/rideExperience';
+import { riderStatusLine, canShowStage, driverLabel, rideStage, stageTitles, type RiderCard, type RiderAction, type RightsQuestion } from '@/lib/rideExperience';
 import { RideStageSheet } from './RideStageSheet';
 import { JourneyRibbon, RideCallButton } from './RideCardView';
 import { RideRightsQuiz } from './RideRightsQuiz';
