@@ -1,5 +1,6 @@
 export type RiderCard = {
   sms_live?: boolean;
+  same_day?: boolean;
   has_email?: boolean;
   ride_code: string; ride_day: string; pickup_time: string; round_trip: boolean;
   status: string; trip_stage: number; needs_destination: boolean; referred?: boolean;
@@ -33,3 +34,15 @@ export function downloadRideCalendar(c: RiderCard) {
  downloadBlob(new Blob([text], { type: 'text/calendar' }), c.ride_code + '.ics');
 }
 export function downloadBlob(blob: Blob, name: string) { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+
+// Rider status copy. Never says anyone voted and never promises texts.
+export function riderStatusLine(card: Pick<RiderCard, 'status' | 'pickup_time'>, hourLabel: (t: string) => string) {
+  if (card.status === 'requested') return 'We got your request. A coordinator will confirm shortly.';
+  if (card.status === 'booked') return `Your ride is confirmed for ${hourLabel(card.pickup_time)}.`;
+  return null;
+}
+// Same day rides refresh every 10 seconds while the page is visible.
+export function riderRefreshMs(card: Pick<RiderCard, 'same_day'> | null, isCard: boolean) {
+  if (card?.same_day) return 10000;
+  return isCard ? 30000 : 20000;
+}
