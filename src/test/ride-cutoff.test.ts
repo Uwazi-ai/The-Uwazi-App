@@ -20,7 +20,7 @@ describe("Central time conversion across the Nov 1 2026 time change", () => {
     // 11:00 CST = 17:00Z. 9:00 AM CST = 15:00Z.
     expect(isTooSoon("2026-11-01", "11:00", S, at("2026-11-01T15:00:00Z"))).toBe(false);
     expect(isTooSoon("2026-11-01", "11:00", S, at("2026-11-01T15:01:00Z"))).toBe(true);
-    // 1:30 AM pickup before the change is still CDT (06:30Z).
+    // 3:00 AM CST pickup (09:00Z) needs notice from 1:00 AM CDT... measured in real minutes.
     expect(isTooSoon("2026-11-01", "03:00", S, at("2026-11-01T07:00:00Z"))).toBe(false);
     expect(isTooSoon("2026-11-01", "03:00", S, at("2026-11-01T07:01:00Z"))).toBe(true);
   });
