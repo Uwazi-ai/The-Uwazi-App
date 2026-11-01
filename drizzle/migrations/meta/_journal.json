@@ -302,6 +302,13 @@
       "when": 1793574431509,
       "tag": "0042_standby_alert_claim",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1793576949003,
+      "tag": "0043_default_lead_minutes",
+      "breakpoints": true
     }
   ]
 }

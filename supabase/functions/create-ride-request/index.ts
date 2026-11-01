@@ -7,7 +7,7 @@ import { loadServiceDays, siteFitsWave, waveLoads, WAVE_FULL_MSG, WAVE_SITE_MSG 
 import { sendRideSms } from "../_shared/ride-sms.ts";
 import { miles, openSites } from "../_shared/ride-sites.ts";
 import { pollingPlaceFor } from "../_shared/kceb-precincts.ts";
-import { isPaused, isTooSoon, pauseMessage, TOO_SOON_MSG } from "../_shared/ride-cutoff.ts";
+import { isPaused, isTooSoon, pauseMessage, tooSoonMessageFor } from "../_shared/ride-cutoff.ts";
 import { checkEligibility, LOOKUP_FAILED_MSG, OUT_OF_AREA_MSG } from "../_shared/ride-eligibility.ts";
 import { startRideAlert } from "../_shared/ride-alerts.ts";
 import { startRiderConfirmation } from "../_shared/rider-emails.ts";
@@ -83,9 +83,9 @@ Deno.serve(async (req) => {
   const svc = (await loadServiceDays(db)).get(b.ride_day);
   if (!svc || !svc.waves.includes(b.pickup_time)) return json({ error: "That pickup time is not available. Pick another time." }, 400);
 
-  // Same day dates use the shorter lead time; every other day needs 24 hours.
+  // Same day dates use same_day_lead_minutes; other days use default_lead_minutes.
   if (isTooSoon(b.ride_day, b.pickup_time, settings)) {
-    return json({ error: TOO_SOON_MSG, code: "too_soon", standby: true }, 400);
+    return json({ error: tooSoonMessageFor(b.ride_day, settings), code: "too_soon", standby: true }, 400);
   }
 
   const wave = (await waveLoads(db, b.ride_day)).get(`${b.ride_day} ${b.pickup_time}`) ?? { count: 0, site_id: null };

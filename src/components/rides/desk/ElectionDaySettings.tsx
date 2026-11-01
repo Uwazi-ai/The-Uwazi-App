@@ -9,13 +9,14 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { SAME_DAY_MAX, SAME_DAY_MIN } from "../../../../supabase/functions/_shared/ride-cutoff";
+import { DEFAULT_LEAD_MAX, DEFAULT_LEAD_MIN, SAME_DAY_MAX, SAME_DAY_MIN } from "../../../../supabase/functions/_shared/ride-cutoff";
 import type { Settings } from "./deskLib";
 
 // Admin only. The database validates every value again.
 export function ElectionDaySettings({ settings, onSettings }: { settings: Settings; onSettings: (s: Settings) => void }) {
   const [dates, setDates] = useState((settings.same_day_dates ?? []).join(", "));
   const [lead, setLead] = useState(String(settings.same_day_lead_minutes ?? 60));
+  const [otherLead, setOtherLead] = useState(String(settings.default_lead_minutes ?? 120));
   const [msg, setMsg] = useState(settings.pause_message ?? "");
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
@@ -34,8 +35,10 @@ export function ElectionDaySettings({ settings, onSettings }: { settings: Settin
     const n = Number(lead);
     if (list.some((d) => !/^\d{4}-\d{2}-\d{2}$/.test(d))) return setNote("Use dates like 2026-11-03.");
     if (!Number.isInteger(n) || n < SAME_DAY_MIN || n > SAME_DAY_MAX) return setNote(`Minutes must be ${SAME_DAY_MIN} to ${SAME_DAY_MAX}.`);
+    const o = Number(otherLead);
+    if (!Number.isInteger(o) || o < DEFAULT_LEAD_MIN || o > DEFAULT_LEAD_MAX) return setNote(`Other days notice must be ${DEFAULT_LEAD_MIN} to ${DEFAULT_LEAD_MAX} minutes.`);
     if (msg.trim().length < 5 || msg.trim().length > 300) return setNote("Pause message must be 5 to 300 characters.");
-    save({ same_day_dates: list, same_day_lead_minutes: n, pause_message: msg.trim() });
+    save({ same_day_dates: list, same_day_lead_minutes: n, default_lead_minutes: o, pause_message: msg.trim() });
   };
 
   return (
@@ -59,11 +62,15 @@ export function ElectionDaySettings({ settings, onSettings }: { settings: Settin
         <div>
           <Label htmlFor="same-day-dates">Same day dates</Label>
           <Input id="same-day-dates" className="mt-1 min-h-11" value={dates} onChange={(e) => setDates(e.target.value)} placeholder="2026-11-03" />
-          <p className="mt-1 text-sm text-muted-foreground">On these days riders can request up to the notice below. Other days need 24 hours.</p>
+          <p className="mt-1 text-sm text-muted-foreground">On these days riders can request up to the notice below. Other days use the notice below.</p>
         </div>
         <div>
           <Label htmlFor="same-day-lead">Same day notice, minutes ({SAME_DAY_MIN} to {SAME_DAY_MAX})</Label>
           <Input id="same-day-lead" type="number" inputMode="numeric" min={SAME_DAY_MIN} max={SAME_DAY_MAX} className="mt-1 min-h-11" value={lead} onChange={(e) => setLead(e.target.value)} />
+        </div>
+        <div>
+          <Label htmlFor="other-lead">Other days notice, minutes ({DEFAULT_LEAD_MIN} to {DEFAULT_LEAD_MAX})</Label>
+          <Input id="other-lead" type="number" inputMode="numeric" min={DEFAULT_LEAD_MIN} max={DEFAULT_LEAD_MAX} className="mt-1 min-h-11" value={otherLead} onChange={(e) => setOtherLead(e.target.value)} />
         </div>
         <div>
           <Label htmlFor="pause-message">Pause message</Label>

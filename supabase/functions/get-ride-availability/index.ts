@@ -7,7 +7,7 @@ import { z } from "npm:zod@3.23.8";
 import { allDays, dayOfWeek, loadServiceDays, siteFitsWave, waveLoads, waveTooSoon } from "../_shared/rides.ts";
 import { miles, openSites, type OpenSite } from "../_shared/ride-sites.ts";
 import { pollingPlaceFor } from "../_shared/kceb-precincts.ts";
-import { clampLead, isPaused, isSameDayDate, leadMinutesFor, pauseMessage, TOO_SOON_MSG } from "../_shared/ride-cutoff.ts";
+import { clampDefaultLead, clampLead, isPaused, isSameDayDate, leadMinutesFor, normalTooSoonMsg, pauseMessage, tooSoonMessageFor, TOO_SOON_MSG } from "../_shared/ride-cutoff.ts";
 import { checkEligibility, LOOKUP_FAILED_MSG, OUT_OF_AREA_MSG, type Eligibility } from "../_shared/ride-eligibility.ts";
 
 const Body = z.object({
@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
       else if (paused) status = "paused";
       else if (taken.every((n) => n >= seats)) status = "full";
     } else if (sitesOpen) status = "no_driver";
-    return { day, dow: dayOfWeek(day), kind, open: status === "open", status, note: sd?.note ?? null, same_day: isSameDayDate(day, s), lead_minutes: leadMinutesFor(day, s) };
+    return { day, dow: dayOfWeek(day), kind, open: status === "open", status, note: sd?.note ?? null, same_day: isSameDayDate(day, s), lead_minutes: leadMinutesFor(day, s), too_soon_message: tooSoonMessageFor(day, s) };
   });
 
   let sites: unknown = undefined;
@@ -115,6 +115,8 @@ Deno.serve(async (req) => {
     too_soon_message: TOO_SOON_MSG,
     same_day_dates: (s.same_day_dates ?? []).map((d: string) => String(d).slice(0, 10)),
     same_day_lead_minutes: clampLead(s.same_day_lead_minutes),
+    default_lead_minutes: clampDefaultLead(s.default_lead_minutes),
+    normal_too_soon_message: normalTooSoonMsg(clampDefaultLead(s.default_lead_minutes)),
     server_now: now.toISOString(),
     precinct_key,
     election_day_place: place ? { name: place.name, address: place.address } : null,
