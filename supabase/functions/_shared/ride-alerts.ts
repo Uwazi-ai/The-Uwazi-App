@@ -8,7 +8,7 @@ export async function sendRideAlert(db: SupabaseClient, kind: 'ride' | 'waitlist
   if ((kind === 'ride' && !settings.notify_new_requests) || (kind === 'waitlist' && !settings.notify_waitlist)) return { status: 'disabled' };
   let templateData: Record<string, unknown> = { title: 'Coordinator email test' };
   if (kind === 'ride') {
-    const { data: r } = await db.from('ride_requests').select('ride_code,ride_day,pickup_time,needs_destination,needs,round_trip,first_name_last_initial,phone,source,destination_site_id').eq('id', id).single();
+    const { data: r } = await db.from('ride_requests').select('ride_code,ride_day,pickup_time,needs_destination,needs,round_trip,first_name_last_initial,phone,source,destination_site_id,created_at').eq('id', id).single();
     if (!r || r.source !== 'web') return { status: 'skipped' };
     const [{ data: site }, { count }] = await Promise.all([
       r.destination_site_id ? db.from('voter_guide_sites').select('name').eq('id', r.destination_site_id).single() : Promise.resolve({ data: null }),
@@ -17,7 +17,7 @@ export async function sendRideAlert(db: SupabaseClient, kind: 'ride' | 'waitlist
     templateData = rideAlertData(r, site?.name ?? null, count ?? 0, settings.seats_per_slot, settings.notify_include_contact);
   } else if (kind === 'waitlist') {
     const { data: w } = await db.from('poll_ride_waitlist').select('requested_date,reason,phone').eq('id', id).single();
-    if (!w?.requested_date || !['no_driver', 'full'].includes(w.reason)) return { status: 'skipped' };
+    if (!w?.requested_date || !['no_driver', 'full', 'standby'].includes(w.reason)) return { status: 'skipped' };
     templateData = waitlistAlertData(w.requested_date, w.reason, settings.notify_include_contact ? w.phone : undefined);
   }
   const fail = async () => {
