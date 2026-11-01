@@ -4344,6 +4344,7 @@ export type Database = {
           autocab_verified_accounts: Json
           autocab_verified_at: string | null
           budget_cents: number
+          default_lead_minutes: number
           driver_rate: number
           early_end: string
           early_start: string
@@ -4381,6 +4382,7 @@ export type Database = {
           autocab_verified_accounts?: Json
           autocab_verified_at?: string | null
           budget_cents?: number
+          default_lead_minutes?: number
           driver_rate?: number
           early_end?: string
           early_start?: string
@@ -4418,6 +4420,7 @@ export type Database = {
           autocab_verified_accounts?: Json
           autocab_verified_at?: string | null
           budget_cents?: number
+          default_lead_minutes?: number
           driver_rate?: number
           early_end?: string
           early_start?: string
