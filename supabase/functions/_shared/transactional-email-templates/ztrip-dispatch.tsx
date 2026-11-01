@@ -6,6 +6,7 @@ type Props=ReturnType<typeof dispatchData>;
 export function DispatchEmail(p:Props) {return <Html lang="en"><Head/><Preview>{p.subject}</Preview><Body style={main}><Container style={container}>
 <Heading style={heading}>UWAZI dispatch</Heading>
 {p.sample&&<Text style={notice}>SAMPLE. Fake rider details. Do not enter this trip.</Text>}
+{p.late&&<Text><b>{p.late}</b></Text>}
 {p.changed&&<Text><b>Changed:</b> {p.changed}</Text>}
 <Text><b>Pickup:</b> {p.day}, {p.time}</Text>
 <Text><b>Rider:</b> {p.rider}</Text>
