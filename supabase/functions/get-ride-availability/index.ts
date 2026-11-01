@@ -7,7 +7,7 @@ import { z } from "npm:zod@3.23.8";
 import { allDays, dayOfWeek, loadServiceDays, siteFitsWave, waveLoads, waveTooSoon } from "../_shared/rides.ts";
 import { miles, openSites, type OpenSite } from "../_shared/ride-sites.ts";
 import { pollingPlaceFor } from "../_shared/kceb-precincts.ts";
-import { isPaused, isSameDayDate, leadMinutesFor, pauseMessage, TOO_SOON_MSG } from "../_shared/ride-cutoff.ts";
+import { clampLead, isPaused, isSameDayDate, leadMinutesFor, pauseMessage, TOO_SOON_MSG } from "../_shared/ride-cutoff.ts";
 import { checkEligibility, LOOKUP_FAILED_MSG, OUT_OF_AREA_MSG, type Eligibility } from "../_shared/ride-eligibility.ts";
 
 const Body = z.object({
@@ -114,7 +114,7 @@ Deno.serve(async (req) => {
     pause_message: paused ? pauseMessage(s) : null,
     too_soon_message: TOO_SOON_MSG,
     same_day_dates: (s.same_day_dates ?? []).map((d: string) => String(d).slice(0, 10)),
-    same_day_lead_minutes: leadMinutesFor((s.same_day_dates ?? [])[0] ?? "", s),
+    same_day_lead_minutes: clampLead(s.same_day_lead_minutes),
     server_now: now.toISOString(),
     precinct_key,
     election_day_place: place ? { name: place.name, address: place.address } : null,
