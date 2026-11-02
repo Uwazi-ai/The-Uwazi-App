@@ -526,6 +526,158 @@ export type Database = {
         }
         Relationships: []
       }
+      ballot_crawl_findings: {
+        Row: {
+          apply_error: string | null
+          contest_id: string | null
+          created_at: string
+          finding_key: string
+          finding_type: string
+          id: string
+          last_seen_at: string
+          proposed: Json
+          related_contest_ids: string[]
+          reviewed_at: string | null
+          reviewed_by: string | null
+          run_id: string | null
+          safe: boolean
+          staged_contest_id: string | null
+          status: string
+          summary: string
+        }
+        Insert: {
+          apply_error?: string | null
+          contest_id?: string | null
+          created_at?: string
+          finding_key: string
+          finding_type: string
+          id?: string
+          last_seen_at?: string
+          proposed?: Json
+          related_contest_ids?: string[]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id?: string | null
+          safe?: boolean
+          staged_contest_id?: string | null
+          status?: string
+          summary: string
+        }
+        Update: {
+          apply_error?: string | null
+          contest_id?: string | null
+          created_at?: string
+          finding_key?: string
+          finding_type?: string
+          id?: string
+          last_seen_at?: string
+          proposed?: Json
+          related_contest_ids?: string[]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id?: string | null
+          safe?: boolean
+          staged_contest_id?: string | null
+          status?: string
+          summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ballot_crawl_findings_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "ballot_crawl_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ballot_crawl_runs: {
+        Row: {
+          error: string | null
+          finished_at: string | null
+          id: string
+          started_at: string
+          started_by: string | null
+          status: string
+          summary: Json
+          trigger: string
+        }
+        Insert: {
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          started_at?: string
+          started_by?: string | null
+          status?: string
+          summary?: Json
+          trigger?: string
+        }
+        Update: {
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          started_at?: string
+          started_by?: string | null
+          status?: string
+          summary?: Json
+          trigger?: string
+        }
+        Relationships: []
+      }
+      ballot_crawl_sources: {
+        Row: {
+          active: boolean
+          authority: string
+          created_at: string
+          discovered: boolean
+          id: string
+          kind: string
+          label: string
+          last_changed_at: string | null
+          last_contest_count: number | null
+          last_error: string | null
+          last_fetched_at: string | null
+          last_hash: string | null
+          last_status: string | null
+          resolved_url: string | null
+          url: string
+        }
+        Insert: {
+          active?: boolean
+          authority: string
+          created_at?: string
+          discovered?: boolean
+          id?: string
+          kind?: string
+          label: string
+          last_changed_at?: string | null
+          last_contest_count?: number | null
+          last_error?: string | null
+          last_fetched_at?: string | null
+          last_hash?: string | null
+          last_status?: string | null
+          resolved_url?: string | null
+          url: string
+        }
+        Update: {
+          active?: boolean
+          authority?: string
+          created_at?: string
+          discovered?: boolean
+          id?: string
+          kind?: string
+          label?: string
+          last_changed_at?: string | null
+          last_contest_count?: number | null
+          last_error?: string | null
+          last_fetched_at?: string | null
+          last_hash?: string | null
+          last_status?: string | null
+          resolved_url?: string | null
+          url?: string
+        }
+        Relationships: []
+      }
       ballot_items: {
         Row: {
           created_at: string
@@ -608,6 +760,113 @@ export type Database = {
           zip_code?: string | null
         }
         Relationships: []
+      }
+      ballot_staged_candidates: {
+        Row: {
+          id: string
+          name: string
+          party: string | null
+          printed_order: number
+          staged_contest_id: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          party?: string | null
+          printed_order?: number
+          staged_contest_id: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          party?: string | null
+          printed_order?: number
+          staged_contest_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ballot_staged_candidates_staged_contest_id_fkey"
+            columns: ["staged_contest_id"]
+            isOneToOne: false
+            referencedRelation: "ballot_staged_contests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ballot_staged_contests: {
+        Row: {
+          ballot_question: string | null
+          content_hash: string
+          contest_type: string
+          created_at: string
+          district: string | null
+          fetched_at: string
+          has_write_in: boolean
+          id: string
+          no_statement: string | null
+          printed_order: number
+          run_id: string
+          source_id: string
+          source_name: string
+          source_url: string
+          title: string
+          vote_for: number | null
+          yes_statement: string | null
+        }
+        Insert: {
+          ballot_question?: string | null
+          content_hash: string
+          contest_type: string
+          created_at?: string
+          district?: string | null
+          fetched_at: string
+          has_write_in?: boolean
+          id?: string
+          no_statement?: string | null
+          printed_order?: number
+          run_id: string
+          source_id: string
+          source_name: string
+          source_url: string
+          title: string
+          vote_for?: number | null
+          yes_statement?: string | null
+        }
+        Update: {
+          ballot_question?: string | null
+          content_hash?: string
+          contest_type?: string
+          created_at?: string
+          district?: string | null
+          fetched_at?: string
+          has_write_in?: boolean
+          id?: string
+          no_statement?: string | null
+          printed_order?: number
+          run_id?: string
+          source_id?: string
+          source_name?: string
+          source_url?: string
+          title?: string
+          vote_for?: number | null
+          yes_statement?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ballot_staged_contests_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "ballot_crawl_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ballot_staged_contests_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "ballot_crawl_sources"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ballot_verification_log: {
         Row: {
@@ -6395,6 +6654,11 @@ export type Database = {
           user_id: string
         }[]
       }
+      apply_ballot_finding_internal: {
+        Args: { _actor: string; _id: string; _safe_only: boolean }
+        Returns: string
+      }
+      apply_official_source_fixes: { Args: never; Returns: number }
       ask_categories_summary: {
         Args: { period_days: number }
         Returns: {
@@ -6879,6 +7143,10 @@ export type Database = {
       }
       research_survey_results: { Args: { _survey_id: string }; Returns: Json }
       research_survey_stats: { Args: never; Returns: Json }
+      review_ballot_finding: {
+        Args: { _approve: boolean; _id: string }
+        Returns: string
+      }
       review_office_change: {
         Args: { _approve: boolean; _change_id: string }
         Returns: string
