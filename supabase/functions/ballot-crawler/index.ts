@@ -117,7 +117,7 @@ async function discover(db: any) {
         }
       } catch (e) { console.error('ballot discovery search failed', (e as Error).message.slice(0, 120)); }
     }
-    const ranked = [...urls.entries()].filter(([u, t]) => /sample|ballot/i.test(`${u} ${t}`) && !/absentee|result|canvass/i.test(u))
+    const ranked = [...urls.entries()].filter(([u, t]) => /sample|ballot/i.test(`${u} ${t}`) && !/absentee|result|canvass/i.test(u) && !/20(1\d|2[0-5])/.test(u))
       .sort(([a, at], [b, bt]) => Number(/2026|nov/i.test(`${b} ${bt}`)) - Number(/2026|nov/i.test(`${a} ${at}`))).slice(0, 2);
     for (const [u, t] of ranked) {
       found.push({ url: u, title: t, authority: d.authority, parsed: false });
@@ -137,7 +137,7 @@ function driveDownload(links: string[]): string | null {
 }
 function samplePdf(links: string[], base: string): string | null {
   const h = hostOf(base);
-  return links.find((l) => hostOf(l) === h && /sample|ballot/i.test(l) && /(\.pdf|documentcenter|download|documents)/i.test(l) && !/absentee|result/i.test(l)) ?? null;
+  return links.find((l) => hostOf(l) === h && /sample|ballot|proof/i.test(l) && /(\.pdf|documentcenter|download|documents)/i.test(l) && !/absentee|result/i.test(l)) ?? null;
 }
 
 async function crawlSource(db: any, run: string, src: any) {
