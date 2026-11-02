@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
   try {
     const parsed = Body.safeParse(await req.json().catch(() => ({})));
     if (!parsed.success) return json({ error: 'Enter a street address, or pick a state.' }, 400);
-    if (!(await underLimit(db, 'ballot-lookup', req, 20, 10))) return json({ error: 'Too many lookups. Try again in a few minutes.', code: 'rate_limited' }, 429);
+    if (!(await underLimit(db, 'ballot-lookup', req, 60, 10))) return json({ error: 'Too many lookups. Try again in a few minutes.', code: 'rate_limited' }, 429);
 
     const { address, zip } = parsed.data;
     let state = parsed.data.state ?? null;
@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
     }
 
     const { data: link } = state
-      ? await db.from('state_election_links').select('state_name, website_url, check_url, sample_ballot_url, phone').eq('state_code', state).maybeSingle()
+      ? await db.from('state_election_links').select('state_name, website_url, check_url, sample_ballot_url, phone, phone_verified').eq('state_code', state).maybeSingle()
       : { data: null };
     const { count: verified } = state
       ? await db.from('ballot_contests').select('id', { count: 'exact', head: true }).eq('state', state).eq('election_date', ELECTION_DATE).eq('verification_status', 'verified')
@@ -93,6 +93,10 @@ Deno.serve(async (req) => {
 
     const sb = google?.state?.[0]?.electionAdministrationBody ?? {};
     const lb = google?.state?.[0]?.local_jurisdiction?.electionAdministrationBody ?? {};
+    // Label rule mirrors src/lib/ballotLink.ts.
+    const ballotUrl = sb.ballotInfoUrl || link?.sample_ballot_url || link?.check_url || link?.website_url || null;
+    const ballotKind = (sb.ballotInfoUrl || link?.sample_ballot_url) ? 'sample_ballot' : ballotUrl ? 'voter_lookup' : null;
+    const googlePhone = phoneOf(lb) || phoneOf(sb);
     const all = (k: string) => (google?.[k] ?? []) as any[];
 
     return json({
@@ -100,14 +104,16 @@ Deno.serve(async (req) => {
       state,
       zip: zip ?? null,
       election: { name: google?.election?.name ?? '2026 General Election', date: ELECTION_DATE },
-      officialBallotUrl: sb.ballotInfoUrl || link?.sample_ballot_url || link?.check_url || link?.website_url || null,
+      officialBallotUrl: ballotUrl,
+      officialBallotKind: ballotKind,
       officialBallotFrom: sb.ballotInfoUrl ? 'google' : 'state_table',
-      stateLinks: link ?? null,
+      stateLinks: link ? { ...link, phone: link.phone_verified ? link.phone : null } : null,
       electionInfoUrl: sb.electionInfoUrl ?? null,
       votingLocationFinderUrl: sb.votingLocationFinderUrl ?? null,
       office: {
-        name: lb.name || sb.name || (link ? `${link.state_name} election office` : null),
-        phone: phoneOf(lb) || phoneOf(sb) || link?.phone || null,
+        name: (googlePhone ? (phoneOf(lb) ? lb.name : sb.name) : null) || lb.name || sb.name || (link ? `${link.state_name} election office` : null),
+        phone: googlePhone || (link?.phone_verified ? link?.phone : null) || null,
+        phoneFrom: googlePhone ? 'google' : (link?.phone_verified && link?.phone ? 'state_table' : null),
         url: lb.electionInfoUrl || sb.electionInfoUrl || link?.website_url || null,
       },
       pollingLocations: all('pollingLocations').slice(0, 5).map(site),
