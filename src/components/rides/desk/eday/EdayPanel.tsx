@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { fmtHour, fmtPhone, telHref } from "@/components/rides/RidesUI";
 import { todayPrefix } from "../../../../../supabase/functions/_shared/ride-cutoff";
 import { PauseSwitch } from "../PauseSwitch";
+import { EdayMap } from "./EdayMap";
 import { groupMessage, signature, smsHref } from "../ztripText";
 import type { Ride, ServiceDay, Settings } from "../deskLib";
 import {
@@ -271,6 +272,8 @@ export function EdayPanel({ rides, loaded, settings, onSettings, svcDays, onOpen
           </div>
         ))}
       </div>
+
+      <EdayMap rideKey={todays.map((r) => `${r.id}:${r.status}:${r.pickup_time}:${r.destination_site_id ?? ""}`).join("|")} />
 
       <h3 className="mt-5 font-semibold">Live queue ({todays.length})</h3>
       {todays.length === 0 && <p className="text-sm text-[hsl(var(--rides-ink)/0.6)]">No rides for today yet.</p>}
