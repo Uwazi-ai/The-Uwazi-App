@@ -58,7 +58,7 @@ export function EdayMap({ rideKey, autocab = {} }: { rideKey: string; autocab?: 
       <h3 className="font-semibold">Live map</h3>
       <p className="mb-2 text-sm text-[hsl(var(--rides-ink)/0.7)]">Blue: polling places. Amber: pickups. Green: zTrip car.</p>
       {error && <p role="status" className="mb-2 text-sm text-destructive">The map could not load. It will try again.</p>}
-      <DriverMap cars={cars} pins={pins} now={now} label="Election Day live map" />
+      <DriverMap cars={cars} pins={pins} now={now} label="Election Day live map" fit />
       {data && (data.needs_place > 0 || data.places_without_map > 0) && (
         <p className="mt-2 text-sm text-[hsl(var(--rides-amber))]">
           {data.needs_place > 0 && `${data.needs_place} ${data.needs_place === 1 ? "ride needs" : "rides need"} a voting place. `}
