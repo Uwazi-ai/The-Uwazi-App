@@ -42,11 +42,14 @@ export function driverHandler(action:string){return async(req:Request)=>{
    const list=rides??[];const pickups:{code:string;time:string;status:string;lat:number;lng:number}[]=[];
    for(let i=0;i<list.length;i+=5)await Promise.all(list.slice(i,i+5).map(async r=>{try{const g=await checkEligibility(r.pickup_address,r.zip);if(g.status==='eligible')pickups.push({code:r.ride_code,time:r.pickup_time,status:r.status,lat:g.lat,lng:g.lon});}catch{/* skip */}}));
    const counts=new Map<string,number>();let needsPlace=0;for(const r of list){if(r.needs_destination||!r.destination_site_id){needsPlace++;continue;}counts.set(r.destination_site_id,(counts.get(r.destination_site_id)??0)+1);}
-   const {data:sites}=await db.from('voter_guide_sites').select('id,name').eq('verification_status','verified').eq('state','MO').limit(200);
+   // Today's places: reviewed sites with hours today, plus verified destinations of today's rides.
+   const {data:hours}=await db.from('ride_site_hours').select('site_id').eq('open_date',today);
+   const want=[...new Set([...(hours??[]).map(h=>h.site_id),...counts.keys()])];
+   const {data:sites}=want.length?await db.from('voter_guide_sites').select('id,name').in('id',want).eq('verification_status','verified'):{data:[]};
    const ids=(sites??[]).map(s=>s.id);const {data:geo}=ids.length?await db.from('ride_site_geo').select('site_id,lat,lon').in('site_id',ids):{data:[]};
    const gm=new Map((geo??[]).map(g=>[g.site_id,g]));
    const places=(sites??[]).flatMap(s=>{const g=gm.get(s.id);return g?[{id:s.id,name:s.name,lat:g.lat,lng:g.lon,rides:counts.get(s.id)??0}]:[];});
-   return reply({sessions:rows,pickups,places,needs_place:needsPlace});
+   return reply({sessions:rows,pickups,places,needs_place:needsPlace,places_without_map:ids.length-places.length});
   }
   return reply({sessions:rows,pickup,place});
  }
