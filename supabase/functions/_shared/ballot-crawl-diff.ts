@@ -25,7 +25,7 @@ export type StagedCandidate = { name: string; party: string | null; printed_orde
 export type StagedContest = {
   id: string; source_name: string; source_url: string; contest_type: 'candidate_race' | 'ballot_measure' | 'retention';
   title: string; district: string | null; ballot_question: string | null; yes_statement: string | null; no_statement: string | null;
-  candidates: StagedCandidate[];
+  candidates: StagedCandidate[]; jurisdiction?: string | null;
 };
 export type Finding = {
   finding_key: string; finding_type: string; summary: string; contest_id: string | null;
@@ -104,12 +104,11 @@ export function liveKey(c: LiveContest): string {
   if (c.district_type === 'county' && c.district_id && !/^(jackson|clay|platte|cass)/.test(base)) return `${c.district_id}:${base}`;
   return base;
 }
-const COUNTY_FIPS: Record<string, string> = { clay: '29047', platte: '29165', cass: '29037', jackson: '29095' };
 export function stagedKey(s: StagedContest): string {
-  const base = contestKey(`${s.title} ${s.district ?? ''}`.trim());
-  const m = base.match(/^(clay|platte|cass) county (.*)$/);
-  if (m) return `${COUNTY_FIPS[m[1]]}:${m[1]} county ${m[2]}`;
-  return base;
+  const t = s.title.trim();
+  const j = s.jurisdiction?.trim();
+  const local = j && !norm(t).includes(norm(j)) && !/amendment|proposition|retain|u\.?s\.?|united states|congress|state (auditor|representative|senator)/i.test(t);
+  return contestKey(`${local ? `${j} ` : ''}${t} ${s.district ?? ''}`.trim());
 }
 const isRetention = (c: LiveContest) => /^retain\b/i.test(liveTitle(c));
 const isVisible = (c: LiveContest) => c.verification_status !== 'flagged';
