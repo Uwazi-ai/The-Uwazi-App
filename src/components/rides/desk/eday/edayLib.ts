@@ -1,5 +1,4 @@
 import { centralDate, centralToUtcMs } from "../../../../../supabase/functions/_shared/ride-cutoff";
-import { fmtHour } from "@/components/rides/RidesUI";
 import type { Ride } from "../deskLib";
 
 // Pure helpers for the Election Day desk. No personal data leaves these in titles or notices.
@@ -46,7 +45,8 @@ export function notSent(r: Ride, events: DeskEvent[], now: number) {
 }
 
 // Only the ride code and pickup time. Never a name, phone, address or email.
-export const noticeTitle = (r: Pick<Ride, "ride_code" | "pickup_time">) => `New ride request ${r.ride_code}, ${fmtHour(r.pickup_time)}`;
+export const clockTime = (t: string) => { const h = Number(t.slice(0, 2)); return `${h % 12 || 12}:${t.slice(3, 5)} ${h < 12 ? "AM" : "PM"}`; };
+export const noticeTitle = (r: Pick<Ride, "ride_code" | "pickup_time">) => `New ride request ${r.ride_code}, ${clockTime(r.pickup_time)}`;
 export const standbyNoticeTitle = () => "New standby signup";
 export const deskTitle = (unhandled: number) => (unhandled > 0 ? `(${unhandled} NEW) Ride desk` : "Ride desk");
 
