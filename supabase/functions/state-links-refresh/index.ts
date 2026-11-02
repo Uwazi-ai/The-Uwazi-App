@@ -13,7 +13,15 @@ export const STATES: [string, string][] = [
 ];
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
-async function fc(path: string, body: unknown): Promise<any> {
+async function fc(path: string, body: unknown, tries = 4): Promise<any> {
+  for (let i = 0; i < tries; i++) {
+    try { return await fcOnce(path, body); } catch (e) {
+      if (!String((e as Error).message).includes('[429]') || i === tries - 1) throw e;
+      await new Promise((r) => setTimeout(r, 8000 * (i + 1)));
+    }
+  }
+}
+async function fcOnce(path: string, body: unknown): Promise<any> {
   const res = await fetch(`${FC}${path}`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`, 'X-Connection-Api-Key': Deno.env.get('FIRECRAWL_API_KEY')!, 'Content-Type': 'application/json' },
