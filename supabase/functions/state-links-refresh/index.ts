@@ -121,9 +121,14 @@ Deno.serve(async (req) => {
   const want: string[] = Array.isArray(body?.states) ? body.states : [];
   const list = STATES.filter(([c]) => !want.length || want.includes(c)).slice(0, 12);
   const out: any[] = [];
-  for (let i = 0; i < list.length; i += 4) {
-    const rows = await Promise.all(list.slice(i, i + 4).map(([c, n]) => oneState(c, n)));
-    for (const r of rows) {
+  for (let i = 0; i < list.length; i += 2) {
+    const rows = await Promise.all(list.slice(i, i + 2).map(([c, n]) => oneState(c, n)));
+    for (const fresh of rows) {
+      // Keep earlier verified values when a later read fails (no data lost to a busy reader).
+      const { data: old } = await db.from('state_election_links').select('*').eq('state_code', fresh.state_code).maybeSingle();
+      const r: any = { ...fresh };
+      if (old) for (const k of ['website_url', 'check_url', 'sample_ballot_url', 'phone', 'phone_source_url', 'verified_at']) if (r[k] == null && old[k] != null) r[k] = old[k];
+      if (old && r.website_url === old.website_url && r.check_url === old.check_url) r.url_check = { ...(old.url_check ?? {}), ...Object.fromEntries(Object.entries(fresh.url_check).filter(([, v]) => v)) };
       const { error } = await db.from('state_election_links').upsert({ ...r, updated_by: a.userId ?? null });
       if (error) console.error('state link upsert failed', r.state_code, error.code);
       out.push({ state: r.state_code, verified: !!r.verified_at, phone: !!r.phone, sample: !!r.sample_ballot_url, notes: r.notes });
