@@ -22,6 +22,8 @@ Deno.test('only official election authority domains count as official', () => {
   assertEquals(isOfficialUrl('https://www.kceb.org'), true);
   assertEquals(isOfficialUrl('https://www.sos.mo.gov/x'), true);
   assertEquals(isOfficialUrl('https://www.kcur.org/x'), false);
+  assertEquals(isOfficialUrl('https://www.voteclaycountymo.gov/x'), true);
+  assertEquals(isOfficialUrl('https://theballotbrief.com/state/missouri'), false);
   assertEquals(isOfficialUrl('https://ballotpedia.org/x'), false);
 });
 

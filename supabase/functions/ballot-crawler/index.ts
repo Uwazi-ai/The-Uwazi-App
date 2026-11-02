@@ -22,10 +22,10 @@ const json = (b: unknown, status = 200) =>
 const DISCOVERY = [
   { authority: 'Jackson County Election Board', jurisdiction: 'Jackson County', domains: ['jcebmo.org', 'jacksongov.org'],
     queries: ['site:jcebmo.org sample ballot November 3 2026', 'Jackson County Election Board Missouri sample ballot November 2026'] },
-  { authority: 'Clay County Board of Election Commissioners', jurisdiction: 'Clay County', domains: ['claycoelections.com', 'claycountymo.gov'],
-    queries: ['site:claycoelections.com sample ballot November 2026', 'Clay County Missouri election board sample ballot November 3 2026'] },
-  { authority: 'Platte County Board of Elections', jurisdiction: 'Platte County', domains: ['plattecountymo.gov', 'co.platte.mo.us', 'plattecountyelections.com'],
-    queries: ['site:co.platte.mo.us sample ballot November 2026', 'Platte County Missouri board of elections sample ballot November 3 2026'] },
+  { authority: 'Clay County Board of Election Commissioners', jurisdiction: 'Clay County', domains: ['voteclaycountymo.gov', 'claycountymo.gov'],
+    queries: ['site:voteclaycountymo.gov sample ballots', 'Clay County Missouri election board sample ballot November 3 2026'] },
+  { authority: 'Platte County Board of Elections', jurisdiction: 'Platte County', domains: ['plattecountymovotes.gov', 'co.platte.mo.us'],
+    queries: ['site:plattecountymovotes.gov ballot November 3', 'Platte County Missouri board of elections sample ballot November 3 2026'] },
 ];
 const JURISDICTION: Record<string, string | null> = {
   'Kansas City Election Board': null, 'Cass County Clerk': 'Cass County', 'Missouri Secretary of State': null,
@@ -117,7 +117,7 @@ async function discover(db: any) {
         }
       } catch (e) { console.error('ballot discovery search failed', (e as Error).message.slice(0, 120)); }
     }
-    const ranked = [...urls.entries()].filter(([u, t]) => /sample|ballot/i.test(`${u} ${t}`))
+    const ranked = [...urls.entries()].filter(([u, t]) => /sample|ballot/i.test(`${u} ${t}`) && !/absentee|result|canvass/i.test(u))
       .sort(([a, at], [b, bt]) => Number(/2026|nov/i.test(`${b} ${bt}`)) - Number(/2026|nov/i.test(`${a} ${at}`))).slice(0, 2);
     for (const [u, t] of ranked) {
       found.push({ url: u, title: t, authority: d.authority, parsed: false });
@@ -137,7 +137,7 @@ function driveDownload(links: string[]): string | null {
 }
 function samplePdf(links: string[], base: string): string | null {
   const h = hostOf(base);
-  return links.find((l) => hostOf(l) === h && /sample/i.test(l) && /(\.pdf|documentcenter|download)/i.test(l)) ?? null;
+  return links.find((l) => hostOf(l) === h && /sample|ballot/i.test(l) && /(\.pdf|documentcenter|download|documents)/i.test(l) && !/absentee|result/i.test(l)) ?? null;
 }
 
 async function crawlSource(db: any, run: string, src: any) {

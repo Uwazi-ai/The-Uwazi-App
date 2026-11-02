@@ -3,7 +3,7 @@
 
 export const OFFICIAL_DOMAINS = [
   'kceb.org', 'sos.mo.gov', 'casscounty.com', 'jcebmo.org', 'jacksongov.org',
-  'claycoelections.com', 'claycountymo.gov', 'plattecountymo.gov', 'co.platte.mo.us', 'plattecountyelections.com',
+  'voteclaycountymo.gov', 'claycountymo.gov', 'plattecountymovotes.gov', 'co.platte.mo.us',
 ];
 
 export function hostOf(url: string | null | undefined): string {
