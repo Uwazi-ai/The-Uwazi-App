@@ -6,6 +6,7 @@ import PrecinctFromAddress, { PRECINCT_SOURCE_LINE } from "@/components/voting/P
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useVoterProfile, useElectionAuthority, useMyDistricts, lookupPrecinct, ELECTION_LABEL, ELECTION_DATE } from "@/hooks/useMyBallot";
+import YourBallotCard from "@/components/ballot/YourBallotCard";
 
 const HOW: Record<string, string[]> = {
   MO: [
@@ -84,6 +85,8 @@ export default function VoterGuidePage() {
         <h1 className="font-heading text-3xl md:text-4xl mt-1 text-foreground">How to vote on November 3</h1>
         <p className="text-sm text-muted-foreground mt-2">{ELECTION_LABEL}. Every date and place here comes from an official source. Your election office has the final word.</p>
       </header>
+
+      <YourBallotCard state={profile?.state_code as string | null} zip={profile?.zip_code} />
 
       {contest && (
         <div className={card}>

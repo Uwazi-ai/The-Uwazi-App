@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ballotLevel, matchContest } from "@/lib/districts";
 import {
+import YourBallotCard from "@/components/ballot/YourBallotCard";
   useVoterProfile,
   useElectionAuthority,
   useMyFullBallot,
@@ -79,6 +80,8 @@ export default function MyBallotPage() {
         <h1 className="font-heading text-3xl md:text-4xl mt-1 text-foreground">Your November ballot</h1>
         <p className="text-sm text-muted-foreground mt-2">{ELECTION_LABEL}. Tap a choice to save it. Your picks stay private.</p>
       </header>
+
+      <YourBallotCard state={state} zip={profile?.zip_code} />
 
       {!isAddressComplete(profile) ? (
         <div className={card}>
