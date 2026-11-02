@@ -51,8 +51,9 @@ async function scrape(url: string) {
   const d = r.data ?? r;
   return { markdown: String(d.markdown ?? ''), links: (d.links ?? []) as string[] };
 }
-async function sha256(text: string) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+async function sha256(input: string | Uint8Array) {
+  const bytes = typeof input === 'string' ? new TextEncoder().encode(input) : input;
+  const buf = await crypto.subtle.digest('SHA-256', bytes);
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 // Hash only the stable body: drop dates/time-stamps the reader may vary.
@@ -154,9 +155,19 @@ async function crawlSource(db: any, run: string, src: any) {
     out.resolved_url = readUrl;
     const text = stableText(page.markdown);
     if (text.length < 200) throw new Error('The page had almost no readable text.');
-    const hash = await sha256(text);
+    // PDFs: hash the file bytes, since text extraction can vary between reads.
+    let hash: string | null = null;
+    if (/\.pdf|drive\.google\.com\/uc|documentcenter/i.test(readUrl)) {
+      try {
+        const r = await fetch(readUrl, { redirect: 'follow', signal: AbortSignal.timeout(30000) });
+        const b = new Uint8Array(await r.arrayBuffer());
+        if (r.ok && b.length > 1000 && new TextDecoder().decode(b.slice(0, 5)) === '%PDF-') { hash = `pdf:${await sha256(b)}`; out.hash_method = 'file'; }
+      } catch { /* fall back to text */ }
+    }
+    if (!hash) { hash = `txt:${await sha256(text.toLowerCase().replace(/[^a-z0-9]+/g, ''))}`; out.hash_method = 'text'; }
     out.hash = hash;
-    const changed = !!src.last_hash && src.last_hash !== hash;
+    // A switch in hash method (first byte-hash run) is not a content change.
+    const changed = !!src.last_hash && src.last_hash.slice(0, 4) === hash.slice(0, 4) && src.last_hash !== hash;
     out.changed = changed;
     let contests: any[] = [];
     if (src.kind !== 'notice') {
