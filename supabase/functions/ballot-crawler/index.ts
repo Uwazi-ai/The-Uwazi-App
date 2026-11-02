@@ -96,7 +96,7 @@ async function parseBallot(text: string, label: string) {
     'candidates: in printed order, with the party label exactly as printed, or null. Do not include the write-in line as a candidate; set has_write_in instead. ' +
     'For measures and judicial retention questions, ballot_question is the full official question text as printed. ' +
     'yes_statement and no_statement: only the official fair ballot language sentences that begin with "A yes vote will" and "A no vote will", copied exactly. Use null if the page does not print them. ' +
-    'Judicial retention questions use contest_type retention. If the same contest appears on several ballot styles, list it once.',
+    'Judicial retention questions use contest_type retention. List each judge as its own contest: title is the court heading as printed, then the judge name as printed, and ballot_question is that judge\'s question. If the same contest appears on several ballot styles, list it once.',
     `Source: ${label}\n\n${text.slice(0, 180000)}`, 'ballot', CONTEST_SCHEMA);
   return (parsed?.contests ?? []).filter((c: any) => c.title?.trim());
 }

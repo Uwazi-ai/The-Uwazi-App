@@ -74,10 +74,13 @@ const JUDGE_STOP = new Set(['of', 'the', 'missouri', 'supreme', 'court', 'circui
 export function contestKey(title: string, opts: { district?: string | null; isMeasure?: boolean } = {}): string {
   const t = norm(title);
   if (/\bretain|retention\b/.test(t) && /judge/.test(t)) {
-    const after = t.split(/\bjudge\b/)[1] ?? '';
-    const toks: string[] = [];
-    for (const w of after.split(' ').filter(Boolean)) { if (JUDGE_STOP.has(w)) break; toks.push(w); }
-    const name = toks.filter((x) => !/^(i|ii|iii|iv|jr|sr)$/.test(x) && x.length > 1);
+    let name: string[] = [];
+    for (const after of t.split(/\bjudge\b/).slice(1)) {
+      const toks: string[] = [];
+      for (const w of after.split(' ').filter(Boolean)) { if (JUDGE_STOP.has(w)) break; toks.push(w); }
+      name = toks.filter((x) => !/^(i|ii|iii|iv|jr|sr)$/.test(x) && x.length > 1);
+      if (name.length) break;
+    }
     return `retain:${name[name.length - 1] ?? t}`;
   }
   const am = t.match(/\bamendment\s*(?:no\s*)?(\d+)/) ?? t.match(/\b(\d+)\s*amendment\b/);

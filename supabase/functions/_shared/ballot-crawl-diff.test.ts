@@ -83,3 +83,9 @@ Deno.test('jumbled PDF headings, at-large seats and county offices still match',
   assertEquals(contestKey('For County Executive - Jackson County Jackson County'), contestKey('Jackson County Executive'));
   assertEquals(contestKey('Cass County FOR COUNTY AUDITOR'), contestKey('Cass County Auditor'));
 });
+
+Deno.test('retention keys use the judge name from the question', () => {
+  assertEquals(contestKey('MISSOURI COURT OF APPEALS JUDGE, WESTERN DISTRICT Lisa White Hardwick Shall Judge Lisa White Hardwick of the Missouri Court of Appeals be retained in office?'),
+    contestKey('Retain Judge Lisa White Hardwick — Court of Appeals, Western District'));
+  assertEquals(contestKey('Retain Judge Kenneth R. Garrett, III — Circuit Judge, Division 1'), 'retain:garrett');
+});
