@@ -99,7 +99,11 @@ export default function AdminBallotCrawlerPage() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (r: string) => { toast.success(r === "approved" ? "Approved and applied." : r === "rejected" ? "Rejected." : `Not changed: ${r}`); refresh(); },
+    onSuccess: (r: string) => {
+      if (r === "needs_district") toast.error("Not added. A contest with this title is already waiting with no district. Set its district in Ballot Review, then approve again.");
+      else toast.success(r === "approved" ? "Approved and applied." : r === "rejected" ? "Rejected." : `Not changed: ${r}`);
+      refresh();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
   const bulk = useMutation({
