@@ -678,6 +678,48 @@ export type Database = {
         }
         Relationships: []
       }
+      ballot_help_requests: {
+        Row: {
+          answered_at: string | null
+          answered_by: string | null
+          answered_note: string | null
+          city_or_zip: string
+          consent_at: string
+          created_at: string
+          id: string
+          reply_email: string
+          state_code: string
+          status: string
+          street_address: string | null
+        }
+        Insert: {
+          answered_at?: string | null
+          answered_by?: string | null
+          answered_note?: string | null
+          city_or_zip: string
+          consent_at: string
+          created_at?: string
+          id?: string
+          reply_email: string
+          state_code: string
+          status?: string
+          street_address?: string | null
+        }
+        Update: {
+          answered_at?: string | null
+          answered_by?: string | null
+          answered_note?: string | null
+          city_or_zip?: string
+          consent_at?: string
+          created_at?: string
+          id?: string
+          reply_email?: string
+          state_code?: string
+          status?: string
+          street_address?: string | null
+        }
+        Relationships: []
+      }
       ballot_items: {
         Row: {
           created_at: string
@@ -4063,6 +4105,27 @@ export type Database = {
           },
         ]
       }
+      public_rate_hits: {
+        Row: {
+          bucket: string
+          created_at: string
+          id: number
+          key_hash: string
+        }
+        Insert: {
+          bucket: string
+          created_at?: string
+          id?: never
+          key_hash: string
+        }
+        Update: {
+          bucket?: string
+          created_at?: string
+          id?: never
+          key_hash?: string
+        }
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           auth_key: string
@@ -5100,6 +5163,51 @@ export type Database = {
           status?: string
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      state_election_links: {
+        Row: {
+          check_url: string | null
+          notes: string | null
+          phone: string | null
+          phone_source_url: string | null
+          sample_ballot_url: string | null
+          state_code: string
+          state_name: string
+          updated_at: string
+          updated_by: string | null
+          url_check: Json
+          verified_at: string | null
+          website_url: string | null
+        }
+        Insert: {
+          check_url?: string | null
+          notes?: string | null
+          phone?: string | null
+          phone_source_url?: string | null
+          sample_ballot_url?: string | null
+          state_code: string
+          state_name: string
+          updated_at?: string
+          updated_by?: string | null
+          url_check?: Json
+          verified_at?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          check_url?: string | null
+          notes?: string | null
+          phone?: string | null
+          phone_source_url?: string | null
+          sample_ballot_url?: string | null
+          state_code?: string
+          state_name?: string
+          updated_at?: string
+          updated_by?: string | null
+          url_check?: Json
+          verified_at?: string | null
+          website_url?: string | null
         }
         Relationships: []
       }
@@ -6618,12 +6726,36 @@ export type Database = {
             }
             Returns: string
           }
+      admin_answer_ballot_help: {
+        Args: { _id: string; _note: string }
+        Returns: undefined
+      }
       admin_find_user: {
         Args: { _email: string }
         Returns: {
           email: string
           id: string
           is_coordinator: boolean
+        }[]
+      }
+      admin_list_ballot_help: {
+        Args: never
+        Returns: {
+          answered_at: string
+          answered_note: string
+          city_or_zip: string
+          created_at: string
+          has_address: boolean
+          id: string
+          state_code: string
+          status: string
+        }[]
+      }
+      admin_reveal_ballot_help: {
+        Args: { _id: string }
+        Returns: {
+          reply_email: string
+          street_address: string
         }[]
       }
       admin_rights_questions: {

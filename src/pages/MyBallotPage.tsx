@@ -1,3 +1,4 @@
+import YourBallotCard from "@/components/ballot/YourBallotCard";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -79,6 +80,8 @@ export default function MyBallotPage() {
         <h1 className="font-heading text-3xl md:text-4xl mt-1 text-foreground">Your November ballot</h1>
         <p className="text-sm text-muted-foreground mt-2">{ELECTION_LABEL}. Tap a choice to save it. Your picks stay private.</p>
       </header>
+
+      <YourBallotCard state={state} zip={profile?.zip_code} />
 
       {!isAddressComplete(profile) ? (
         <div className={card}>

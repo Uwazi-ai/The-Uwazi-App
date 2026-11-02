@@ -1,3 +1,4 @@
+import YourBallotCard from "@/components/ballot/YourBallotCard";
 import PrecinctFromAddress, { PRECINCT_SOURCE_LINE } from "@/components/voting/PrecinctFromAddress";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -178,6 +179,8 @@ export default function VotingHubPage() {
         <p className="eyebrow mb-2">{cityLabel}</p>
         <h1 className="font-heading text-[30px] leading-tight text-foreground">Your plan to vote</h1>
       </header>
+
+      <YourBallotCard state={state} zip={profile?.zip_code} />
 
       <div className="grid grid-cols-2 gap-[10px] lg:grid-cols-4">
         {/* 1. Countdown */}
