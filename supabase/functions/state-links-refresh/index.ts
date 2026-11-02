@@ -24,14 +24,30 @@ async function fc(path: string, body: unknown): Promise<any> {
 }
 const host = (u: string) => { try { return new URL(u).hostname.toLowerCase(); } catch { return ''; } };
 const root = (h: string) => h.split('.').slice(-2).join('.');
+function electionSite(u: string, siteHosts: string[]): boolean {
+  const h = host(u);
+  if (!official(u, siteHosts)) return false;
+  return siteHosts.some((s) => root(s) === root(h)) || /elect|vote|sos|boe|ballot/i.test(u);
+}
 function official(u: string, siteHosts: string[]): boolean {
   const h = host(u);
   if (!h) return false;
   if (h.endsWith('.gov') || h.endsWith('.us')) return true;
   return siteHosts.some((s) => root(s) === root(h));
 }
+// Direct check first. Many state sites block server requests (403), so a
+// blocked result is re-checked with a real browser read.
 async function loads(u: string | null): Promise<number | null> {
   if (!u) return null;
+  const direct = await directLoad(u);
+  if (direct > 0 && direct < 400) return direct;
+  try {
+    const r = await fc('/scrape', { url: u, formats: ['links'], onlyMainContent: true });
+    const code = Number(r?.data?.metadata?.statusCode ?? r?.metadata?.statusCode ?? 0);
+    return code || direct;
+  } catch { return direct; }
+}
+async function directLoad(u: string): Promise<number> {
   try {
     const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 10000);
     const r = await fetch(u, { redirect: 'follow', signal: ctl.signal, headers: { 'User-Agent': 'Mozilla/5.0 UWAZI link check' } });
@@ -49,7 +65,7 @@ async function oneState(code: string, name: string) {
     const r = await fc('/scrape', { url: `https://vote.gov/register/${slug}`, formats: ['markdown'], onlyMainContent: true });
     const md: string = r?.data?.markdown ?? r?.markdown ?? '';
     check = md.match(/up to date on \[[^\]]*election website\]\((https?:[^)\s]+)/i)?.[1] ?? null;
-    website = md.match(/Learn more on \[[^\]]*election website\]\((https?:[^)\s]+)/i)?.[1] ?? null;
+    website = md.match(/\[Learn more on [^\]]*election website\]\((https?:[^)\s]+)/i)?.[1] ?? null;
     if (!check && !website) notes.push('vote.gov page had no state link');
   } catch { notes.push('vote.gov read failed'); }
   const hosts = [check, website].filter(Boolean).map((u) => host(u!));
@@ -59,12 +75,12 @@ async function oneState(code: string, name: string) {
     const s = await fc('/search', { query: `${name} state election office elections division contact phone`, limit: 8 });
     const rows: any[] = s?.data?.web ?? s?.data ?? [];
     for (const row of rows) {
-      if (!official(row.url, hosts)) continue;
+      if (!electionSite(row.url, hosts)) continue;
       const m = `${row.title ?? ''} ${row.description ?? ''}`.match(PHONE);
       if (m) { phone = `(${m[1]}) ${m[2]}-${m[3]}`; phoneSrc = row.url; break; }
     }
     if (!phone) {
-      const top = rows.find((row) => official(row.url, hosts) && /contact|election/i.test(row.url));
+      const top = rows.find((row) => electionSite(row.url, hosts) && /contact|election/i.test(row.url));
       if (top) {
         const sc = await fc('/scrape', { url: top.url, formats: ['markdown'], onlyMainContent: true });
         const m = String(sc?.data?.markdown ?? '').match(PHONE);
@@ -76,7 +92,7 @@ async function oneState(code: string, name: string) {
   try {
     const s = await fc('/search', { query: `${name} official sample ballot lookup voter November 2026`, limit: 8 });
     const rows: any[] = s?.data?.web ?? s?.data ?? [];
-    sample = rows.find((row) => official(row.url, hosts) && /ballot|voter|myvote|lookup|portal/i.test(row.url))?.url ?? null;
+    sample = rows.find((row) => electionSite(row.url, hosts) && /ballot|voter|myvote|lookup|portal/i.test(row.url))?.url ?? null;
   } catch { notes.push('sample ballot search failed'); }
 
   const [w, c, sb, ps] = await Promise.all([loads(website), loads(check), loads(sample), loads(phoneSrc)]);
