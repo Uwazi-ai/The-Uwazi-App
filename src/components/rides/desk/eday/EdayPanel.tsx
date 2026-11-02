@@ -160,9 +160,11 @@ export function EdayPanel({ rides, loaded, settings, onSettings, svcDays, onOpen
   // Tab title carries only a count.
   useEffect(() => {
     if (!alertsOn) return;
+    // While alerts are on, this panel owns the title so Today's calls does not overwrite it.
+    document.documentElement.dataset.edayTitle = "1";
     document.title = deskTitle(unhandled.length);
   }, [alertsOn, unhandled.length]);
-  useEffect(() => () => { document.title = "Ride desk"; }, []);
+  useEffect(() => () => { delete document.documentElement.dataset.edayTitle; document.title = "Ride desk"; }, []);
 
   const turnOnAlerts = async () => {
     try {
