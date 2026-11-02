@@ -84,7 +84,7 @@ export function TodaysCalls({ rides, now, ztripPhone, onOpen, onChanged }: { rid
   }, [rides, events, waits, now]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const count = items.reduce((n, [, l]) => n + l.length, 0);
-  useEffect(() => { document.title = count ? `(${count}) Ride desk` : "Ride desk"; }, [count]);
+  useEffect(() => { if (document.documentElement.dataset.edayTitle) return; document.title = count ? `(${count}) Ride desk` : "Ride desk"; }, [count]);
   const btn = "min-h-[44px] rounded-xl px-3 text-sm font-semibold disabled:opacity-40";
   return (
     <section aria-labelledby="todays-calls" className="mb-6 rounded-2xl border border-[hsl(var(--rides-ink)/0.15)] p-4">
