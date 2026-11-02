@@ -76,3 +76,10 @@ Deno.test('findings never propose supporters or opponents text', () => {
   const c = live({ contest_type: 'ballot_measure', measure_title: 'Amendment 3', plain_summary: 'Republican plan.' });
   for (const f of diffBallot([c], [])) assertEquals(JSON.stringify(f.proposed).includes('supporters'), false);
 });
+
+Deno.test('jumbled PDF headings, at-large seats and county offices still match', () => {
+  assertEquals(contestKey('CONSTITUTIONAL 3 AMENDMENT NO.'), contestKey('Constitutional Amendment 3'));
+  assertEquals(contestKey('County Legislator, 2nd At-Large') === contestKey('County Legislator, 3rd At-Large'), false);
+  assertEquals(contestKey('For County Executive - Jackson County Jackson County'), contestKey('Jackson County Executive'));
+  assertEquals(contestKey('Cass County FOR COUNTY AUDITOR'), contestKey('Cass County Auditor'));
+});

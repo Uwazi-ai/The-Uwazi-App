@@ -80,7 +80,7 @@ export function contestKey(title: string, opts: { district?: string | null; isMe
     const name = toks.filter((x) => !/^(i|ii|iii|iv|jr|sr)$/.test(x) && x.length > 1);
     return `retain:${name[name.length - 1] ?? t}`;
   }
-  const am = t.match(/\bamendment\s*(?:no\s*)?(\d+)/);
+  const am = t.match(/\bamendment\s*(?:no\s*)?(\d+)/) ?? t.match(/\b(\d+)\s*amendment\b/);
   if (am) return `${scopeOf(t)}:amendment-${am[1]}`;
   const pr = t.match(/\bproposition\s*([a-z0-9]+)\b/);
   if (pr) return `${scopeOf(t)}:prop-${pr[1]}`;
@@ -91,24 +91,26 @@ export function contestKey(title: string, opts: { district?: string | null; isMe
   if (/state representative|state house/.test(t)) return `mo-house-${districtNum(t, opts.district) ?? '?'}`;
   if (/state senator|state senate/.test(t)) return `mo-senate-${districtNum(t, opts.district) ?? '?'}`;
   if (/county legislat/.test(t)) {
-    const n = districtNum(t, opts.district);
-    return `${scopeOf(t) === 'state' ? 'jackson' : scopeOf(t)}-leg-${n ?? (/at large/.test(t) ? 'at-large' : '?')}`;
+    const al = t.match(/(\d+)(?:st|nd|rd|th)?\s*at large/) ?? t.match(/at large\s*(?:district\s*)?(\d+)/);
+    const sc = scopeOf(t) === 'state' ? 'jackson' : scopeOf(t);
+    if (/at large/.test(t)) return `${sc}-leg-at-large-${al?.[1] ?? '?'}`;
+    return `${sc}-leg-${districtNum(t, opts.district) ?? '?'}`;
   }
-  return t.replace(/\b(missouri|the|for|of|vote|one)\b/g, ' ').replace(/\s+/g, ' ').trim();
+  const STOP = new Set(['missouri', 'the', 'for', 'of', 'vote', 'one', 'no', 'mo']);
+  return [...new Set(t.split(' ').filter((w) => w && !STOP.has(w)))].sort().join(' ');
 }
 
 export const liveTitle = (c: LiveContest) => (c.office_name || c.measure_title || '').trim();
 export function liveKey(c: LiveContest): string {
   const d = c.district_type === 'us_house' || c.district_type === 'mo_house' || c.district_type === 'jackson_leg' ? c.district_id : null;
-  const base = contestKey(liveTitle(c), { district: d });
-  if (c.district_type === 'county' && c.district_id && !/^(jackson|clay|platte|cass)/.test(base)) return `${c.district_id}:${base}`;
-  return base;
+  return contestKey(liveTitle(c), { district: d });
 }
 export function stagedKey(s: StagedContest): string {
   const t = s.title.trim();
   const j = s.jurisdiction?.trim();
   const local = j && !norm(t).includes(norm(j)) && !/amendment|proposition|retain|u\.?s\.?|united states|congress|state (auditor|representative|senator)/i.test(t);
-  return contestKey(`${local ? `${j} ` : ''}${t} ${s.district ?? ''}`.trim());
+  const extra = s.contest_type === 'retention' ? ` ${s.ballot_question ?? ''}` : '';
+  return contestKey(`${local ? `${j} ` : ''}${t} ${s.district ?? ''}${extra}`.trim());
 }
 const isRetention = (c: LiveContest) => /^retain\b/i.test(liveTitle(c));
 const isVisible = (c: LiveContest) => c.verification_status !== 'flagged';
