@@ -1,0 +1,1 @@
+ALTER TABLE public.state_election_links ADD COLUMN IF NOT EXISTS phone_verified boolean NOT NULL DEFAULT false;

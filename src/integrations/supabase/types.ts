@@ -5172,6 +5172,7 @@ export type Database = {
           notes: string | null
           phone: string | null
           phone_source_url: string | null
+          phone_verified: boolean
           sample_ballot_url: string | null
           state_code: string
           state_name: string
@@ -5186,6 +5187,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           phone_source_url?: string | null
+          phone_verified?: boolean
           sample_ballot_url?: string | null
           state_code: string
           state_name: string
@@ -5200,6 +5202,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           phone_source_url?: string | null
+          phone_verified?: boolean
           sample_ballot_url?: string | null
           state_code?: string
           state_name?: string
