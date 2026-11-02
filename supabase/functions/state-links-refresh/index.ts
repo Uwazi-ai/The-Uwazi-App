@@ -67,7 +67,7 @@ async function oneState(code: string, name: string) {
     check = md.match(/up to date on \[[^\]]*election website\]\((https?:[^)\s]+)/i)?.[1] ?? null;
     website = md.match(/\[Learn more on [^\]]*election website\]\((https?:[^)\s]+)/i)?.[1] ?? null;
     if (!check && !website) notes.push('vote.gov page had no state link');
-  } catch { notes.push('vote.gov read failed'); }
+  } catch (e) { notes.push(`vote.gov read failed ${(e as Error).message}`); }
   const hosts = [check, website].filter(Boolean).map((u) => host(u!));
 
   let phone: string | null = null; let phoneSrc: string | null = null; let sample: string | null = null;
@@ -87,7 +87,7 @@ async function oneState(code: string, name: string) {
         if (m) { phone = `(${m[1]}) ${m[2]}-${m[3]}`; phoneSrc = top.url; }
       }
     }
-  } catch { notes.push('phone search failed'); }
+  } catch (e) { notes.push(`phone search failed ${(e as Error).message}`); }
   if (!phone) notes.push('no phone found on an official site');
   try {
     const s = await fc('/search', { query: `${name} official sample ballot lookup voter November 2026`, limit: 8 });
