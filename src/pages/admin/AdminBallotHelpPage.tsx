@@ -11,7 +11,7 @@ import { stateName } from "@/lib/usStates";
 
 const db = supabase as any;
 type Req = { id: string; state_code: string; city_or_zip: string; has_address: boolean; status: string; answered_note: string | null; answered_at: string | null; created_at: string };
-type Link = { state_code: string; state_name: string; website_url: string | null; check_url: string | null; sample_ballot_url: string | null; phone: string | null; notes: string | null; verified_at: string | null };
+type Link = { state_code: string; state_name: string; website_url: string | null; check_url: string | null; sample_ballot_url: string | null; phone: string | null; phone_verified?: boolean; notes: string | null; verified_at: string | null };
 
 function RequestRow({ r, onDone }: { r: Req; onDone: () => void }) {
   const [shown, setShown] = useState<{ street_address: string | null; reply_email: string } | null>(null);
@@ -82,6 +82,16 @@ function LinkRow({ l, onSaved }: { l: Link; onSaved: () => void }) {
         <div className="flex flex-wrap gap-x-4 gap-y-1 break-all">
           {a(l.website_url, "Website")}{a(l.check_url, "Check registration")}{a(l.sample_ballot_url, "Sample ballot")}
           <span>{l.phone || "No phone"}</span>
+          {l.phone && (
+            <label className="inline-flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" className="accent-primary" checked={!!l.phone_verified} aria-label={`Phone checked for ${l.state_name}`}
+                onChange={async (e) => {
+                  const { error } = await db.from("state_election_links").update({ phone_verified: e.target.checked, updated_at: new Date().toISOString() }).eq("state_code", l.state_code);
+                  if (error) toast.error("Could not save."); else { toast.success("Saved."); onSaved(); }
+                }} />
+              Phone checked
+            </label>
+          )}
         </div>
       )}
       {l.notes && !edit && <p className="text-xs text-muted-foreground">{l.notes}</p>}

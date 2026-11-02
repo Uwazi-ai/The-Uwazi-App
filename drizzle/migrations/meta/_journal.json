@@ -330,6 +330,13 @@
       "when": 1793639043689,
       "tag": "0046_nationwide_ballot_lookup",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1793642394918,
+      "tag": "0047_state_links_phone_verified",
+      "breakpoints": true
     }
   ]
 }

@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { US_STATES, stateName } from "@/lib/usStates";
 import { toast } from "sonner";
+import { pickBallotLink, pickPhone, BALLOT_LINK_LABEL, VOTER_LOOKUP_HELPER } from "@/lib/ballotLink";
 
 const db = supabase as any;
 const ELECTION_DATE = "2026-11-03";
@@ -16,8 +17,8 @@ export const LOOKUP_SOURCE_LINE = "Source: Voting Information Project via Google
 
 type Site = { name: string | null; address: string | null; hours: string | null };
 type Lookup = {
-  status: string; state: string | null; officialBallotUrl: string | null;
-  office: { name: string | null; phone: string | null; url: string | null };
+  status: string; state: string | null; officialBallotUrl: string | null; officialBallotKind?: "sample_ballot" | "voter_lookup" | null;
+  office: { name: string | null; phone: string | null; url: string | null; phoneFrom?: string | null };
   pollingLocations: Site[]; pollingTotal: number; earlyVoteSites: Site[]; earlyTotal: number; dropOffLocations: Site[]; dropOffTotal: number;
   contests: { type: string | null; office: string | null; district: string | null; candidates: { name: string | null; party: string | null }[]; referendumTitle: string | null; referendumSubtitle: string | null; referendumText: string | null; referendumUrl: string | null }[];
   stateLinks: { state_name: string; website_url: string | null; check_url: string | null; sample_ballot_url: string | null; phone: string | null } | null;
@@ -71,7 +72,7 @@ export default function YourBallotCard({ state, zip, force = false }: { state: s
   const { data: link } = useQuery({
     queryKey: ["state-election-link", state],
     enabled: !!state,
-    queryFn: async () => (await db.from("state_election_links").select("state_name, website_url, check_url, sample_ballot_url, phone").eq("state_code", state).maybeSingle()).data,
+    queryFn: async () => (await db.from("state_election_links").select("state_name, website_url, check_url, sample_ballot_url, phone, phone_verified").eq("state_code", state).maybeSingle()).data,
   });
 
   if (!force && (isLoading || hasVerified)) return null;
@@ -86,8 +87,10 @@ export default function YourBallotCard({ state, zip, force = false }: { state: s
   };
 
   const links = result?.stateLinks ?? link;
-  const officialUrl = result?.officialBallotUrl || links?.sample_ballot_url || links?.check_url || links?.website_url || null;
-  const phone = result?.office?.phone || links?.phone || null;
+  const picked = result ? { url: result.officialBallotUrl, kind: result.officialBallotKind ?? null } : pickBallotLink(null, link);
+  const officialUrl = picked.url;
+  const phone = result ? (result.office?.phone || null) : pickPhone(null, link);
+  const officeUrl = result?.office?.url || links?.website_url || links?.check_url || null;
   const officeName = result?.office?.name || (links ? `${links.state_name} election office` : state ? `${stateName(state)} election office` : "Your election office");
 
   return (
@@ -100,9 +103,11 @@ export default function YourBallotCard({ state, zip, force = false }: { state: s
 
       {officialUrl ? (
         <Button asChild className="w-full sm:w-auto">
-          <a href={officialUrl} target="_blank" rel="noreferrer">See your official sample ballot <ExternalLink className="ml-2 h-4 w-4" /></a>
+          <a href={officialUrl} target="_blank" rel="noreferrer">{BALLOT_LINK_LABEL[picked.kind ?? "voter_lookup"]} <ExternalLink className="ml-2 h-4 w-4" /></a>
         </Button>
-      ) : (
+      ) : null}
+      {officialUrl && picked.kind === "voter_lookup" && <p className="text-sm text-muted-foreground -mt-2">{VOTER_LOOKUP_HELPER}</p>}
+      {!officialUrl && (
         <p className="text-sm text-muted-foreground">Add your state in your profile to see your official link.</p>
       )}
 
@@ -130,10 +135,15 @@ export default function YourBallotCard({ state, zip, force = false }: { state: s
         </div>
       )}
 
-      {(phone || officeName) && (
+      {phone ? (
         <div className="flex items-start gap-2 text-sm">
           <Phone className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-          <span className="min-w-0 break-words">{officeName}{phone ? <>: <a className="text-primary underline" href={`tel:${phone.replace(/[^\d+]/g, "")}`}>{phone}</a></> : null}</span>
+          <span className="min-w-0 break-words">{officeName}: <a className="text-primary underline" href={`tel:${phone.replace(/[^\d+]/g, "")}`}>{phone}</a></span>
+        </div>
+      ) : (
+        <div className="flex items-start gap-2 text-sm">
+          <Phone className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+          <span className="min-w-0 break-words">Contact your local election office.{officeUrl ? <> <a className="text-primary underline" href={officeUrl} target="_blank" rel="noreferrer">Official election page</a></> : null}</span>
         </div>
       )}
 
