@@ -1,3 +1,4 @@
+import YourBallotCard from "@/components/ballot/YourBallotCard";
 import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useQuery } from "@tanstack/react-query";
@@ -6,7 +7,6 @@ import PrecinctFromAddress, { PRECINCT_SOURCE_LINE } from "@/components/voting/P
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useVoterProfile, useElectionAuthority, useMyDistricts, lookupPrecinct, ELECTION_LABEL, ELECTION_DATE } from "@/hooks/useMyBallot";
-import YourBallotCard from "@/components/ballot/YourBallotCard";
 
 const HOW: Record<string, string[]> = {
   MO: [

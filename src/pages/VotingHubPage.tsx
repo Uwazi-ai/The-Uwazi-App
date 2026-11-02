@@ -1,3 +1,4 @@
+import YourBallotCard from "@/components/ballot/YourBallotCard";
 import PrecinctFromAddress, { PRECINCT_SOURCE_LINE } from "@/components/voting/PrecinctFromAddress";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -24,7 +25,6 @@ import {
   useVoterProfile,
 } from "@/hooks/useMyBallot";
 import { PlanSteps, planDoneCount, useVotingPlan } from "@/hooks/useVotingPlan";
-import YourBallotCard from "@/components/ballot/YourBallotCard";
 
 const db = supabase as any;
 const SUPPORTED_STATES = ["MO", "KS"];

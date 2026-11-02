@@ -1,3 +1,4 @@
+import YourBallotCard from "@/components/ballot/YourBallotCard";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -7,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ballotLevel, matchContest } from "@/lib/districts";
 import {
-import YourBallotCard from "@/components/ballot/YourBallotCard";
   useVoterProfile,
   useElectionAuthority,
   useMyFullBallot,
