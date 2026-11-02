@@ -65,6 +65,7 @@ import AdminSecurityPage from "./pages/admin/AdminSecurityPage";
 import AdminSEOPage from "./pages/admin/AdminSEOPage";
 import AdminBallotReviewPage from "./pages/admin/AdminBallotReviewPage";
 import AdminBallotCrawlerPage from "./pages/admin/AdminBallotCrawlerPage";
+import AdminBallotHelpPage from "./pages/admin/AdminBallotHelpPage";
 import AdminVoterGuidePage from "./pages/admin/AdminVoterGuidePage";
 import AdminRidesPage from "./pages/admin/AdminRidesPage";
 import AdminOfficeHealthPage from "./pages/admin/AdminOfficeHealthPage";
@@ -196,6 +197,7 @@ const App = () => (
                 <Route path="/app/admin/seo" element={<AdminRoute><AdminSEOPage /></AdminRoute>} />
                 <Route path="/app/admin/ballot-review" element={<AdminRoute><AdminBallotReviewPage /></AdminRoute>} />
                 <Route path="/app/admin/ballot-crawler" element={<AdminRoute><AdminBallotCrawlerPage /></AdminRoute>} />
+                <Route path="/app/admin/ballot-help" element={<AdminRoute><AdminBallotHelpPage /></AdminRoute>} />
                 <Route path="/app/admin/rides" element={<AdminRoute><AdminRidesPage /></AdminRoute>} />
                 <Route path="/app/admin/voter-guide" element={<AdminRoute><AdminVoterGuidePage /></AdminRoute>} />
                 <Route path="/app/admin/office-health" element={<AdminRoute allowReviewer><AdminOfficeHealthPage /></AdminRoute>} />

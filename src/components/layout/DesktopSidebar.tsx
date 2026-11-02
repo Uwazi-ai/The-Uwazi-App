@@ -51,6 +51,7 @@ const adminNav: AdminNavItem[] = [
   { to: "/app/admin/platform", icon: PlatformSettingsIcon, label: "Platform Settings" },
   { to: "/app/admin/ballot-review", icon: ShieldCheck, label: "Ballot Review" },
   { to: "/app/admin/ballot-crawler", icon: ShieldCheck, label: "Ballot Crawler" },
+  { to: "/app/admin/ballot-help", icon: ShieldCheck, label: "Ballot Help" },
   { to: "/app/admin/voter-guide", icon: ShieldCheck, label: "Voter Guide" },
   { to: "/app/admin/rides", icon: ShieldCheck, label: "Ride Desk" },
   { to: "/app/admin/office-health", icon: ShieldCheck, label: "Office Data Health", reviewer: true },
