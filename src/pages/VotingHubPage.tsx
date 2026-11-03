@@ -24,6 +24,7 @@ import {
   useElectionAuthority,
   useVoterProfile,
 } from "@/hooks/useMyBallot";
+import { ScopeTag, SourceNote } from "@/components/ballot/BallotScope";
 import { PlanSteps, planDoneCount, useVotingPlan } from "@/hooks/useVotingPlan";
 
 const db = supabase as any;
@@ -341,6 +342,8 @@ export default function VotingHubPage() {
                   >
                     <span className="city-tone-text block text-[10px] font-bold uppercase tracking-widest">{lvl.label}</span>
                     <span className="mt-2 block font-heading text-[17px] leading-snug text-foreground">{c.measure_title}</span>
+                    <span className="mt-2 block"><ScopeTag contest={c as any} /></span>
+                    <SourceNote contest={c} />
                     <span className="mt-2 block text-xs text-muted-foreground">
                       {c.contest_type === "candidate_race" ? "Tap to see candidates" : "Plain words on what a yes or no means"}
                     </span>
