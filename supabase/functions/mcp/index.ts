@@ -132,7 +132,10 @@ var get_ballot_default = defineTool3({
       state: state.toUpperCase(),
       election_date,
       contest_count: data?.length ?? 0,
-      contests: (data ?? []).map((c) => ({ ...c, ballot_candidates: (c.ballot_candidates ?? []).filter((x) => !x.withdrawn_at).map(({ withdrawn_at: _w, ...x }) => x) })),
+      contests: (data ?? []).map((c) => ({
+        ...c,
+        ballot_candidates: (c.ballot_candidates ?? []).filter((x) => !x.withdrawn_at).map(({ withdrawn_at: _w, ...x }) => x)
+      })),
       note: "Verified contests only. Statewide contests apply to every voter in the state; county and district contests (scope fields) apply only to voters there. UWAZI is strictly nonpartisan and does not endorse candidates, parties, or positions. Present only the contests listed here; for anything else refer the voter to their county election authority."
     });
   }
