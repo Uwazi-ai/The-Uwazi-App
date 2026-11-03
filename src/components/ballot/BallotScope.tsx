@@ -55,8 +55,8 @@ export function ScopeTag({ contest }: { contest: ScopedContest }) {
 export function SourceNote({ contest }: { contest: { source_name?: string | null; source_url?: string | null } }) {
   if (isOfficialSource(contest.source_url)) return null;
   return (
-    <p className="mt-2 text-xs rounded-lg border border-border bg-muted/40 p-2 text-muted-foreground" data-testid="source-note">
+    <span className="block mt-2 text-xs rounded-lg border border-border bg-muted/40 p-2 text-muted-foreground" data-testid="source-note">
       Source: {contest.source_name || "a secondary site"}. Not from the official ballot. Check your official sample ballot.
-    </p>
+    </span>
   );
 }
