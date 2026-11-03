@@ -117,3 +117,28 @@ describe("groupByScope", () => {
     expect(g[0].label).toBe("Statewide");
   });
 });
+
+import { countyFromZip as ilZip, resolveVoterCounty as ilResolve, ilAuthority, placeContest as ilPlace } from "@/lib/ballotScope";
+describe("Illinois county picker", () => {
+  it("defaults a one-county DuPage ZIP to DuPage", () => {
+    expect(ilZip("60148", "IL")).toBe("dupage");
+    expect(ilResolve({ state: "IL", hasKcebPrecinct: false, saved: null, zip: "60148" })).toEqual({ county: "dupage", source: "zip" });
+  });
+  it("never defaults a Cook County ZIP, so Chicago voters are asked", () => {
+    expect(ilZip("60601", "IL")).toBeNull();
+    expect(ilResolve({ state: "IL", hasKcebPrecinct: false, saved: null, zip: "60601" }).county).toBeNull();
+  });
+  it("rejects a Missouri county saved on an Illinois profile", () => {
+    expect(ilResolve({ state: "IL", hasKcebPrecinct: false, saved: "jackson", zip: null }).county).toBeNull();
+    expect(ilResolve({ state: "IL", hasKcebPrecinct: false, saved: "chicago", zip: null }).county).toBe("chicago");
+  });
+  it("links Another Illinois county to the State Board list of authorities", () => {
+    expect(ilAuthority("il_other")?.url).toBe("https://www.elections.il.gov/ElectionOperations/ElectionAuthorities.aspx");
+    expect(ilAuthority("chicago")?.name).toBe("Chicago Board of Election Commissioners");
+  });
+  it("shows Illinois statewide races only to Illinois voters", () => {
+    const c = { state: "IL", scope_level: "statewide" };
+    expect(ilPlace(c, { state: "IL", county: "dupage", districts: {} })).toBe("show");
+    expect(ilPlace(c, { state: "MO", county: "jackson", districts: {} })).toBe("hide");
+  });
+});
