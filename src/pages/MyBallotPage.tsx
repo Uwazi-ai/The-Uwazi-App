@@ -6,7 +6,7 @@ import { ArrowRight, Check, ExternalLink, HelpCircle, MapPin } from "lucide-reac
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ballotLevel } from "@/lib/districts";
+import { groupByScope } from "@/lib/ballotScope";
 import { CountyPicker, DistrictUnknownLine, ScopeTag, SourceNote } from "@/components/ballot/BallotScope";
 import {
   useVoterProfile,
@@ -23,14 +23,6 @@ import {
   BallotContest,
   BallotSelection,
 } from "@/hooks/useMyBallot";
-
-const SECTIONS: { key: ReturnType<typeof ballotLevel>; label: string }[] = [
-  { key: "federal", label: "Federal" },
-  { key: "state", label: "State" },
-  { key: "county", label: "County" },
-  { key: "local", label: "City and local" },
-  { key: "measure", label: "Ballot measures" },
-];
 
 const card = "rounded-2xl border border-border bg-card p-5 md:p-6";
 
@@ -116,9 +108,8 @@ export default function MyBallotPage() {
               {authorityLink && <a href={authorityLink} target="_blank" rel="noreferrer"><Button className="mt-4">See my sample ballot <ExternalLink className="h-4 w-4 ml-1" /></Button></a>}
             </div>
           ) : (
-            SECTIONS.map((s) => {
-              const list = mine.filter((c) => ballotLevel(c as any) === s.key);
-              if (!list.length) return null;
+            groupByScope(mine as any[], place.county).map((s) => {
+              const list = s.items as BallotContest[];
               return (
                 <section key={s.key} className="space-y-3">
                   <h2 className="text-xs tracking-widest uppercase text-muted-foreground pt-2">{s.label}</h2>

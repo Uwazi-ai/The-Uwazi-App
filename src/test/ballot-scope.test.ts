@@ -102,3 +102,18 @@ describe("official sources", () => {
     expect(isOfficialSource(null)).toBe(false);
   });
 });
+
+import { groupByScope as _gbs } from "@/lib/ballotScope";
+describe("groupByScope", () => {
+  const mk = (id: string, scope_level: any, extra: any = {}) => ({ id, state: "MO", scope_level, scope_counties: null, scope_district_type: null, scope_district_id: null, ...extra });
+  it("puts statewide races first, then county, then districts, keeping order", () => {
+    const g = _gbs([mk("h", "district"), mk("auditor", "statewide"), mk("q1", "county", { scope_counties: ["jackson"] }), mk("a3", "statewide")] as any, "jackson");
+    expect(g.map((x) => x.label)).toEqual(["Statewide", "Jackson County", "Your districts"]);
+    expect(g[0].items.map((x: any) => x.id)).toEqual(["auditor", "a3"]);
+  });
+  it("shows State Auditor under Statewide for another county voter", () => {
+    const g = _gbs([mk("auditor", "statewide")] as any, "other");
+    expect(g).toHaveLength(1);
+    expect(g[0].label).toBe("Statewide");
+  });
+});
