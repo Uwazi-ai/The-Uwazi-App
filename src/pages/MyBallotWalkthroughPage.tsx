@@ -1,4 +1,4 @@
-import { groupByScope, scopeGroup } from "@/lib/ballotScope";
+import { groupByScope, scopeGroup, scopeLabel } from "@/lib/ballotScope";
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -157,7 +157,7 @@ export default function MyBallotWalkthroughPage() {
         >
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-xs tracking-widest uppercase text-muted-foreground">
-              {({ statewide: "Statewide", county: "Your county", districts: "Your districts" } as Record<string, string>)[scopeGroup(contest as any) ?? ""] ?? ""} · {contest.contest_type === "ballot_measure" ? "Ballot Measure" : "Candidate Race"}
+              {({ statewide: "Statewide", county: scopeLabel(contest as any) || "Your county", districts: "Your districts" } as Record<string, string>)[scopeGroup(contest as any) ?? ""] ?? ""} · {contest.contest_type === "ballot_measure" ? "Ballot Measure" : "Candidate Race"}
             </p>
             <ScopeTag contest={contest} />
           </div>
