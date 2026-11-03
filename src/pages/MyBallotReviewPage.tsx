@@ -1,4 +1,4 @@
-import { groupByScope } from "@/lib/ballotScope";
+import { groupByScope, ilAuthority } from "@/lib/ballotScope";
 import { useMemo } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";

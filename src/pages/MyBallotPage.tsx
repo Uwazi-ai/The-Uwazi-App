@@ -6,7 +6,7 @@ import { ArrowRight, Check, ExternalLink, HelpCircle, MapPin } from "lucide-reac
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { groupByScope } from "@/lib/ballotScope";
+import { groupByScope, ilAuthority } from "@/lib/ballotScope";
 import { CountyPicker, DistrictUnknownLine, ScopeTag, SourceNote } from "@/components/ballot/BallotScope";
 import {
   useVoterProfile,

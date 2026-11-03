@@ -1,4 +1,4 @@
-import { COUNTY_LABEL, groupByScope, scopeGroup } from "@/lib/ballotScope";
+import { COUNTY_LABEL, groupByScope, scopeGroup, isOtherCounty, ilAuthority } from "@/lib/ballotScope";
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
