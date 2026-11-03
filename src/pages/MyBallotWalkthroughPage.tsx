@@ -5,9 +5,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PracticeBanner } from "@/components/ballot/PracticeBanner";
+import { CountyPicker, DistrictUnknownLine, ScopeTag, SourceNote } from "@/components/ballot/BallotScope";
+import YourBallotCard from "@/components/ballot/YourBallotCard";
+
 import { cn } from "@/lib/utils";
 import {
   useVoterProfile,
+  useElectionAuthority,
   useBallotContestsForState,
   useBallotCandidates,
   useMyBallotSelections,
@@ -25,7 +29,16 @@ export default function MyBallotWalkthroughPage() {
   const { data: profile, isLoading: pLoading } = useVoterProfile();
   const state = profile?.state_code || null;
   const party = (profile?.party_preference as PartyKey) || null;
-  const { data: allContests = [], isLoading: cLoading } = useBallotContestsForState(state);
+  const { data: allContests = [], isLoading: cLoading, districtUnknown, place, countySource } = useBallotContestsForState(state);
+  const { data: authority } = useElectionAuthority(profile);
+  const officialLink = authority?.lookup_url || authority?.website || null;
+  const scopeControls = (
+    <>
+      <CountyPicker state={state} county={place.county} source={countySource} />
+      {state === "MO" && place.county === "other" && <YourBallotCard state={state} zip={profile?.zip_code} force />}
+      <DistrictUnknownLine count={districtUnknown} link={officialLink} />
+    </>
+  );
   const { data: selections = [] } = useMyBallotSelections();
   const saveSelection = useSaveSelection();
 
@@ -54,6 +67,7 @@ export default function MyBallotWalkthroughPage() {
     return (
       <div className="max-w-2xl mx-auto px-4 md:px-6 py-6 space-y-5">
         <PracticeBanner />
+        {scopeControls}
         <div
           className="rounded-2xl p-6"
           style={{ background: "var(--card-bg, rgba(255,255,255,0.03))", border: "1px solid rgba(255,255,255,0.08)" }}
@@ -116,6 +130,7 @@ export default function MyBallotWalkthroughPage() {
       </Helmet>
 
       <PracticeBanner />
+      {scopeControls}
 
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>
@@ -139,12 +154,16 @@ export default function MyBallotWalkthroughPage() {
           className="rounded-2xl p-5 md:p-6"
           style={{ background: "var(--card-bg, rgba(255,255,255,0.03))", border: "1px solid rgba(255,255,255,0.08)" }}
         >
-          <p className="text-xs tracking-widest uppercase text-muted-foreground">
-            {contest.contest_type === "ballot_measure" ? "Ballot Measure" : "Candidate Race"}
-          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs tracking-widest uppercase text-muted-foreground">
+              {contest.contest_type === "ballot_measure" ? "Ballot Measure" : "Candidate Race"}
+            </p>
+            <ScopeTag contest={contest} />
+          </div>
           <h1 className="font-heading text-2xl md:text-3xl text-foreground mt-1" style={{ letterSpacing: "-0.01em" }}>
             {contest.measure_title}
           </h1>
+          <SourceNote contest={contest} />
 
           {contest.contest_type === "candidate_race" ? (
             <CandidateChooser

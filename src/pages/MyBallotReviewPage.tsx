@@ -4,8 +4,12 @@ import { Helmet } from "react-helmet-async";
 import { AlertCircle, Camera, Mail, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PracticeBanner } from "@/components/ballot/PracticeBanner";
+import { CountyPicker, DistrictUnknownLine, ScopeTag, SourceNote } from "@/components/ballot/BallotScope";
+import YourBallotCard from "@/components/ballot/YourBallotCard";
+
 import {
   useVoterProfile,
+  useElectionAuthority,
   useBallotContestsForState,
   useBallotCandidates,
   useMyBallotSelections,
@@ -21,7 +25,9 @@ export default function MyBallotReviewPage() {
   const { data: profile, isLoading } = useVoterProfile();
   const state = profile?.state_code || null;
   const party = (profile?.party_preference as PartyKey) || null;
-  const { data: allContests = [] } = useBallotContestsForState(state);
+  const { data: allContests = [], districtUnknown, place, countySource } = useBallotContestsForState(state);
+  const { data: authority } = useElectionAuthority(profile);
+  const officialLink = authority?.lookup_url || authority?.website || null;
   const { data: selections = [] } = useMyBallotSelections();
 
   const contests = useMemo(() => filterContestsForParty(allContests, party), [allContests, party]);
@@ -73,16 +79,22 @@ export default function MyBallotReviewPage() {
         </p>
       </header>
 
+      <CountyPicker state={state} county={place.county} source={countySource} />
+      {state === "MO" && place.county === "other" && <YourBallotCard state={state} zip={profile?.zip_code} force />}
+      <DistrictUnknownLine count={districtUnknown} link={officialLink} />
+
       <div
         className="rounded-2xl divide-y divide-white/5 overflow-hidden"
         style={{ background: "var(--card-bg, rgba(255,255,255,0.03))", border: "1px solid rgba(255,255,255,0.08)" }}
       >
         {rows.map((r) => (
           <div key={r.contest.id} className="p-4">
-            <div className="text-xs uppercase tracking-widest text-muted-foreground">
-              {r.contest.contest_type === "ballot_measure" ? "Measure" : "Race"}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs uppercase tracking-widest text-muted-foreground">{r.contest.contest_type === "ballot_measure" ? "Measure" : "Race"}</span>
+              <ScopeTag contest={r.contest} />
             </div>
             <div className="font-medium text-foreground mt-0.5">{r.contest.measure_title}</div>
+            <SourceNote contest={r.contest} />
             <div className={"mt-1 text-sm " + (r.undecided ? "text-amber-300/90" : "text-primary")}>
               {r.undecided && <AlertCircle className="inline h-3.5 w-3.5 mr-1" />}
               {r.choice}
