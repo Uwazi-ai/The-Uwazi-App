@@ -186,17 +186,13 @@ export function useElectionAuthority(profile: any) {
 
 const CONTEST_FIELDS = "id, state, contest_type, sort_order, measure_title, measure_summary, plain_summary, yes_means, no_means, measure_full_text_url, source_name, source_url, district_type, district_id, fiscal_note, office_name, party, vote_for, scope_level, scope_counties, scope_district_type, scope_district_id";
 
-/** Session-only county choice for previews and before saving. Never written anywhere. */
-let sessionCounty: VoterCounty | null = null;
-export function setSessionCounty(c: VoterCounty | null) { sessionCounty = c; }
-
 /** The voter's state, county and known districts. Never includes an address. */
 export function useVoterPlace(): { place: VoterPlace; countySource: CountySource; isLoading: boolean } {
   const { data: profile, isLoading: pLoading } = useVoterProfile();
   const { data: districts, isLoading: dLoading } = useMyDistricts();
   const state = profile?.state_code || null;
   const info = lookupPrecinct((profile as any)?.precinct_id);
-  const { county, source } = resolveVoterCounty({ state, hasKcebPrecinct: !!info, saved: sessionCounty ?? (profile as any)?.ballot_county, zip: profile?.zip_code });
+  const { county, source } = resolveVoterCounty({ state, hasKcebPrecinct: !!info, saved: (profile as any)?.ballot_county, zip: profile?.zip_code });
   const r = districts?.resolved || {};
   const d: VoterPlace["districts"] = {};
   if (info) { d.state_house = String(info.rep); d.county_leg = String(info.leg); }
