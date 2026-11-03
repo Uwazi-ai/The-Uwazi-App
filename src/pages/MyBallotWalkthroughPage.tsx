@@ -1,4 +1,4 @@
-import { COUNTY_LABEL, groupByScope, scopeGroup } from "@/lib/ballotScope";
+import { COUNTY_LABEL, groupByScope, scopeGroup, isOtherCounty, ilAuthority } from "@/lib/ballotScope";
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -31,14 +31,14 @@ export default function MyBallotWalkthroughPage() {
   const state = profile?.state_code || null;
   const party = (profile?.party_preference as PartyKey) || null;
   const { data: allContests = [], isLoading: cLoading, districtUnknown, place, countySource } = useBallotContestsForState(state);
-  const myCountyLabel = place?.county && place.county !== "other" ? COUNTY_LABEL[place.county] : "Your county";
+  const myCountyLabel = place?.county && !isOtherCounty(place.county) ? COUNTY_LABEL[place.county] : "Your county";
   const { data: authority } = useElectionAuthority(profile);
   const officialLink = authority?.lookup_url || authority?.website || null;
   const scopeControls = (
     <>
       <CountyPicker state={state} county={place.county} source={countySource} />
-      {state === "MO" && place.county === "other" && <YourBallotCard state={state} zip={profile?.zip_code} force />}
-      <DistrictUnknownLine count={districtUnknown} link={officialLink} />
+      {((state === "MO" && place.county === "other") || state === "IL") && <YourBallotCard state={state} zip={profile?.zip_code} force />}
+      <DistrictUnknownLine count={state === "IL" ? Math.max(1, districtUnknown) : districtUnknown} link={state === "IL" ? ilAuthority(place.county)?.url ?? officialLink : officialLink} />
     </>
   );
   const { data: selections = [] } = useMyBallotSelections();

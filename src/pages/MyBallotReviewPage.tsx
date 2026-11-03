@@ -1,4 +1,4 @@
-import { groupByScope } from "@/lib/ballotScope";
+import { groupByScope, ilAuthority } from "@/lib/ballotScope";
 import { useMemo } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -81,8 +81,8 @@ export default function MyBallotReviewPage() {
       </header>
 
       <CountyPicker state={state} county={place.county} source={countySource} />
-      {state === "MO" && place.county === "other" && <YourBallotCard state={state} zip={profile?.zip_code} force />}
-      <DistrictUnknownLine count={districtUnknown} link={officialLink} />
+      {((state === "MO" && place.county === "other") || state === "IL") && <YourBallotCard state={state} zip={profile?.zip_code} force />}
+      <DistrictUnknownLine count={state === "IL" ? Math.max(1, districtUnknown) : districtUnknown} link={state === "IL" ? ilAuthority(place.county)?.url ?? officialLink : officialLink} />
 
       <div
         className="rounded-2xl divide-y divide-white/5 overflow-hidden"

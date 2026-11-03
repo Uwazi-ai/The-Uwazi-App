@@ -9,6 +9,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { US_STATES, stateName } from "@/lib/usStates";
 import { toast } from "sonner";
+import { ilAuthority } from "@/lib/ballotScope";
+import { useVoterPlace } from "@/hooks/useMyBallot";
 import { pickBallotLink, pickPhone, BALLOT_LINK_LABEL, VOTER_LOOKUP_HELPER } from "@/lib/ballotLink";
 
 const db = supabase as any;
@@ -63,6 +65,10 @@ function SiteList({ title, sites, total }: { title: string; sites: Site[]; total
 /** "Your ballot" card for places where UWAZI has no verified contests. Nothing typed here is saved. */
 export default function YourBallotCard({ state, zip, force = false }: { state: string | null | undefined; zip?: string | null; force?: boolean }) {
   const { data: hasVerified, isLoading } = useStateHasVerified(state);
+  const { place } = useVoterPlace();
+  // Illinois: UWAZI has statewide races only, so the county lookup always shows.
+  const ilAuth = state === "IL" ? ilAuthority(place.county) : null;
+  if (state === "IL") force = true;
   const [address, setAddress] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Lookup | null>(null);
@@ -101,6 +107,12 @@ export default function YourBallotCard({ state, zip, force = false }: { state: s
         <p className="text-sm text-muted-foreground mt-1">Your state election office has the official ballot. UWAZI does not endorse any candidate or side.</p>
       </div>
 
+      {ilAuth && (
+        <Button asChild className="w-full sm:w-auto whitespace-normal h-auto py-2 text-left" data-testid="il-authority-button">
+          <a href={ilAuth.url} target="_blank" rel="noreferrer">Find your exact ballot: {ilAuth.name} <ExternalLink className="ml-2 h-4 w-4 shrink-0" /></a>
+        </Button>
+      )}
+      {state === "IL" && !ilAuth && <p className="text-sm text-muted-foreground">Pick your county above to get your county's official ballot lookup.</p>}
       {officialUrl ? (
         <Button asChild className="w-full sm:w-auto">
           <a href={officialUrl} target="_blank" rel="noreferrer">{BALLOT_LINK_LABEL[picked.kind ?? "voter_lookup"]} <ExternalLink className="ml-2 h-4 w-4" /></a>

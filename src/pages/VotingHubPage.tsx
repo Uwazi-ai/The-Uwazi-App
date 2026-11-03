@@ -25,11 +25,12 @@ import {
   useVoterProfile,
 } from "@/hooks/useMyBallot";
 import { ScopeTag, SourceNote } from "@/components/ballot/BallotScope";
-import { COUNTY_LABEL, groupByScope, scopeGroup } from "@/lib/ballotScope";
+import { COUNTY_LABEL, groupByScope, scopeGroup, isOtherCounty } from "@/lib/ballotScope";
+import { CountyPicker } from "@/components/ballot/BallotScope";
 import { PlanSteps, planDoneCount, useVotingPlan } from "@/hooks/useVotingPlan";
 
 const db = supabase as any;
-const SUPPORTED_STATES = ["MO", "KS"];
+const SUPPORTED_STATES = ["MO", "KS", "IL"];
 const askLink = (q: string) => `/app/ask?q=${encodeURIComponent(q)}`;
 const tile = "city-tile min-w-0 rounded-[20px] border border-border bg-card p-4 sm:p-6";
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -95,8 +96,8 @@ export default function VotingHubPage() {
   const { data: districts } = useMyDistricts();
   const { data: offices = [] } = useMyOffices();
   const party = ((profile as any)?.party_preference as PartyKey) || null;
-  const { data: allContests = [], place: ballotPlace } = useBallotContestsForState(state) as any;
-  const myCountyLabel = ballotPlace?.county && ballotPlace.county !== "other" ? COUNTY_LABEL[ballotPlace.county] : "Your county";
+  const { data: allContests = [], place: ballotPlace, countySource: ballotCountySource } = useBallotContestsForState(state) as any;
+  const myCountyLabel = ballotPlace?.county && !isOtherCounty(ballotPlace.county) ? COUNTY_LABEL[ballotPlace.county] : "Your county";
   const contests = useMemo(() => groupByScope(filterContestsForParty(allContests, party) as any[], null).flatMap((g) => g.items) as BallotContest[], [allContests, party]);
   const { steps, save } = useVotingPlan(election?.id ?? null);
 
@@ -187,6 +188,7 @@ export default function VotingHubPage() {
         <h1 className="font-heading text-[30px] leading-tight text-foreground">Your plan to vote</h1>
       </header>
 
+      {state === "IL" && <CountyPicker state={state} county={ballotPlace?.county ?? null} source={ballotCountySource ?? null} />}
       <YourBallotCard state={state} zip={profile?.zip_code} />
 
       <div className="grid grid-cols-2 gap-[10px] lg:grid-cols-4">
