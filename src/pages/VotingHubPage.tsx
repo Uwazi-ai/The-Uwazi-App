@@ -25,7 +25,7 @@ import {
   useVoterProfile,
 } from "@/hooks/useMyBallot";
 import { ScopeTag, SourceNote } from "@/components/ballot/BallotScope";
-import { groupByScope, scopeGroup, scopeLabel } from "@/lib/ballotScope";
+import { COUNTY_LABEL, groupByScope, scopeGroup } from "@/lib/ballotScope";
 import { PlanSteps, planDoneCount, useVotingPlan } from "@/hooks/useVotingPlan";
 
 const db = supabase as any;
@@ -70,10 +70,10 @@ function AskButton({ q, label, variant = "default", pulse = false }: { q: string
 
 /* ── level colors, same palette as the My City bento ── */
 type Level = { key: string; label: string; tone: string };
-function levelOf(c: BallotContest): Level {
+function levelOf(c: BallotContest, countyLabel = "Your county"): Level {
   const g = scopeGroup(c as any);
   if (g === "statewide") return { key: "statewide", label: "Statewide", tone: "city-tone-3" };
-  if (g === "county") return { key: "county", label: scopeLabel(c as any) || "Your county", tone: "city-tone-2" };
+  if (g === "county") return { key: "county", label: countyLabel, tone: "city-tone-2" };
   if (g === "districts") return { key: "districts", label: "Your districts", tone: "city-tone-1" };
   const t = `${c.measure_title} ${(c as any).office_name ?? ""}`;
   if (/U\.S\.|United States|President/i.test(t)) return { key: "federal", label: "Federal", tone: "city-tone-1" };
@@ -95,7 +95,8 @@ export default function VotingHubPage() {
   const { data: districts } = useMyDistricts();
   const { data: offices = [] } = useMyOffices();
   const party = ((profile as any)?.party_preference as PartyKey) || null;
-  const { data: allContests = [] } = useBallotContestsForState(state);
+  const { data: allContests = [], place: ballotPlace } = useBallotContestsForState(state) as any;
+  const myCountyLabel = ballotPlace?.county && ballotPlace.county !== "other" ? COUNTY_LABEL[ballotPlace.county] : "Your county";
   const contests = useMemo(() => groupByScope(filterContestsForParty(allContests, party) as any[], null).flatMap((g) => g.items) as BallotContest[], [allContests, party]);
   const { steps, save } = useVotingPlan(election?.id ?? null);
 
@@ -333,7 +334,7 @@ export default function VotingHubPage() {
               </p>
             </div>
             {contests.map((c) => {
-              const lvl = levelOf(c);
+              const lvl = levelOf(c, myCountyLabel);
               const wide = c.id === biggestRaceId || c.contest_type !== "candidate_race";
               const isOpen = opened.includes(c.id);
               return (
