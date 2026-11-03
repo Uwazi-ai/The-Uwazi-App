@@ -1,3 +1,4 @@
+import { groupByScope, scopeGroup } from "@/lib/ballotScope";
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -42,7 +43,7 @@ export default function MyBallotWalkthroughPage() {
   const { data: selections = [] } = useMyBallotSelections();
   const saveSelection = useSaveSelection();
 
-  const contests = useMemo(() => filterContestsForParty(allContests, party), [allContests, party]);
+  const contests = useMemo(() => groupByScope(filterContestsForParty(allContests, party) as any[], null).flatMap((g) => g.items) as typeof allContests, [allContests, party]);
   const contestIds = useMemo(() => contests.map((c) => c.id), [contests]);
   const { data: candidates = [] } = useBallotCandidates(contestIds);
 
@@ -156,7 +157,7 @@ export default function MyBallotWalkthroughPage() {
         >
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-xs tracking-widest uppercase text-muted-foreground">
-              {contest.contest_type === "ballot_measure" ? "Ballot Measure" : "Candidate Race"}
+              {({ statewide: "Statewide", county: "Your county", districts: "Your districts" } as Record<string, string>)[scopeGroup(contest as any) ?? ""] ?? ""} · {contest.contest_type === "ballot_measure" ? "Ballot Measure" : "Candidate Race"}
             </p>
             <ScopeTag contest={contest} />
           </div>

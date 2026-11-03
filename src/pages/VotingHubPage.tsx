@@ -25,6 +25,7 @@ import {
   useVoterProfile,
 } from "@/hooks/useMyBallot";
 import { ScopeTag, SourceNote } from "@/components/ballot/BallotScope";
+import { groupByScope, scopeGroup, scopeLabel } from "@/lib/ballotScope";
 import { PlanSteps, planDoneCount, useVotingPlan } from "@/hooks/useVotingPlan";
 
 const db = supabase as any;
@@ -70,6 +71,10 @@ function AskButton({ q, label, variant = "default", pulse = false }: { q: string
 /* ── level colors, same palette as the My City bento ── */
 type Level = { key: string; label: string; tone: string };
 function levelOf(c: BallotContest): Level {
+  const g = scopeGroup(c as any);
+  if (g === "statewide") return { key: "statewide", label: "Statewide", tone: "city-tone-3" };
+  if (g === "county") return { key: "county", label: scopeLabel(c as any) || "Your county", tone: "city-tone-2" };
+  if (g === "districts") return { key: "districts", label: "Your districts", tone: "city-tone-1" };
   const t = `${c.measure_title} ${(c as any).office_name ?? ""}`;
   if (/U\.S\.|United States|President/i.test(t)) return { key: "federal", label: "Federal", tone: "city-tone-1" };
   if (/County|Circuit|Sheriff|Prosecut/i.test(t)) return { key: "county", label: "County", tone: "city-tone-2" };
@@ -91,7 +96,7 @@ export default function VotingHubPage() {
   const { data: offices = [] } = useMyOffices();
   const party = ((profile as any)?.party_preference as PartyKey) || null;
   const { data: allContests = [] } = useBallotContestsForState(state);
-  const contests = useMemo(() => filterContestsForParty(allContests, party), [allContests, party]);
+  const contests = useMemo(() => groupByScope(filterContestsForParty(allContests, party) as any[], null).flatMap((g) => g.items) as BallotContest[], [allContests, party]);
   const { steps, save } = useVotingPlan(election?.id ?? null);
 
   const daysLeft = election?.election_date ? daysUntil(election.election_date) : null;

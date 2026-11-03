@@ -1,3 +1,4 @@
+import { groupByScope } from "@/lib/ballotScope";
 import { useMemo } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -30,7 +31,7 @@ export default function MyBallotReviewPage() {
   const officialLink = authority?.lookup_url || authority?.website || null;
   const { data: selections = [] } = useMyBallotSelections();
 
-  const contests = useMemo(() => filterContestsForParty(allContests, party), [allContests, party]);
+  const contests = useMemo(() => groupByScope(filterContestsForParty(allContests, party) as any[], null).flatMap((g) => g.items) as typeof allContests, [allContests, party]);
   const contestIds = useMemo(() => contests.map((c) => c.id), [contests]);
   const { data: candidates = [] } = useBallotCandidates(contestIds);
 
