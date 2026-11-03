@@ -79,10 +79,11 @@ describe("voter county", () => {
   });
   it("defaults from ZIP only when the ZIP is in a single county", () => {
     expect(countyFromZip("64012")).toBe("cass"); // Belton, Cass County only
-    expect(countyFromZip("64151")).toBe("platte");
+    expect(countyFromZip("64079")).toBe("platte"); // Platte City
+    expect(countyFromZip("64151")).toBeNull(); // spans two counties
     expect(countyFromZip("64068")).toBe("clay"); // Liberty
     expect(countyFromZip("64105")).toBe("jackson");
-    expect(countyFromZip("65101")).toBe("other"); // Jefferson City
+    expect(countyFromZip("65802")).toBe("other"); // Springfield, Greene County
     expect(countyFromZip("64081")).toBe("jackson"); // Lee's Summit is in Jackson only per Census
     expect(resolveVoterCounty({ state: "MO", hasKcebPrecinct: false, saved: null, zip: "00000" })).toEqual({ county: null, source: null });
   });
