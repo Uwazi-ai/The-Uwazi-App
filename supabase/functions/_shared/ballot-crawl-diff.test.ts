@@ -91,3 +91,16 @@ Deno.test('retention keys use the judge name from the question', () => {
     contestKey('Retain Judge Lisa White Hardwick — Court of Appeals, Western District'));
   assertEquals(contestKey('Retain Judge Kenneth R. Garrett, III — Circuit Judge, Division 1'), 'retain:garrett');
 });
+
+Deno.test('SOS parser reads only the Nov 3 section, never the Aug 4 primary measures', async () => {
+  const { sosNovemberSection } = await import('./ballot-crawl-diff.ts');
+  const page = 'Home 2026 Ballot Measures The following ballot measures have been certified for the November 3, 2026 general election. ' +
+    'Official Ballot Title Amendment 3 text. Official Ballot Title Amendment 6 text. Official Ballot Title Amendment 7 text. ' +
+    'Official Ballot Title Amendment 8 text. Proposition A text. ' +
+    'The following ballot measures appeared on the ballot at the August 4, 2026 primary election. ' +
+    'Official Ballot Title Amendment 1 text. Amendment 2 text. Amendment 4 text. Amendment 5 text.';
+  const nov = sosNovemberSection(page)!;
+  for (const m of ['Amendment 3', 'Amendment 6', 'Amendment 7', 'Amendment 8', 'Proposition A']) assertEquals(nov.includes(m), true, m);
+  for (const m of ['Amendment 1 ', 'Amendment 2 ', 'Amendment 4 ', 'Amendment 5 ', 'August 4']) assertEquals(nov.includes(m), false, m);
+  assertEquals(sosNovemberSection('The following measures appeared at the August 4, 2026 primary election. Amendment 1.'), null);
+});

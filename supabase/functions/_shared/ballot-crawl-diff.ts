@@ -6,6 +6,18 @@ export const OFFICIAL_DOMAINS = [
   'voteclaycountymo.gov', 'claycountymo.gov', 'plattecountymovotes.gov', 'co.platte.mo.us',
 ];
 
+/**
+ * The Missouri SOS measures page lists Nov 3 measures first, then measures already decided at the
+ * Aug 4 primary. Keep only the Nov 3 section. Returns null when that section cannot be found.
+ */
+export function sosNovemberSection(text: string): string | null {
+  const start = text.search(/certified for the November 3,? 2026 general election/i);
+  if (start < 0) return null;
+  const rest = text.slice(start + 20);
+  const endRel = rest.search(/the following ballot measures (have been certified for|appeared on the ballot at) the (August|April|primary)|August 4,? 2026 primary election/i);
+  return text.slice(start, endRel < 0 ? undefined : start + 20 + endRel);
+}
+
 export function hostOf(url: string | null | undefined): string {
   try { return new URL(url ?? '').hostname.toLowerCase().replace(/^www\./, ''); } catch { return ''; }
 }
