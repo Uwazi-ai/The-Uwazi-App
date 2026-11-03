@@ -1,0 +1,2 @@
+GRANT SELECT (scope_level, scope_counties, scope_district_type, scope_district_id) ON public.ballot_contests TO anon, authenticated;
+GRANT SELECT, UPDATE (ballot_county) ON public.profiles TO authenticated;
