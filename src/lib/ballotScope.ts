@@ -82,7 +82,7 @@ export function scopeLabel(c: ScopedContest): string | null {
   if (c.scope_level === "county") {
     const cs = c.scope_counties ?? [];
     if (cs.length === 1) return COUNTY_LABEL[cs[0]] ?? null;
-    if (cs.length > 1) return "Your area";
+    if (cs.length > 1) return `${cs.map((k) => COUNTY_LABEL[k]?.replace(" County", "")).join(", ")} counties`;
     return null;
   }
   if (c.scope_level === "district" && c.scope_district_type) {
