@@ -1,12 +1,13 @@
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { COUNTY_OPTIONS, isOfficialSource, scopeLabel, type CountySource, type ScopedContest, type VoterCounty } from "@/lib/ballotScope";
+import { COUNTY_OPTIONS_BY_STATE, isOfficialSource, scopeLabel, type CountySource, type ScopedContest, type VoterCounty } from "@/lib/ballotScope";
 import { useSaveBallotCounty } from "@/hooks/useMyBallot";
 
 /** "Your county" picker for Missouri voters without a KCEB precinct. Saves to their profile. */
 export function CountyPicker({ state, county, source }: { state: string | null; county: VoterCounty | null; source: CountySource }) {
   const save = useSaveBallotCounty();
-  if (state !== "MO" || source === "precinct") return null;
+  const options = state ? COUNTY_OPTIONS_BY_STATE[state] : undefined;
+  if (!options || source === "precinct") return null;
   const pick = async (k: VoterCounty) => {
     try { await save.mutateAsync(k); } catch { toast.error("Could not save your county. Try again."); }
   };
@@ -17,7 +18,7 @@ export function CountyPicker({ state, county, source }: { state: string | null; 
         {county ? (source === "zip" ? "We used your ZIP code. Change it if this is wrong." : "Change it if you moved.") : "Pick your county to see your local races."}
       </p>
       <div className="mt-3 flex flex-wrap gap-2" role="radiogroup" aria-label="Your county">
-        {COUNTY_OPTIONS.map((o) => (
+        {options.map((o) => (
           <button
             key={o.key}
             role="radio"
