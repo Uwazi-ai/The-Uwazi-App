@@ -31,7 +31,7 @@ export default function MyBallotWalkthroughPage() {
   const state = profile?.state_code || null;
   const party = (profile?.party_preference as PartyKey) || null;
   const { data: allContests = [], isLoading: cLoading, districtUnknown, place, countySource } = useBallotContestsForState(state);
-  const myCountyLabel = (placeW as any)?.county && (placeW as any).county !== "other" ? COUNTY_LABEL[(placeW as any).county] : "Your county";
+  const myCountyLabel = place?.county && place.county !== "other" ? COUNTY_LABEL[place.county] : "Your county";
   const { data: authority } = useElectionAuthority(profile);
   const officialLink = authority?.lookup_url || authority?.website || null;
   const scopeControls = (
