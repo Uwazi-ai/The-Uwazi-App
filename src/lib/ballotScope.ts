@@ -122,3 +122,26 @@ export function isOfficialSource(url: string | null | undefined): boolean {
   try { h = new URL(url).hostname.toLowerCase().replace(/^www\./, ""); } catch { return false; }
   return OFFICIAL_HOSTS.some((d) => h === d || h.endsWith(`.${d}`));
 }
+
+export type ScopeGroupKey = "statewide" | "county" | "districts";
+/** Which heading a contest sits under. Follows scope only, never the title. */
+export function scopeGroup(c: ScopedContest): ScopeGroupKey | null {
+  if (c.scope_level === "statewide") return "statewide";
+  if (c.scope_level === "county") return "county";
+  if (c.scope_level === "district") return "districts";
+  return null;
+}
+/** Group contests as Statewide, then the voter's county, then Your districts. Keeps input order inside each group. */
+export function groupByScope<T extends ScopedContest>(contests: T[], county: VoterCounty | null): { key: ScopeGroupKey; label: string; items: T[] }[] {
+  const countyLabel = county && county !== "other" ? COUNTY_LABEL[county] : "Your county";
+  const groups: { key: ScopeGroupKey; label: string; items: T[] }[] = [
+    { key: "statewide", label: "Statewide", items: [] },
+    { key: "county", label: countyLabel, items: [] },
+    { key: "districts", label: "Your districts", items: [] },
+  ];
+  for (const c of contests) {
+    const g = scopeGroup(c);
+    if (g) groups.find((x) => x.key === g)!.items.push(c);
+  }
+  return groups.filter((g) => g.items.length > 0);
+}
