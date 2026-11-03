@@ -64,7 +64,7 @@ export default function VoterGuidePage() {
   const { data: contest } = useQuery({
     queryKey: ["guide-contest", contestId],
     queryFn: async () => {
-      const { data } = await supabase.from("ballot_contests").select("id, measure_title, source_name, source_url").eq("id", contestId!).maybeSingle();
+      const { data } = await supabase.from("ballot_contests").select("id, measure_title, source_name, source_url").eq("id", contestId!).eq("verification_status", "verified").maybeSingle();
       return data;
     },
     enabled: !!contestId,
