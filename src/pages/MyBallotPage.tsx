@@ -79,7 +79,7 @@ export default function MyBallotPage() {
       ) : !SUPPORTED_STATES.includes(state || "") ? (
         <div className={card}>
           <h2 className="font-heading text-lg text-foreground">We do not have ballots for your state yet</h2>
-          <p className="text-sm text-muted-foreground mt-2">We cover Missouri and Kansas for now. Your state election office has your sample ballot.</p>
+          <p className="text-sm text-muted-foreground mt-2">We cover Missouri, Kansas and Illinois statewide races for now. Your state election office has your sample ballot.</p>
           <a href="https://www.vote.org/polling-place-locator/" target="_blank" rel="noreferrer"><Button className="mt-4">Find my election office</Button></a>
         </div>
       ) : (
@@ -121,7 +121,7 @@ export default function MyBallotPage() {
             })
           )}
 
-          <DistrictUnknownLine count={unknown} link={authorityLink} />
+          <DistrictUnknownLine count={state === "IL" ? Math.max(1, unknown) : unknown} link={state === "IL" ? ilAuthority(place.county)?.url ?? authorityLink : authorityLink} />
 
           <p className="text-xs text-muted-foreground">
             UWAZI provides factual candidate info from official sources. We do not endorse any candidate, party or position. Always check your official sample ballot.

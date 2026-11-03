@@ -405,7 +405,7 @@ export function isAddressComplete(p: any) {
   return !!(p?.address_line1 && p?.city && p?.state_code && p?.zip_code);
 }
 
-export const SUPPORTED_STATES = ["MO", "KS"];
+export const SUPPORTED_STATES = ["MO", "KS", "IL"];
 
 export const PARTY_LABEL: Record<PartyKey, string> = {
   democratic: "Democratic",
