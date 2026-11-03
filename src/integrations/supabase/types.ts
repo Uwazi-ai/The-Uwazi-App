@@ -449,6 +449,11 @@ export type Database = {
           party: string | null
           plain_summary: string | null
           review_note: string | null
+          scope_counties: string[] | null
+          scope_district_id: string | null
+          scope_district_type: string | null
+          scope_level: string | null
+          scope_note: string | null
           sort_order: number
           source_name: string | null
           source_url: string | null
@@ -480,6 +485,11 @@ export type Database = {
           party?: string | null
           plain_summary?: string | null
           review_note?: string | null
+          scope_counties?: string[] | null
+          scope_district_id?: string | null
+          scope_district_type?: string | null
+          scope_level?: string | null
+          scope_note?: string | null
           sort_order?: number
           source_name?: string | null
           source_url?: string | null
@@ -511,6 +521,11 @@ export type Database = {
           party?: string | null
           plain_summary?: string | null
           review_note?: string | null
+          scope_counties?: string[] | null
+          scope_district_id?: string | null
+          scope_district_type?: string | null
+          scope_level?: string | null
+          scope_note?: string | null
           sort_order?: number
           source_name?: string | null
           source_url?: string | null
@@ -3847,6 +3862,7 @@ export type Database = {
           ask_uwazi_question_count: number
           ask_uwazi_window_start: string | null
           avatar_url: string | null
+          ballot_county: string | null
           city: string | null
           city_council_district: string | null
           civic_knowledge_level: string | null
@@ -3912,6 +3928,7 @@ export type Database = {
           ask_uwazi_question_count?: number
           ask_uwazi_window_start?: string | null
           avatar_url?: string | null
+          ballot_county?: string | null
           city?: string | null
           city_council_district?: string | null
           civic_knowledge_level?: string | null
@@ -3977,6 +3994,7 @@ export type Database = {
           ask_uwazi_question_count?: number
           ask_uwazi_window_start?: string | null
           avatar_url?: string | null
+          ballot_county?: string | null
           city?: string | null
           city_council_district?: string | null
           civic_knowledge_level?: string | null

@@ -344,6 +344,20 @@
       "when": 1793644429606,
       "tag": "0048_ballot_finding_insert_duplicate_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1793663975386,
+      "tag": "0049_ballot_contest_scope_and_voter_county",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1793664655741,
+      "tag": "0050_grant_ballot_scope_columns",
+      "breakpoints": true
     }
   ]
 }

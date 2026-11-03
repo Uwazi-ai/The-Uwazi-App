@@ -4,7 +4,7 @@
 // deno-lint-ignore-file no-explicit-any
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { diffBallot, isOfficialUrl, hostOf, type LiveContest, type StagedContest } from '../_shared/ballot-crawl-diff.ts';
+import { diffBallot, isOfficialUrl, hostOf, sosNovemberSection, type LiveContest, type StagedContest } from '../_shared/ballot-crawl-diff.ts';
 import { authorizeSystemJob } from '../_shared/system-auth.ts';
 import { sendAndLog } from '../_shared/transactional-email-templates/send-and-log.ts';
 
@@ -171,7 +171,14 @@ async function crawlSource(db: any, run: string, src: any) {
     out.changed = changed;
     let contests: any[] = [];
     if (src.kind !== 'notice') {
-      contests = await parseBallot(text, `${src.label} (${src.authority})`);
+      let parseText = text;
+      if (hostOf(readUrl) === 'sos.mo.gov') {
+        // Only the Nov 3 section belongs to this election. Aug 4 primary measures are already decided.
+        const nov = sosNovemberSection(text);
+        if (!nov) throw new Error('Could not find the Nov 3, 2026 section on the Secretary of State page.');
+        parseText = nov;
+      }
+      contests = await parseBallot(parseText, `${src.label} (${src.authority})`);
       const seen = new Set<string>();
       contests = contests.filter((c) => { const k = `${c.title}|${c.district}`.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; });
       let order = 0;

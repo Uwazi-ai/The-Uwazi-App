@@ -1,3 +1,4 @@
+import { ScopeTag, SourceNote } from "@/components/ballot/BallotScope";
 import { ExternalLink, HelpCircle } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -41,6 +42,7 @@ function ContestBody({ contest, party }: { contest: BallotContest; party: string
           <h2 className="font-heading text-2xl text-foreground">{contest.measure_title}</h2>
         </SheetTitle>
       </SheetHeader>
+      <div className="-mt-3"><ScopeTag contest={contest as any} /><SourceNote contest={contest} /></div>
 
       {contest.plain_summary && (
         <section className="rounded-[20px] border border-primary/30 bg-primary/10 p-5">

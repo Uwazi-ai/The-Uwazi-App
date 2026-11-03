@@ -1,3 +1,4 @@
+import { ScopeTag, SourceNote } from "@/components/ballot/BallotScope";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { CheckCircle2, ChevronRight, HelpCircle, Users } from "lucide-react";
@@ -126,6 +127,8 @@ function RaceCard({
           <h3 className="font-heading text-lg text-foreground">{contest.measure_title}</h3>
           {anyChoice && <CheckCircle2 className="h-4 w-4 text-primary mt-1 flex-shrink-0" aria-label="Saved" />}
         </div>
+        <ScopeTag contest={contest as any} />
+        <SourceNote contest={contest} />
         {contest.plain_summary && (
           <p className="text-sm text-muted-foreground mt-1">{contest.plain_summary}</p>
         )}

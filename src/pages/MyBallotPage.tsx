@@ -6,7 +6,8 @@ import { ArrowRight, Check, ExternalLink, HelpCircle, MapPin } from "lucide-reac
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ballotLevel, matchContest } from "@/lib/districts";
+import { ballotLevel } from "@/lib/districts";
+import { CountyPicker, DistrictUnknownLine, ScopeTag, SourceNote } from "@/components/ballot/BallotScope";
 import {
   useVoterProfile,
   useElectionAuthority,
@@ -36,20 +37,9 @@ const card = "rounded-2xl border border-border bg-card p-5 md:p-6";
 export default function MyBallotPage() {
   const { data: profile, isLoading: pLoading } = useVoterProfile();
   const state = profile?.state_code || null;
-  const { data: all = [], districts, isLoading } = useMyFullBallot(state);
+  const { data: mine = [], districtUnknown: unknown, place, countySource, isLoading } = useMyFullBallot(state);
   const { data: authority } = useElectionAuthority(profile);
   const { data: selections = [] } = useMyBallotSelections();
-
-  const { mine, unknown } = useMemo(() => {
-    const mine: BallotContest[] = [];
-    let unknown = 0;
-    for (const c of all) {
-      const m = matchContest(c, districts?.resolved);
-      if (m === "match") mine.push(c);
-      else if (m === "unknown") unknown++;
-    }
-    return { mine, unknown };
-  }, [all, districts]);
 
   const ids = useMemo(() => mine.map((c) => c.id), [mine]);
   const { data: candidates = [] } = useBallotCandidates(ids);
@@ -66,7 +56,7 @@ export default function MyBallotPage() {
   const authorityLink = authority?.lookup_url || authority?.website || null;
   const authorityName = authority?.display_name || "your local election office";
   const picked = mine.filter((c) => selections.some((s) => s.contest_id === c.id && (s.candidate_id || s.measure_vote))).length;
-  const kcNoPrecinct = state === "MO" && (profile?.city || "").toLowerCase().includes("kansas city") && !lookupPrecinct(profile?.precinct_id) && !districts?.resolved?.state_house;
+  const kcNoPrecinct = state === "MO" && (profile?.city || "").toLowerCase().includes("kansas city") && !lookupPrecinct(profile?.precinct_id) && !place.districts.state_house;
 
   return (
     <div className="max-w-2xl mx-auto px-4 md:px-6 py-6 pb-24 md:pb-10 space-y-5 overflow-x-hidden">
@@ -110,6 +100,9 @@ export default function MyBallotPage() {
             <Link to="/app/my-ballot/export"><Button disabled={mine.length === 0}>Print or save <ArrowRight className="h-4 w-4 ml-1" /></Button></Link>
           </div>
 
+          <CountyPicker state={state} county={place.county} source={countySource} />
+          {state === "MO" && place.county === "other" && <YourBallotCard state={state} zip={profile?.zip_code} force />}
+
           {kcNoPrecinct && (
             <Link to="/app/my-ballot/setup" className="block rounded-xl p-4 border border-primary/30 bg-primary/10 text-sm text-foreground">
               Add your ward and precinct to see your State House and County Legislature races. <span className="text-primary">Add it now</span>
@@ -137,11 +130,7 @@ export default function MyBallotPage() {
             })
           )}
 
-          {unknown > 0 && (
-            <p className="text-xs text-muted-foreground">
-              {unknown} more {unknown === 1 ? "race is" : "races are"} hidden because we could not confirm that district for you. Check your sample ballot{authorityLink ? <> at <a href={authorityLink} target="_blank" rel="noreferrer" className="text-primary underline">{authorityName}</a></> : null}.
-            </p>
-          )}
+          <DistrictUnknownLine count={unknown} link={authorityLink} />
 
           <p className="text-xs text-muted-foreground">
             UWAZI provides factual candidate info from official sources. We do not endorse any candidate, party or position. Always check your official sample ballot.
@@ -173,7 +162,9 @@ function ContestCard({ contest, candidates, selection }: { contest: BallotContes
 
   return (
     <article className={card}>
-      <h3 className="font-heading text-xl text-foreground">{contest.measure_title}</h3>
+      <ScopeTag contest={contest} />
+      <h3 className="font-heading text-xl text-foreground mt-2">{contest.measure_title}</h3>
+      <SourceNote contest={contest} />
       {!isMeasure && (contest.vote_for ?? 1) > 1 && <p className="text-xs text-muted-foreground mt-1">Vote for up to {contest.vote_for}</p>}
       {contest.plain_summary && <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{contest.plain_summary}</p>}
 
