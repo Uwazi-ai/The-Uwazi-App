@@ -35,8 +35,8 @@ Deno.serve(async (req) => {
   const ids = (rows ?? []).filter((r) => !r.phone && r.user_id).map((r) => r.user_id);
   const phones = new Map<string, string>();
   if (ids.length) {
-    const { data: ps } = await db.from("profiles").select("id,phone_number").in("id", ids);
-    (ps ?? []).forEach((p) => p.phone_number && phones.set(p.id, p.phone_number));
+    const { data: ps } = await db.from("profiles").select("user_id,phone_number").in("user_id", ids);
+    (ps ?? []).forEach((p) => p.phone_number && p.user_id && phones.set(p.user_id, p.phone_number));
   }
   const out = { sent: 0, skipped: 0, failed: 0, no_phone: 0 };
   for (const r of rows ?? []) {
