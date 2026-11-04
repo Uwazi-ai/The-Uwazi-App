@@ -6,11 +6,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   useVoterProfile,
-  useBallotContestsForState,
+  useMyFullBallot,
   useBallotCandidates,
   useMyBallotSelections,
   useElectionAuthority,
-  filterContestsForParty,
   saveExportCache,
   readExportCache,
   ELECTION_LABEL,
@@ -41,8 +40,8 @@ export default function MyBallotExportPage() {
   const { data: profile } = useVoterProfile();
   const state = profile?.state_code || null;
   const party = (profile?.party_preference as PartyKey) || null;
-  const { data: allContests = [] } = useBallotContestsForState(state);
-  const contests = useMemo(() => filterContestsForParty(allContests, party), [allContests, party]);
+  // Same verified, scope-matched list as My Ballot. General elections have no party choice.
+  const { data: contests = [], isLoading: contestsLoading } = useMyFullBallot(state);
   const contestIds = useMemo(() => contests.map((c) => c.id), [contests]);
   const { data: candidates = [] } = useBallotCandidates(contestIds);
   const { data: selections = [] } = useMyBallotSelections();
@@ -56,7 +55,7 @@ export default function MyBallotExportPage() {
   const isKCMO = ((profile?.city || "").toLowerCase().includes("kansas city")) && state === "MO";
 
   const payload: ExportPayload | null = useMemo(() => {
-    if (!profile || !state || !party || contests.length === 0) return null;
+    if (!profile || !state || contests.length === 0) return null;
     const rows = contests.map((c) => {
       const sel = selections.find((s) => s.contest_id === c.id);
       let choice = "Still deciding";
@@ -156,6 +155,15 @@ export default function MyBallotExportPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wantSave, active]);
+
+  if (!active && profile !== undefined && !contestsLoading) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-10 space-y-4">
+        <p>No ballot notes to print yet.</p>
+        <Button asChild variant="outline"><Link to="/app/my-ballot">Back to My Ballot</Link></Button>
+      </div>
+    );
+  }
 
   if (!active) {
     return (

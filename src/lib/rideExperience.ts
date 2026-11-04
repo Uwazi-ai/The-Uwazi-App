@@ -36,7 +36,10 @@ export function downloadRideCalendar(c: RiderCard) {
 export function downloadBlob(blob: Blob, name: string) { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
 
 // Rider status copy. Never says anyone voted and never promises texts.
-export function riderStatusLine(card: Pick<RiderCard, 'status' | 'pickup_time'>, hourLabel: (t: string) => string) {
+export function isReferred(card: Pick<RiderCard, 'status' | 'referred'>) { return card.status === 'referred' || card.referred === true; }
+export const RIDEKC_URL = 'https://ridekc.org';
+export function riderStatusLine(card: Pick<RiderCard, 'status' | 'pickup_time' | 'referred'>, hourLabel: (t: string) => string) {
+  if (isReferred(card)) return 'Our funded rides are full. No driver is coming for this request. RideKC can get you there.';
   if (card.status === 'requested') return 'We got your request. A coordinator will confirm shortly.';
   if (card.status === 'booked') return `Your ride is confirmed for ${hourLabel(card.pickup_time)}.`;
   return null;
