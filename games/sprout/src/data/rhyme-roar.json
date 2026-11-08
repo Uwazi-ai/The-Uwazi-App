@@ -1,0 +1,22 @@
+{
+  "title": "Rhyme Roar",
+  "families": {
+    "at": ["cat", "hat", "bat", "mat"],
+    "og": ["dog", "log", "frog", "fog"],
+    "un": ["sun", "bun", "run", "fun"],
+    "ug": ["bug", "rug", "mug", "hug"],
+    "ig": ["pig", "wig", "dig", "big"],
+    "an": ["fan", "van", "man", "pan"],
+    "ed": ["bed", "red", "sled", "shed"],
+    "op": ["top", "mop", "hop", "pop"],
+    "ar": ["car", "star", "jar", "far"],
+    "ake": ["cake", "lake", "snake", "rake"]
+  },
+  "levels": [
+    { "name": "Two cards", "rounds": 5, "choices": 2, "families": ["at", "og", "un"], "skill": "rhyming", "trophy": "Little Roar" },
+    { "name": "Three cards", "rounds": 5, "choices": 3, "families": ["at", "og", "un", "ug", "ig"], "skill": "rhyming", "trophy": "Big Roar" },
+    { "name": "New rhymes", "rounds": 6, "choices": 3, "families": ["an", "ed", "op", "ar"], "skill": "rhyming", "trophy": "Rhyme Rex" },
+    { "name": "Tricky rhymes", "rounds": 6, "choices": 3, "families": ["ake", "ar", "op", "ig", "ug"], "skill": "rhyming", "trophy": "Thunder Roar" },
+    { "name": "Rhyme master", "rounds": 7, "choices": 4, "families": ["at", "og", "un", "ug", "ig", "an", "ed", "op", "ar", "ake"], "skill": "rhyming", "trophy": "Roar Legend" }
+  ]
+}

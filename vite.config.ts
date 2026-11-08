@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       strategies: "generateSW", filename: "sw.js", manifest: false,
       injectRegister: null, registerType: "autoUpdate", devOptions: { enabled: false },
-      includeAssets: ["fonts/*"],
+      includeAssets: ["fonts/*", "fonts/sprout/*"],
       workbox: {
         cacheId: "uwazi-compass-kiosk", cleanupOutdatedCaches: true,
         skipWaiting: true, clientsClaim: true,
@@ -34,9 +34,9 @@ export default defineConfig(({ mode }) => ({
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
         navigateFallback: undefined,
         runtimeCaching: [{
-          urlPattern: ({ request, url }) => request.mode === "navigate" && url.origin === self.location.origin && /^\/compass\/(demo|persona)\//.test(url.pathname),
+          urlPattern: ({ request, url }) => request.mode === "navigate" && url.origin === self.location.origin && (/^\/compass\/(demo|persona)\//.test(url.pathname) || url.pathname === "/sprout"),
           handler: "NetworkFirst",
-          options: { cacheName: "uwazi-compass-kiosk-pages", networkTimeoutSeconds: 3, expiration: { maxEntries: 30, maxAgeSeconds: 7 * 86400 }, precacheFallback: { fallbackURL: "index.html" } },
+          options: { cacheName: "uwazi-compass-kiosk-pages", networkTimeoutSeconds: 3, expiration: { maxEntries: 31, maxAgeSeconds: 7 * 86400 }, precacheFallback: { fallbackURL: "index.html" } },
         }, {
           urlPattern: ({ url }) => url.origin === self.location.origin && /^\/assets\/.*-[\w-]+\.(js|css|png|svg|woff2?)$/.test(url.pathname),
           handler: "CacheFirst", options: { cacheName: "uwazi-compass-kiosk-assets", expiration: { maxEntries: 150, maxAgeSeconds: 7 * 86400 } },
@@ -48,6 +48,7 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@sprout": path.resolve(__dirname, "./games/sprout/src"),
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime", "@tanstack/react-query", "@tanstack/query-core"],
   },

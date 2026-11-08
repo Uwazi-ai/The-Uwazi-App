@@ -1,0 +1,11 @@
+{
+  "title": "Hero Memory",
+  "moves": ["stomp", "roar", "jump", "spin"],
+  "levels": [
+    { "name": "Two moves", "rounds": 4, "start": 2, "grow": 0, "moves": ["stomp", "roar", "jump"], "skill": "memory", "trophy": "Copycat Hero" },
+    { "name": "Three moves", "rounds": 4, "start": 3, "grow": 0, "moves": ["stomp", "roar", "jump"], "skill": "memory", "trophy": "Sharp Memory" },
+    { "name": "Growing moves", "rounds": 4, "start": 2, "grow": 1, "moves": ["stomp", "roar", "jump", "spin"], "skill": "memory", "trophy": "Memory Master" },
+    { "name": "Four moves", "rounds": 4, "start": 4, "grow": 0, "moves": ["stomp", "roar", "jump", "spin"], "skill": "memory", "trophy": "Big Brain" },
+    { "name": "Legend memory", "rounds": 4, "start": 3, "grow": 1, "moves": ["stomp", "roar", "jump", "spin"], "skill": "memory", "trophy": "Legend Mind" }
+  ]
+}

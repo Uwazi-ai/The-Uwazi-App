@@ -9,7 +9,7 @@ export async function registerKioskWorker() {
     await Promise.all(registrations.filter(r => [r.active, r.waiting, r.installing].some(worker => worker && new URL(worker.scriptURL).pathname === "/sw.js")).map(r => r.unregister()));
     return;
   }
-  if (!/^\/compass\/(demo|persona)\//.test(location.pathname)) return;
+  if (!/^\/compass\/(demo|persona)\//.test(location.pathname) && location.pathname !== "/sprout") return;
   const { registerSW } = await import("virtual:pwa-register");
   registerSW({ immediate: true });
 }

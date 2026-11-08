@@ -1,0 +1,12 @@
+{
+  "title": "Dino Egg Hunt",
+  "levels": [
+    { "name": "Crack the eggs", "mode": "crack", "rounds": 5, "min": 1, "max": 5, "skill": "counting", "trophy": "Egg Cracker" },
+    { "name": "Feed Stompy", "mode": "feed", "rounds": 5, "min": 2, "max": 6, "skill": "counting", "trophy": "Berry Chef" },
+    { "name": "Which number?", "mode": "numeral", "rounds": 6, "min": 1, "max": 10, "skill": "numerals", "trophy": "Number Spotter" },
+    { "name": "Big counting", "mode": "crack", "rounds": 5, "min": 6, "max": 12, "skill": "counting", "trophy": "Dozen Dino" },
+    { "name": "Berries together", "mode": "add", "rounds": 5, "min": 1, "max": 5, "skill": "adding", "trophy": "Berry Adder" },
+    { "name": "Stompy eats some", "mode": "subtract", "rounds": 5, "min": 2, "max": 8, "skill": "subtracting", "trophy": "Take Away Tyrant" },
+    { "name": "Count to twenty", "mode": "numeral", "rounds": 6, "min": 10, "max": 20, "skill": "numerals", "trophy": "Twenty Titan" }
+  ]
+}

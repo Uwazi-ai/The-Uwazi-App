@@ -1,0 +1,11 @@
+{
+  "title": "Letter Racer",
+  "levels": [
+    { "name": "Sound gates", "mode": "sound", "gates": 6, "choices": 2, "letters": ["b", "m", "s", "t", "p", "d"], "skill": "letterSounds", "trophy": "Sound Speedster" },
+    { "name": "Name gates", "mode": "name", "gates": 6, "choices": 3, "letters": ["a", "b", "c", "k", "m", "o", "s", "t"], "skill": "letterNames", "trophy": "Alphabet Ace" },
+    { "name": "First sounds", "mode": "beginning", "gates": 6, "choices": 2, "words": ["ball", "sun", "cat", "dog", "hat", "map", "pig", "tent", "bus", "fan"], "skill": "beginningSounds", "trophy": "First Sound Flyer" },
+    { "name": "More sounds", "mode": "sound", "gates": 8, "choices": 3, "letters": ["f", "g", "h", "j", "k", "l", "n", "r", "w", "z"], "skill": "letterSounds", "trophy": "Turbo Tongue" },
+    { "name": "Spell it", "mode": "cvc", "gates": 9, "choices": 2, "words": ["cat", "sun", "dog", "bus", "hat", "pig"], "skill": "cvcWords", "trophy": "Word Wheels" },
+    { "name": "Spell more", "mode": "cvc", "gates": 9, "choices": 3, "words": ["fan", "map", "bed", "cup", "log", "jam", "van", "pen"], "skill": "cvcWords", "trophy": "Spelling Champion" }
+  ]
+}

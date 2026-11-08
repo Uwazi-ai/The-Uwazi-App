@@ -1,0 +1,12 @@
+{
+  "title": "Block Builder",
+  "colors": ["#FF7A1A", "#1E88E5", "#FFC531", "#00A3A3", "#7B4FBF", "#D9453D"],
+  "levels": [
+    { "name": "Copy the tower", "mode": "pattern", "rounds": 3, "pattern": "AB", "length": 4, "skill": "patterns", "trophy": "Pattern Pal" },
+    { "name": "Build it tall", "mode": "height", "rounds": 3, "min": 3, "max": 6, "skill": "counting", "trophy": "Tower Titan" },
+    { "name": "Shape stack", "mode": "shapes", "rounds": 4, "shapes": ["circle", "square", "triangle", "star"], "skill": "shapes", "trophy": "Shape Shifter" },
+    { "name": "Tricky patterns", "mode": "pattern", "rounds": 3, "pattern": "ABB", "length": 6, "skill": "patterns", "trophy": "Pattern Pro" },
+    { "name": "Three colors", "mode": "pattern", "rounds": 3, "pattern": "ABC", "length": 6, "skill": "patterns", "trophy": "Rainbow Builder" },
+    { "name": "Build the bridge", "mode": "bridge", "rounds": 3, "min": 2, "max": 4, "skill": "counting", "trophy": "Bridge Boss" }
+  ]
+}

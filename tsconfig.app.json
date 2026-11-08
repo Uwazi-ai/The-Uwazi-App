@@ -20,6 +20,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@sprout/*": [
+        "./games/sprout/src/*"
       ]
     },
     "skipLibCheck": true,
@@ -31,6 +34,7 @@
     "useDefineForClassFields": true
   },
   "include": [
-    "src"
+    "src",
+    "games"
   ]
 }

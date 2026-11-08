@@ -1,0 +1,10 @@
+{
+  "title": "Word Builder",
+  "levels": [
+    { "name": "Short words", "mode": "cvc", "rounds": 4, "words": ["cat", "sun", "dog", "bus"], "extraTiles": 1, "skill": "cvcWords", "trophy": "Word Starter" },
+    { "name": "More words", "mode": "cvc", "rounds": 4, "words": ["hat", "pig", "map", "fan", "bed"], "extraTiles": 2, "skill": "cvcWords", "trophy": "Word Builder" },
+    { "name": "Sight words", "mode": "sight", "rounds": 4, "words": ["the", "and", "you", "see"], "extraTiles": 1, "skill": "sightWords", "trophy": "Sight Seer" },
+    { "name": "Bigger words", "mode": "cvc", "rounds": 4, "words": ["frog", "star", "cake", "jump"], "extraTiles": 2, "skill": "cvcWords", "trophy": "Big Word Boss" },
+    { "name": "Hero words", "mode": "sight", "rounds": 5, "words": ["go", "up", "we", "my", "big", "run"], "extraTiles": 2, "skill": "sightWords", "trophy": "Super Speller" }
+  ]
+}

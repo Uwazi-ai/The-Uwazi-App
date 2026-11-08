@@ -93,6 +93,7 @@ import CompassDemoPage from "./pages/CompassDemoPage";
 import CompassPersonaPage from "./pages/CompassPersonaPage";
 import HelpPage from "./pages/HelpPage";
 import DriverSharePage from "./pages/DriverSharePage";
+import SproutPage from "./pages/SproutPage";
 
 const queryClient = new QueryClient();
 
@@ -130,6 +131,7 @@ const App = () => (
               <Route path="/impact" element={<ImpactPage />} />
               <Route path="/redeem" element={<PromoRedeemPage />} />
               <Route path="/backpack-rules" element={<BackpackRulesPage />} />
+              <Route path="/sprout" element={<ProtectedRoute><SproutPage /></ProtectedRoute>} />
               <Route path="/rides" element={<RidesPage />} />
               <Route path="/rides/map" element={<ElectionDayMapPage />} />
               <Route path="/rides/demo" element={<RideDemoPage />} />

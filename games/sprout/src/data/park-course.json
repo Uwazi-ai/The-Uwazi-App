@@ -1,0 +1,10 @@
+{
+  "title": "Park Obstacle Course",
+  "levels": [
+    { "name": "One step", "steps": 1, "rounds": 5, "relations": ["under", "over"], "skill": "positional", "trophy": "Park Starter" },
+    { "name": "Two steps", "steps": 2, "rounds": 4, "relations": ["under", "over", "on"], "skill": "directions", "trophy": "Two Step Hero" },
+    { "name": "Left and right", "steps": 1, "rounds": 5, "relations": ["left", "right"], "skill": "positional", "trophy": "Left Right Legend" },
+    { "name": "Three steps", "steps": 3, "rounds": 4, "relations": ["under", "over", "on", "behind"], "skill": "directions", "trophy": "Triple Tracker" },
+    { "name": "Mixed up park", "steps": 3, "rounds": 4, "relations": ["under", "over", "on", "left", "right", "behind"], "skill": "directions", "trophy": "Course Champion" }
+  ]
+}

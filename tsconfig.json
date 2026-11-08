@@ -7,6 +7,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@sprout/*": [
+        "./games/sprout/src/*"
       ]
     },
     "skipLibCheck": true,
